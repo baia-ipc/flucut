@@ -127,3 +127,7 @@
   the scheme and its primers, the input groups, the internally primed
   ends, the lengths without references and the tables written (INFO)
   and the step of writing the reports (PHASE)
+- the segment of a reference (segment number and gene, from its FASTA
+  description: "segment <n>" or a gene or protein name) in the warning
+  of the short amplicons, in the HTML report and in the JSON summary
+  (references: segment, gene)

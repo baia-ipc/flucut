@@ -6,6 +6,7 @@
 #include "alloc.h"
 #include "logger.h"
 #include "report.h"
+#include "segments.h"
 #include "test.h"
 
 const char* report_end_name(size_t end) {
@@ -91,6 +92,11 @@ void report_lengths(const fasta_t *refs, const counter_t *c, size_t group,
                  refs->records[group].seq_len : 0;
   out->name = refs == NULL ? "all" : group < refs->n_records ?
               refs->records[group].name : "not_located";
+  if (refs != NULL && group < refs->n_records)
+    segments_label(out->name, refs->records[group].description, out->label,
+                   sizeof(out->label));
+  else
+    snprintf(out->label, sizeof(out->label), "%s", out->name);
   /* (no short amplicons without a reference: expected length 0) */
   lengths_summarize(l, group, out->ref_len, &out->summary);
 }

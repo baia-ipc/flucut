@@ -89,6 +89,9 @@ typedef struct {
 report_site_t* report_sites(const fasta_t *refs, const counter_t *c,
     size_t *n);
 
+/* the size of the label of a reference (see segments_label()) */
+#define REPORT_LABEL_SIZE 256
+
 /* the complete amplicons of a group of the lengths (see
    counter_lengths()): with references, of the reference <group> (or not
    located, if <group> is the number of references), with the amplicons
@@ -96,6 +99,8 @@ report_site_t* report_sites(const fasta_t *refs, const counter_t *c,
    amplicons not located) */
 typedef struct {
   const char *name;        /* the reference, "not_located" or "all" */
+  char label[REPORT_LABEL_SIZE]; /* the name, with the segment of the
+                                    reference if known (segments.h) */
   size_t ref_len;          /* 0: no reference */
   lengths_summary_t summary;
 } report_lengths_t;
