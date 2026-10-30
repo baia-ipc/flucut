@@ -16,6 +16,7 @@
 #include "argparse-def.h"
 #include "amplicon.h"
 #include "fasta.h"
+#include "lengths.h"
 #include "file.h"
 #include "logger.h"
 #include "primer-search.h"
@@ -78,6 +79,7 @@ static test_group_t test_groups[] = {
   {'r', "the location of the reads in the references", reference_test,
    false},
   {'t', "the trimming of a batch of reads", trimmer_test, false},
+  {'l', "the lengths of the complete amplicons", lengths_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 

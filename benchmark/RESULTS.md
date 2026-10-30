@@ -1,5 +1,18 @@
 # Results
 
+## 2026-10-30: length check (simulated reads)
+
+flucut with `-r` the genome, on the reads of the IRMA checks: for the
+HA (KF918483.1, 1779 bases), 209 of 340 complete amplicons are shorter
+than 90% of the reference, most at 670-679 bases (the length from the
+internal site at 1078 to the end of the segment, between the primers:
+1779 - 1077 - 12 - 13 = 677); in the other segments, at most 1 (PB2:
+1 of 338, at 730-739). Without references, the log lists the peaks
+2310-2319, 860-869, 1000-1009, 1380-1389, 2200-2209, 1540-1549,
+670-679 and 1750-1759: the eight segments, and the internal amplicons
+of HA, more frequent than the complete HA (152 against 80 reads in
+those bins), as the simulation starts 60% of the HA reads at the site.
+
 ## 2026-10-30: speed of the classification against references
 
 What was run: flucut on the 3200 simulated reads of the IRMA checks

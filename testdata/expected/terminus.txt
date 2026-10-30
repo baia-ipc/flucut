@@ -2,6 +2,7 @@ exit status: 0
 == messages ==
 SUCCESS | OUTDIR/reads.fastq.gz: 11 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
 SUCCESS | OUTDIR/reads.fastq.gz: ends started by internal priming: 2 left, 2 right; not located in the references: 1 left, 1 right
+SUCCESS | OUTDIR/reads.fastq.gz: NC_004908.1: 4 of 9 complete amplicons shorter than 90% of the reference (1714 bases), most at 1000-1009: internal priming or deletions
 == reads.fastq.gz ==
 md5: 5d9414155e2e4a73604074b4729942ac
 @full_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	tl:i:0	tr:i:10
@@ -27,5 +28,11 @@ md5: 5d9414155e2e4a73604074b4729942ac
 @left_only simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	tl:i:0	tr:i:0
 512 AGCAAAAGCAGGGGA...TACAGGAGTATGAGA
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown
-reads	12	12635	11	12423	10	1	1	2	1	1	0	8	2	1	7	2	1
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete
+reads	12	12635	11	12423	10	1	1	2	1	1	0	8	2	1	7	2	1	4
+== lengths.tsv ==
+output	group	length	reads
+reads	NC_004908.1	20	1
+reads	NC_004908.1	900	1
+reads	NC_004908.1	1000	2
+reads	NC_004908.1	1700	5

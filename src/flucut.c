@@ -22,6 +22,7 @@
 #include "fastq-reader.h"
 #include "file.h"
 #include "gzip-compressor.h"
+#include "lengths.h"
 #include "logger.h"
 #include "options.h"
 #include "reads-reader.h"
@@ -35,6 +36,9 @@
 #define BATCH_PER_THREAD 1000
 #define COMPRESS_LEVEL 6
 #define SUMMARY_FILENAME "summary.tsv"
+#define LENGTHS_FILENAME "lengths.tsv"
+/* the peaks of the lengths shown without references */
+#define MAX_PEAKS 12
 
 /* an output: its name, file and inputs */
 typedef struct {
@@ -110,13 +114,15 @@ typedef struct {
   size_t from, to;
   strbuf_t text, gz;
   trimmer_stats_t stats;
+  lengths_t *lengths;
 } worker_t;
 
 static void* work(void *data) {
   worker_t *w = data;
   strbuf_clear(&w->text);
   strbuf_clear(&w->gz);
-  trimmer_run(w->trimmer, w->batch, w->from, w->to, &w->text, &w->stats);
+  trimmer_run(w->trimmer, w->batch, w->from, w->to, &w->text, &w->stats,
+              w->lengths);
   if (w->text.len > 0)
     gzip_compressor_run(w->compressor, w->text.s, w->text.len, &w->gz);
   return NULL;
@@ -161,12 +167,12 @@ static void summary_header(FILE *f) {
   fputs("output\treads_in\tbases_in\treads_out\tbases_out\t"
         "both_ends\tone_end\tno_end\tminus_strand\tdimers\ttoo_short\t"
         "with_internal_match\tleft_terminal\tleft_internal\t"
-        "left_unknown\tright_terminal\tright_internal\tright_unknown\n",
-        f);
+        "left_unknown\tright_terminal\tright_internal\tright_unknown\t"
+        "short_complete\n", f);
 }
 
 static void summary_line(FILE *f, const char *name,
-    const trimmer_stats_t *s, bool refs) {
+    const trimmer_stats_t *s, bool refs, size_t short_complete) {
   fprintf(f, "%s\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu",
           name, s->reads_in, s->bases_in, s->reads_out, s->bases_out,
           s->n_ends[2], s->n_ends[1], s->n_ends[0], s->minus, s->dimers,
@@ -181,7 +187,10 @@ static void summary_line(FILE *f, const char *name,
       else
         fputs("\tNA", f);
     }
-  fputs("\n", f);
+  if (refs)
+    fprintf(f, "\t%zu\n", short_complete);
+  else
+    fputs("\tNA\n", f);
 }
 
 /* log the counts of an output */
@@ -198,6 +207,70 @@ static void log_stats(const char *name, const trimmer_stats_t *s, bool refs,
             "left, %zu right\n", name, s->origin[0][ORIGIN_INTERNAL],
             s->origin[1][ORIGIN_INTERNAL], s->origin[0][ORIGIN_UNKNOWN],
             s->origin[1][ORIGIN_UNKNOWN]);
+}
+
+/* the name of a group of the lengths (see trimmer_n_length_groups()) */
+static const char* group_name(const fasta_t *refs, size_t group) {
+  if (refs == NULL)
+    return "all";
+  return group < refs->n_records ? refs->records[group].name :
+         "not_located";
+}
+
+/*
+   Write the lengths of the complete amplicons of an output to <f>
+   (lengths.tsv) and log the check (see lengths.h): with references, the
+   groups with short amplicons; without, the peaks of the lengths.
+   Returns the number of short amplicons of the references.
+*/
+static size_t report_lengths(const lengths_t *l, const fasta_t *refs,
+    const char *output, const char *path, FILE *f, Logger *logger) {
+  size_t n_short = 0;
+  size_t n_groups = lengths_n_groups(l);
+  for (size_t g = 0; g < n_groups; g++) {
+    const char *name = group_name(refs, g);
+    size_t len = strlen(output) + strlen(name) + 3;
+    char *prefix;
+    XMALLOC(prefix, len);
+    snprintf(prefix, len, "%s\t%s\t", output, name);
+    lengths_write(l, g, prefix, f);
+    free(prefix);
+    if (refs == NULL) {
+      size_t peaks[MAX_PEAKS];
+      size_t n = lengths_peaks(l, g, peaks, MAX_PEAKS);
+      if (n == 0)
+        continue;
+      strbuf_t line;
+      strbuf_init(&line);
+      for (size_t i = 0; i < n; i++) {
+        char peak[64];
+        snprintf(peak, sizeof(peak), " %zu-%zu (%zu)",
+                 peaks[i] * LENGTHS_BIN,
+                 peaks[i] * LENGTHS_BIN + LENGTHS_BIN - 1,
+                 lengths_count(l, g, peaks[i]));
+        strbuf_append_str(&line, peak);
+      }
+      lprintf(logger, LOG_SUCCESS, "%s: complete amplicons, lengths "
+              "between the primers (peaks):%.*s\n", path, (int)line.len,
+              line.s);
+      strbuf_free(&line);
+      continue;
+    }
+    if (g == refs->n_records)
+      continue;
+    lengths_summary_t s;
+    lengths_summarize(l, g, refs->records[g].seq_len, &s);
+    n_short += s.short_count;
+    if (s.short_count == 0)
+      continue;
+    lprintf(logger, LOG_SUCCESS, "%s: %s: %zu of %zu complete amplicons "
+            "shorter than %.0f%% of the reference (%zu bases), most at "
+            "%zu-%zu: internal priming or deletions\n", path, name,
+            s.short_count, s.total, LENGTHS_SHORT_FRACTION * 100,
+            refs->records[g].seq_len, s.short_bin * LENGTHS_BIN,
+            s.short_bin * LENGTHS_BIN + LENGTHS_BIN - 1);
+  }
+  return n_short;
 }
 
 int main(int argc, char *argv[]) {
@@ -229,17 +302,25 @@ int main(int argc, char *argv[]) {
     workers[t].compressor = gzip_compressor_new(COMPRESS_LEVEL);
     strbuf_init(&workers[t].text);
     strbuf_init(&workers[t].gz);
+    workers[t].lengths = lengths_new(trimmer_n_length_groups(&config));
   }
+  lengths_t *lengths = lengths_new(trimmer_n_length_groups(&config));
   xmakedirs(opts.outdir, logger);
   char *summary_path = path_join(opts.outdir, SUMMARY_FILENAME);
   FILE *summary = xfopen(summary_path, NULL, "w", "summary table", logger);
   summary_header(summary);
+  char *lengths_path = path_join(opts.outdir, LENGTHS_FILENAME);
+  FILE *lengths_file = xfopen(lengths_path, NULL, "w", "lengths table",
+                              logger);
+  fputs("output\tgroup\tlength\treads\n", lengths_file);
   fastq_batch_t batch;
   fastq_batch_init(&batch);
   for (size_t i = 0; i < opts.n_inputs; i++) {
     output_t *o = outputs + i;
-    for (size_t t = 0; t < opts.threads; t++)
+    for (size_t t = 0; t < opts.threads; t++) {
       memset(&workers[t].stats, 0, sizeof(trimmer_stats_t));
+      lengths_clear(workers[t].lengths);
+    }
     FILE *out = xfopen(o->path, NULL, "wb", "trimmed reads", logger);
     for (size_t j = 0; j < o->n_files; j++) {
       lprintf(logger, LOG_PHASE, "Trimming %s...\n", o->files[j]);
@@ -249,18 +330,27 @@ int main(int argc, char *argv[]) {
     xfclose(&out, logger);
     trimmer_stats_t stats;
     memset(&stats, 0, sizeof(stats));
-    for (size_t t = 0; t < opts.threads; t++)
+    lengths_clear(lengths);
+    for (size_t t = 0; t < opts.threads; t++) {
       trimmer_stats_add(&stats, &workers[t].stats);
-    summary_line(summary, o->name, &stats, refs != NULL);
+      lengths_add_all(lengths, workers[t].lengths);
+    }
     log_stats(o->path, &stats, refs != NULL, logger);
+    size_t n_short = report_lengths(lengths, refs, o->name, o->path,
+                                    lengths_file, logger);
+    summary_line(summary, o->name, &stats, refs != NULL, n_short);
   }
   xfclose(&summary, logger);
+  xfclose(&lengths_file, logger);
+  free(lengths_path);
+  lengths_delete(lengths);
   fastq_batch_free(&batch);
   for (size_t t = 0; t < opts.threads; t++) {
     trimmer_delete(workers[t].trimmer);
     gzip_compressor_delete(workers[t].compressor);
     strbuf_free(&workers[t].text);
     strbuf_free(&workers[t].gz);
+    lengths_delete(workers[t].lengths);
   }
   free(workers);
   free(summary_path);

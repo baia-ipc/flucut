@@ -109,13 +109,25 @@ Outputs:
   read), `ni` (primer matches inside the read); with references also
   `ol`/`or` (origin of the end: terminal, internal or unknown) and
   `ml`/`mr` (where the bases after the primer mapped:
-  reference:position:strand). Whether IRMA accepts tags in the titles
-  has not been checked yet; `--no-tags` writes the titles unchanged.
+  reference:position:strand). IRMA accepts the tags (same consensus
+  with and without them, see `benchmark/RESULTS.md`); `--no-tags` writes
+  the titles unchanged.
 - `summary.tsv`: one line per output, with the reads and bases read and
   written, the reads by number of primers found, those on the minus
   strand, the dimers, the reads too short, the reads with internal
   primer matches, and, with references, the left and right ends by
-  origin (`NA` without references).
+  origin and the complete amplicons shorter than 90% of their reference
+  (`short_complete`; `NA` without references).
+- `lengths.tsv`: the lengths of the complete amplicons (the template
+  between the two primers), in bins of 10 bases: output, group (the
+  reference to which the read end mapped, `not_located`, or `all`
+  without references), start of the bin, reads. It is a check
+  independent of the classification of each read end: internal priming
+  (and deletions, e.g. in defective interfering RNAs) shows as complete
+  amplicons much shorter than their segment. The log names, with
+  references, each reference with such amplicons and the length where
+  most of them are; without references, it lists the peaks of the
+  lengths.
 
 ## Building
 
