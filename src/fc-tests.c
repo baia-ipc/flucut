@@ -22,6 +22,7 @@
 #include "primers.h"
 #include "reference.h"
 #include "scheme.h"
+#include "trimmer.h"
 
 /* the directory for temporary files (-T; NULL: a new one, see
    make_tmpdir()) */
@@ -76,6 +77,7 @@ static test_group_t test_groups[] = {
   {'F', "reading of FASTA files", run_fasta_test, false},
   {'r', "the location of the reads in the references", reference_test,
    false},
+  {'t', "the trimming of a batch of reads", trimmer_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 
