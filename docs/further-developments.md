@@ -10,10 +10,6 @@ support the trimming; they are not the purpose of the program.
 
 ## Next
 
-- **Speed of the primer search**: the truncated forms of the primers
-  (see `amplicon.c`) doubled the time of the search (1.3 s instead of
-  0.7 s for 3200 reads, one thread); a single alignment allowing a free
-  start in the primer would replace them.
 - **Benchmark, next** (`benchmark/RESULTS.md`): other error rates and
   shares of internal priming, several simulations per setting (with
   barcodes, the artefact of the untrimmed reads came down to 158
