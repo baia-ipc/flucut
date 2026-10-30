@@ -10,21 +10,24 @@ support the trimming; they are not the purpose of the program.
 
 ## Next
 
-- **Benchmark, other tools** (`benchmark/`): the IRMA checks are done
-  (`benchmark/RESULTS.md`: flucut removes the I348K artefact, IRMA
-  accepts the tags, the consensus ends 12 and 13 bases short with the
-  default trimming). Next: the read-level measures from
-  `truth.tsv.gz`, then cutadapt, Barbell (default and
-  `--use-extended`), the IRMA-core trimmer, Porechop_ABI, BBDuk, dorado
-  trim and the alignment-based trimmers, on the same reads; other
-  shares of internal priming and error rates.
-- **Where flucut can trim better than a generic trimmer**, to be
-  verified with the benchmark, not assumed: the 12-base degenerate
-  Uni12 primer found partial and with Nanopore errors at the read end
-  (remnants left by trimmers which need longer or exact adapters); no
-  template removed before a primer-like site inside a read (e.g. a
-  non-anchored 5' adapter in cutadapt removes everything before a match
-  anywhere in the read); both orientations; no configuration.
+- **A partial primer at the read start before a primer-like sequence
+  further in**: reads which begin inside Uni12 and have a Uni12-like
+  sequence within the window lose the template up to it (benchmark: 15
+  internally primed HA reads, about 68 bases each, at HA 1145-1157).
+  Prefer the partial primer at the end, or allow fewer errors further
+  from the end; measure on the benchmark.
+- **Benchmark, next** (`benchmark/RESULTS.md`): Barbell with reads
+  simulated with kit adapters and barcodes; Porechop_ABI, BBDuk, dorado
+  trim and the alignment-based trimmers; lower coverage (where the
+  template cut by cutadapt may change the consensus), other error
+  rates and shares of internal priming; the frequencies of the
+  variants.
+- **Where flucut trims better than a generic trimmer** (first results
+  in `benchmark/RESULTS.md`): the consensus of cutadapt is the same on
+  the simulated reads; cutadapt removes 80 times as much template (its
+  5' primer matches inside the reads, e.g. at the I348K site); the
+  IRMA-core trimmer leaves many primers. To measure where the template
+  matters: low coverage, variant frequencies.
 
 - **Per-barcode outputs of a MinKNOW run directory**: today a directory
   is one sample; a run directory (`fastq_pass/barcodeNN/`) should give
