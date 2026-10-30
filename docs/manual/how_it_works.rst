@@ -41,6 +41,12 @@ At an end of the read, the primer can be partial:
   shorter form must match with one error less than its length allows,
   as a shorter sequence matches by chance more easily.
 
+The whole primer and its shorter forms are searched in one alignment,
+in which the missing outer bases cost as many errors as the shorter
+form is allowed fewer: the match with the fewest errors, counting this
+cost, is taken, and among equally good matches the outermost. The
+overhang is considered only if the primer is not found inside the read.
+
 The window
 ----------
 
@@ -51,7 +57,9 @@ end) within ``-w`` bases of that end of the read (default 100: enough
 for the barcoding adapters of Oxford Nanopore, 46 bases, and further
 flanking bases).
 
-Within the window, the outermost match is taken: the primer which
+Within the window, the outermost of the best matches of a primer is
+taken, and the outermost of the matches of the primers of an end (e.g.
+the two forms of a degenerate primer): the primer which
 started the amplicon is the one nearest to the end of the read, and a
 primer-like sequence further inside is template. Matches of a primer
 between the two end primers are counted (tag ``ni``), not trimmed: they

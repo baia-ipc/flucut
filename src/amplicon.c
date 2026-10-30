@@ -8,6 +8,7 @@
 #include "amplicon.h"
 #include "fasta.h"
 #include "logger.h"
+#include "numutils.h"
 #include "primer-search.h"
 #include "primers.h"
 #include "reference.h"
@@ -27,6 +28,9 @@ struct amplicon_analyzer_t {
   size_t max_primer_len;
   /* the errors allowed in each primer of each end */
   long *left_max_errors, *right_max_errors;
+  /* the costs of the missing outer bases of each primer of each end,
+     max_primer_len + 1 for each primer (see missing_costs()) */
+  long *left_skip, *left_edge, *right_skip, *right_edge;
   primer_search_t *search;
   /* the reverse complement of the read */
   char *rc;
@@ -46,6 +50,56 @@ static long max_errors_of(double max_errors, size_t seq_len) {
     return (long)max_errors;
   long n = (long)(max_errors * (double)seq_len);
   return n > 0 ? n : 0;
+}
+
+/* the shortest truncated form of a primer searched at an end: half of
+   it, at least AMPLICON_MIN_TRUNCATED bases */
+static size_t min_truncated_len(size_t len) {
+  size_t half = (len + 1) / 2;
+  size_t min = half > AMPLICON_MIN_TRUNCATED ? half : AMPLICON_MIN_TRUNCATED;
+  return min < len ? min : len;
+}
+
+/*
+   The costs of the missing outer bases of a primer of length <len>, at
+   an end of a read (see primer_search_end()), with the errors
+   <max_errors> (see amplicon_analyzer_new()): a match is accepted if
+   its errors plus the cost are at most the errors allowed in the whole
+   primer (<k>), so that the cost is <k> minus the errors allowed in
+   the shorter match.
+
+   A read can begin (or end) inside a primer after a flank, e.g. when
+   the amplicon was shortened before the adapter was ligated: up to
+   half of the outer bases of the primer can be missing (at least
+   AMPLICON_MIN_TRUNCATED bases are left), and the shorter primer,
+   which matches by chance more easily, is allowed one error less than
+   its length allows (<skip>). At the end of the read, the rest of the
+   primer can also overhang the read, by up to half of its length, the
+   errors allowed being reduced proportionally to the part inside the
+   read (<edge>, the lowest cost of the two).
+*/
+static void missing_costs(double max_errors, size_t len, long k,
+    long *skip, long *edge) {
+  size_t max_t = len - min_truncated_len(len);
+  for (size_t q = 0; q <= len; q++) {
+    skip[q] = -1;
+    edge[q] = -1;
+  }
+  for (size_t t = 0; t <= max_t; t++) {
+    long k_t = k;
+    if (t > 0) {
+      k_t = max_errors_of(max_errors, len - t) - 1;
+      if (k_t < 0)
+        k_t = 0;
+    }
+    skip[t] = k - k_t;
+    for (size_t o = 0; o <= (len - t) / 2; o++) {
+      size_t q = t + o;
+      long cost = k - floordiv(k_t * (long)(len - q), (long)(len - t));
+      if (edge[q] < 0 || cost < edge[q])
+        edge[q] = cost;
+    }
+  }
 }
 
 amplicon_analyzer_t* amplicon_analyzer_new(const scheme_t *scheme,
@@ -73,6 +127,19 @@ amplicon_analyzer_t* amplicon_analyzer_new(const scheme_t *scheme,
   for (size_t i = 0; i < scheme->n_right; i++)
     self->right_max_errors[i] = max_errors_of(max_errors,
                                               scheme->right[i].seq_len);
+  size_t stride = self->max_primer_len + 1;
+  XMALLOC(self->left_skip, sizeof(long) * stride * scheme->n_left);
+  XMALLOC(self->left_edge, sizeof(long) * stride * scheme->n_left);
+  XMALLOC(self->right_skip, sizeof(long) * stride * scheme->n_right);
+  XMALLOC(self->right_edge, sizeof(long) * stride * scheme->n_right);
+  for (size_t i = 0; i < scheme->n_left; i++)
+    missing_costs(max_errors, scheme->left[i].seq_len,
+                  self->left_max_errors[i], self->left_skip + i * stride,
+                  self->left_edge + i * stride);
+  for (size_t i = 0; i < scheme->n_right; i++)
+    missing_costs(max_errors, scheme->right[i].seq_len,
+                  self->right_max_errors[i], self->right_skip + i * stride,
+                  self->right_edge + i * stride);
   self->search = primer_search_new();
   self->rc = NULL;
   self->rc_cap = 0;
@@ -96,45 +163,14 @@ void amplicon_analyzer_delete(amplicon_analyzer_t *self) {
     return;
   free(self->left_max_errors);
   free(self->right_max_errors);
+  free(self->left_skip);
+  free(self->left_edge);
+  free(self->right_skip);
+  free(self->right_edge);
   primer_search_delete(self->search);
   free(self->rc);
   free(self->probe);
   free(self);
-}
-
-/*
-   The primer <p> without <t> bases on its outer side (the start for a
-   primer of the left end, as found in a read, the end for one of the
-   right end), into <dest>: a read can begin (or end) inside a primer
-   after a flank, e.g. when the amplicon was shortened before the
-   adapter was ligated; the bounds of the terminus are kept inside the
-   truncated primer
-*/
-static void truncate_primer(const primer_t *p, size_t t, bool left,
-    primer_t *dest) {
-  assert(t < p->seq_len);
-  *dest = *p;
-  dest->seq_len = p->seq_len - t;
-  size_t from = p->terminus_from, to = p->terminus_from + p->terminus_len;
-  if (left) {
-    dest->seq = p->seq + t;
-    from = from > t ? from - t : 0;
-    to = to > t ? to - t : 0;
-  } else if (to > dest->seq_len) {
-    to = dest->seq_len;
-  }
-  if (from > to)
-    from = to;
-  dest->terminus_from = from;
-  dest->terminus_len = to - from;
-}
-
-/* the shortest truncated form of a primer searched at an end: half of
-   it, at least AMPLICON_MIN_TRUNCATED bases */
-static size_t min_truncated_len(size_t len) {
-  size_t half = (len + 1) / 2;
-  size_t min = half > AMPLICON_MIN_TRUNCATED ? half : AMPLICON_MIN_TRUNCATED;
-  return min < len ? min : len;
 }
 
 /*
@@ -158,51 +194,63 @@ static bool better_hit(const primer_hit_t *hit, const primer_hit_t *best,
 }
 
 /*
+   Search the primer <p> at an end of <seq> (see primer_search_end()),
+   with the costs <skip> and <edge> of its missing outer bases (see
+   missing_costs()) and the errors <k> allowed in the whole primer.
+
+   The primer may overhang the read only if it is not found otherwise
+   (as a primer, whole or truncated, inside the read): the few bases of
+   a primer overhanging the read match by chance more easily than the
+   primer found further inside, which is then the one which started the
+   amplicon.
+*/
+static bool search_primer_end(amplicon_analyzer_t *self, const primer_t *p,
+    const char *seq, size_t len, bool left, const long *skip,
+    const long *edge, long k, primer_hit_t *hit) {
+  return primer_search_end(self->search, p, seq, len, left, skip, skip, k,
+                           hit) ||
+         primer_search_end(self->search, p, seq, len, left, skip, edge, k,
+                           hit);
+}
+
+/*
    Search the primers of one end of the scheme in <seq>, and keep the
    best hit (see better_hit(); among equal hits, the first primer of the
    scheme, so that the result does not depend on the order of the
    search).
 
-   <partial_left> and <partial_right>: whether the primer may overhang
-   that side of <seq> (the search at an end of the read); both are false
-   for a match inside the read, which must be complete. At an end, the
-   primer is also searched without up to half of its bases on the outer
-   side (see truncate_primer()), with one error less than allowed for
-   the shorter length (a shorter sequence matches by chance more
-   easily).
+   <partial_left> and <partial_right>: whether this is the search at the
+   start or at the end of the read; both are false for a match inside
+   the read, which must be complete. At an end, the outer bases of a
+   primer may be missing (see search_primer_end()), at the costs <skip>
+   and <edge> (max_primer_len + 1 for each primer; not used for a match
+   inside the read).
 */
 static void search_end(amplicon_analyzer_t *self, const primer_t *primers,
-    const long *max_errors, size_t n, const char *seq, size_t len,
-    bool partial_left, bool partial_right, amplicon_end_t *out) {
+    const long *max_errors, const long *skip, const long *edge, size_t n,
+    const char *seq, size_t len, bool partial_left, bool partial_right,
+    amplicon_end_t *out) {
   out->found = false;
   out->variant = 0;
   out->origin = ORIGIN_UNKNOWN;
   out->ref.mapped = false;
   bool end = partial_left || partial_right;
+  size_t stride = self->max_primer_len + 1;
   for (size_t i = 0; i < n; i++) {
-    size_t plen = primers[i].seq_len;
-    size_t max_t = end ? plen - min_truncated_len(plen) : 0;
-    for (size_t t = 0; t <= max_t; t++) {
-      primer_t p;
-      truncate_primer(primers + i, t, partial_left, &p);
-      // a truncated primer, shorter, matches by chance more easily: one
-      // error less than its length allows
-      long k = max_errors[i];
-      if (t > 0) {
-        k = max_errors_of(self->max_errors, p.seq_len) - 1;
-        if (k < 0)
-          k = 0;
-      }
-      primer_hit_t hit;
-      if (!primer_search_run(self->search, &p, seq, len, k, partial_left,
-                             partial_right, &hit))
-        continue;
-      if (out->found && !better_hit(&hit, &out->hit, end, partial_left))
-        continue;
-      out->found = true;
-      out->variant = i;
-      out->hit = hit;
-    }
+    primer_hit_t hit;
+    bool found = end ?
+        search_primer_end(self, primers + i, seq, len, partial_left,
+                          skip + i * stride, edge + i * stride,
+                          max_errors[i], &hit) :
+        primer_search_run(self->search, primers + i, seq, len,
+                          max_errors[i], false, false, &hit);
+    if (!found)
+      continue;
+    if (out->found && !better_hit(&hit, &out->hit, end, partial_left))
+      continue;
+    out->found = true;
+    out->variant = i;
+    out->hit = hit;
   }
 }
 
@@ -225,8 +273,9 @@ static void search_layout(amplicon_analyzer_t *self, const char *seq,
      after it */
   long region = self->window + (long)self->max_primer_len;
   size_t left_len = (long)len < region ? len : (size_t)region;
-  search_end(self, sc->left, self->left_max_errors, sc->n_left, seq,
-             left_len, true, false, &out->left);
+  search_end(self, sc->left, self->left_max_errors, self->left_skip,
+             self->left_edge, sc->n_left, seq, left_len, true, false,
+             &out->left);
   /* the primer must begin within the window */
   if (out->left.found && out->left.hit.start > self->window)
     out->left.found = false;
@@ -241,9 +290,9 @@ static void search_layout(amplicon_analyzer_t *self, const char *seq,
   out->right.origin = ORIGIN_UNKNOWN;
   out->right.ref.mapped = false;
   if (right_from < (long)len) {
-    search_end(self, sc->right, self->right_max_errors, sc->n_right,
-               seq + right_from, len - (size_t)right_from, false, true,
-               &out->right);
+    search_end(self, sc->right, self->right_max_errors, self->right_skip,
+               self->right_edge, sc->n_right, seq + right_from,
+               len - (size_t)right_from, false, true, &out->right);
     if (out->right.found) {
       out->right.hit.start += right_from;
       out->right.hit.end += right_from;
@@ -272,13 +321,15 @@ static void search_internal(amplicon_analyzer_t *self, const char *seq,
   while (out->n_internal < AMPLICON_MAX_INTERNAL && hi - lo > 0) {
     amplicon_end_t best;
     bool from_left_end = true;
-    search_end(self, sc->left, self->left_max_errors, sc->n_left,
-               seq + lo, (size_t)(hi - lo), false, false, &best);
+    search_end(self, sc->left, self->left_max_errors, NULL, NULL,
+               sc->n_left, seq + lo, (size_t)(hi - lo), false, false,
+               &best);
     /* (the primers of the right end are searched as well: a match of
        either primer inside the read is reported) */
     amplicon_end_t other;
-    search_end(self, sc->right, self->right_max_errors, sc->n_right,
-               seq + lo, (size_t)(hi - lo), false, false, &other);
+    search_end(self, sc->right, self->right_max_errors, NULL, NULL,
+               sc->n_right, seq + lo, (size_t)(hi - lo), false, false,
+               &other);
     if (other.found && (!best.found ||
                         other.hit.n_errors < best.hit.n_errors)) {
       best = other;
@@ -572,6 +623,19 @@ static void test_references(Logger *logger) {
 
 void amplicon_test(void) {
   Logger *logger = new_logger(stderr, LOG_ERROR);
+  /* the costs of the missing outer bases of a primer of 12 bases with
+     errors 0.2 (two errors in the whole primer): one or two bases
+     missing after a flank leave one error (cost 1), three or four
+     none (cost 2); at the end of the read, up to six bases can overhang
+     with one error, and the truncated primers can overhang as well */
+  long skip[13], edge[13];
+  const long exp_skip[13] = {0, 1, 1, 2, 2, -1, -1, -1, -1, -1, -1, -1, -1};
+  const long exp_edge[13] = {0, 1, 1, 1, 1, 1, 1, 2, 2, -1, -1, -1, -1};
+  missing_costs(0.2, 12, 2, skip, edge);
+  for (size_t q = 0; q <= 12; q++) {
+    test_eq_long(skip[q], exp_skip[q]);
+    test_eq_long(edge[q], exp_edge[q]);
+  }
   /* the scheme with a tail at both ends */
   scheme_t *sc = scheme_new_builtin("mbt", logger);
   /* a body of 40 bases, which is not similar to the primers */
@@ -693,6 +757,22 @@ void amplicon_test(void) {
            body, rc13);
   r = amplicon_analyzer_run(a, trunc, strlen(trunc));
   test_eq(r->keep_from, (long)(7 + strlen(body) + 13), long, "%ld");
+  /* the truncated primer is allowed one error less than its length
+     allows: with one mismatch, it is still taken (its cost equals that
+     of the primer-like sequence, and it is the outermost); with two, the
+     primer-like sequence is taken */
+  snprintf(trunc, sizeof(trunc), "TTGCACAAATGCAGG%sAGCAACGAGCAGG%s%s",
+           body, body, rc13);
+  r = amplicon_analyzer_run(a, trunc, strlen(trunc));
+  test_eq(r->keep_from, 15, long, "%ld");
+  snprintf(trunc, sizeof(trunc), "TTGCACAAATGCTGG%sAGCAACGAGCAGG%s%s",
+           body, body, rc13);
+  r = amplicon_analyzer_run(a, trunc, strlen(trunc));
+  test_eq(r->keep_from, (long)(15 + strlen(body) + 13), long, "%ld");
+  /* the primer of the right end without its last five bases, followed
+     by flanking bases */
+  snprintf(trunc, sizeof(trunc), "%s%s%.18sAAGTTC", uni12, body, rc13);
+  check_keep(a, trunc, STRAND_PLUS, 2, body);
   amplicon_analyzer_delete(a);
 
   /* with a window wide enough, the same match is taken as the primer of

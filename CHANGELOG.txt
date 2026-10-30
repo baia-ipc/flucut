@@ -103,3 +103,10 @@
   directory, with the content of the HTML report, versioned (format 1,
   docs/json_summary.md), written to a temporary file and renamed; in
   the digest of the program tests
+- the search of a primer at a read end with its outer bases missing is
+  a single alignment (a dynamic programming of its own, the missing
+  bases at a cost) instead of one alignment for each shorter form of
+  the primer: half the time (0.7 s instead of 1.3 s for the 3200
+  benchmark reads, one thread); of the best matches the outermost is
+  taken: on the benchmark reads, fewer template, primer and flank
+  bases wrongly removed or kept
