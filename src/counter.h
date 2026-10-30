@@ -24,6 +24,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 #include "amplicon.h"
 #include "fasta.h"
 #include "lengths.h"
@@ -114,6 +115,15 @@ const lengths_t* counter_lengths(const counter_t *self);
 /* The number of groups of the lengths of a counter for <references>
    (NULL: none), see counter_lengths() */
 size_t counter_n_length_groups(const fasta_t *references);
+
+/*
+   Save the counts to <file> (text; for the resumption of a run in
+   progress, see live.h), and load them, added to those of <self> (created
+   with the same scheme and references); false if <file> is not a valid
+   file of counts (then the counts of <self> are undefined)
+*/
+void counter_save(const counter_t *self, FILE *file);
+bool counter_load(counter_t *self, FILE *file);
 
 /* Delete (NULL is accepted) */
 void counter_delete(counter_t *self);
