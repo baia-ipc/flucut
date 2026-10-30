@@ -23,10 +23,10 @@
 - primer schemes: "uni12-mbt13" (the untailed degenerate Uni12 primer
   and the tailed Uni13 primer) is the default
 - analysis of a read and trimming: both ends and both orientations, the
-  reads are not reverse-complemented; the policy "primer" (the
-  default) removes all the primer-derived bases, which also removes the
-  internal priming artefact without references; "terminus" keeps the
-  bases of the conserved termini
+  reads are not reverse-complemented; without references all the
+  primer-derived bases are removed, which also removes the internal
+  priming artefact; with references the conserved termini are kept at
+  the ends confidently classified as terminal
 - reference sequences: FASTA reader; scripts/fetch_references.py
   downloads the segment references from NCBI with their provenance
 - scripts/fetch_references.py: segments 7 (MP) and 8 (NS) are searched
@@ -43,21 +43,21 @@
   errors and IUPAC codes); at a terminus the read is a normal amplicon,
   at an interior position it was internally primed; ambiguous reads are
   classified as terminal
-- with the policy "terminus", the trimming is decided per read: the
-  conserved termini of the normal amplicons are kept (only tails are
-  removed), the whole primer of an internally primed end is removed;
-  ends which cannot be located in the references are reported as
-  unclassified; the references are then required (with the default
-  policy they are optional and measure internal priming)
+- with references the trimming is decided per read end: the conserved
+  terminus is kept only at an end confidently classified as terminal
+  (complete segment ends), while an internally primed end, or one whose
+  origin cannot be located, has its whole primer removed (cut when
+  unsure); so a primer base reaches the consensus only at a known
+  terminus, and the artefact never does
 - command line program flucut: inputs FASTQ (optionally gzipped), BAM,
   or directories of such files (one output per directory); one gzipped
   FASTQ per input, ready for IRMA, with SAM-like tags in the titles
-  (--no-tags to omit them); summary.tsv; options --trim, --references
-  (required by --trim terminus), --max-errors, --window, --min-length,
+  (--no-tags to omit them); summary.tsv; options --references (which
+  also chooses the trimming mode), --max-errors, --window, --min-length,
   --threads (the output does not depend on it), --probe-len,
   --probe-errors, --terminal-window
-- primer dimers are not written, also with --trim terminus (their
-  conserved termini were kept)
+- primer dimers are not written, also with references (their conserved
+  termini are kept only at terminal ends)
 - a read starting inside a degenerate primer is found without errors:
   the padding of the read now matches the IUPAC codes of the primer
 - program tests on simulated reads from a real HA record (testdata/)
@@ -179,3 +179,10 @@
   only (reference_set_set_seeds_only()), without the exhaustive search
   of those the k-mers do not locate: 3 times faster on a run of milk
   samples (reads of the host), with the same output
+- the trimming mode is chosen by --references, the --trim/-T option is
+  removed: without references every primer-derived base is removed (as
+  "primer" before); with references the conserved termini are kept at the
+  ends confidently classified as terminal and the whole primer is removed
+  at internal or unclassified ends ("cut when unsure", so the artefact
+  never reaches the consensus and complete segment ends are obtained in
+  one step)

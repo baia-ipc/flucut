@@ -27,8 +27,8 @@ What flucut does about it
 -------------------------
 
 The primer bases of an internally primed read are at its end, like those
-of any other read: removing every primer (``--trim primer``, the
-default) removes the artefact, without any reference. The site is still
+of any other read: removing every primer (the default, without
+references) removes the artefact, without any reference. The site is still
 covered by the reads of the complete amplicons, which carry the
 template.
 
@@ -61,9 +61,11 @@ hardly depends on their number; a probe without a candidate is aligned
 to all of them. ``--exhaustive-search`` aligns every probe to all of
 them, to check the index (the outputs were identical in the benchmark).
 
-With ``--trim primer`` the classification is reported only. With
-``--trim terminus``, an end classified as internal loses its whole
-primer, and the others keep their terminus.
+Without references the classification is not done and every primer is
+removed. With references, an end classified as internal (or whose origin
+cannot be determined: cut when unsure) loses its whole primer, and only
+an end confidently classified as terminal keeps its conserved
+terminus.
 
 ``scripts/fetch_references.py`` downloads segment references from NCBI,
 with their provenance.

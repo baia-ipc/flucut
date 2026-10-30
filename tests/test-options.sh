@@ -37,8 +37,6 @@ expect 0 -V
 # no input
 expect 1
 # keeping the termini needs the references
-expect 1 -T terminus "$reads"
-expect 1 -T both -r "$refs" "$reads"
 expect 1 -s no-such-scheme "$reads"
 expect 1 -e -1 "$reads"
 expect 1 -e 1.5 "$reads"

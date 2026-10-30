@@ -118,22 +118,26 @@ The removal is by position: the whole span of the primer alignment is
 removed, whether or not the bases under it differ from the primer, and
 everything outside it.
 
-``--trim primer`` (the default)
-   removes every primer-derived base, tail and conserved terminus. No
-   base of the output comes from a primer. The consensus is shorter than
-   the segment by the termini (12 and 13 bases): those bases would have
-   been the primer's, not measured sequence.
+The mode follows from the references, there is no separate option:
 
-``--trim terminus``
-   removes the tail and everything outside the primer, and keeps the
-   bases of the conserved terminus, so that the consensus has complete
-   ends. The kept bases are those of the primer: with the degenerate
-   Uni12, the fourth base is a mix of A and G; where the segment differs
-   from the primer (e.g. the 3' end of segment 2 of A/Puerto Rico/8/1934,
-   ``CCTTGTTCCTACT``), the primer's base is kept. At an internal priming
-   site, the primer bases are not the template at all: this policy
-   therefore requires the references (``-r``), against which such ends
-   are recognised and trimmed whole (:doc:`internal_priming`).
+Without ``--references``
+   every primer-derived base is removed, tail and conserved terminus
+   together. No base of the output comes from a primer. The consensus is
+   shorter than the segment by the termini (12 and 13 bases): those
+   bases would have been the primer's, not measured sequence.
+
+With ``--references``
+   the conserved terminus is kept, but only at an end confidently
+   classified as a segment terminus; the tail and anything outside the
+   primer are removed. This gives complete segment ends while a primer
+   base never reaches the consensus at an internal priming site. An end
+   that is internally primed, or whose origin cannot be determined
+   (cut when unsure), has its whole primer removed
+   (:doc:`internal_priming`). The kept terminus bases are those of the
+   primer: with the degenerate Uni12 the fourth base is a mix of A and
+   G; where the segment differs from the primer (e.g. the 3' end of
+   segment 2 of A/Puerto Rico/8/1934, ``CCTTGTTCCTACT``), the primer's
+   base is kept.
 
 Reads with nothing left (primer dimers) and reads shorter than ``-m``
 bases after the trimming are not written.

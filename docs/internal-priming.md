@@ -62,8 +62,8 @@ outside the coding sequences.
 
 ### Keeping the termini: a decision per read
 
-When complete termini are needed, `--trim terminus` keeps them, and
-then has to tell the internally primed reads apart, as for them the
+When complete termini are needed, giving the references (`-r`) keeps
+them, and then tells the internally primed reads apart, as for them the
 primer bases are the artefact. This mode requires the references of the
 segments (`src/reference.h`). The bases which follow the primer (the
 probe) are located in the references:

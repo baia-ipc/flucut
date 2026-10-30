@@ -57,12 +57,12 @@ enum {
   "   -s, --scheme <name>    primer scheme (default: " SCHEME_DEFAULT \
   "; see\n" \
   "                          below)\n" \
-  "   -T, --trim <policy>    primer: remove every primer-derived base\n" \
-  "                          (default); terminus: keep the conserved\n" \
-  "                          termini (requires --references)\n" \
-  "   -r, --references <f>   FASTA of segment references: the reads are\n" \
-  "                          classified as terminal or internally primed\n" \
-  "                          (with --trim primer: reported only)\n" \
+  "   -r, --references <f>   FASTA of segment references: each read end is\n" \
+  "                          classified as terminal or internally primed,\n" \
+  "                          the conserved termini are then kept at the\n" \
+  "                          terminal ends (complete segment ends) and the\n" \
+  "                          whole primer removed elsewhere; without -r,\n" \
+  "                          every primer-derived base is removed\n" \
   "   -e, --max-errors <x>   errors allowed in a primer: a number of\n" \
   "                          bases, below 1 a fraction of its length, or\n" \
   "                          auto: " XSTR(AUTO_MAX_ERRORS_LOW) ", or " \
@@ -167,7 +167,6 @@ void options_parse(options_t *self, int argc, char *argv[],
   PARSE_START;
   self->outdir = OPTIONS_DEFAULT_OUTDIR;
   self->scheme = SCHEME_DEFAULT;
-  self->policy = AMPLICON_DEFAULT_POLICY;
   self->max_errors = OPTIONS_DEFAULT_MAX_ERRORS;
   self->window = AMPLICON_DEFAULT_WINDOW;
   self->references = NULL;
@@ -192,7 +191,6 @@ void options_parse(options_t *self, int argc, char *argv[],
   static struct option longopts[] = {
     {"outdir", required_argument, NULL, 'o'},
     {"scheme", required_argument, NULL, 's'},
-    {"trim", required_argument, NULL, 'T'},
     {"platform", required_argument, NULL, 'p'},
     {"references", required_argument, NULL, 'r'},
     {"max-errors", required_argument, NULL, 'e'},
@@ -217,7 +215,7 @@ void options_parse(options_t *self, int argc, char *argv[],
   int c;
   double x;
   opterr = 0;
-  while ((c = getopt_long(argc, argv, COMMON_OPTS_STR "o:s:T:r:e:w:m:j:p:",
+  while ((c = getopt_long(argc, argv, COMMON_OPTS_STR "o:s:r:e:w:m:j:p:",
                           longopts, NULL)) != -1) {
     switch (c) {
       case 'o':
@@ -229,15 +227,6 @@ void options_parse(options_t *self, int argc, char *argv[],
         if (!is_scheme(optarg))
           OPT_ERR(c, "unknown scheme '%s' (see the list below)", optarg);
         self->scheme = optarg;
-        break;
-      case 'T':
-        if (strcmp(optarg, "primer") == 0)
-          self->policy = TRIM_PRIMER;
-        else if (strcmp(optarg, "terminus") == 0)
-          self->policy = TRIM_TERMINUS;
-        else
-          OPT_ERR(c, "'primer' or 'terminus' expected ('%s' found)",
-                  optarg);
         break;
       case 'r':
         self->references = optarg;
@@ -354,10 +343,11 @@ void options_parse(options_t *self, int argc, char *argv[],
     }
   }
   CHECK_MIN_NARGS(1);
-  if (self->policy == TRIM_TERMINUS && self->references == NULL)
-    PARSE_ERR("--trim terminus requires --references: without them the "
-              "internally primed reads cannot be recognised, and would "
-              "keep the primer bases (the artefact)");
+  /* the trimming mode follows from the references: with them, the
+     conserved termini are kept at the ends known to be terminal
+     (see amplicon.h); without them, every primer-derived base is
+     removed (no end can be classified, so none can be spared) */
+  self->policy = self->references != NULL ? TRIM_TERMINUS : TRIM_PRIMER;
   /* the settings of the platform, unless given */
   if (self->illumina && !window_given)
     self->window = OPTIONS_ILLUMINA_WINDOW;
@@ -389,7 +379,8 @@ void options_parse(options_t *self, int argc, char *argv[],
   PARSE_LOG("Output directory: %s\n", self->outdir);
   PARSE_LOG("Scheme: %s\n", self->scheme);
   PARSE_LOG("Trimming: %s\n",
-            self->policy == TRIM_PRIMER ? "primer" : "terminus");
+            self->policy == TRIM_PRIMER ? "all primer bases" :
+            "primer bases, the conserved termini kept at terminal ends");
   PARSE_LOG("References: %s\n",
             self->references == NULL ? "none" : self->references);
   if (self->max_errors == OPTIONS_MAX_ERRORS_AUTO)
