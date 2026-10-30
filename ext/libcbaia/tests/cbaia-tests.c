@@ -30,6 +30,7 @@
 #include "html-template.h"
 #include "html-writer.h"
 #include "hyperloglog.h"
+#include "kmer-index.h"
 #include "logger.h"
 #include "md5.h"
 #include "outfiles.h"
@@ -410,6 +411,7 @@ static test_group_t test_groups[] = {
   {'f', "file sorting and merging", NULL, file_sorter_test, false},
   {'u', "sequence utilities", sequtil_test, NULL, false},
   {'E', "edit distance of short sequences", edit_distance_test, NULL, false},
+  {'K', "k-mer index", kmer_index_test, NULL, false},
   {'r', "FASTQ reader", NULL, fastq_reader_test, false},
   {'x', "FASTQ writer", fastq_writer_test, NULL, false},
   {'m', "BAM reader", NULL, bam_reader_test, false},
