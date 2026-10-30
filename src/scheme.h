@@ -53,7 +53,13 @@ typedef struct {
 
    The built-in schemes:
 
-   - "mbt" (the default): the tailed primers of the multisegment RT-PCR
+   - "uni12-mbt13": the untailed degenerate Uni12 primer (uni12r) at the
+     left end and the tailed mbtuni-13 at the right end. The two ends of
+     a protocol need not use the same form of the primers; with an
+     untailed Uni12 primer the left end of an amplicon is only the 12
+     bases of the conserved terminus, which are short enough to anneal
+     elsewhere in a segment (see amplicon.h on internal priming).
+   - "mbt": the tailed primers of the multisegment RT-PCR
      of Zhou et al. 2009, with both forms of the Uni12 primer
      (mbtuni-12 and mbtuni-12.4r) at the left end and mbtuni-13 at the
      right end;
