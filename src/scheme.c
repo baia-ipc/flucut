@@ -20,6 +20,7 @@ typedef struct {
 } builtin_scheme_t;
 
 static const builtin_scheme_t builtin[] = {
+  {"uni12-mbt13", {"uni12r", NULL}, {"mbtuni-13", NULL}},
   {"mbt", {"mbtuni-12", "mbtuni-12.4r", NULL}, {"mbtuni-13", NULL}},
   {"uni", {"uni12", "uni12r", NULL}, {"uni13", NULL}},
 };
@@ -147,8 +148,18 @@ void scheme_test(void) {
   test_eq_mem(s->right[0].seq, s->right[0].seq_len, "CCTTGTTTCTACT");
   test_eq_size(s->right[0].terminus_len, 13);
   scheme_delete(s);
+  /* the primers of the two ends can have different forms: an untailed
+     Uni12 primer at the left end, a tailed one at the right end */
+  s = scheme_new_builtin("uni12-mbt13", logger);
+  test_eq_size(s->n_left, 1);
+  test_eq_mem(s->left[0].seq, s->left[0].seq_len, "AGCRAAAGCAGG");
+  test_eq_size(s->left[0].terminus_from, 0);
+  test_eq_size(s->left[0].terminus_len, 12);
+  test_eq_mem(s->right[0].seq, s->right[0].seq_len,
+              "CCTTGTTTCTACTGATCACGCGT");
+  scheme_delete(s);
   const char *const *names = scheme_builtin_names();
-  test_eq_str(names[0], "mbt");
+  test_eq_str(names[0], "uni12-mbt13");
   test_assert(names[N_BUILTIN] == NULL);
   delete_logger(logger);
 }
