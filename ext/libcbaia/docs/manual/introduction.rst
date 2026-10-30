@@ -87,7 +87,8 @@ shown in :numref:`fig-components`:
    reading and writing, a common reader of FASTQ and BAM files, SAM tags
    and MinKNOW metadata in the read titles, the header of BAM output,
    output files of several destinations, the edit distance of short
-   sequences, barcode whitelists, cell calling and library complexity.
+   sequences, the k-mer index of a set of sequences, barcode whitelists,
+   cell calling and library complexity.
 
 .. _fig-components:
 

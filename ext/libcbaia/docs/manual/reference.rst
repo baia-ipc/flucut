@@ -605,6 +605,26 @@ Writing of FASTQ records to a buffer (e.g. for a batch of records, which is then
    void fastq_writer_record(strbuf_t *out, const char *title, size_t title_len,
        const char *seq, const char *qual, size_t len);
 
+**kmer-index.h**
+
+Index of the k-mers of a set of sequences (e.g. reference sequences), for finding where a query sequence may align: the k-mers of the query which occur in the indexed sequences give candidate diagonals (position in the sequence minus position in the query), around which the query is then aligned by the caller (e.g. with edlib), instead of being aligned to the whole of every sequence.
+
+.. code-block:: c
+
+   #define KMER_INDEX_MAX_K
+   typedef struct {
+     uint32_t seq;
+     long diagonal;
+   } kmer_index_hit_t;
+   typedef struct kmer_index_t kmer_index_t;
+   kmer_index_t* kmer_index_new(const char *const *seqs, const size_t *lens,
+       size_t n, size_t k);
+   size_t kmer_index_k(const kmer_index_t *self);
+   size_t kmer_index_count(const kmer_index_t *self, const char *kmer);
+   size_t kmer_index_diagonals(const kmer_index_t *self, const char *query,
+       size_t len, size_t max_occ, kmer_index_hit_t **hits, size_t *cap);
+   void kmer_index_delete(kmer_index_t *self);
+
 **minknow-metadata.h**
 
 Read metadata of MinKNOW: the FASTQ files written by MinKNOW contain the read metadata in the title as fields key=value, separated by spaces (e.g. runid=... ch=12 start_time=...), while Dorado writes SAM tags (see sam-tags.h). The fields can be converted to SAM tags: runid: ri:Z, read: rn:i, ch: ch:i, start_time: st:Z, flow_cell_id: PU:Z, protocol_group_id: pg:Z, sample_id: si:Z, barcode: ob:Z, barcode_alias: oa:Z, parent_read_id: pi:Z, basecall_model_version_id: bm:Z.
