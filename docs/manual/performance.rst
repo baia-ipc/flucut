@@ -67,10 +67,12 @@ Nanopore (NB01-NB04) outside the primers:
   1;
 - with the elongation, the consensus of the reads trimmed by flucut has
   no error, as with cutadapt, dorado, samtools ampliconclip and Barbell;
-- flucut removed 254 template bases and left 2221 primer bases, but
-  28539 bases of adapters, at the read ends where it found no primer:
-  flucut does not search the adapters. Demultiplex and trim the
-  barcodes first (e.g. with dorado or MinKNOW).
+- without the adapter search (``--adapters none``), flucut removed 254
+  template bases and left 2221 primer bases and 28539 bases of adapters,
+  at the read ends where it found no primer; with it (the default), 267,
+  1019 and 698 (Barbell: 1883, 445 and 4375; dorado: 3714, 6452 and 360).
+  The consensus is the same. The reads without barcodes are trimmed as
+  without the search.
 
 Speed
 -----
