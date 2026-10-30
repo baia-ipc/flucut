@@ -1,3 +1,11 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)"
+            srcset="docs/logo/flucut-logo-dark-640.png">
+    <img alt="flucut" src="docs/logo/flucut-logo-640.png" width="320">
+  </picture>
+</p>
+
 # flucut
 
 Primer trimming for influenza A whole-genome sequencing.
