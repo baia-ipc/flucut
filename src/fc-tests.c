@@ -14,6 +14,7 @@
 #define PRINT_PURPOSE(STREAM) print_purpose(STREAM, argv[0])
 #include "options.h"
 #include "argparse-def.h"
+#include "amplicon.h"
 #include "file.h"
 #include "logger.h"
 #include "primer-search.h"
@@ -67,6 +68,7 @@ static test_group_t test_groups[] = {
   {'p', "the built-in primers", primers_test, false},
   {'s', "the search of a primer in a read", primer_search_test, false},
   {'c', "the primer schemes", scheme_test, false},
+  {'a', "the analysis and trimming of a read", amplicon_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 
