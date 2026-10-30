@@ -1,5 +1,45 @@
 # Results
 
+## 2026-10-30: time and memory
+
+What was run: `benchmark/run-speed.sh` (the commands of
+`run-tools.sh`, timed by `benchmark/measure.py`: wall time, CPU time of
+all the processes, peak resident memory of the largest process) on the
+reads of the IRMA checks repeated 10 times (32000 reads, 53 million
+bases, 43 MB gzipped), with 4 threads where the tool has an option for
+it; flucut at commit f7553e7; a machine with 4 cores, otherwise idle.
+Barbell on the barcoded reads (`simnb`) repeated 10 times, with flucut,
+cutadapt and dorado on them as well.
+
+| tool | wall s | CPU s | peak MB |
+|---|---|---|---|
+| flucut, 1 thread | 6.68 | 6.42 | 27 |
+| flucut, 4 threads | 2.43 | 7.59 | 60 |
+| flucut, 4 threads, 8 references (`-r`) | 2.48 | 7.61 | 78 |
+| cutadapt, 4 cores | 3.71 | 12.61 | 41 |
+| IRMA-core trimmer (1 thread) | 7.47 | 7.19 | 11 |
+| BBDuk hdist 2, 4 threads (two passes) | 3.96 | 11.81 | 954 |
+| Porechop_ABI tuned, 4 threads | 33.62 | 80.35 | 253 |
+| dorado trim, 4 threads | 8.08 | 10.65 | 479 |
+| minimap2 + samtools ampliconclip, 4 threads | 15.01 | 25.05 | 125 |
+
+Barcoded reads:
+
+| tool | wall s | CPU s | peak MB |
+|---|---|---|---|
+| flucut, 1 thread | 7.03 | 6.70 | 27 |
+| flucut, 4 threads | 2.50 | 7.89 | 62 |
+| cutadapt, 4 cores | 3.77 | 12.95 | 40 |
+| dorado trim, 4 threads | 7.71 | 10.59 | 502 |
+| Barbell, 4 threads (annotate, filter, trim) | 2.41 | 5.40 | 44 |
+
+The gzip compression of the output (zlib, level 6) is a large part of
+the time of flucut: with level 1 (rebuilt for this test only), 4.32 s
+wall and 4.03 CPU s with 1 thread, 1.72 s wall with 4, for an output 32%
+larger (54 instead of 41 MB); decompressing the input alone takes 0.8 s,
+recompressing it with `gzip -6` 7.3 s. Barbell and cutadapt were given
+the same gzipped input; Barbell writes uncompressed FASTQ.
+
 ## 2026-10-30: the errors in a primer, by error rate of the reads (-e auto)
 
 What was run: `benchmark/simulate.py` with `--error-rate` 0.01, 0.02,
