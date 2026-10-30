@@ -60,6 +60,7 @@ typedef struct {
   const fasta_t *references;
   const reference_index_t *index;
   bool exhaustive;            /* see reference_set_set_exhaustive() */
+  bool seeds_only;            /* see reference_set_set_seeds_only() */
   size_t probe_len;
   double probe_error_rate;
   long terminal_window;

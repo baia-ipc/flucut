@@ -66,7 +66,13 @@ Options
    the amplicons (e.g. after tagmentation), whose adapters were removed
    by the instrument: a primer, when there is one, is at the start of
    the read; the window is 10 bases and the Nanopore adapters are not
-   searched (unless ``-w`` or ``--adapters`` are given). With the
+   searched (unless ``-w`` or ``--adapters`` are given); with
+   ``--references``, the read ends are located by their k-mers only,
+   without the exhaustive search of those the k-mers do not locate (with
+   the few errors of Illumina reads, a read end of a segment shares
+   exact k-mers with its reference; the reads of the host, which belong
+   to no reference, would each be aligned to every reference: 3 times
+   slower on a run of milk samples). With the
    window of 100 bases, a primer-like site in the first 100 bases of an
    Illumina read would be taken for the primer (:doc:`performance`).
 

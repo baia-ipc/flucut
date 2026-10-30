@@ -56,6 +56,7 @@ struct reference_set_t {
   size_t probe_len;
   double max_error_rate;
   bool exhaustive;
+  bool seeds_only;
   /* the reverse complement of the probe (probe_len + 1 bytes) */
   char *rc;
   /* the candidate diagonals (a buffer of hits_size bytes) */
@@ -75,10 +76,15 @@ reference_set_t* reference_set_new(const reference_index_t *index,
   self->probe_len = probe_len;
   self->max_error_rate = max_error_rate;
   self->exhaustive = false;
+  self->seeds_only = false;
   XMALLOC(self->rc, probe_len + 1);
   self->hits = NULL;
   self->hits_size = 0;
   return self;
+}
+
+void reference_set_set_seeds_only(reference_set_t *self, bool seeds_only) {
+  self->seeds_only = seeds_only;
 }
 
 void reference_set_set_exhaustive(reference_set_t *self, bool exhaustive) {
@@ -205,8 +211,8 @@ void reference_set_locate(reference_set_t *self, const char *probe,
     seeded_search(self, probe, len, false, max_errors, hit);
     seeded_search(self, self->rc, len, true, max_errors, hit);
     // nothing found from the k-mers (e.g. an error in each of them):
-    // the exhaustive search follows
-    if (hit->mapped)
+    // the exhaustive search follows, unless seeds only
+    if (hit->mapped || self->seeds_only)
       return;
   }
   for (size_t i = 0; i < self->fasta->n_records; i++) {
@@ -392,6 +398,17 @@ void reference_test(void) {
   test_assert(hit.mapped);
   test_eq_long(hit.ref_start, 500);
   test_eq_long(hit.n_errors, 3);
+  /* with the seeds only, it is not found */
+  reference_set_set_seeds_only(rs, true);
+  reference_set_locate(rs, probe, PROBE, &hit);
+  test_assert(!hit.mapped);
+  /* ... while a probe with an exact k-mer is */
+  take_probe(ref1, 500, PROBE, false, probe);
+  probe[3] = probe[3] == 'A' ? 'C' : 'A';
+  reference_set_locate(rs, probe, PROBE, &hit);
+  test_assert(hit.mapped);
+  test_eq_long(hit.ref_start, 500);
+  reference_set_set_seeds_only(rs, false);
   reference_set_delete(rs);
   reference_index_delete(ix);
   free(fa->records);

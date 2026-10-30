@@ -46,15 +46,25 @@ cd "$out"
 
 # 1. the data
 if [ ! -s ${run}_2.fastq.gz ]; then
-  urls=$(curl -sS --fail "https://www.ebi.ac.uk/ena/portal/api/filereport?\
-accession=$run&result=read_run&fields=fastq_ftp" | tail -1 | cut -f2)
+  urls=$(curl -sS --fail --retry 3 "https://www.ebi.ac.uk/ena/portal/api/\
+filereport?accession=$run&result=read_run&fields=fastq_ftp" \
+    | tail -1 | cut -f2 || true)
+  # (if the file list is not available: the paths of ENA for the run
+  # accessions of 8 digits, e.g. SRR34913296: SRR349/096/SRR34913296)
+  case $urls in
+    *ftp.sra.ebi.ac.uk*) ;;
+    *) dir=ftp.sra.ebi.ac.uk/vol1/fastq/${run:0:6}/0${run: -2}/$run
+       urls="$dir/${run}_1.fastq.gz;$dir/${run}_2.fastq.gz" ;;
+  esac
   for url in ${urls//;/ }; do
-    curl -sS --fail -o "$(basename "$url")" "https://$url"
+    curl -sS --fail --retry 5 --retry-all-errors --retry-delay 10 \
+      -o "$(basename "$url")" "https://$url"
   done
 fi
 if [ ! -s isolate.fasta ]; then
-  curl -sS --fail -o isolate.fasta "https://eutils.ncbi.nlm.nih.gov/entrez/\
-eutils/efetch.fcgi?db=nuccore&id=$accessions&rettype=fasta&retmode=text"
+  curl -sS --fail --retry 5 --retry-all-errors --retry-delay 10 \
+    -o isolate.fasta "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/\
+efetch.fcgi?db=nuccore&id=$accessions&rettype=fasta&retmode=text"
 fi
 [ -s download_date.txt ] || date -u +%Y-%m-%d > download_date.txt
 # the HA (segment 4) and its Uni12-like site (12 bases, 1-based start;
@@ -72,7 +82,9 @@ for line in open("isolate.fasta"):
 for name, lines in seqs.items():
   if "segment 4" in lines[0]:
     ha = "".join(lines[1:])
-    m = re.search("GGC[GT][AT]A[AT]GCAGG", ha[1000:1100])
+    # the template (AGCTATAGCAGG), the primer (AGCAAAAGCAGG) and the
+    # forms between them
+    m = re.search("[AG]GC[AGT]A[AT]AGCAGG", ha[1000:1100])
     print(name, m.start() + 1001)
 EOF
 )
