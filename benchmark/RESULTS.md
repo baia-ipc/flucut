@@ -1,5 +1,80 @@
 # Results
 
+## 2026-10-30: all the tools (simulated reads, without barcodes)
+
+What was run: `benchmark/run-tools.sh` (the commands of each tool are
+in the script) on the 3200 simulated reads of the IRMA checks; flucut
+at commit 3bfb35c, cutadapt 5.2, IRMA-core 0.11.0 (trimmer), BBTools
+40.05 (BBDuk), Porechop_ABI 0.5.1 (commit 0bc9f17), dorado 2.1.2,
+samtools 1.21 and minimap2 2.29 (those of IRMA), IRMA 1.4.0
+(FLU-minion); the programs are given to the script in environment
+variables.
+
+Reads (bases by their true origin, `score_reads.py`):
+
+| tool | written | lost | template removed | primer kept | flank kept | internal site kept |
+|---|---|---|---|---|---|---|
+| untrimmed | 3200 | 0 | 0 | 102554 | 127032 | 2698 |
+| flucut | 3176 | 0 | 882 | 1852 | 7557 | 23 |
+| cutadapt | 3177 | 0 | 102408 | 3037 | 8784 | 25 |
+| IRMA-core, window 40 | 3195 | 0 | 77 | 43474 | 75068 | 1105 |
+| IRMA-core, window 70 | 3200 | 0 | 130 | 13152 | 22890 | 660 |
+| IRMA-core, window 120 | 3200 | 0 | 545 | 13133 | 22914 | 660 |
+| BBDuk, hdist 1 | 3194 | 0 | 261 | 12974 | 22826 | 660 |
+| BBDuk, hdist 2 | 3194 | 0 | 2977 | 7814 | 15831 | 502 |
+| Porechop_ABI | 3182 | 6 | 28349 | 46964 | 62672 | 1389 |
+| Porechop_ABI, tuned | 3179 | 6 | 81812 | 9107 | 14313 | 25 |
+| dorado trim | 3200 | 0 | 2364 | 4904 | 11772 | 41 |
+| samtools ampliconclip | 3173 | 0 | 142 | 30 | 135 | 1549 |
+
+(Porechop_ABI split 11 reads at primers found in their middle.)
+
+IRMA consensus, summed over the 8 segments, with the reference
+elongation (`SKIP_E=0`); the codon of the I348K site in the majority
+consensus. Without the elongation, every tool gives the same ends (219
+and 276 bases missing) and no error. With the elongation, the bases of
+the consensus beyond the 5' end of a segment are counted by the
+alignment either as bases beyond the end or as errors (equal cost):
+the two columns are summed here.
+
+| tool | missing 5' | missing 3' | beyond the ends or errors | ambiguous | codon |
+|---|---|---|---|---|---|
+| untrimmed | 0 | 0 | 358 | 3 | **AAA** |
+| flucut | 96 | 103 | 0 | 0 | ATA |
+| cutadapt | 96 | 103 | 0 | 0 | ATA |
+| IRMA-core, window 40 | 0 | 0 | 365 | 1 | ATA |
+| IRMA-core, window 70 | 84 | 101 | 11 | 0 | ATA |
+| IRMA-core, window 120 | 84 | 101 | 11 | 0 | ATA |
+| BBDuk, hdist 1 | 84 | 101 | 19 | 0 | ATA |
+| BBDuk, hdist 2 | 96 | 101 | 0 | 0 | ATA |
+| Porechop_ABI | 14 | 59 | 228 | 1 | ATA |
+| Porechop_ABI, tuned | 96 | 103 | 0 | 0 | ATA |
+| dorado trim | 96 | 103 | 0 | 0 | ATA |
+| samtools ampliconclip | 96 | 103 | 0 | 0 | ATA |
+
+(96 and 103: the 12 and 13 bases of the primers in each segment; 103
+and not 104, as an N appended by IRMA to segment 3 matches any base.)
+
+What this shows, on these reads:
+
+- **The consensus.** Every trimming tool removes the I348K artefact.
+  With the elongation, six tools give the same consensus as flucut,
+  without errors and ending where the primers began: cutadapt, BBDuk
+  with hdist 2, Porechop_ABI tuned, dorado trim and samtools
+  ampliconclip. The tools which leave primers in many reads (IRMA-core,
+  BBDuk with hdist 1) leave 11 to 19 errors at the ends; IRMA-core with
+  window 40 and Porechop_ABI with its defaults let the consensus extend
+  beyond the segments.
+- **The reads.** Among the tools which search the primer sequences,
+  flucut leaves the fewest primer and flank bases, with fewer template
+  bases removed than all but the k-mer tools (IRMA-core, BBDuk with
+  hdist 1), which leave 7 to 23 times more primer bases. samtools
+  ampliconclip is the best at the ends (30 primer bases left), with the
+  reads mapped to the exact genome they were simulated from (a real
+  sample differs from its reference); it leaves 1549 of the 2698 bases
+  of the internal priming site, as its primer intervals are at the
+  segment ends only.
+
 ## 2026-10-30: low coverage (simulated reads)
 
 What was run: `benchmark/run-coverage.sh` with the genome of
