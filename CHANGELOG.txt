@@ -99,3 +99,7 @@
   found at each end, with references the read ends by origin and the
   internal priming sites with their reads, the complete amplicons (short
   ones per reference) and their length histograms
+- JSON summary, always written: flucut_summary.json in the output
+  directory, with the content of the HTML report, versioned (format 1,
+  docs/json_summary.md), written to a temporary file and renamed; in
+  the digest of the program tests
