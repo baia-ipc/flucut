@@ -78,13 +78,59 @@ Speed and memory
 ----------------
 
 On 32000 reads (53 million bases; ``benchmark/RESULTS.md``), with 4
-threads on a 4-core machine: flucut 2.4 s (60 MB; 6.7 s and 27 MB with
-one thread; with 8 references, 2.5 s and 78 MB), cutadapt 3.7 s (41
+threads on a 4-core machine: flucut 1.6 s (61 MB; 3.8 s and 27 MB with
+one thread; with 8 references, 1.8 s and 78 MB), cutadapt 3.7 s (41
 MB), BBDuk 4.0 s (954 MB), dorado trim 8.1 s (479 MB), minimap2 with
 samtools ampliconclip 15 s (125 MB), Porechop_ABI 34 s (253 MB); the
 IRMA-core trimmer, single-threaded, 7.5 s (11 MB); Barbell, on barcoded
-reads, 2.4 s (44 MB; it writes uncompressed FASTQ). A large part of the
-time of flucut is the compression of its output (gzip level 6).
+reads, 2.4 s (44 MB; it writes uncompressed FASTQ).
+
+A large part of the time of flucut is the compression of its output
+(gzip, one member for each batch of 1000 reads). It is compressed with
+libdeflate: with zlib, at the same level (6), flucut took 2.4 s with 4
+threads and 6.6 s with one, for an output 4% larger. The level is set
+by ``--compress-level`` (on the same reads; decompressing the input
+alone takes 0.8 s):
+
+.. list-table::
+   :header-rows: 1
+
+   * - compression
+     - 1 thread, wall s
+     - 1 thread, CPU s
+     - 4 threads, wall s
+     - 4 threads, CPU s
+     - output MB
+   * - zlib, level 6 (before)
+     - 6.58
+     - 6.41
+     - 2.43
+     - 7.98
+     - 41.0
+   * - libdeflate, level 1
+     - 3.28
+     - 3.14
+     - 1.28
+     - 3.76
+     - 49.1
+   * - libdeflate, level 4
+     - 3.64
+     - 3.40
+     - 1.50
+     - 4.80
+     - 42.2
+   * - libdeflate, level 6 (default)
+     - 3.90
+     - 3.70
+     - 1.63
+     - 4.66
+     - 39.3
+   * - libdeflate, level 9
+     - 5.56
+     - 5.34
+     - 2.26
+     - 7.10
+     - 37.2
 
 The earlier measures
 --------------------
