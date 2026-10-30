@@ -41,6 +41,14 @@ void lengths_add(lengths_t *self, size_t group, size_t len) {
   self->counts[group * LENGTHS_N_BINS + bin_of(len)]++;
 }
 
+void lengths_add_to_bin(lengths_t *self, size_t group, size_t bin,
+    size_t n) {
+  assert(self != NULL);
+  assert(group < self->n_groups);
+  assert(bin < LENGTHS_N_BINS);
+  self->counts[group * LENGTHS_N_BINS + bin] += n;
+}
+
 void lengths_add_all(lengths_t *self, const lengths_t *other) {
   assert(self != NULL);
   assert(other != NULL);

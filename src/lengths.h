@@ -52,6 +52,10 @@ size_t lengths_n_groups(const lengths_t *self);
 /* Count an amplicon of length <len> in the group <group> */
 void lengths_add(lengths_t *self, size_t group, size_t len);
 
+/* Add <n> amplicons to the bin <bin> of the group <group> */
+void lengths_add_to_bin(lengths_t *self, size_t group, size_t bin,
+    size_t n);
+
 /* Add the counts of <other> (with the same number of groups) */
 void lengths_add_all(lengths_t *self, const lengths_t *other);
 

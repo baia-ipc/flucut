@@ -131,6 +131,128 @@ static void count_end(counter_t *self, const amplicon_end_t *end,
   ref_sites(self, r)[e * len + (size_t)pos]++;
 }
 
+/* the counts of counter_reads_t, in the order of the files of counts:
+   10 single counts, n_ends, origin */
+#define N_READ_COUNTS (10 + 3 + COUNTER_N_ENDS * 3)
+
+static void read_counts(counter_reads_t *r, size_t *out[N_READ_COUNTS]) {
+  size_t *single[10] = {&r->reads_in, &r->bases_in, &r->reads_out,
+      &r->bases_out, &r->too_short, &r->dimers, &r->minus,
+      &r->with_internal, &r->adapter_start, &r->adapter_end};
+  size_t n = 0;
+  for (size_t i = 0; i < 10; i++)
+    out[n++] = single[i];
+  for (size_t i = 0; i < 3; i++)
+    out[n++] = r->n_ends + i;
+  for (size_t e = 0; e < COUNTER_N_ENDS; e++)
+    for (size_t i = 0; i < 3; i++)
+      out[n++] = r->origin[e] + i;
+  assert(n == N_READ_COUNTS);
+}
+
+#define COUNTS_HEADER "flucut-counts 1"
+
+void counter_save(const counter_t *self, FILE *file) {
+  assert(self != NULL);
+  assert(file != NULL);
+  fputs(COUNTS_HEADER "\nreads", file);
+  counter_reads_t copy = self->reads;
+  size_t *p[N_READ_COUNTS];
+  read_counts(&copy, p);
+  for (size_t i = 0; i < N_READ_COUNTS; i++)
+    fprintf(file, " %zu", *p[i]);
+  fputc('\n', file);
+  for (size_t e = 0; e < COUNTER_N_ENDS; e++) {
+    fprintf(file, "variants %zu %zu", e, self->n_variants[e]);
+    for (size_t v = 0; v < self->n_variants[e]; v++)
+      fprintf(file, " %zu", self->variants[e][v]);
+    fputc('\n', file);
+  }
+  if (self->refs != NULL)
+    for (size_t r = 0; r < self->refs->n_records; r++) {
+      if (self->sites[r] == NULL)
+        continue;
+      size_t len = self->refs->records[r].seq_len;
+      for (size_t i = 0; i < COUNTER_N_ENDS * len; i++)
+        if (self->sites[r][i] > 0)
+          fprintf(file, "site %zu %zu %zu %zu\n", r, i / len, i % len,
+                  self->sites[r][i]);
+    }
+  for (size_t g = 0; g < lengths_n_groups(self->lengths); g++)
+    for (size_t b = 0; b < LENGTHS_N_BINS; b++) {
+      size_t n = lengths_count(self->lengths, g, b);
+      if (n > 0)
+        fprintf(file, "length %zu %zu %zu\n", g, b, n);
+    }
+  fputs("end\n", file);
+}
+
+/* load a line of a file of counts (see counter_load()) */
+static bool load_line(counter_t *self, char *line, bool *ended) {
+  char *rest;
+  if (strncmp(line, "reads", 5) == 0) {
+    size_t *p[N_READ_COUNTS];
+    read_counts(&self->reads, p);
+    rest = line + 5;
+    for (size_t i = 0; i < N_READ_COUNTS; i++) {
+      char *end;
+      unsigned long long v = strtoull(rest, &end, 10);
+      if (end == rest)
+        return false;
+      *p[i] += (size_t)v;
+      rest = end;
+    }
+    return true;
+  }
+  size_t a, b, c, d;
+  int n;
+  if (sscanf(line, "variants %zu %zu%n", &a, &b, &n) == 2) {
+    if (a >= COUNTER_N_ENDS || b != self->n_variants[a])
+      return false;
+    rest = line + n;
+    for (size_t v = 0; v < b; v++) {
+      char *end;
+      unsigned long long x = strtoull(rest, &end, 10);
+      if (end == rest)
+        return false;
+      self->variants[a][v] += (size_t)x;
+      rest = end;
+    }
+    return true;
+  }
+  if (sscanf(line, "site %zu %zu %zu %zu", &a, &b, &c, &d) == 4) {
+    if (self->refs == NULL || a >= self->refs->n_records ||
+        b >= COUNTER_N_ENDS || c >= self->refs->records[a].seq_len)
+      return false;
+    ref_sites(self, a)[b * self->refs->records[a].seq_len + c] += d;
+    return true;
+  }
+  if (sscanf(line, "length %zu %zu %zu", &a, &b, &c) == 3) {
+    if (a >= lengths_n_groups(self->lengths) || b >= LENGTHS_N_BINS)
+      return false;
+    lengths_add_to_bin(self->lengths, a, b, c);
+    return true;
+  }
+  if (strcmp(line, "end\n") == 0) {
+    *ended = true;
+    return true;
+  }
+  return false;
+}
+
+bool counter_load(counter_t *self, FILE *file) {
+  assert(self != NULL);
+  assert(file != NULL);
+  char *line = NULL;
+  size_t cap = 0;
+  bool ok = getline(&line, &cap, file) > 0 &&
+            strcmp(line, COUNTS_HEADER "\n") == 0, ended = false;
+  while (ok && !ended && getline(&line, &cap, file) > 0)
+    ok = load_line(self, line, &ended);
+  free(line);
+  return ok && ended;
+}
+
 /* the length of the template of a complete amplicon, in its group (see
    counter_lengths()) */
 static void count_length(counter_t *self, const amplicon_t *a) {
@@ -280,6 +402,33 @@ void counter_test(void) {
   test_eq_size(counter_primer(sum, COUNTER_LEFT, 1), 4);
   test_eq_size(counter_sites(sum, 1, COUNTER_LEFT)[7], 4);
   test_eq_size(lengths_count(counter_lengths(sum), 1, 10), 2);
+  /* saved and loaded (added): the same counts, twice */
+  FILE *f = tmpfile();
+  test_assert(f != NULL);
+  counter_save(sum, f);
+  rewind(f);
+  counter_t *loaded = counter_new(sc, &refs);
+  test_assert(counter_load(loaded, f));
+  rewind(f);
+  test_assert(counter_load(loaded, f));
+  test_eq_size(counter_reads(loaded)->reads_in, 8);
+  test_eq_size(counter_reads(loaded)->origin[COUNTER_LEFT][ORIGIN_INTERNAL],
+               8);
+  test_eq_size(counter_primer(loaded, COUNTER_LEFT, 1), 8);
+  test_eq_size(counter_sites(loaded, 1, COUNTER_LEFT)[7], 8);
+  test_eq_size(lengths_count(counter_lengths(loaded), 1, 10), 4);
+  /* not a file of counts, or incomplete */
+  rewind(f);
+  fputs("something else\n", f);
+  rewind(f);
+  test_assert(!counter_load(loaded, f));
+  fclose(f);
+  f = tmpfile();
+  fputs("flucut-counts 1\nreads 1 2\n", f);
+  rewind(f);
+  test_assert(!counter_load(loaded, f));
+  fclose(f);
+  counter_delete(loaded);
   counter_clear(sum);
   test_eq_size(counter_reads(sum)->reads_in, 0);
   test_eq_size(counter_sites(sum, 1, COUNTER_LEFT)[7], 0);
