@@ -27,7 +27,8 @@ rc_mbt13=CCTTGTTTCTACTGATCACGCGT
 mkdir -p "$out"
 reads=$out/reads.fastq.gz
 for (( i = 0; i < copies; i++ )); do
-  gzip -dc "$sim/reads.fastq.gz" | awk -v c=$i 'NR % 4 == 1 { sub(/^@/, "@c" c "_") } 1'
+  gzip -dc "$sim/reads.fastq.gz" |
+    awk -v c=$i 'NR % 4 == 1 { sub(/^@/, "@c" c "_") } 1'
 done | gzip > "$reads"
 primers=$out/primers.fasta
 printf '>uni12A\n%s\n>uni12G\n%s\n>mbtuni13\n%s\n' "$uni12a" "$uni12g" \
