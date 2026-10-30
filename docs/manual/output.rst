@@ -17,6 +17,11 @@ The files of a directory are read in the order of their names. Two
 groups with the same name are an error, as one would overwrite the
 other. ``summary.tsv`` and ``lengths.tsv`` have one part for each group.
 
+The output directory also contains the reports of the run
+(:doc:`reports`): ``flucut_report.html``, the HTML report, and
+``flucut_summary.json``, the same content for programs, with the
+statistics of all reads and of each group.
+
 The trimmed reads
 -----------------
 
@@ -99,6 +104,16 @@ left end, or else of the right end, mapped; ``not_located``; or ``all``
 without references), ``length`` (the start of the bin) and ``reads``.
 Only the bins with reads are written; the last bin collects the lengths
 from 4000 bases on.
+
+flucut_report.html, flucut_summary.json
+---------------------------------------
+
+The reports of the run, always written, at its end: the run
+parameters and, for all reads and for each group, the reads at each
+step, the primers found at each end, the internal priming sites (with
+references) and the complete amplicons, with the histograms of their
+lengths (:doc:`reports`). Each is written to a temporary file (suffix
+``.tmp``) and then renamed.
 
 Messages
 --------

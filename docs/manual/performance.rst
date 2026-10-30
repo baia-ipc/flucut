@@ -82,5 +82,7 @@ index, adds little: 0.8 s instead of 0.7 s with 8 references, 1.1 s with
 exhaustive search, 2.0 and 14-16 s).
 
 With threads: the same reads ten times (32,000 reads), with the 8
-references, on a computer with 4 cores: 12.4 s with ``-j 1``, 3.5 s
-with ``-j 4`` (the output files identical).
+references, on a computer with 4 cores (three runs each): 6.7-6.9 s
+with ``-j 1``, 2.1-2.5 s with ``-j 4`` (3.0-3.2 s with the threads of
+the previous version, started for each batch); the output files are
+identical.

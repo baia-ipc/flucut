@@ -116,5 +116,8 @@
   the order of the input, waiting for its turn; the counts of each
   thread are summed at the end of the file. The output files are the
   same, byte for byte, for any -j (before, the last batch was split
-  depending on -j); 32,000 reads with 8 references: 3.5 s with -j 4
-  instead of 5.1 s
+  depending on -j); 32,000 reads with 8 references, 4 cores: 2.1-2.5 s
+  with -j 4 instead of 3.0-3.2 s
+- manual: chapter on the reports (with screenshots of the report of the
+  simulated reads of the benchmark, docs/manual/figures/screenshot.js
+  from Lumipore), the groups and the report files in the outputs
