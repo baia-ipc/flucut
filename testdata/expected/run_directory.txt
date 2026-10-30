@@ -42,6 +42,119 @@ barcode01	all	1700	5
 barcode02	all	20	1
 barcode02	all	900	1
 barcode02	all	1000	1
+== flucut_summary.json ==
+{
+  "format": 1,
+  "program": "flucut",
+  "version": "0.1",
+  "updated": "DATE",
+  "running": false,
+  "command": "bin/flucut -o OUTDIR testdata/fastq_pass",
+  "scheme": {
+    "name": "uni12-mbt13",
+    "left": ["uni12r"],
+    "right": ["mbtuni-13"]
+  },
+  "trim_policy": "primer",
+  "references": null,
+  "settings": {
+    "max_errors": {"mode": "fixed", "value": 0.2},
+    "window": 100,
+    "min_length": 1,
+    "probe_length": 32,
+    "probe_errors": 0.2,
+    "terminal_window": 60,
+    "exhaustive_search": false,
+    "tags": true,
+    "threads": 4
+  },
+  "length_bin": 10,
+  "length_max": 4000,
+  "short_fraction": 0.9,
+  "all": {
+    "reads": {
+      "in": 12,
+      "bases_in": 12635,
+      "written": 11,
+      "bases_written": 12240,
+      "both_primers": 10,
+      "one_primer": 1,
+      "no_primer": 1,
+      "dimers": 1,
+      "too_short": 1,
+      "minus_strand": 2,
+      "with_internal_match": 0
+    },
+    "primers": {
+      "left": {"uni12r": 11},
+      "right": {"mbtuni-13": 10}
+    },
+    "ends": null,
+    "internal_sites": null,
+    "short_complete": null,
+    "complete_amplicons": [
+      {"group": "all", "reference_length": null, "amplicons": 9, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]}
+    ]
+  },
+  "groups": [
+    {
+      "name": "barcode01",
+      "files": 1,
+      "processed": true,
+      "reads": {
+        "in": 6,
+        "bases_in": 9748,
+        "written": 6,
+        "bases_written": 9517,
+        "both_primers": 6,
+        "one_primer": 0,
+        "no_primer": 0,
+        "dimers": 0,
+        "too_short": 0,
+        "minus_strand": 1,
+        "with_internal_match": 0
+      },
+      "primers": {
+        "left": {"uni12r": 6},
+        "right": {"mbtuni-13": 6}
+      },
+      "ends": null,
+      "internal_sites": null,
+      "short_complete": null,
+      "complete_amplicons": [
+        {"group": "all", "reference_length": null, "amplicons": 6, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]}
+      ]
+    },
+    {
+      "name": "barcode02",
+      "files": 1,
+      "processed": true,
+      "reads": {
+        "in": 6,
+        "bases_in": 2887,
+        "written": 5,
+        "bases_written": 2723,
+        "both_primers": 4,
+        "one_primer": 1,
+        "no_primer": 1,
+        "dimers": 1,
+        "too_short": 1,
+        "minus_strand": 1,
+        "with_internal_match": 0
+      },
+      "primers": {
+        "left": {"uni12r": 5},
+        "right": {"mbtuni-13": 4}
+      },
+      "ends": null,
+      "internal_sites": null,
+      "short_complete": null,
+      "complete_amplicons": [
+        {"group": "all", "reference_length": null, "amplicons": 3, "main_length": 20, "short": null, "short_main_length": null, "histogram": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]}
+      ]
+    }
+  ]
+}
 == flucut_report.html ==
 </html>
 <h2>Groups</h2>

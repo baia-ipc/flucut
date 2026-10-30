@@ -22,6 +22,7 @@
 /* files in the output directory, reload interval of the HTML report in
    a run in progress (seconds) */
 #define RUN_REPORT_HTML_FILE "flucut_report.html"
+#define RUN_REPORT_JSON_FILE "flucut_summary.json"
 #define RUN_REPORT_REFRESH 30
 
 typedef struct run_report_t run_report_t;

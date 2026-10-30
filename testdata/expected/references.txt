@@ -36,6 +36,110 @@ reads	NC_004908.1	20	1
 reads	NC_004908.1	900	1
 reads	NC_004908.1	1000	2
 reads	NC_004908.1	1700	5
+== flucut_summary.json ==
+{
+  "format": 1,
+  "program": "flucut",
+  "version": "0.1",
+  "updated": "DATE",
+  "running": false,
+  "command": "bin/flucut -o OUTDIR -r testdata/ref-ha.fasta testdata/reads.fastq",
+  "scheme": {
+    "name": "uni12-mbt13",
+    "left": ["uni12r"],
+    "right": ["mbtuni-13"]
+  },
+  "trim_policy": "primer",
+  "references": {
+    "file": "testdata/ref-ha.fasta",
+    "sequences": [
+      {"name": "NC_004908.1", "length": 1714}
+    ]
+  },
+  "settings": {
+    "max_errors": {"mode": "fixed", "value": 0.2},
+    "window": 100,
+    "min_length": 1,
+    "probe_length": 32,
+    "probe_errors": 0.2,
+    "terminal_window": 60,
+    "exhaustive_search": false,
+    "tags": true,
+    "threads": 4
+  },
+  "length_bin": 10,
+  "length_max": 4000,
+  "short_fraction": 0.9,
+  "all": {
+    "reads": {
+      "in": 12,
+      "bases_in": 12635,
+      "written": 11,
+      "bases_written": 12240,
+      "both_primers": 10,
+      "one_primer": 1,
+      "no_primer": 1,
+      "dimers": 1,
+      "too_short": 1,
+      "minus_strand": 2,
+      "with_internal_match": 0
+    },
+    "primers": {
+      "left": {"uni12r": 11},
+      "right": {"mbtuni-13": 10}
+    },
+    "ends": {
+      "left": {"terminal": 8, "internal": 2, "unknown": 1},
+      "right": {"terminal": 7, "internal": 2, "unknown": 1}
+    },
+    "internal_sites": [
+      {"reference": "NC_004908.1", "end": "left", "position": 712, "from": 712, "to": 712, "reads": 2},
+      {"reference": "NC_004908.1", "end": "right", "position": 31, "from": 31, "to": 31, "reads": 1},
+      {"reference": "NC_004908.1", "end": "right", "position": 911, "from": 911, "to": 911, "reads": 1}
+    ],
+    "short_complete": 4,
+    "complete_amplicons": [
+      {"group": "NC_004908.1", "reference_length": 1714, "amplicons": 9, "main_length": 1700, "short": 4, "short_main_length": 1000, "histogram": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]}
+    ]
+  },
+  "groups": [
+    {
+      "name": "reads",
+      "files": 1,
+      "processed": true,
+      "reads": {
+        "in": 12,
+        "bases_in": 12635,
+        "written": 11,
+        "bases_written": 12240,
+        "both_primers": 10,
+        "one_primer": 1,
+        "no_primer": 1,
+        "dimers": 1,
+        "too_short": 1,
+        "minus_strand": 2,
+        "with_internal_match": 0
+      },
+      "primers": {
+        "left": {"uni12r": 11},
+        "right": {"mbtuni-13": 10}
+      },
+      "ends": {
+        "left": {"terminal": 8, "internal": 2, "unknown": 1},
+        "right": {"terminal": 7, "internal": 2, "unknown": 1}
+      },
+      "internal_sites": [
+        {"reference": "NC_004908.1", "end": "left", "position": 712, "from": 712, "to": 712, "reads": 2},
+        {"reference": "NC_004908.1", "end": "right", "position": 31, "from": 31, "to": 31, "reads": 1},
+        {"reference": "NC_004908.1", "end": "right", "position": 911, "from": 911, "to": 911, "reads": 1}
+      ],
+      "short_complete": 4,
+      "complete_amplicons": [
+        {"group": "NC_004908.1", "reference_length": 1714, "amplicons": 9, "main_length": 1700, "short": 4, "short_main_length": 1000, "histogram": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]}
+      ]
+    }
+  ]
+}
 == flucut_report.html ==
 </html>
 <h2>All reads</h2>

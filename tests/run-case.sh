@@ -9,9 +9,10 @@
 # the exit status, the messages without their time stamps, and, for each
 # output file, the md5 of its decompressed content and, for each read,
 # its title, its length and its first and last 15 bases; then the
-# summary table and the lengths table; then, for the HTML report, its
-# last line and its headings (its content is checked through the JSON
-# summary, which has the same content).
+# summary table, the lengths table and the JSON summary (with the time
+# of writing replaced by DATE); then, for the HTML report, its last line
+# and its headings (its content is checked through the JSON summary,
+# which has the same content).
 #
 # Usage: tests/run-case.sh <flucut> <case> "<valgrind command or empty>"
 #
@@ -47,6 +48,11 @@ fi
 if [ -e "$outdir/lengths.tsv" ]; then
   echo "== lengths.tsv =="
   cat "$outdir/lengths.tsv"
+fi
+if [ -e "$outdir/flucut_summary.json" ]; then
+  echo "== flucut_summary.json =="
+  sed -e 's/^\(  "updated": \).*/\1"DATE",/' -e "s|$outdir|OUTDIR|g" \
+    "$outdir/flucut_summary.json"
 fi
 html="$outdir/flucut_report.html"
 if [ -e "$html" ]; then
