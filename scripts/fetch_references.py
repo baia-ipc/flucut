@@ -65,6 +65,13 @@ SLEEP_WITH_KEY = 0.15
 # Network timeout in seconds for each request.
 TIMEOUT = 60
 
+# On HTTP 429 (too many requests), a request is retried after each of
+# these waits in seconds (exponential backoff), or after the wait
+# requested by the Retry-After header of the response, if longer (at
+# most MAX_RETRY_WAIT); the error is raised when they are exhausted.
+RETRY_WAITS = [1, 2, 4, 8, 16]
+MAX_RETRY_WAIT = 60
+
 
 def log(msg):
   """Print a progress/error message to stderr."""
@@ -112,15 +119,38 @@ def http_get(url):
   urllib automatically honors HTTPS_PROXY / https_proxy via the
   default opener's ProxyHandler, which reads
   urllib.request.getproxies(). We build an opener explicitly from
-  those proxies so the behavior is clear and testable.
+  those proxies so the behavior is clear and testable. On HTTP 429
+  the request is retried with backoff (see RETRY_WAITS).
   """
   proxies = urllib.request.getproxies()
   handler = urllib.request.ProxyHandler(proxies)
   opener = urllib.request.build_opener(handler)
   req = urllib.request.Request(
     url, headers={"User-Agent": "flucut-fetch-references/1.0"})
-  with opener.open(req, timeout=TIMEOUT) as resp:
-    return resp.read()
+  for attempt in range(len(RETRY_WAITS) + 1):
+    try:
+      with opener.open(req, timeout=TIMEOUT) as resp:
+        return resp.read()
+    except urllib.error.HTTPError as err:
+      if err.code != 429 or attempt == len(RETRY_WAITS):
+        raise
+      wait = max(RETRY_WAITS[attempt], retry_after(err.headers))
+      log("HTTP 429 (too many requests), retrying in %d s (%d/%d)"
+          % (wait, attempt + 1, len(RETRY_WAITS)))
+      time.sleep(wait)
+
+
+def retry_after(headers):
+  """The wait in seconds requested by a Retry-After header, or 0.
+
+  Only the delay-seconds form is used (not the HTTP-date form); the
+  wait is limited to MAX_RETRY_WAIT.
+  """
+  value = headers.get("Retry-After", "") if headers else ""
+  try:
+    return min(max(int(value.strip()), 0), MAX_RETRY_WAIT)
+  except ValueError:
+    return 0
 
 
 def eutils_url(tool, params):
