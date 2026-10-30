@@ -6,50 +6,36 @@
 #include "primers.h"
 #include "test.h"
 
-/*
-   The built-in primers (see primers.h for the sources of each sequence).
+/* length of a string literal */
+#define LITLEN(S) (sizeof(S) - 1)
 
-   The length of the oligonucleotide and that of its conserved terminus
-   are computed by primers_builtin_init(), so that a sequence is written
-   only once here.
+/*
+   A built-in primer: its sequence <SEQ> is the oligonucleotide, whose
+   last bases are the conserved terminus of the end <END> (the lengths
+   are computed by the compiler, so that each sequence is written once)
 */
-static primer_t builtin[] = {
-  {"uni12", PRIMERS_TERMINUS_12, 0, 0, PRIMER_END_12},
-  {"uni12r", PRIMERS_TERMINUS_12_R, 0, 0, PRIMER_END_12},
-  {"uni13", PRIMERS_TERMINUS_13, 0, 0, PRIMER_END_13},
-  {"mbtuni-12", PRIMERS_MBT_TAIL "CAAAAGCAGG", 0, 0, PRIMER_END_12},
-  {"mbtuni-12.4r", PRIMERS_MBT_TAIL "CRAAAGCAGG", 0, 0, PRIMER_END_12},
-  {"mbtuni-13", PRIMERS_MBT_TAIL "TAGAAACAAGG", 0, 0, PRIMER_END_13},
+#define BUILTIN(NAME, SEQ, TERMINUS, END) \
+  {NAME, SEQ, LITLEN(SEQ), LITLEN(TERMINUS), END}
+
+/* The built-in primers (see primers.h for the source of each sequence) */
+static const primer_t builtin[] = {
+  BUILTIN("uni12", PRIMERS_TERMINUS_12, PRIMERS_TERMINUS_12,
+          PRIMER_END_12),
+  BUILTIN("uni12r", PRIMERS_TERMINUS_12_R, PRIMERS_TERMINUS_12_R,
+          PRIMER_END_12),
+  BUILTIN("uni13", PRIMERS_TERMINUS_13, PRIMERS_TERMINUS_13,
+          PRIMER_END_13),
+  BUILTIN("mbtuni-12", PRIMERS_MBT_TAIL "CAAAAGCAGG",
+          PRIMERS_TERMINUS_12, PRIMER_END_12),
+  BUILTIN("mbtuni-12.4r", PRIMERS_MBT_TAIL "CRAAAGCAGG",
+          PRIMERS_TERMINUS_12_R, PRIMER_END_12),
+  BUILTIN("mbtuni-13", PRIMERS_MBT_TAIL "TAGAAACAAGG",
+          PRIMERS_TERMINUS_13, PRIMER_END_13),
 };
 #define N_BUILTIN ((size_t)(sizeof(builtin) / sizeof(builtin[0])))
 
-/* the conserved terminus bound by a primer of each end */
-static const char* terminus_of(primer_end_t end) {
-  return end == PRIMER_END_12 ? PRIMERS_TERMINUS_12 : PRIMERS_TERMINUS_13;
-}
-
-/*
-   Compute the lengths of the built-in primers, once: the terminus is the
-   suffix of the oligonucleotide of the length of the conserved terminus
-   of its end (the tail and the terminus may overlap in the
-   oligonucleotide, see primers.h)
-*/
-static void primers_builtin_init(void) {
-  static bool done = false;
-  if (done)
-    return;
-  for (size_t i = 0; i < N_BUILTIN; i++) {
-    primer_t *p = builtin + i;
-    p->seq_len = strlen(p->seq);
-    p->terminus_len = strlen(terminus_of(p->end));
-    assert(p->terminus_len <= p->seq_len);
-  }
-  done = true;
-}
-
 const primer_t* primers_builtin(const char *name) {
   assert(name != NULL);
-  primers_builtin_init();
   for (size_t i = 0; i < N_BUILTIN; i++) {
     const char *a = name, *b = builtin[i].name;
     while (*a != '\0' && *b != '\0' &&
@@ -62,7 +48,6 @@ const primer_t* primers_builtin(const char *name) {
 }
 
 const primer_t* primers_builtin_all(size_t *n) {
-  primers_builtin_init();
   if (n != NULL)
     *n = N_BUILTIN;
   return builtin;

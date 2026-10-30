@@ -16,6 +16,7 @@
 #include "argparse-def.h"
 #include "file.h"
 #include "logger.h"
+#include "primer-search.h"
 #include "primers.h"
 
 /* the directory for temporary files (-T; NULL: a new one, see
@@ -63,6 +64,7 @@ typedef struct {
 
 static test_group_t test_groups[] = {
   {'p', "the built-in primers", primers_test, false},
+  {'s', "the search of a primer in a read", primer_search_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 
