@@ -15,7 +15,7 @@ The logos were generated with AI image tools and provided by the author
 | `flucut-banner-dark-original.png` | the wide logo as received, designed on a black background, 2172 x 724 |
 | `flucut-banner-dark.png` | the same with a transparent background, cropped |
 | `flucut-banner-dark-640.png` | 640 pixels wide, at the top of the README (dark theme) |
-| `flucut-banner.ans` | the wide logo as colored text (Unicode Braille characters, 24-bit ANSI colors on black, 77 columns, 9 lines), as received from ASCIILogo.com in a shell script, without the script lines; embedded in the program and shown at the start of a run in a terminal (`src/banner.c`) |
+| `flucut-banner.ans` | the wide logo as colored text (Unicode Braille characters, 24-bit ANSI colors on black, 77 columns, 13 lines; "FluCut Neon Biotech Banner"), as received from ASCIILogo.com in a shell script, without the script lines; embedded in the program and shown at the start of a run in a terminal (`src/banner.c`) |
 
 The transparent and reduced versions are made by `make_logos.py` (Python,
 Pillow, NumPy; the method is described in the script):
