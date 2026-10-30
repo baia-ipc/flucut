@@ -1,5 +1,88 @@
 # Results
 
+## 2026-10-30: all the tools (simulated reads with barcodes)
+
+What was run: `benchmark/run-tools.sh` as in the next section, on 3200
+reads simulated with `benchmark/simulate.py --barcodes 4` (same genome
+and seed defaults as the reads without barcodes; each amplicon carries
+at both ends the native barcoding adapter of Oxford Nanopore of one of
+NB01-NB04, outside the primers). The flank column counts the adapter,
+barcode and random remnant bases. Barbell 0.3.3 (commit 057a902) was
+run here, as it needs barcoded reads (see "Barbell" below); the other
+versions are those of the next section.
+
+Reads (bases by their true origin, `score_reads.py`):
+
+| tool | written | lost | template removed | primer kept | flank kept | internal site kept |
+|---|---|---|---|---|---|---|
+| untrimmed | 3200 | 0 | 0 | 102899 | 423867 | 2731 |
+| flucut | 3177 | 0 | 251 | 2198 | 28685 | 110 |
+| cutadapt | 3184 | 0 | 107913 | 3371 | 29700 | 35 |
+| IRMA-core, window 40 | 3200 | 0 | 0 | 102899 | 423785 | 2731 |
+| IRMA-core, window 70 | 3199 | 0 | 23 | 80547 | 343053 | 2027 |
+| IRMA-core, window 120 | 3200 | 0 | 121 | 13678 | 78267 | 705 |
+| BBDuk, hdist 1 | 3200 | 0 | 97 | 17217 | 82495 | 717 |
+| BBDuk, hdist 2 | 3200 | 0 | 360 | 12193 | 59862 | 557 |
+| Porechop_ABI | 3186 | 7 | 18100 | 48424 | 212979 | 1298 |
+| Porechop_ABI, tuned | 3179 | 7 | 30614 | 15361 | 73752 | 693 |
+| dorado trim | 3200 | 0 | 3714 | 6452 | 360 | 27 |
+| samtools ampliconclip | 3174 | 0 | 159 | 40 | 88 | 1337 |
+| Barbell | 3174 | 1 | 1883 | 445 | 4375 | 21 |
+
+(Porechop_ABI split 20 reads at adapters or primers found in their
+middle.)
+
+IRMA consensus with the reference elongation, summed over the 8
+segments (columns as in the next section). Without the elongation every
+tool gives, as without barcodes, 219 and 276 bases missing and no
+error.
+
+| tool | missing 5' | missing 3' | beyond the ends or errors | ambiguous | codon |
+|---|---|---|---|---|---|
+| untrimmed | 0 | 0 | 940 | 2 | ATA |
+| flucut | 96 | 104 | 0 | 0 | ATA |
+| cutadapt | 96 | 104 | 0 | 0 | ATA |
+| IRMA-core, window 40 | 0 | 0 | 932 | 2 | ATA |
+| IRMA-core, window 70 | 4 | 0 | 940 | 1 | ATA |
+| IRMA-core, window 120 | 72 | 103 | 66 | 0 | ATA |
+| BBDuk, hdist 1 | 72 | 58 | 95 | 0 | ATA |
+| BBDuk, hdist 2 | 94 | 79 | 0 | 0 | ATA |
+| Porechop_ABI | 14 | 60 | 646 | 1 | ATA |
+| Porechop_ABI, tuned | 46 | 103 | 229 | 1 | ATA |
+| dorado trim | 95 | 104 | 0 | 0 | ATA |
+| samtools ampliconclip | 96 | 104 | 0 | 0 | ATA |
+| Barbell | 96 | 104 | 0 | 0 | ATA |
+
+What this shows, on these reads:
+
+- **The consensus.** With the elongation, flucut, cutadapt, dorado
+  trim, samtools ampliconclip and Barbell give a consensus without
+  errors that ends where the primers began (dorado 1 base short of
+  that). BBDuk with hdist 2 has no error either, but ends 2 and 25
+  bases inside the primer positions. The tools which leave the adapters
+  in many reads (IRMA-core, BBDuk with hdist 1, Porechop_ABI) give
+  66 to 940 bases beyond the ends or errors.
+- **The I348K site.** Here the untrimmed reads give the right codon
+  (ATA), unlike the reads without barcodes, but only by a few reads: at
+  the middle base of the codon, 158 reads have T and 152 A (without
+  barcodes: 137 T, 224 A). The minimap2 alignment of IRMA soft-clips
+  the start of the internally primed reads, 67 bases on average after
+  the adapter instead of 20 without it, and with it a part of the
+  primer bases. After flucut: 157 T, 1 A. The artefact thus depends on
+  the library and on chance; the trimmed reads do not.
+- **The reads.** flucut removes 251 template bases and leaves 2198
+  primer bases; only the k-mer tools (IRMA-core, BBDuk with hdist 1),
+  which leave 6 to 47 times more primer bases, and ampliconclip remove
+  fewer template bases. Barbell, made for barcoded reads and given the adapter,
+  barcode and primer as one query, leaves the fewest primer (445) and
+  flank (4375) bases after ampliconclip, at the cost of 1883 template
+  bases; dorado, with the kit, removes the adapters best (360 flank
+  bases left). flucut leaves 28685 flank bases, at the read ends where it
+  finds no primer (the flank before a primer is removed with it):
+  flucut does not search the adapters.
+  These reads normally reach flucut already demultiplexed and trimmed of
+  the barcodes, e.g. by dorado or MinKNOW.
+
 ## 2026-10-30: all the tools (simulated reads, without barcodes)
 
 What was run: `benchmark/run-tools.sh` (the commands of each tool are
@@ -341,7 +424,5 @@ amended consensus, and errors:
 
 ### Not yet measured
 
-The other tools of `TOOLS.md`, the read-level measures (primer bases
-left, template bases removed, reads lost: the truth is in
-`truth.tsv.gz`), other shares of internal priming, other error rates,
+The other tools of `TOOLS.md`, other shares of internal priming, other error rates,
 and real data.
