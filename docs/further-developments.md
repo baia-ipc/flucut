@@ -7,9 +7,10 @@ work is planned.
 
 - **Command line program** (`src/options.c`, `src/flucut.c`): inputs
   (FASTQ/BAM, files, directories, MinKNOW run directories), the
-  references (`--references`, required: flucut refuses to run without
-  them), `--trim terminus|primer` (default `terminus`, now that the
-  internally primed reads are recognised), the probe length, its error
+  references (`--references`: optional with the default `--trim
+  primer`, where they only measure internal priming; required with
+  `--trim terminus`, which refuses to run without them), the probe
+  length, its error
   rate and the terminal window of the classification, `-e auto` (errors
   from the first reads), minimum length after trimming, threads, output
   directory, the banner and the logo.
