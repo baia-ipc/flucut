@@ -43,6 +43,7 @@
 #include "amplicon.h"
 #include "fasta.h"
 #include "fastq-reader.h"
+#include "reference.h"
 #include "scheme.h"
 #include "strbuf.h"
 
@@ -75,9 +76,12 @@ typedef struct {
   double max_errors;          /* see amplicon_analyzer_new() */
   trim_policy_t policy;
   long window;
-  /* references (NULL: none) and the settings of the classification
-     (see reference.h) */
+  /* references (NULL: none), their index (built once, shared by the
+     trimmers of all threads) and the settings of the classification (see
+     reference.h) */
   const fasta_t *references;
+  const reference_index_t *index;
+  bool exhaustive;            /* see reference_set_set_exhaustive() */
   size_t probe_len;
   double probe_error_rate;
   long terminal_window;

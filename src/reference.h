@@ -82,19 +82,61 @@ typedef struct {
    of bases inside the segment */
 #define REFERENCE_DEFAULT_TERMINAL_WINDOW 60
 
+/*
+   The k-mer index of the references
+   ---------------------------------
+
+   Aligning each probe to every reference costs time in proportion to the
+   number of references. The references are therefore indexed by their
+   k-mers (kmer-index.h of libcbaia, k = REFERENCE_KMER_LEN): the k-mers
+   of a probe, and of its reverse complement, give candidate diagonals,
+   and only the windows around them are aligned, with the same rules as
+   the exhaustive search. k-mers occurring more than
+   REFERENCE_MAX_KMER_OCC times (low complexity) are not used as seeds. A
+   probe for which the k-mers give no match (e.g. an error in each k-mer,
+   or a sequence absent from the references) is searched exhaustively:
+   the index thus only speeds up the probes it finds. It can differ from
+   the exhaustive search only where a better match than the one found
+   has no exact k-mer. The exhaustive search can also be chosen for all
+   probes, to check the index.
+
+   The index is built once and shared, read-only, by the searchers of all
+   threads.
+*/
+
+#define REFERENCE_KMER_LEN 10
+#define REFERENCE_MAX_KMER_OCC 4096
+
+typedef struct reference_index_t reference_index_t;
+
+/* Index the sequences <fasta> (which must exist as long as the index is
+   used) */
+reference_index_t* reference_index_new(const fasta_t *fasta);
+
+/* The sequences of the index */
+const fasta_t* reference_index_fasta(const reference_index_t *self);
+
+/* Delete (NULL is accepted) */
+void reference_index_delete(reference_index_t *self);
+
+/* a searcher of probes in the references */
 typedef struct reference_set_t reference_set_t;
 
 /*
-   Create a reference set from the sequences <fasta> (which must exist as
-   long as the set is used).
+   Create a searcher for the indexed references <index> (which must exist
+   as long as the searcher is used).
 
    <probe_len>: the number of bases after the 5' primer used to locate the
    read in the references; <max_error_rate>: the fraction of the probe
    allowed to be errors (the probe is matched with at most
    probe_len * max_error_rate errors).
 */
-reference_set_t* reference_set_new(const fasta_t *fasta, size_t probe_len,
-    double max_error_rate);
+reference_set_t* reference_set_new(const reference_index_t *index,
+    size_t probe_len, double max_error_rate);
+
+/* Align each probe to every reference, without the index (slower; the
+   result is the one the index approximates) */
+void reference_set_set_exhaustive(reference_set_t *self, bool exhaustive);
 
 /*
    Locate <probe> (length <probe_len>; the start of the read after its 5'

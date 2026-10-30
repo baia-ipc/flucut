@@ -25,6 +25,7 @@
 #include "logger.h"
 #include "options.h"
 #include "reads-reader.h"
+#include "reference.h"
 #include "scheme.h"
 #include "strbuf.h"
 #include "strutils.h"
@@ -207,12 +208,16 @@ int main(int argc, char *argv[]) {
   scheme_t *scheme = scheme_new_builtin(opts.scheme, logger);
   fasta_t *refs = opts.references == NULL ? NULL :
                   fasta_read(opts.references, logger);
-  if (refs != NULL)
+  reference_index_t *index = NULL;
+  if (refs != NULL) {
     lprintf(logger, LOG_INFO, "%zu reference sequences read from %s\n",
             refs->n_records, opts.references);
+    index = reference_index_new(refs);
+  }
   trimmer_config_t config = {.scheme = scheme,
       .max_errors = opts.max_errors, .policy = opts.policy,
-      .window = opts.window, .references = refs,
+      .window = opts.window, .references = refs, .index = index,
+      .exhaustive = opts.exhaustive_search,
       .probe_len = opts.probe_len,
       .probe_error_rate = opts.probe_error_rate,
       .terminal_window = opts.terminal_window,
@@ -259,6 +264,7 @@ int main(int argc, char *argv[]) {
   }
   free(workers);
   free(summary_path);
+  reference_index_delete(index);
   fasta_delete(refs);
   scheme_delete(scheme);
   delete_outputs(outputs, opts.n_inputs);

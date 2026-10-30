@@ -400,7 +400,8 @@ static void test_references(Logger *logger) {
   fasta_record_t record = {.name = NULL, .description = NULL,
                            .seq = segment, .seq_len = strlen(segment)};
   fasta_t fa = {.records = &record, .n_records = 1};
-  reference_set_t *refs = reference_set_new(&fa,
+  reference_index_t *index = reference_index_new(&fa);
+  reference_set_t *refs = reference_set_new(index,
       REFERENCE_DEFAULT_PROBE_LEN, REFERENCE_DEFAULT_MAX_ERROR_RATE);
   scheme_t *sc = scheme_new_builtin(SCHEME_DEFAULT, logger);
   amplicon_analyzer_t *a = amplicon_analyzer_new(sc, 0.1, TRIM_TERMINUS,
@@ -495,6 +496,7 @@ static void test_references(Logger *logger) {
   amplicon_analyzer_delete(a);
   scheme_delete(sc);
   reference_set_delete(refs);
+  reference_index_delete(index);
 }
 
 void amplicon_test(void) {

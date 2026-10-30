@@ -18,6 +18,7 @@ enum {
   OPT_PROBE_ERRORS,
   OPT_TERMINAL_WINDOW,
   OPT_NO_TAGS,
+  OPT_EXHAUSTIVE,
 };
 
 #define PURPOSE "Remove the primers of the influenza A multisegment " \
@@ -72,6 +73,9 @@ enum {
   "   --terminal-window <n>  a probe within <n> bases of a segment end\n" \
   "                          is terminal (default: " \
   XSTR(REFERENCE_DEFAULT_TERMINAL_WINDOW) ")\n" \
+  "   --exhaustive-search    align each probe to the whole of every\n" \
+  "                          reference, without the k-mer index (slower;\n" \
+  "                          for checking the index)\n" \
   "\n" \
   COMMON_OPTS_HELP
 
@@ -115,6 +119,7 @@ void options_parse(options_t *self, int argc, char *argv[],
   self->probe_len = REFERENCE_DEFAULT_PROBE_LEN;
   self->probe_error_rate = REFERENCE_DEFAULT_MAX_ERROR_RATE;
   self->terminal_window = REFERENCE_DEFAULT_TERMINAL_WINDOW;
+  self->exhaustive_search = false;
   self->min_length = OPTIONS_DEFAULT_MIN_LENGTH;
   self->tags = true;
   self->threads = OPTIONS_DEFAULT_THREADS;
@@ -131,6 +136,7 @@ void options_parse(options_t *self, int argc, char *argv[],
     {"probe-len", required_argument, NULL, OPT_PROBE_LEN},
     {"probe-errors", required_argument, NULL, OPT_PROBE_ERRORS},
     {"terminal-window", required_argument, NULL, OPT_TERMINAL_WINDOW},
+    {"exhaustive-search", no_argument, NULL, OPT_EXHAUSTIVE},
     COMMON_LONGOPTS
     LONGOPTS_END
   };
@@ -181,6 +187,9 @@ void options_parse(options_t *self, int argc, char *argv[],
         break;
       case OPT_NO_TAGS:
         self->tags = false;
+        break;
+      case OPT_EXHAUSTIVE:
+        self->exhaustive_search = true;
         break;
       case OPT_PROBE_LEN:
         {

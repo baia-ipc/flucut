@@ -1,5 +1,25 @@
 # Results
 
+## 2026-10-30: speed of the classification against references
+
+What was run: flucut on the 3200 simulated reads of the IRMA checks
+below (`work/sim/reads.fastq.gz`), one thread (`-j 1`), with no
+references, with the 8 segments of the genome (`-r genome.fasta`), and
+with 80 references (the genome 10 times, renamed); with the k-mer index
+(default) and with `--exhaustive-search`. Wall-clock time of the whole
+run, two runs each, on the 4-core machine of the benchmark.
+
+| references | no `-r` | k-mer index | exhaustive |
+|---|---|---|---|
+| 8 | 0.68-0.72 s | 0.76-0.79 s | 2.0-2.2 s |
+| 80 | | 1.1-1.2 s | 14.0-16.4 s |
+
+The outputs with the index and exhaustive are identical (compared
+byte by byte, decompressed), with 8 and with 80 references. Without the
+exhaustive search for the read ends without a candidate, 47 read ends
+(of about 5800) were not located by the index (reads with an error in
+each 10-mer of the probe); with it, none.
+
 ## 2026-10-30: IRMA checks (simulated reads)
 
 What was run: `benchmark/run-irma-checks.sh` (see `README.md`), on the

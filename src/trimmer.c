@@ -50,8 +50,10 @@ trimmer_t* trimmer_new(const trimmer_config_t *config) {
                                          config->policy, config->window);
   self->refs = NULL;
   if (config->references != NULL) {
-    self->refs = reference_set_new(config->references, config->probe_len,
+    assert(config->index != NULL);
+    self->refs = reference_set_new(config->index, config->probe_len,
                                    config->probe_error_rate);
+    reference_set_set_exhaustive(self->refs, config->exhaustive);
     amplicon_analyzer_use_references(self->analyzer, self->refs,
                                      config->terminal_window);
   }
