@@ -16,6 +16,9 @@ const fs = require('fs');
 
 const BASIC = ['#1e1e1e', '#e5484d', '#2ebfa5', '#f5a524', '#5b9be6',
                '#c26dd1', '#3fb8c9', '#d4d4d4'];
+// the bright colors (codes 90-97)
+const BRIGHT = ['#6b7280', '#ff6b6b', '#4ade80', '#fde047', '#7cb7ff',
+                '#f472d0', '#67e8f9', '#ffffff'];
 
 function esc(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -40,6 +43,7 @@ function render(text) {
           else if (c[i] === 1) bold = true;
           else if (c[i] === 22) bold = false;
           else if (c[i] >= 30 && c[i] <= 37) fg = BASIC[c[i] - 30];
+          else if (c[i] >= 90 && c[i] <= 97) fg = BRIGHT[c[i] - 90];
           else if (c[i] === 39) fg = null;
           else if (c[i] === 49) bg = null;
           else if ((c[i] === 38 || c[i] === 48) && c[i + 1] === 2) {
