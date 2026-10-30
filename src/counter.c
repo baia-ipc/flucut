@@ -90,6 +90,8 @@ void counter_merge(counter_t *self, const counter_t *other) {
     s->n_ends[i] += o->n_ends[i];
   s->minus += o->minus;
   s->with_internal += o->with_internal;
+  s->adapter_start += o->adapter_start;
+  s->adapter_end += o->adapter_end;
   for (size_t e = 0; e < COUNTER_N_ENDS; e++) {
     for (size_t i = 0; i < 3; i++)
       s->origin[e][i] += o->origin[e][i];
@@ -162,6 +164,10 @@ void counter_add_read(counter_t *self, const amplicon_t *a, size_t len) {
     s->dimers++;
   if (a->n_internal > 0)
     s->with_internal++;
+  if (a->adapter_start.found)
+    s->adapter_start++;
+  if (a->adapter_end.found)
+    s->adapter_end++;
   count_end(self, &a->left, COUNTER_LEFT);
   count_end(self, &a->right, COUNTER_RIGHT);
   count_length(self, a);

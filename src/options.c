@@ -20,6 +20,7 @@ enum {
   OPT_TERMINAL_WINDOW,
   OPT_NO_TAGS,
   OPT_EXHAUSTIVE,
+  OPT_ADAPTERS,
 };
 
 #define PURPOSE "Remove the primers of the influenza A multisegment " \
@@ -64,6 +65,10 @@ enum {
   XSTR(OPTIONS_DEFAULT_THREADS) "; the output does not\n" \
   "                          depend on it)\n" \
   "   --no-tags              do not append the tags to the read titles\n" \
+  "   --adapters <kits>      the Nanopore adapters searched at the read\n" \
+  "                          ends without a primer: a comma-separated\n" \
+  "                          list of " ADAPTERS_KITS ", or none\n" \
+  "                          (default: " ADAPTERS_DEFAULT ")\n" \
   "\n" \
   "Classification against the references (with --references):\n" \
   "   --probe-len <n>        bases after the primer located in the\n" \
@@ -125,6 +130,7 @@ void options_parse(options_t *self, int argc, char *argv[],
   self->exhaustive_search = false;
   self->min_length = OPTIONS_DEFAULT_MIN_LENGTH;
   self->tags = true;
+  self->adapters = ADAPTERS_DEFAULT;
   self->threads = OPTIONS_DEFAULT_THREADS;
   static struct option longopts[] = {
     {"outdir", required_argument, NULL, 'o'},
@@ -136,6 +142,7 @@ void options_parse(options_t *self, int argc, char *argv[],
     {"min-length", required_argument, NULL, 'm'},
     {"threads", required_argument, NULL, 'j'},
     {"no-tags", no_argument, NULL, OPT_NO_TAGS},
+    {"adapters", required_argument, NULL, OPT_ADAPTERS},
     {"probe-len", required_argument, NULL, OPT_PROBE_LEN},
     {"probe-errors", required_argument, NULL, OPT_PROBE_ERRORS},
     {"terminal-window", required_argument, NULL, OPT_TERMINAL_WINDOW},
@@ -191,6 +198,13 @@ void options_parse(options_t *self, int argc, char *argv[],
       case OPT_NO_TAGS:
         self->tags = false;
         break;
+      case OPT_ADAPTERS:
+        if (!adapters_valid(optarg))
+          PARSE_ERR("Option '--adapters': a comma-separated list of "
+                    ADAPTERS_KITS ", or none, expected ('%s' found)",
+                    optarg);
+        self->adapters = optarg;
+        break;
       case OPT_EXHAUSTIVE:
         self->exhaustive_search = true;
         break;
@@ -241,5 +255,6 @@ void options_parse(options_t *self, int argc, char *argv[],
   PARSE_LOG("Errors in a primer: %g\n", self->max_errors);
   PARSE_LOG("Window: %ld\n", self->window);
   PARSE_LOG("Minimum length: %zu\n", self->min_length);
+  PARSE_LOG("Adapters: %s\n", self->adapters);
   PARSE_LOG("Threads: %zu\n", self->threads);
 }

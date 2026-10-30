@@ -63,6 +63,8 @@ typedef struct {
   size_t probe_len;
   double probe_error_rate;
   long terminal_window;
+  const char *adapters;       /* the adapter kits (adapters.h; NULL or
+                                 "none": none) */
   size_t min_length;          /* shorter reads are not written */
   bool tags;                  /* append the tags to the titles */
 } trimmer_config_t;

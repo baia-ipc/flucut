@@ -44,6 +44,13 @@ Options
    ``hemagglutinin``, or the IRMA names like ``A_HA_H5``). Default:
    none.
 
+``--adapters <kits>``
+   The sequencing adapters of Oxford Nanopore searched at the read ends
+   at which no primer is found (:doc:`how_it_works`): a comma-separated
+   list of ``nb`` (native barcoding), ``rbk`` (rapid barcoding) and
+   ``lsk`` (ligation, without barcodes), or ``none``. Default:
+   ``nb,rbk,lsk``.
+
 ``-e, --max-errors <x>``
    The errors allowed in a primer: a whole number of bases, or, below 1,
    a fraction of the length of the primer. Default: 0.2.

@@ -40,6 +40,8 @@ struct amplicon_analyzer_t {
   long terminal_window;
   /* the probe of the right end (reference_set_probe_len() + 1 bytes) */
   char *probe;
+  /* the adapters, if any (see amplicon_analyzer_use_adapters()) */
+  adapters_t *adapters;
   amplicon_t result;
 };
 
@@ -146,7 +148,14 @@ amplicon_analyzer_t* amplicon_analyzer_new(const scheme_t *scheme,
   self->refs = NULL;
   self->terminal_window = 0;
   self->probe = NULL;
+  self->adapters = NULL;
   return self;
+}
+
+void amplicon_analyzer_use_adapters(amplicon_analyzer_t *self,
+    adapters_t *adapters) {
+  assert(adapters != NULL);
+  self->adapters = adapters_any(adapters) ? adapters : NULL;
 }
 
 void amplicon_analyzer_use_references(amplicon_analyzer_t *self,
@@ -265,23 +274,24 @@ static void search_end(amplicon_analyzer_t *self, const primer_t *primers,
    sequence. Such matches are collected separately, as internal matches.
 */
 static void search_layout(amplicon_analyzer_t *self, const char *seq,
-    size_t len, amplicon_t *out) {
+    size_t len, long left_window, long right_window, amplicon_t *out) {
   const scheme_t *sc = self->scheme;
   out->n_internal = 0;
   /* the region searched at each end: the window, plus the length of the
      longest primer, as a primer starting inside the window can end
      after it */
-  long region = self->window + (long)self->max_primer_len;
+  long region = left_window + (long)self->max_primer_len;
   size_t left_len = (long)len < region ? len : (size_t)region;
   search_end(self, sc->left, self->left_max_errors, self->left_skip,
              self->left_edge, sc->n_left, seq, left_len, true, false,
              &out->left);
   /* the primer must begin within the window */
-  if (out->left.found && out->left.hit.start > self->window)
+  if (out->left.found && out->left.hit.start > left_window)
     out->left.found = false;
   /* the right primer is searched after the left one, so that the two
      primers found belong to the same amplicon */
   long after_left = out->left.found ? out->left.hit.end + 1 : 0;
+  region = right_window + (long)self->max_primer_len;
   long right_from = (long)len - region;
   if (right_from < after_left)
     right_from = after_left;
@@ -299,7 +309,7 @@ static void search_layout(amplicon_analyzer_t *self, const char *seq,
       out->right.hit.terminus_start += right_from;
       out->right.hit.terminus_end += right_from;
       /* the primer must end within the window */
-      if (out->right.hit.end < (long)len - 1 - self->window)
+      if (out->right.hit.end < (long)len - 1 - right_window)
         out->right.found = false;
     }
   }
@@ -423,13 +433,13 @@ static long total_errors(const amplicon_t *a) {
          (a->right.found ? a->right.hit.n_errors : 0);
 }
 
-const amplicon_t* amplicon_analyzer_run(amplicon_analyzer_t *self,
-    const char *seq, size_t len) {
-  assert(self != NULL);
-  assert(seq != NULL);
-  amplicon_t *out = &self->result;
+/* the analysis of a read, without the adapters (see
+   amplicon_analyzer_run()), into <out>; <start_window>, <end_window>: the
+   windows at the start and at the end of the read */
+static void analyze(amplicon_analyzer_t *self, const char *seq, size_t len,
+    long start_window, long end_window, amplicon_t *out) {
   amplicon_t plus;
-  search_layout(self, seq, len, &plus);
+  search_layout(self, seq, len, start_window, end_window, &plus);
   amplicon_t minus;
   bool minus_searched = false;
   /*
@@ -445,7 +455,7 @@ const amplicon_t* amplicon_analyzer_run(amplicon_analyzer_t *self,
     XCHECKSPACEINC(self->rc, &self->rc_cap, len + 1, 1024);
     reverse_complement(seq, len, self->rc);
     self->rc[len] = '\0';
-    search_layout(self, self->rc, len, &minus);
+    search_layout(self, self->rc, len, end_window, start_window, &minus);
     minus_searched = true;
   }
   /* the orientation with more primers found; with the same number, the
@@ -480,6 +490,79 @@ const amplicon_t* amplicon_analyzer_run(amplicon_analyzer_t *self,
     out->keep_from = from;
     out->keep_to = to;
   }
+}
+
+/* move the positions of <a>, the analysis of the part of a read of
+   length <len> from <from> to <to>, to the whole read */
+static void shift_positions(amplicon_t *a, long from, long to, size_t len) {
+  if (a->keep_to >= a->keep_from) {
+    a->keep_from += from;
+    a->keep_to += from;
+  }
+  for (size_t i = 0; i < a->n_internal; i++) {
+    a->internal[i].start += from;
+    a->internal[i].end += from;
+  }
+  /* the primers: in the analyzed orientation (for the minus strand, the
+     reverse complement of the read) */
+  long shift = a->strand == STRAND_MINUS ? (long)len - 1 - to : from;
+  amplicon_end_t *ends[] = {&a->left, &a->right};
+  for (size_t e = 0; e < 2; e++)
+    if (ends[e]->found) {
+      ends[e]->hit.start += shift;
+      ends[e]->hit.end += shift;
+      ends[e]->hit.terminus_start += shift;
+      ends[e]->hit.terminus_end += shift;
+    }
+}
+
+const amplicon_t* amplicon_analyzer_run(amplicon_analyzer_t *self,
+    const char *seq, size_t len) {
+  assert(self != NULL);
+  assert(seq != NULL);
+  amplicon_t *out = &self->result;
+  analyze(self, seq, len, self->window, self->window, out);
+  out->adapter_start.found = out->adapter_end.found = false;
+  if (self->adapters == NULL)
+    return out;
+  /* the adapters, at the ends of the read without a primer */
+  bool primer_start = out->strand == STRAND_MINUS ? out->right.found :
+                      out->left.found;
+  bool primer_end = out->strand == STRAND_MINUS ? out->left.found :
+                    out->right.found;
+  adapter_hit_t a_start = {.found = false}, a_end = {.found = false};
+  if (!primer_start)
+    adapters_search_start(self->adapters, seq, len, &a_start);
+  if (!primer_end)
+    adapters_search_end(self->adapters, seq, len, &a_end);
+  if (!a_start.found && !a_end.found)
+    return out;
+  long from = a_start.found ? a_start.end + 1 : 0;
+  long to = a_end.found ? a_end.start - 1 : (long)len - 1;
+  if (to < from) {
+    /* nothing between the adapters */
+    analyze(self, seq, 0, self->window, self->window, out);
+    out->keep_from = 1;
+    out->keep_to = 0;
+  } else {
+    /* the part between the adapters is analyzed again: a primer whose
+       outer bases are missing is now at an end, next to the adapter (see
+       amplicon.h) */
+    amplicon_t whole = *out;
+    analyze(self, seq + from, (size_t)(to - from + 1),
+            a_start.found ? AMPLICON_ADAPTER_WINDOW : self->window,
+            a_end.found ? AMPLICON_ADAPTER_WINDOW : self->window, out);
+    if (amplicon_n_ends(out) < amplicon_n_ends(&whole))
+      *out = whole;
+    else
+      shift_positions(out, from, to, len);
+    if (out->keep_from < from)
+      out->keep_from = from;
+    if (out->keep_to > to)
+      out->keep_to = to;
+  }
+  out->adapter_start = a_start;
+  out->adapter_end = a_end;
   return out;
 }
 
@@ -619,6 +702,59 @@ static void test_references(Logger *logger) {
   scheme_delete(sc);
   reference_set_delete(refs);
   reference_index_delete(index);
+}
+
+/* the adapters at the ends without a primer (see amplicon.h) */
+static void test_adapters(const scheme_t *sc, const char *body,
+    const char *p12, const char *rc13) {
+  /* native barcode NB01: the adapter at the start of a read, and the
+     reverse complement of the bottom adapter at its end */
+  const char *nb_start = "ATTGCTAAGGTTAACACAAAGACACCGACAACTTTCTTCAGCACCT";
+  const char *nb_end = "GGTGCTGAAGAAAGTTGTCGGTGTCTTTGTGTTAACCTTAGCAAT";
+  amplicon_analyzer_t *a = amplicon_analyzer_new(sc, 0.2, TRIM_PRIMER,
+      AMPLICON_DEFAULT_WINDOW);
+  adapters_t *ad = adapters_new("nb", AMPLICON_DEFAULT_WINDOW, NULL);
+  amplicon_analyzer_use_adapters(a, ad);
+  char read[512], rc[512];
+  /* a broken read: no primer at the start, the adapter is removed */
+  snprintf(read, sizeof(read), "GGCAT%s%s%s", nb_start, body, rc13);
+  check_keep(a, read, STRAND_PLUS, 1, body);
+  const amplicon_t *r = amplicon_analyzer_run(a, read, strlen(read));
+  test_assert(r->adapter_start.found);
+  test_assert(!r->adapter_end.found);
+  /* a broken read of the other strand (the adapters at the same ends
+     of the read): no primer at the end */
+  char amp[256];
+  snprintf(amp, sizeof(amp), "%s%s", body, rc13);
+  test_rc(amp, rc);
+  snprintf(read, sizeof(read), "%s%s%sGA", nb_start, rc, nb_end);
+  r = amplicon_analyzer_run(a, read, strlen(read));
+  test_assert(r->strand == STRAND_MINUS);
+  test_assert(!r->adapter_start.found);
+  test_assert(r->adapter_end.found);
+  test_eq_size(amplicon_kept_length(r), strlen(body));
+  test_eq_long(r->keep_from, (long)(strlen(nb_start) + strlen(rc13)));
+  /* a primer without its first 14 bases after the adapter: too short to
+     be searched after a flank, removed next to the adapter */
+  snprintf(read, sizeof(read), "%s%s%s%s", nb_start, p12 + 14, body, rc13);
+  check_keep(a, read, STRAND_PLUS, 2, body);
+  /* an adapter at the end, with no primer before it */
+  snprintf(read, sizeof(read), "%s%s%sTTAG", p12, body, nb_end);
+  check_keep(a, read, STRAND_PLUS, 1, body);
+  /* no primer and no adapter: nothing is removed */
+  check_keep(a, body, STRAND_NONE, 0, body);
+  /* the primers found: the adapters are not searched */
+  snprintf(read, sizeof(read), "%s%s%s%s%s", nb_start, p12, body, rc13,
+           nb_end);
+  check_keep(a, read, STRAND_PLUS, 2, body);
+  r = amplicon_analyzer_run(a, read, strlen(read));
+  test_assert(!r->adapter_start.found && !r->adapter_end.found);
+  /* only adapters: nothing is kept */
+  snprintf(read, sizeof(read), "%s%s", nb_start, nb_end);
+  r = amplicon_analyzer_run(a, read, strlen(read));
+  test_eq_size(amplicon_kept_length(r), 0);
+  adapters_delete(ad);
+  amplicon_analyzer_delete(a);
 }
 
 void amplicon_test(void) {
@@ -783,6 +919,7 @@ void amplicon_test(void) {
   test_eq(r->keep_from, (long)(4 * strlen(body) + strlen(uni12)), long,
           "%ld");
   amplicon_analyzer_delete(a);
+  test_adapters(sc, body, p12, rc13);
   scheme_delete(sc);
   test_references(logger);
   delete_logger(logger);

@@ -66,6 +66,38 @@ between the two end primers are counted (tag ``ni``), not trimmed: they
 are the sites at which a primer can anneal, and the junctions of
 chimeras.
 
+The adapters
+------------
+
+At an end of the read at which no primer is found (the molecule was
+broken, or the read begins too far inside the primer), flucut searches
+the sequencing adapters of Oxford Nanopore (``--adapters``, default: all
+the kits): the native barcoding adapters (``nb``, e.g. SQK-NBD114), the
+rapid barcoding adapter (``rbk``, e.g. SQK-RBK114) and the ligation
+adapter (``lsk``, e.g. SQK-LSK114), with the sequences of Dorado. The
+barcode is searched as 24 Ns, which match any base: any barcode of the
+kit is recognised, none is identified (the reads normally come already
+demultiplexed). The errors allowed are 20% of the fixed bases of an
+adapter (e.g. 4 of the 22 of a native barcoding adapter); an adapter
+without a barcode may overhang the read by up to half of its length,
+one with a barcode may not (the part left in the read could then be
+mostly the barcode, which matches anything). The adapter must lie in
+the window of its end; of the adapters found, the innermost is taken
+(the barcode adapter, not the ligation adapter before it).
+
+An adapter found is removed with everything outside it, and the part of
+the read between the adapters is analyzed again: a primer of which only
+a few bases are left is now at an end, next to the adapter, where it can
+overhang (up to half of it missing), and is removed as well. In this
+second analysis, the primer must lie within 5 bases of the adapter: in
+the usual window of the new end, a primer-like sequence of the template
+could otherwise be taken for it. The tags ``a5`` and ``a3`` tell which
+kit's adapter was removed at the start and at the end of a read.
+
+The search uses the adaptor search of Lumipore (``src/adaptor-search.c``,
+unchanged); the adapters are searched only at the ends without a primer,
+so the reads with both primers are trimmed as without it.
+
 The trimming
 ------------
 

@@ -38,6 +38,7 @@ typedef struct {
   bool exhaustive_search;     /* without the k-mer index (slower) */
   size_t min_length;
   bool tags;
+  const char *adapters;       /* see adapters.h */
   size_t threads;
   /* show the banner: not quiet, messages to the standard error, which
      is a terminal */

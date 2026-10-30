@@ -70,7 +70,9 @@ reads	all	1700	5
       "dimers": 1,
       "too_short": 4,
       "minus_strand": 2,
-      "with_internal_match": 0
+      "with_internal_match": 0,
+      "adapter_start": 0,
+      "adapter_end": 0
     },
     "primers": {
       "left": {"uni12r": 11},
@@ -99,7 +101,9 @@ reads	all	1700	5
         "dimers": 1,
         "too_short": 4,
         "minus_strand": 2,
-        "with_internal_match": 0
+        "with_internal_match": 0,
+        "adapter_start": 0,
+        "adapter_end": 0
       },
       "primers": {
         "left": {"uni12r": 11},

@@ -119,6 +119,10 @@ static void log_stats(const char *name, const counter_reads_t *s, bool refs,
           "which %zu dimers)\n", name, s->reads_out, s->reads_in,
           s->n_ends[2], s->n_ends[1], s->n_ends[0], s->too_short,
           s->dimers);
+  if (s->adapter_start + s->adapter_end > 0)
+    lprintf(logger, LOG_INFO, "%s: adapters removed at the ends without "
+            "a primer: %zu at the start of a read, %zu at the end\n", name,
+            s->adapter_start, s->adapter_end);
   if (refs)
     lprintf(logger, LOG_INFO, "%s: ends started by internal priming: "
             "%zu left, %zu right; not located in the references: %zu "
@@ -221,7 +225,8 @@ int main(int argc, char *argv[]) {
       .probe_len = opts.probe_len,
       .probe_error_rate = opts.probe_error_rate,
       .terminal_window = opts.terminal_window,
-      .min_length = opts.min_length, .tags = opts.tags};
+      .adapters = opts.adapters, .min_length = opts.min_length,
+      .tags = opts.tags};
   worker_t *workers;
   XMALLOC(workers, sizeof(worker_t) * opts.threads);
   for (size_t t = 0; t < opts.threads; t++)

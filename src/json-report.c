@@ -90,6 +90,8 @@ static void write_reads(json_writer_t *w, const counter_reads_t *s) {
   count_member(w, "too_short", s->too_short);
   count_member(w, "minus_strand", s->minus);
   count_member(w, "with_internal_match", s->with_internal);
+  count_member(w, "adapter_start", s->adapter_start);
+  count_member(w, "adapter_end", s->adapter_end);
   close_block(w, '}', false);
 }
 

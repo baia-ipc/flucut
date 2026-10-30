@@ -41,6 +41,10 @@ tag      meaning
 ``tl``   bases removed at the start of the read
 ``tr``   bases removed at the end of the read
 ``ni``   primer matches inside the read (if any)
+``a5``   the kit of the adapter removed at the start of the read
+         (``nb``, ``rbk`` or ``lsk``; only at an end without a
+         primer, see :doc:`how_it_works`)
+``a3``   the same, at the end of the read
 ``ol``   with ``-r``: origin of the left end (``terminal``,
          ``internal`` or ``unknown``)
 ``or``   the same for the right end

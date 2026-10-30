@@ -62,6 +62,9 @@ exactly or with one mismatch), so the trimming has to be done before it.
   amplicon, and trimming there would remove template. Those matches are
   reported instead, as the sites at which the primer can anneal and as
   the junctions of chimeras;
+- at a read end without a primer (a broken molecule), removes the
+  sequencing adapters of Oxford Nanopore (native and rapid barcoding,
+  ligation), and a primer remnant next to them;
 - reads which are not amplicons are counted and reported: primer dimers,
   reads without a primer, reads with a primer at one end only.
 

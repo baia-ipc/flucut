@@ -98,6 +98,22 @@
    internal matches: they are the sites at which the primer can anneal,
    and the junctions of chimeras and of reads containing several
    amplicons. They are counted, not trimmed.
+
+   Adapters
+   --------
+
+   At an end of the read at which no primer is found (a broken read, or
+   one which begins too far inside the primer), the sequencing adapters
+   of Oxford Nanopore are searched (see adapters.h): if one is found,
+   it is removed with everything outside it. The part of the read
+   between the adapters is then analyzed again: a primer whose outer
+   bases are missing is now at an end of it, where it may overhang
+   (with up to half of the primer missing), and is removed as well; the
+   primer must then lie next to the adapter (within
+   AMPLICON_ADAPTER_WINDOW bases), as a primer-like site within the
+   usual window of the new end would otherwise be taken for it. The
+   result of the second analysis is taken if it finds at least as many
+   primers as the first.
 */
 
 #ifndef AMPLICON_H
@@ -105,6 +121,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include "adapters.h"
 #include "primer-search.h"
 #include "reference.h"
 #include "scheme.h"
@@ -135,6 +152,9 @@ typedef enum {
 /* default window: the primer of an end must begin (left) or end (right)
    within this many bases of that end of the read */
 #define AMPLICON_DEFAULT_WINDOW 100
+
+/* the window of a primer next to an adapter (see "Adapters" above) */
+#define AMPLICON_ADAPTER_WINDOW 5
 
 /* a match of a primer inside a read (see above), in the positions of the
    original read */
@@ -174,6 +194,9 @@ typedef struct {
   /* the matches of a primer between the two ends (see above) */
   amplicon_match_t internal[AMPLICON_MAX_INTERNAL];
   size_t n_internal;
+  /* the adapters found at the start and at the end of the ORIGINAL read
+     (searched only at an end without a primer, see "Adapters" above) */
+  adapter_hit_t adapter_start, adapter_end;
 } amplicon_t;
 
 typedef struct amplicon_analyzer_t amplicon_analyzer_t;
@@ -207,6 +230,14 @@ const amplicon_t* amplicon_analyzer_run(amplicon_analyzer_t *self,
 */
 void amplicon_analyzer_use_references(amplicon_analyzer_t *self,
     reference_set_t *refs, long terminal_window);
+
+/*
+   Search the adapters <adapters> at the ends of the reads at which no
+   primer is found (see above); <adapters> must exist as long as the
+   analyzer is used, and belongs to the thread of the analyzer.
+*/
+void amplicon_analyzer_use_adapters(amplicon_analyzer_t *self,
+    adapters_t *adapters);
 
 /* Delete an analyzer (NULL is accepted) */
 void amplicon_analyzer_delete(amplicon_analyzer_t *self);

@@ -47,6 +47,9 @@ typedef struct {
   size_t minus;
   /* reads with primer matches inside them */
   size_t with_internal;
+  /* reads with an adapter removed at their start, at their end (see
+     amplicon.h) */
+  size_t adapter_start, adapter_end;
   /* ends found, by end (COUNTER_LEFT, COUNTER_RIGHT) and origin
      (end_origin_t); all unknown without references */
   size_t origin[COUNTER_N_ENDS][3];

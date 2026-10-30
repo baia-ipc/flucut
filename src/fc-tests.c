@@ -14,6 +14,8 @@
 #define PRINT_PURPOSE(STREAM) print_purpose(STREAM, argv[0])
 #include "options.h"
 #include "argparse-def.h"
+#include "adapters.h"
+#include "adaptor-search.h"
 #include "amplicon.h"
 #include "counter.h"
 #include "fasta.h"
@@ -89,6 +91,9 @@ static test_group_t test_groups[] = {
   {'R', "the content of the reports", report_test, false},
   {'g', "the groups of input files", run_input_groups_test, false},
   {'S', "the recognition of the segments", segments_test, false},
+  {'A', "the search of the adapters", adapters_test, false},
+  {'d', "the search of an adaptor (from Lumipore)", adaptor_search_test,
+   false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 

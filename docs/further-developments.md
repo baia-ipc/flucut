@@ -75,10 +75,13 @@ support the trimming; they are not the purpose of the program.
 - **Concatemers**: several amplicons in one read, split into separate
   reads; chimeras (amplicons of different segments joined). The internal
   matches already found are their junctions.
-- **Sequencing adapters** left by the basecaller, searched outside the
-  primers: with barcoded reads not trimmed before, flucut left 28685
-  adapter bases, at the read ends where it found no primer (Barbell
-  4375, dorado 360; `benchmark/RESULTS.md`).
+- **Adapters, next**: the adapters are searched only at the ends
+  without a primer, with the barcode as Ns (none identified); to do:
+  real reads (the simulated adapters have no remnants between the
+  barcode and the primer), the other kits of Dorado (PCR barcoding,
+  16S), the barcode identified (demultiplexing, as Dorado and Barbell),
+  and a check that reads with adapters in their middle (chimeras of the
+  library) are counted.
 - **Barcoded primers**: a barcode between the adapter and the primer,
   used to assign the reads to samples. The layouts of the published
   barcoded protocols still have to be read from their supplementary
