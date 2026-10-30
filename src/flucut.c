@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
+#include "banner.h"
 #include "fasta.h"
 #include "fastq-reader.h"
 #include "file.h"
@@ -277,6 +278,8 @@ int main(int argc, char *argv[]) {
   options_t opts;
   Logger *logger;
   options_parse(&opts, argc, argv, &logger);
+  if (opts.show_banner)
+    banner_print(stderr);
   output_t *outputs = plan_outputs(&opts, logger);
   scheme_t *scheme = scheme_new_builtin(opts.scheme, logger);
   fasta_t *refs = opts.references == NULL ? NULL :
