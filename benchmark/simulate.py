@@ -22,9 +22,9 @@ gets, independently: an orientation; random flanking bases
 (standing for adapter and barcode remnants: random, not a real adapter
 sequence); sometimes a start or an end inside a primer, or a break in
 the middle; and sequencing errors (substitutions, insertions and
-deletions) at a rate drawn for each read. These are modelling choices,
-documented here and in benchmark/README.md, not measured properties of
-a run.
+deletions) at a rate drawn for each read (--error-rate: its mean).
+These are modelling choices, documented here and in
+benchmark/README.md, not measured properties of a run.
 
 Outputs, in <outdir>:
   reads.fastq.gz   the reads
@@ -146,6 +146,11 @@ def main():
            "consensus when nothing is trimmed)")
   parser.add_argument("--seed", type=int, default=1)
   parser.add_argument(
+      "--error-rate", type=float, default=0.04,
+      help="mean of the error rate drawn for each read (normal, standard "
+           "deviation half the mean, between 0.005 and 0.15, or 3 times "
+           "the mean if higher; default 0.04)")
+  parser.add_argument(
       "--barcodes", type=int, default=0, choices=range(0, 5),
       help="native barcoding: each amplicon gets the adapter of one of the "
            "first N barcodes (NB01-NB04) at both ends (default 0: none)")
@@ -228,7 +233,8 @@ def main():
       amp = ("".join(rng.choice("ACGT") for _ in range(lf)) + amp +
              "".join(rng.choice("ACGT") for _ in range(rf)))
       labels = "f" * lf + labels + "f" * rf
-      rate = min(max(rng.gauss(0.04, 0.02), 0.005), 0.15)
+      rate = min(max(rng.gauss(args.error_rate, args.error_rate / 2),
+                     0.005), max(0.15, 3 * args.error_rate))
       read, read_labels = add_errors(amp, labels, rate, rng)
       qual = "".join(chr(33 + rng.randint(8, 30)) for _ in read)
       n += 1
