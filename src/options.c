@@ -12,6 +12,7 @@
 #include "auto-settings.h"
 #include "live.h"
 #include "strutils.h"
+#include "worker.h"
 #include "reference.h"
 #include "scheme.h"
 
@@ -30,6 +31,7 @@ enum {
   OPT_MIN_AGE,
   OPT_SCAN_INTERVAL,
   OPT_RESUME,
+  OPT_COMPRESS_LEVEL,
 };
 
 #define PURPOSE "Remove the primers of the influenza A multisegment " \
@@ -76,6 +78,11 @@ enum {
   "   -j, --threads <n>      threads (default: " \
   XSTR(OPTIONS_DEFAULT_THREADS) "; the output does not\n" \
   "                          depend on it)\n" \
+  "   --compress-level <n>   gzip compression level of the outputs, " \
+  XSTR(WORKER_MIN_COMPRESS_LEVEL) " to\n" \
+  "                          " XSTR(WORKER_MAX_COMPRESS_LEVEL) \
+  " (default: " XSTR(WORKER_DEFAULT_COMPRESS_LEVEL) "; higher: smaller, " \
+  "slower)\n" \
   "   --no-tags              do not append the tags to the read titles\n" \
   "   --adapters <kits>      the Nanopore adapters searched at the read\n" \
   "                          ends without a primer: a comma-separated\n" \
@@ -171,6 +178,7 @@ void options_parse(options_t *self, int argc, char *argv[],
   bool timeout_given = false, min_age_given = false,
        scan_interval_given = false;
   self->threads = OPTIONS_DEFAULT_THREADS;
+  self->compress_level = WORKER_DEFAULT_COMPRESS_LEVEL;
   static struct option longopts[] = {
     {"outdir", required_argument, NULL, 'o'},
     {"scheme", required_argument, NULL, 's'},
@@ -180,6 +188,7 @@ void options_parse(options_t *self, int argc, char *argv[],
     {"window", required_argument, NULL, 'w'},
     {"min-length", required_argument, NULL, 'm'},
     {"threads", required_argument, NULL, 'j'},
+    {"compress-level", required_argument, NULL, OPT_COMPRESS_LEVEL},
     {"no-tags", no_argument, NULL, OPT_NO_TAGS},
     {"adapters", required_argument, NULL, OPT_ADAPTERS},
     {"live", no_argument, NULL, OPT_LIVE},
@@ -242,6 +251,18 @@ void options_parse(options_t *self, int argc, char *argv[],
       case 'j':
         PARSE_INTEGER_OPT_MIN_MAX(c, &self->threads, 1,
                                   OPTIONS_MAX_THREADS);
+        break;
+      case OPT_COMPRESS_LEVEL:
+        {
+          long v;
+          if (!argparse_long(optarg, &v) || v < WORKER_MIN_COMPRESS_LEVEL ||
+              v > WORKER_MAX_COMPRESS_LEVEL)
+            PARSE_ERR("Option '--compress-level': an integer >= "
+                      XSTR(WORKER_MIN_COMPRESS_LEVEL) " and <= "
+                      XSTR(WORKER_MAX_COMPRESS_LEVEL) " expected ('%s' "
+                      "found)", optarg);
+          self->compress_level = (int)v;
+        }
         break;
       case OPT_NO_TAGS:
         self->tags = false;
@@ -359,4 +380,5 @@ void options_parse(options_t *self, int argc, char *argv[],
               self->resume ? ", resume" : "");
   }
   PARSE_LOG("Threads: %zu\n", self->threads);
+  PARSE_LOG("Compression level: %d\n", self->compress_level);
 }

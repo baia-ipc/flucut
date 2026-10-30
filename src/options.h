@@ -47,6 +47,7 @@ typedef struct {
   bool tags;
   const char *adapters;       /* see adapters.h */
   size_t threads;
+  int compress_level;         /* of the outputs (gzip) */
   /* the live mode (see live.h): --live, --timeout (seconds, 0: none),
      --min-age (seconds), --scan-interval (seconds), --resume */
   bool live;

@@ -302,6 +302,7 @@ static void write_parameters(json_writer_t *w, const report_t *r) {
   member(w, "tags");
   fputs(o->tags ? "true" : "false", f);
   count_member(w, "threads", o->threads);
+  count_member(w, "compress_level", (size_t)o->compress_level);
   close_block(w, '}', false);
 }
 

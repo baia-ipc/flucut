@@ -75,6 +75,11 @@ Options
    depend on it.
    Default: 4.
 
+``--compress-level <n>``
+   The gzip compression level of the outputs, 1 to 12 (the levels of
+   libdeflate, with which they are compressed). A higher level gives
+   smaller files, and takes longer (:doc:`performance`). Default: 6.
+
 ``--no-tags``
    Do not append the tags to the read titles.
 

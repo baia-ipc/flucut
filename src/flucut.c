@@ -95,7 +95,7 @@ static void trim_groups(const options_t *opts, trimmer_config_t *config,
   worker_t *workers;
   XMALLOC(workers, sizeof(worker_t) * opts->threads);
   for (size_t t = 0; t < opts->threads; t++)
-    worker_init(workers + t, config);
+    worker_init(workers + t, config, opts->compress_level);
   /* the counts of each group, and of all reads */
   counter_t **group_counts;
   XMALLOC(group_counts, sizeof(counter_t *) * (n_groups + 1));

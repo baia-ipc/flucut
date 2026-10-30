@@ -115,7 +115,10 @@ The main options (`flucut -h` lists all of them, with their defaults):
   (default 1; primer dimers are never written);
 - `-j`: worker threads (default 4), each trimming batches of 1000 reads
   in turn, written in the order of the input: the output does not
-  depend on it.
+  depend on it;
+- `--compress-level`: the gzip compression level of the outputs, 1 to
+  12 (default 6; higher: smaller and slower; the outputs are compressed
+  with libdeflate).
 
 Outputs:
 

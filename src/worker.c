@@ -20,12 +20,15 @@ struct worker_job_t {
   Logger *logger;
 };
 
-void worker_init(worker_t *w, const trimmer_config_t *config) {
+void worker_init(worker_t *w, const trimmer_config_t *config,
+    int compress_level) {
   assert(w != NULL);
   assert(config != NULL);
+  assert(compress_level >= WORKER_MIN_COMPRESS_LEVEL &&
+         compress_level <= WORKER_MAX_COMPRESS_LEVEL);
   w->job = NULL;
   w->trimmer = trimmer_new(config);
-  w->compressor = libdeflate_alloc_compressor(WORKER_COMPRESS_LEVEL);
+  w->compressor = libdeflate_alloc_compressor(compress_level);
   if (w->compressor == NULL)
     fatal_printf("Initialization of the gzip compression failed\n");
   w->counts = counter_new(config->scheme, config->references);

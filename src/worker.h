@@ -26,8 +26,11 @@
 
 /* reads of a batch */
 #define WORKER_BATCH_SIZE 1000
-/* compression level of the output */
-#define WORKER_COMPRESS_LEVEL 6
+/* compression level of the output: the range of libdeflate, and the
+   default (see the --compress-level option) */
+#define WORKER_MIN_COMPRESS_LEVEL 1
+#define WORKER_MAX_COMPRESS_LEVEL 12
+#define WORKER_DEFAULT_COMPRESS_LEVEL 6
 
 /* state shared by the workers during the processing of a file */
 typedef struct worker_job_t worker_job_t;
@@ -43,8 +46,11 @@ typedef struct {
 } worker_t;
 
 /* Initialize a worker, with a trimmer for <config> (which must exist as
-   long as the worker is used) */
-void worker_init(worker_t *w, const trimmer_config_t *config);
+   long as the worker is used) and a compressor of the output with
+   <compress_level> (WORKER_MIN_COMPRESS_LEVEL to
+   WORKER_MAX_COMPRESS_LEVEL) */
+void worker_init(worker_t *w, const trimmer_config_t *config,
+    int compress_level);
 
 /* Free the memory of a worker */
 void worker_free(worker_t *w);
