@@ -58,12 +58,18 @@ typedef enum {
    terminus. The oligonucleotide is therefore stored whole, and
    <terminus_len> says where the template-derived part begins, instead of
    joining a tail and a terminus.
+
+   <terminus_from> is the offset of the terminus in the
+   oligonucleotide: in a primer as it is ordered the terminus is the
+   suffix (<terminus_from> = <seq_len> - <terminus_len>), and in its
+   reverse complement, searched at the other end of an amplicon, it is
+   the prefix (<terminus_from> = 0, see primers_reverse()).
 */
 typedef struct {
   const char *name;
   const char *seq;
   size_t seq_len;
-  size_t terminus_len;
+  size_t terminus_from, terminus_len;
   primer_end_t end;
 } primer_t;
 
@@ -131,6 +137,15 @@ bool primers_is_iupac_seq(const char *seq, size_t len);
    primers_is_iupac_seq()).
 */
 void primers_reverse_complement(const char *seq, size_t len, char *dest);
+
+/*
+   The reverse complement of the primer <p>, as it appears at the other
+   end of an amplicon: its sequence is written to <seq_buf> (which must
+   have room for <p>->seq_len characters and must exist as long as
+   <dest> is used), and its terminus becomes its prefix. The name is that
+   of <p>.
+*/
+void primers_reverse(const primer_t *p, char *seq_buf, primer_t *dest);
 
 /* Unit tests */
 void primers_test(void);
