@@ -15,6 +15,11 @@
 struct amplicon_analyzer_t {
   const scheme_t *scheme;
   trim_policy_t policy;
+  /* the primer of an end must lie within this many bases of that end of
+     the read (see amplicon.h) */
+  long window;
+  /* the length of the longest primer of the scheme */
+  size_t max_primer_len;
   /* the errors allowed in each primer of each end */
   long *left_max_errors, *right_max_errors;
   primer_search_t *search;
@@ -34,12 +39,21 @@ static long max_errors_of(double max_errors, size_t seq_len) {
 }
 
 amplicon_analyzer_t* amplicon_analyzer_new(const scheme_t *scheme,
-    double max_errors, trim_policy_t policy) {
+    double max_errors, trim_policy_t policy, long window) {
   assert(scheme != NULL);
+  assert(window >= 0);
   amplicon_analyzer_t *self;
   XMALLOC(self, sizeof(amplicon_analyzer_t));
   self->scheme = scheme;
   self->policy = policy;
+  self->window = window;
+  self->max_primer_len = 0;
+  for (size_t i = 0; i < scheme->n_left; i++)
+    if (scheme->left[i].seq_len > self->max_primer_len)
+      self->max_primer_len = scheme->left[i].seq_len;
+  for (size_t i = 0; i < scheme->n_right; i++)
+    if (scheme->right[i].seq_len > self->max_primer_len)
+      self->max_primer_len = scheme->right[i].seq_len;
   XMALLOC(self->left_max_errors, sizeof(long) * scheme->n_left);
   XMALLOC(self->right_max_errors, sizeof(long) * scheme->n_right);
   for (size_t i = 0; i < scheme->n_left; i++)
@@ -70,18 +84,20 @@ void amplicon_analyzer_delete(amplicon_analyzer_t *self) {
    alignment, then the first primer of the scheme, so that the result
    does not depend on the order of the search).
 
-   <at_left>: the end searched is the left one, so the primer may
-   overhang the start of the read; otherwise it may overhang its end.
+   <partial_left> and <partial_right>: whether the primer may overhang
+   that side of <seq>; both are false for a match inside the read, which
+   must be complete.
 */
 static void search_end(amplicon_analyzer_t *self, const primer_t *primers,
     const long *max_errors, size_t n, const char *seq, size_t len,
-    bool at_left, amplicon_end_t *out) {
+    bool partial_left, bool partial_right, amplicon_end_t *out) {
   out->found = false;
   out->variant = 0;
   for (size_t i = 0; i < n; i++) {
     primer_hit_t hit;
     if (!primer_search_run(self->search, primers + i, seq, len,
-                           max_errors[i], at_left, !at_left, &hit))
+                           max_errors[i], partial_left, partial_right,
+                           &hit))
       continue;
     if (out->found) {
       long best = out->hit.end - out->hit.start;
@@ -99,30 +115,88 @@ static void search_end(amplicon_analyzer_t *self, const primer_t *primers,
 /*
    Search the layout of the plus strand of an amplicon in <seq>: the
    primers of the left end at its start, those of the right end at its
-   end. The right end is searched only after the left one, in the part
-   of the read which follows it, so that the two primers found belong to
-   the same amplicon.
+   end.
+
+   Each primer is searched only in the window at its end of the read
+   (see amplicon.h): a match further inside the read is not the primer
+   which started the amplicon, and trimming at it would remove template
+   sequence. Such matches are collected separately, as internal matches.
 */
 static void search_layout(amplicon_analyzer_t *self, const char *seq,
     size_t len, amplicon_t *out) {
   const scheme_t *sc = self->scheme;
-  search_end(self, sc->left, self->left_max_errors, sc->n_left, seq, len,
-             true, &out->left);
-  /* the right primer is searched after the left one: with a left primer
-     found, the search starts after its last base */
-  long from = out->left.found ? out->left.hit.end + 1 : 0;
-  if (from >= (long)len) {
-    out->right.found = false;
-    out->right.variant = 0;
-    return;
+  out->n_internal = 0;
+  /* the region searched at each end: the window, plus the length of the
+     longest primer, as a primer starting inside the window can end
+     after it */
+  long region = self->window + (long)self->max_primer_len;
+  size_t left_len = (long)len < region ? len : (size_t)region;
+  search_end(self, sc->left, self->left_max_errors, sc->n_left, seq,
+             left_len, true, false, &out->left);
+  /* the primer must begin within the window */
+  if (out->left.found && out->left.hit.start > self->window)
+    out->left.found = false;
+  /* the right primer is searched after the left one, so that the two
+     primers found belong to the same amplicon */
+  long after_left = out->left.found ? out->left.hit.end + 1 : 0;
+  long right_from = (long)len - region;
+  if (right_from < after_left)
+    right_from = after_left;
+  out->right.found = false;
+  out->right.variant = 0;
+  if (right_from < (long)len) {
+    search_end(self, sc->right, self->right_max_errors, sc->n_right,
+               seq + right_from, len - (size_t)right_from, false, true,
+               &out->right);
+    if (out->right.found) {
+      out->right.hit.start += right_from;
+      out->right.hit.end += right_from;
+      out->right.hit.terminus_start += right_from;
+      out->right.hit.terminus_end += right_from;
+      /* the primer must end within the window */
+      if (out->right.hit.end < (long)len - 1 - self->window)
+        out->right.found = false;
+    }
   }
-  search_end(self, sc->right, self->right_max_errors, sc->n_right,
-             seq + from, len - (size_t)from, false, &out->right);
-  if (out->right.found) {
-    out->right.hit.start += from;
-    out->right.hit.end += from;
-    out->right.hit.terminus_start += from;
-    out->right.hit.terminus_end += from;
+}
+
+/*
+   Collect the matches of the primers of the scheme which lie between the
+   primers of the two ends, i.e. inside the part of the read which is
+   kept (see amplicon.h: internal priming and chimeras).
+
+   The matches are searched from left to right, without a partial
+   alignment at either side, and are not trimmed.
+*/
+static void search_internal(amplicon_analyzer_t *self, const char *seq,
+    size_t len, amplicon_t *out) {
+  const scheme_t *sc = self->scheme;
+  long lo = out->left.found ? out->left.hit.end + 1 : 0;
+  long hi = out->right.found ? out->right.hit.start : (long)len;
+  while (out->n_internal < AMPLICON_MAX_INTERNAL && hi - lo > 0) {
+    amplicon_end_t best;
+    bool from_left_end = true;
+    search_end(self, sc->left, self->left_max_errors, sc->n_left,
+               seq + lo, (size_t)(hi - lo), false, false, &best);
+    /* (the primers of the right end are searched as well: a match of
+       either primer inside the read is reported) */
+    amplicon_end_t other;
+    search_end(self, sc->right, self->right_max_errors, sc->n_right,
+               seq + lo, (size_t)(hi - lo), false, false, &other);
+    if (other.found && (!best.found ||
+                        other.hit.n_errors < best.hit.n_errors)) {
+      best = other;
+      from_left_end = false;
+    }
+    if (!best.found)
+      return;
+    amplicon_match_t *m = out->internal + out->n_internal++;
+    m->at_left_end = from_left_end;
+    m->variant = best.variant;
+    m->start = best.hit.start + lo;
+    m->end = best.hit.end + lo;
+    m->n_errors = best.hit.n_errors;
+    lo = m->end + 1;
   }
 }
 
@@ -189,6 +263,7 @@ const amplicon_t* amplicon_analyzer_run(amplicon_analyzer_t *self,
        (amplicon_n_ends(&minus) == amplicon_n_ends(&plus) &&
         total_errors(&minus) < total_errors(&plus)));
   *out = use_minus ? minus : plus;
+  search_internal(self, use_minus ? self->rc : seq, len, out);
   out->strand = amplicon_n_ends(out) == 0 ? STRAND_NONE :
                 (use_minus ? STRAND_MINUS : STRAND_PLUS);
   long from, to;
@@ -200,6 +275,12 @@ const amplicon_t* amplicon_analyzer_run(amplicon_analyzer_t *self,
     long n = (long)len;
     out->keep_from = to < from ? 1 : n - 1 - to;
     out->keep_to = to < from ? 0 : n - 1 - from;
+    for (size_t i = 0; i < out->n_internal; i++) {
+      amplicon_match_t *m = out->internal + i;
+      long start = n - 1 - m->end;
+      m->end = n - 1 - m->start;
+      m->start = start;
+    }
   } else {
     out->keep_from = from;
     out->keep_to = to;
@@ -218,7 +299,8 @@ static void check_keep(amplicon_analyzer_t *a, const char *read,
 
 void amplicon_test(void) {
   Logger *logger = new_logger(stderr, LOG_ERROR);
-  scheme_t *sc = scheme_new_builtin(SCHEME_DEFAULT, logger);
+  /* the scheme with a tail at both ends */
+  scheme_t *sc = scheme_new_builtin("mbt", logger);
   /* a body of 40 bases, which is not similar to the primers */
   const char *body = "GGTTCCAAGGTTCCAAGGTTCCAAGGTTCCAAGGTTCCAA";
   const char *p12 = "ACGCGTGATCAGCAAAAGCAGG";          /* mbtuni-12 */
@@ -227,7 +309,8 @@ void amplicon_test(void) {
   snprintf(read, sizeof(read), "%s%s%s", p12, body, rc13);
 
   /* the default: all the primer-derived bases are removed */
-  amplicon_analyzer_t *a = amplicon_analyzer_new(sc, 0.2, TRIM_PRIMER);
+  amplicon_analyzer_t *a = amplicon_analyzer_new(sc, 0.2, TRIM_PRIMER,
+      AMPLICON_DEFAULT_WINDOW);
   check_keep(a, read, STRAND_PLUS, 2, body);
   /* the same read, sequenced in the other orientation: the kept part is
      the reverse complement of the body, in the original orientation */
@@ -252,15 +335,74 @@ void amplicon_test(void) {
   test_eq_size(amplicon_n_ends(r), 2);
   test_eq_size(amplicon_kept_length(r), 0);
   amplicon_analyzer_delete(a);
+  r = NULL;
 
   /* keeping the conserved termini: the body plus the 12 and 13 bases of
      the termini, which come from the primers */
-  a = amplicon_analyzer_new(sc, 0.2, TRIM_TERMINUS);
+  a = amplicon_analyzer_new(sc, 0.2, TRIM_TERMINUS,
+                            AMPLICON_DEFAULT_WINDOW);
   snprintf(read, sizeof(read), "%s%s%s", p12, body, rc13);
   char expected[256];
   snprintf(expected, sizeof(expected), "%s%s%s", PRIMERS_TERMINUS_12,
            body, "CCTTGTTTCTACT");
   check_keep(a, read, STRAND_PLUS, 2, expected);
+  amplicon_analyzer_delete(a);
+  scheme_delete(sc);
+
+  /*
+     Internal priming, with the default scheme: the untailed Uni12
+     primer is only the twelve bases of the conserved terminus and can
+     anneal inside a segment.
+  */
+  sc = scheme_new_builtin(SCHEME_DEFAULT, logger);
+  a = amplicon_analyzer_new(sc, 0.1, TRIM_PRIMER,
+                            AMPLICON_DEFAULT_WINDOW);
+  const char *uni12 = "AGCAAAAGCAGG";
+  /*
+     A read started at an internal site looks like a read of a real
+     amplicon: the primer is at its end, so its primer-derived bases are
+     removed as well and never reach the consensus
+  */
+  snprintf(read, sizeof(read), "%s%s%s", uni12, body, rc13);
+  check_keep(a, read, STRAND_PLUS, 2, body);
+
+  /*
+     A primer which matches deep inside a read is not the primer which
+     started the amplicon: it is reported, and nothing is trimmed there
+  */
+  char middle[256];
+  snprintf(middle, sizeof(middle), "%s%s%s%s%s", uni12, body, uni12, body,
+           rc13);
+  r = amplicon_analyzer_run(a, middle, strlen(middle));
+  test_eq_size(amplicon_n_ends(r), 2);
+  test_eq_size(r->n_internal, 1);
+  test_assert(r->internal[0].at_left_end);
+  test_eq(r->internal[0].start, (long)(strlen(uni12) + strlen(body)),
+          long, "%ld");
+  /* the template between the two end primers is kept whole, including
+     the internal match */
+  test_eq_size(amplicon_kept_length(r),
+               strlen(body) * 2 + strlen(uni12));
+
+  /*
+     Without the window, a read whose only primer match is deep inside
+     it would be trimmed there, removing real template. With the
+     window, no end primer is found and the read is not trimmed.
+  */
+  char internal_only[512];
+  snprintf(internal_only, sizeof(internal_only),
+           "%s%s%s%s%s%s%s%s%s", body, body, body, body, uni12, body,
+           body, body, body);
+  check_keep(a, internal_only, STRAND_NONE, 0, internal_only);
+  amplicon_analyzer_delete(a);
+
+  /* with a window wide enough, the same match is taken as the primer of
+     the left end (which is why the window matters) */
+  a = amplicon_analyzer_new(sc, 0.1, TRIM_PRIMER, 1000);
+  r = amplicon_analyzer_run(a, internal_only, strlen(internal_only));
+  test_eq_size(amplicon_n_ends(r), 1);
+  test_eq(r->keep_from, (long)(4 * strlen(body) + strlen(uni12)), long,
+          "%ld");
   amplicon_analyzer_delete(a);
   scheme_delete(sc);
   delete_logger(logger);

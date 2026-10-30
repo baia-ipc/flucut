@@ -124,7 +124,7 @@ void scheme_delete(scheme_t *self) {
 
 void scheme_test(void) {
   Logger *logger = new_logger(stderr, LOG_ERROR);
-  scheme_t *s = scheme_new_builtin(SCHEME_DEFAULT, logger);
+  scheme_t *s = scheme_new_builtin("mbt", logger);
   test_eq_str(s->name, "mbt");
   test_eq_size(s->n_left, 2);
   test_eq_size(s->n_right, 1);
@@ -150,7 +150,8 @@ void scheme_test(void) {
   scheme_delete(s);
   /* the primers of the two ends can have different forms: an untailed
      Uni12 primer at the left end, a tailed one at the right end */
-  s = scheme_new_builtin("uni12-mbt13", logger);
+  s = scheme_new_builtin(SCHEME_DEFAULT, logger);
+  test_eq_str(s->name, "uni12-mbt13");
   test_eq_size(s->n_left, 1);
   test_eq_mem(s->left[0].seq, s->left[0].seq_len, "AGCRAAAGCAGG");
   test_eq_size(s->left[0].terminus_from, 0);

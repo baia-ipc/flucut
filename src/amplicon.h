@@ -44,6 +44,36 @@
    primer alignment is removed, whether or not the bases under it differ
    from the primer. A read which begins inside a primer is handled the
    same way, as the search allows a primer to overhang the read.
+
+   Internal priming
+   ----------------
+
+   A universal primer is short, and the untailed Uni12 primer is only
+   the twelve bases of the conserved terminus, with a degenerate
+   position. A sequence that similar occurs by chance inside the
+   segments: the primer can anneal there and start an amplicon in the
+   middle of a segment. The reads of such an amplicon begin with
+   primer-derived bases which are not the template at that position, so
+   they carry the sequence of the primer into the consensus, as a
+   variant which looks real and is not.
+
+   Two things follow for the trimming:
+
+   - the primer-derived bases of an internally primed read are at the
+     end of the read, exactly as in a read of a real amplicon, so
+     TRIM_PRIMER removes them from both and the wrong bases never reach
+     the consensus. TRIM_TERMINUS, which keeps the bases of the
+     terminus, keeps the wrong bases: it must not be used when internal
+     priming is possible;
+   - a primer must be searched only near the ends of a read. A match
+     deep inside a read is not the primer which started the amplicon,
+     and trimming there would remove real template. The primer of an
+     end is therefore only accepted within <window> bases of that end.
+
+   The matches found between the two end primers are reported as
+   internal matches: they are the sites at which the primer can anneal,
+   and the junctions of chimeras and of reads containing several
+   amplicons. They are counted, not trimmed.
 */
 
 #ifndef AMPLICON_H
@@ -67,6 +97,22 @@ typedef enum {
   STRAND_NONE,     /* no primer was found in either orientation */
 } strand_t;
 
+/* the greatest number of internal matches kept for one read */
+#define AMPLICON_MAX_INTERNAL 8
+
+/* default window: the primer of an end must begin (left) or end (right)
+   within this many bases of that end of the read */
+#define AMPLICON_DEFAULT_WINDOW 100
+
+/* a match of a primer inside a read (see above), in the positions of the
+   original read */
+typedef struct {
+  bool at_left_end;    /* a primer of the left end of the scheme */
+  size_t variant;      /* which primer of that end */
+  long start, end;
+  long n_errors;
+} amplicon_match_t;
+
 /* the primer found at one end of a read */
 typedef struct {
   bool found;
@@ -83,6 +129,9 @@ typedef struct {
   /* the part of the ORIGINAL read to keep, 0-based and inclusive;
      <keep_to> < <keep_from> if nothing is left (e.g. a primer dimer) */
   long keep_from, keep_to;
+  /* the matches of a primer between the two ends (see above) */
+  amplicon_match_t internal[AMPLICON_MAX_INTERNAL];
+  size_t n_internal;
 } amplicon_t;
 
 typedef struct amplicon_analyzer_t amplicon_analyzer_t;
@@ -93,9 +142,13 @@ typedef struct amplicon_analyzer_t amplicon_analyzer_t;
 
    <max_errors>: the errors allowed in a primer; a number of bases, or,
    if smaller than 1, a fraction of the length of the primer.
+
+   <window>: the primer of an end is accepted only if it begins (left
+   end) or ends (right end) within this many bases of that end of the
+   read (see above; AMPLICON_DEFAULT_WINDOW).
 */
 amplicon_analyzer_t* amplicon_analyzer_new(const scheme_t *scheme,
-    double max_errors, trim_policy_t policy);
+    double max_errors, trim_policy_t policy, long window);
 
 /*
    Analyze the read <seq> (length <len>); the result is valid until the
