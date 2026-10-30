@@ -5,8 +5,9 @@ From the source
 ---------------
 
 Only a C compiler (C11 with GNU extensions) and ``make`` are needed: the
-libraries used (libcbaia, edlib, libyaml, zlib) are included in the
-repository, in ``ext``.
+libraries used (libcbaia, edlib, libyaml, zlib, libdeflate) are
+included in the repository, in ``ext`` (their versions and sources:
+``ext/README.md``).
 
 ::
 
@@ -19,7 +20,8 @@ The program is ``bin/flucut``. ``make install`` copies it to
 ``/usr/local/bin`` (``make install PREFIX=<dir>`` to another prefix).
 
 ``make SYSTEM_LIBS=1`` uses the zlib and libyaml of the system instead
-of the included copies.
+of the included copies. libdeflate, which compresses the output, is
+always the included copy.
 
 The tests
 ---------
