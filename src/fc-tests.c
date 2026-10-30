@@ -26,6 +26,7 @@
 #include "reference.h"
 #include "report.h"
 #include "scheme.h"
+#include "segments.h"
 #include "trimmer.h"
 
 /* the directory for temporary files (-T; NULL: a new one, see
@@ -87,6 +88,7 @@ static test_group_t test_groups[] = {
   {'n', "the counts of the reads", counter_test, false},
   {'R', "the content of the reports", report_test, false},
   {'g', "the groups of input files", run_input_groups_test, false},
+  {'S', "the recognition of the segments", segments_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 

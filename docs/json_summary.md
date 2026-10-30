@@ -19,7 +19,7 @@ Top level:
 | `command` | string | the command line |
 | `scheme` | object | the primer scheme: `name`, and the names of the primers of the `left` (Uni12) and `right` (Uni13) ends, arrays of strings, in the order of the scheme |
 | `trim_policy` | string | `"primer"` or `"terminus"` (`-T`) |
-| `references` | object or null | with `-r`: `file` (the path given), `sequences` (array of `name`, `length`); `null` without references |
+| `references` | object or null | with `-r`: `file` (the path given), `sequences` (array of `name`, `length`, `segment` (1-8, from the FASTA description, see the manual) and `gene` (e.g. `HA`), `null` if the description names no segment); `null` without references |
 | `settings` | object | the options, see below |
 | `length_bin` | integer | width of the bins of the length histograms (10 bases) |
 | `length_max` | integer | the last bin of a histogram contains all lengths from this value on (4000) |

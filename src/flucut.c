@@ -29,6 +29,7 @@
 #include "report.h"
 #include "run-report.h"
 #include "scheme.h"
+#include "segments.h"
 #include "strbuf.h"
 #include "strutils.h"
 #include "trimmer.h"
@@ -180,9 +181,12 @@ static size_t write_lengths(const lengths_t *l, const fasta_t *refs,
     n_short += s.short_count;
     if (s.short_count == 0)
       continue;
+    char label[256];
+    segments_label(name, refs->records[g].description, label,
+                   sizeof(label));
     lprintf(logger, LOG_WARN, "%s: %s: %zu of %zu complete amplicons "
             "shorter than %.0f%% of the reference (%zu bases), most at "
-            "%zu-%zu: internal priming or deletions\n", path, name,
+            "%zu-%zu: internal priming or deletions\n", path, label,
             s.short_count, s.total, LENGTHS_SHORT_FRACTION * 100,
             refs->records[g].seq_len, s.short_bin * LENGTHS_BIN,
             s.short_bin * LENGTHS_BIN + LENGTHS_BIN - 1);

@@ -38,7 +38,11 @@ Options
    terminal or internally primed (:doc:`internal_priming`). With
    ``--trim primer`` the classification is only reported; with
    ``--trim terminus`` it decides the trimming of the internal ends.
-   Default: none.
+   The messages and reports name a reference with its segment when its
+   description (the header after the name) says it: ``segment <n>``
+   (as in the NCBI records), or a gene or protein name (e.g. ``HA``,
+   ``hemagglutinin``, or the IRMA names like ``A_HA_H5``). Default:
+   none.
 
 ``-e, --max-errors <x>``
    The errors allowed in a primer: a whole number of bases, or, below 1,

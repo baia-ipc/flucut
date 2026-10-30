@@ -7,6 +7,7 @@
 #include <time.h>
 #include "file.h"
 #include "json-report.h"
+#include "segments.h"
 #include "strutils.h"
 
 /*
@@ -258,7 +259,15 @@ static void write_parameters(json_writer_t *w, const report_t *r) {
       member(w, NULL);
       fputs("{\"name\": ", f);
       fputs_json_string(r->references->records[i].name, f);
-      fprintf(f, ", \"length\": %zu}", r->references->records[i].seq_len);
+      int segment = segments_of_description(
+          r->references->records[i].description);
+      fprintf(f, ", \"length\": %zu, \"segment\": ",
+              r->references->records[i].seq_len);
+      if (segment == 0)
+        fputs("null, \"gene\": null}", f);
+      else
+        fprintf(f, "%d, \"gene\": \"%s\"}", segment,
+                segments_gene(segment));
     }
     close_block(w, ']', false);
     close_block(w, '}', false);

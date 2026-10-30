@@ -11,6 +11,7 @@
 #include "html-report.h"
 #include "html-template.h"
 #include "html-writer.h"
+#include "segments.h"
 
 #include "report-logo-data.inc"
 
@@ -200,7 +201,10 @@ static void write_sites(html_writer_t *w, const report_t *r,
   for (size_t i = 0; i < shown; i++) {
     const report_site_t *x = sites + i;
     open_row(w);
-    td(w, "%s", r->references->records[x->ref].name);
+    const fasta_record_t *ref = r->references->records + x->ref;
+    char label[REPORT_LABEL_SIZE];
+    segments_label(ref->name, ref->description, label, sizeof(label));
+    td(w, "%s", label);
     td(w, "%s", report_end_name(x->end));
     td(w, "%zu", x->pos);
     if (x->from == x->to)
@@ -245,7 +249,7 @@ static void write_lengths(html_writer_t *w, const report_t *r,
     if (x.summary.total == 0)
       continue;
     open_row(w);
-    td(w, "%s", x.name);
+    td(w, "%s", x.label);
     if (x.ref_len > 0)
       td(w, "%s", html_num(x.ref_len).s);
     else
@@ -282,7 +286,7 @@ static void write_lengths(html_writer_t *w, const report_t *r,
     for (size_t b = 0; b < LENGTHS_N_BINS; b++)
       hist[b] = lengths_count(l, g, b);
     open_class(w, "div", "plot");
-    html_tag_text(w, "b", x.name);
+    html_tag_text(w, "b", x.label);
     html_histogram(w, hist, LENGTHS_N_BINS, LENGTHS_BIN,
                    "length between the primers", "bases",
                    "No complete amplicons.");
