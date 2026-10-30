@@ -11,9 +11,14 @@
 zlib and libyaml are not used (the system libraries are used instead)
 with `make SYSTEM_LIBS=1`.
 
-Copied unchanged from its repository:
+Copied unchanged from their repositories:
 
 - `edlib/`: edlib 1.2.7 (https://github.com/Martinsos/edlib, MIT license,
-  see `edlib/LICENSE`).
+  see `edlib/LICENSE`);
+- `libdeflate/`: libdeflate 1.26 (https://github.com/ebiggers/libdeflate,
+  tag `v1.26`, commit `92e6a0db9fa848d742f9eb286c92afc60f2c3dda`, MIT
+  license, see `libdeflate/COPYING`), the sources of the library only:
+  `lib/`, `libdeflate.h` and `common_defs.h` (included by `lib/`); it
+  compresses the output; it is used also with `make SYSTEM_LIBS=1`.
 
 khash (klib) is included in libcbaia (`libcbaia/ext/khash`).
