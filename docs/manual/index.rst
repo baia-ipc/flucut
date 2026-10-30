@@ -29,6 +29,7 @@ and every option.
    internal_priming
    output
    reports
+   live
    irma
    performance
    troubleshooting

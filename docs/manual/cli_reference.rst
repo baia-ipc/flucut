@@ -99,6 +99,35 @@ These options are used with ``--references``.
    Align each probe to the whole of every reference, without the k-mer
    index (slower; for checking the index).
 
+Live mode
+---------
+
+The live mode (:doc:`live`): its options can only be given with
+``--live``.
+
+``--live``
+   Trim the files of the input directories as they are written (e.g. by
+   MinKNOW), appending to the outputs and updating the tables and
+   reports after each file; stop at the end of the run (a file
+   ``final_summary_*.txt`` in an input directory or in its parent),
+   after ``--timeout``, or with Ctrl-C. The inputs must be directories.
+
+``--timeout <t>``
+   Also stop after ``<t>`` without new files (e.g. ``30s``, ``60m``,
+   ``2h``; a number: minutes). Default: none.
+
+``--min-age <t>``
+   Trim a file only ``<t>`` after its last change (e.g. ``30s``,
+   ``2m``; a number: seconds). Default: 60 seconds.
+
+``--scan-interval <s>``
+   Seconds between the scans of the input directories (at most 3600).
+   Default: 10.
+
+``--resume``
+   Skip the files already trimmed by an interrupted live run with the
+   same output directory, continuing its outputs and counts.
+
 Other options
 -------------
 
@@ -127,7 +156,8 @@ their kind:
   shorter than the closest reference (below 90% of its length: internal
   priming or deletions; with ``-r``), named by their segment when the
   reference says it, as in ``HA segment: 4 of 9 complete amplicons
-  shorter than the closest reference (NC_004908.1, 1714 bases)``, or files of reads ignored beside the barcode directories;
+  shorter than the closest reference (NC_004908.1, 1714 bases)``, or
+  files of reads ignored beside the barcode directories;
 - ``ERROR`` (red): the program stops;
 - with ``-v``, also ``PARAM`` (blue: the values of the options),
   ``PHASE`` (bright yellow: the steps, e.g. the trimming of each file)

@@ -4,11 +4,14 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include "options.h"
 #include "argparse-def.h"
 #include "amplicon.h"
 #include "auto-settings.h"
+#include "live.h"
+#include "strutils.h"
 #include "reference.h"
 #include "scheme.h"
 
@@ -22,6 +25,11 @@ enum {
   OPT_NO_TAGS,
   OPT_EXHAUSTIVE,
   OPT_ADAPTERS,
+  OPT_LIVE,
+  OPT_TIMEOUT,
+  OPT_MIN_AGE,
+  OPT_SCAN_INTERVAL,
+  OPT_RESUME,
 };
 
 #define PURPOSE "Remove the primers of the influenza A multisegment " \
@@ -73,6 +81,26 @@ enum {
   "                          ends without a primer: a comma-separated\n" \
   "                          list of " ADAPTERS_KITS ", or none\n" \
   "                          (default: " ADAPTERS_DEFAULT ")\n" \
+  "\n" \
+  "Live mode (a MinKNOW run in progress):\n" \
+  "   --live                 process the files of the input directories as\n" \
+  "                          they are written, appending to the outputs and\n" \
+  "                          updating the tables and reports after each\n" \
+  "                          file; stop at the end of the run (a file\n" \
+  "                          " LIVE_END_FILES " in an input\n" \
+  "                          directory or its parent), after --timeout, or\n" \
+  "                          with Ctrl-C\n" \
+  "   --timeout <t>          also stop after <t> without new files (e.g.\n" \
+  "                          30s, 60m, 2h; a number: minutes; default:\n" \
+  "                          none)\n" \
+  "   --min-age <t>          process a file only <t> after its last\n" \
+  "                          change (e.g. 30s, 2m; a number: seconds;\n" \
+  "                          default: " XSTR(OPTIONS_DEFAULT_MIN_AGE) "s)\n" \
+  "   --scan-interval <s>    seconds between the scans of the input\n" \
+  "                          directories (default: " \
+  XSTR(OPTIONS_DEFAULT_SCAN_INTERVAL) ")\n" \
+  "   --resume               skip the files already processed by an\n" \
+  "                          interrupted live run (same output directory)\n" \
   "\n" \
   "Classification against the references (with --references):\n" \
   "   --probe-len <n>        bases after the primer located in the\n" \
@@ -135,6 +163,13 @@ void options_parse(options_t *self, int argc, char *argv[],
   self->min_length = OPTIONS_DEFAULT_MIN_LENGTH;
   self->tags = true;
   self->adapters = ADAPTERS_DEFAULT;
+  self->live = false;
+  self->live_timeout = 0;
+  self->live_min_age = OPTIONS_DEFAULT_MIN_AGE;
+  self->live_scan_interval = OPTIONS_DEFAULT_SCAN_INTERVAL;
+  self->resume = false;
+  bool timeout_given = false, min_age_given = false,
+       scan_interval_given = false;
   self->threads = OPTIONS_DEFAULT_THREADS;
   static struct option longopts[] = {
     {"outdir", required_argument, NULL, 'o'},
@@ -147,6 +182,11 @@ void options_parse(options_t *self, int argc, char *argv[],
     {"threads", required_argument, NULL, 'j'},
     {"no-tags", no_argument, NULL, OPT_NO_TAGS},
     {"adapters", required_argument, NULL, OPT_ADAPTERS},
+    {"live", no_argument, NULL, OPT_LIVE},
+    {"timeout", required_argument, NULL, OPT_TIMEOUT},
+    {"min-age", required_argument, NULL, OPT_MIN_AGE},
+    {"scan-interval", required_argument, NULL, OPT_SCAN_INTERVAL},
+    {"resume", no_argument, NULL, OPT_RESUME},
     {"probe-len", required_argument, NULL, OPT_PROBE_LEN},
     {"probe-errors", required_argument, NULL, OPT_PROBE_ERRORS},
     {"terminal-window", required_argument, NULL, OPT_TERMINAL_WINDOW},
@@ -206,6 +246,34 @@ void options_parse(options_t *self, int argc, char *argv[],
       case OPT_NO_TAGS:
         self->tags = false;
         break;
+      case OPT_LIVE:
+        self->live = true;
+        break;
+      case OPT_TIMEOUT:
+        if (!parse_duration(optarg, 60, &self->live_timeout) ||
+            self->live_timeout == 0)
+          PARSE_ERR("Option '--timeout': a positive duration expected, "
+                    "e.g. 30s, 60m, 2h ('%s' found)", optarg);
+        timeout_given = true;
+        break;
+      case OPT_MIN_AGE:
+        if (!parse_duration(optarg, 1, &self->live_min_age))
+          PARSE_ERR("Option '--min-age': a duration expected, e.g. 30s, "
+                    "2m ('%s' found)", optarg);
+        min_age_given = true;
+        break;
+      case OPT_SCAN_INTERVAL:
+        if (!parse_double(optarg, &x) || x <= 0 ||
+            x > OPTIONS_MAX_SCAN_INTERVAL)
+          PARSE_ERR("Option '--scan-interval': a number of seconds > 0 and "
+                    "<= " XSTR(OPTIONS_MAX_SCAN_INTERVAL) " expected ('%s' "
+                    "found)", optarg);
+        self->live_scan_interval = x;
+        scan_interval_given = true;
+        break;
+      case OPT_RESUME:
+        self->resume = true;
+        break;
       case OPT_ADAPTERS:
         if (!adapters_valid(optarg))
           PARSE_ERR("Option '--adapters': a comma-separated list of "
@@ -248,6 +316,23 @@ void options_parse(options_t *self, int argc, char *argv[],
     PARSE_ERR("--trim terminus requires --references: without them the "
               "internally primed reads cannot be recognised, and would "
               "keep the primer bases (the artefact)");
+  /* the options of the live mode require it */
+  if (timeout_given && !self->live)
+    PARSE_ERR("Option '--timeout': the live mode (--live) is required");
+  if (min_age_given && !self->live)
+    PARSE_ERR("Option '--min-age': the live mode (--live) is required");
+  if (scan_interval_given && !self->live)
+    PARSE_ERR("Option '--scan-interval': the live mode (--live) is "
+              "required");
+  if (self->resume && !self->live)
+    PARSE_ERR("Option '--resume': the live mode (--live) is required");
+  if (self->live)
+    for (int i = optind; i < argc; i++) {
+      struct stat st;
+      if (stat(argv[i], &st) != 0 || !S_ISDIR(st.st_mode))
+        PARSE_ERR("Option '--live': the inputs must be directories ('%s' "
+                  "found)", argv[i]);
+    }
   self->inputs = argv + optind;
   self->n_inputs = (size_t)(argc - optind);
   self->show_banner = !quiet && logfile == stderr &&
@@ -267,5 +352,11 @@ void options_parse(options_t *self, int argc, char *argv[],
   PARSE_LOG("Window: %ld\n", self->window);
   PARSE_LOG("Minimum length: %zu\n", self->min_length);
   PARSE_LOG("Adapters: %s\n", self->adapters);
+  if (self->live) {
+    PARSE_LOG("Live mode: timeout %ld s (0: none), minimum age %ld s, "
+              "scan interval %g s%s\n", self->live_timeout,
+              self->live_min_age, self->live_scan_interval,
+              self->resume ? ", resume" : "");
+  }
   PARSE_LOG("Threads: %zu\n", self->threads);
 }

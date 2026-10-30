@@ -29,15 +29,10 @@ support the trimming; they are not the purpose of the program.
   primer, the alignment can extend over it and remove one template base
   (seen in the program tests, read `errors_plus`). Small; to be weighed
   against the remnants left by a tighter alignment, in the benchmark.
-- **Live mode** `--live`: follow a MinKNOW run while it is sequencing
-  (`--min-age`, `--scan-interval`, `--resume`, end of the run from the
-  final summary file, barcode directories appearing during the run);
-  after each file the JSON summary is rewritten and the HTML report
-  becomes a dashboard which fits the screen without scrolling and
-  reloads itself every 1 to 30 seconds, and which becomes the final
-  report at the end of the run. Test: a fast replay
-  (`--scan-interval 0.05`) whose outputs must be identical to those of
-  a normal run on the same reads.
+- **Live mode, next**: the dashboard of Lumipore (a report which fits
+  the screen without scrolling while the run is in progress; today the
+  report itself reloads every 30 seconds); a test on a replay of a real
+  run (Lumipore's `tests/fake_minknow`).
   The report model (`report.h`: refresh, running, dashboard, the
   settings decided automatically) and the worker threads are ready for
   it; the dashboard itself is still to be written.
@@ -101,9 +96,8 @@ support the trimming; they are not the purpose of the program.
 
 ## Documentation
 
-- Manual (`docs/manual`, `manual/flucut-manual.pdf`): the chapter of
-  the live mode, when it exists; the results of all
-  the tools of the benchmark in the performance chapter.
+- Manual (`docs/manual`, `manual/flucut-manual.pdf`): the results of
+  all the tools of the benchmark in the performance chapter.
 - Developer guide (`docs/dev_manual.md`).
 
 ## Open questions
@@ -120,8 +114,7 @@ support the trimming; they are not the purpose of the program.
 ## Checks still to set up
 
 - Fuzzing harnesses (FASTA reader, options), continuous integration
-  started manually, and the live mode tests (`make test_live`, not in
-  `make test` until the live mode exists).
+  started manually.
 - The subtype filter of `scripts/fetch_references.py`: asked for H5N1
   with `--refseq-only`, it returned an H9N2 record (see
   `testdata/README.md`).

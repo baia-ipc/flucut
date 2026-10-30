@@ -48,6 +48,15 @@ expect 1 -w -1 "$reads"
 expect 1 -m 0 "$reads"
 expect 1 -j 0 "$reads"
 expect 1 --adapters nb,xx "$reads"
+# live mode: its options require it, its inputs must be directories
+expect 1 --timeout 5m testdata/fastq_pass
+expect 1 --min-age 5 testdata/fastq_pass
+expect 1 --scan-interval 1 testdata/fastq_pass
+expect 1 --resume testdata/fastq_pass
+expect 1 --live "$reads"
+expect 1 --live --timeout 0 testdata/fastq_pass
+expect 1 --live --timeout x testdata/fastq_pass
+expect 1 --live --scan-interval 0 testdata/fastq_pass
 expect 1 --adapters "" "$reads"
 expect 1 -j 1000 "$reads"
 expect 1 --probe-len 10 -r "$refs" "$reads"
