@@ -1,8 +1,8 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)"
-            srcset="docs/logo/flucut-logo-dark-640.png">
-    <img alt="flucut" src="docs/logo/flucut-logo-640.png" width="320">
+            srcset="docs/logo/flucut-banner-dark-640.png">
+    <img alt="flucut" src="docs/logo/flucut-banner-640.png" width="480">
   </picture>
 </p>
 
