@@ -35,6 +35,10 @@ const EdlibEqualityPair iupac_equalities[] = {
   {'H', 'A'}, {'H', 'C'}, {'H', 'T'},
   {'V', 'A'}, {'V', 'C'}, {'V', 'G'},
   {'N', 'A'}, {'N', 'C'}, {'N', 'G'}, {'N', 'T'},
+  /* N (also the padding character) with the codes of the primer: a
+     degenerate base of a primer overhanging the read is not an error */
+  {'N', 'R'}, {'N', 'Y'}, {'N', 'S'}, {'N', 'W'}, {'N', 'K'}, {'N', 'M'},
+  {'N', 'B'}, {'N', 'D'}, {'N', 'H'}, {'N', 'V'}, {'N', 'N'},
   {'U', 'T'},
 };
 const int n_iupac_equalities =
@@ -320,6 +324,12 @@ void primer_search_test(void) {
   check(s, "ACRTACGT", "GGACCTACGTGG", 0, false, false, -1, -1, false, 0);
   /* a degenerate base of the read (N) matches any base of the primer */
   check(s, "ACGTACGT", "GGACNTACGTGG", 0, false, false, 2, 9, false, 0);
+  /* ... and any degenerate base of the primer, also when the primer
+     overhangs the read (a read starting inside the degenerate Uni12
+     primer AGCRAAAGCAGG, after its R, is found without errors) */
+  check(s, "ACRTACGT", "GGACNTACGTGG", 0, false, false, 2, 9, false, 0);
+  check(s, "AGCRAAAGCAGG", "AAGCAGGTTTTTTTTT", 0, true, false, 0, 6, true,
+        0);
 
   /*
      The terminus of a tailed primer: mbtuni-12 is
