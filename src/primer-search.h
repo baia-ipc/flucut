@@ -49,14 +49,23 @@ typedef struct {
   /* number of errors (if found) */
   long n_errors;
   /*
-     Position in the read of the first base of the conserved terminus of
-     the primer (the first base of the template-derived part, see
-     primers.h). It is not clipped to the read: it is negative if the
-     read begins inside the terminus, and at least the read length if the
-     terminus is entirely after the end of the read. With a primer which
-     is only a terminus (no tail), it is the start of the alignment.
+     Positions in the read of the conserved terminus of the primer (the
+     template-derived part, see primers.h): the first base of the
+     terminus, and the base after its last one. They are not clipped to
+     the read: they are negative if the read begins inside the terminus,
+     and at least the read length if the terminus reaches beyond the end
+     of the read.
+
+     In a primer as it is ordered the terminus is the suffix, so
+     <terminus_end> is the end of the alignment plus one; in its reverse
+     complement, searched at the other end of an amplicon, the terminus
+     is the prefix and <terminus_start> is the start of the alignment.
+
+     For a sequence which is not a primer (see primer_search_run_seq())
+     both are the end of the alignment plus one: it has no terminus and
+     is always removed whole.
   */
-  long terminus_start;
+  long terminus_start, terminus_end;
 } primer_hit_t;
 
 /* Create a new searcher (it contains buffers: use one for each thread) */

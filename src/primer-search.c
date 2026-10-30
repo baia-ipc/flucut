@@ -73,10 +73,10 @@ static long distance(const char *primer, size_t primer_len,
 }
 
 /*
-   Position in <target> of the base of the primer at position
-   <primer_pos>, for the alignment of the whole primer to
-   target[start..end] (the alignment path is computed again: it is needed
-   only for a primer which was found).
+   Positions in <target> of the bases of the primer at positions
+   <pos_a> <= <pos_b>, for the alignment of the whole primer to
+   target[start..end] (the alignment path is computed only for a primer
+   which was found).
 
    A primer base aligned to a base of the target gives its position; a
    primer base which is deleted in the target gives the position of the
@@ -91,19 +91,24 @@ static long distance(const char *primer, size_t primer_len,
    below check the resulting positions on reads with an insertion and
    with a deletion).
 */
-static long map_primer_pos(const char *primer, size_t primer_len,
-    const char *target, long start, long end, size_t primer_pos) {
-  assert(primer_pos <= primer_len);
-  if (primer_pos == 0)
-    return start;
+static void map_primer_positions(const char *primer, size_t primer_len,
+    const char *target, long start, long end, size_t pos_a, size_t pos_b,
+    long *out_a, long *out_b) {
+  assert(pos_a <= pos_b);
+  assert(pos_b <= primer_len);
+  *out_a = start;
+  *out_b = end + 1;
+  if (pos_a == 0 && pos_b == 0)
+    return;
   EdlibAlignResult result = edlibAlign(primer, (int)primer_len,
       target + start, (int)(end - start + 1),
       edlibNewAlignConfig(-1, EDLIB_MODE_NW, EDLIB_TASK_PATH,
                           iupac_equalities, N_IUPAC_EQUALITIES));
   assert(result.status == EDLIB_STATUS_OK);
-  long qpos = 0, tpos = start, mapped = end + 1;
-  for (int i = 0; i < result.alignmentLength; i++) {
-    /* a base of the read inserted at the sought position belongs to the
+  long qpos = 0, tpos = start;
+  bool got_a = pos_a == 0, got_b = false;
+  for (int i = 0; i < result.alignmentLength && !got_b; i++) {
+    /* a base of the read inserted at a sought position belongs to the
        part of the primer before it (it is consumed before the position
        is reached): an inserted base at the end of the tail is tail, and
        is thus removed, rather than kept as a base of the terminus */
@@ -111,8 +116,13 @@ static long map_primer_pos(const char *primer, size_t primer_len,
       tpos++;
       continue;
     }
-    if ((size_t)qpos == primer_pos) {
-      mapped = tpos;
+    if (!got_a && (size_t)qpos == pos_a) {
+      *out_a = tpos;
+      got_a = true;
+    }
+    if ((size_t)qpos == pos_b) {
+      *out_b = tpos;
+      got_b = true;
       break;
     }
     switch (result.alignment[i]) {
@@ -128,10 +138,13 @@ static long map_primer_pos(const char *primer, size_t primer_len,
         assert(false);
     }
   }
-  if ((size_t)qpos == primer_pos && mapped > end)
-    mapped = tpos;
+  /* a position at the end of the primer is reached after the last
+     operation */
+  if (!got_a && (size_t)qpos == pos_a)
+    *out_a = tpos;
+  if (!got_b && (size_t)qpos == pos_b)
+    *out_b = tpos;
   edlibFreeAlignResult(result);
-  return mapped;
 }
 
 /*
@@ -143,9 +156,9 @@ static long map_primer_pos(const char *primer, size_t primer_len,
    positions inside the read (in <in_read>, unless NULL)
 */
 static bool search(const char *primer, size_t primer_len,
-    size_t terminus_len, const char *target, size_t target_len,
-    long pad_left, long read_len, long max_errors, primer_hit_t *hit,
-    long *in_read) {
+    size_t terminus_from, size_t terminus_len, const char *target,
+    size_t target_len, long pad_left, long read_len, long max_errors,
+    primer_hit_t *hit, long *in_read) {
   if (target_len == 0)
     return false;
   EdlibAlignResult result = edlibAlign(primer, (int)primer_len,
@@ -173,10 +186,12 @@ static bool search(const char *primer, size_t primer_len,
   while (end < (long)target_len - 1 &&
          distance(primer, primer_len, target, start, end + 1) <= n_errors)
     end++;
-  /* the first base of the conserved terminus, before clipping the
-     alignment to the read */
-  long terminus = map_primer_pos(primer, primer_len, target, start, end,
-                                 primer_len - terminus_len) - pad_left;
+  /* the bounds of the conserved terminus, before clipping the alignment
+     to the read */
+  long terminus_start, terminus_end;
+  map_primer_positions(primer, primer_len, target, start, end,
+                       terminus_from, terminus_from + terminus_len,
+                       &terminus_start, &terminus_end);
   hit->partial = start < pad_left || end >= pad_left + read_len;
   start -= pad_left;
   end -= pad_left;
@@ -187,7 +202,8 @@ static bool search(const char *primer, size_t primer_len,
   hit->start = clipped_start;
   hit->end = clipped_end;
   hit->n_errors = n_errors;
-  hit->terminus_start = terminus;
+  hit->terminus_start = terminus_start - pad_left;
+  hit->terminus_end = terminus_end - pad_left;
   return true;
 }
 
@@ -197,23 +213,24 @@ static void not_found(primer_hit_t *hit) {
   hit->partial = false;
   hit->n_errors = -1;
   hit->terminus_start = -1;
+  hit->terminus_end = -1;
 }
 
 /* the search of a sequence whose last <terminus_len> bases are the
    conserved terminus (0: none) */
 static bool run(primer_search_t *self, const char *seq, size_t seq_len,
-    size_t terminus_len, const char *read, size_t read_len,
-    long max_errors, bool partial_left, bool partial_right,
-    primer_hit_t *hit) {
+    size_t terminus_from, size_t terminus_len, const char *read,
+    size_t read_len, long max_errors, bool partial_left,
+    bool partial_right, primer_hit_t *hit) {
   assert(self != NULL);
   assert(seq != NULL);
   assert(seq_len > 0);
-  assert(terminus_len <= seq_len);
+  assert(terminus_from + terminus_len <= seq_len);
   assert(read != NULL);
   assert(hit != NULL);
   /* (unpadded: the whole alignment is in the read, in_read not needed) */
-  if (search(seq, seq_len, terminus_len, read, read_len, 0, (long)read_len,
-             max_errors, hit, NULL))
+  if (search(seq, seq_len, terminus_from, terminus_len, read, read_len, 0,
+             (long)read_len, max_errors, hit, NULL))
     return true;
   if (!partial_left && !partial_right) {
     not_found(hit);
@@ -229,8 +246,9 @@ static bool run(primer_search_t *self, const char *seq, size_t seq_len,
   memset(self->padded + pad_left + read_len, PAD_CHAR, pad_right);
   self->padded[padded_len] = '\0';
   long in_read;
-  if (!search(seq, seq_len, terminus_len, self->padded, padded_len,
-              (long)pad_left, (long)read_len, max_errors, hit, &in_read) ||
+  if (!search(seq, seq_len, terminus_from, terminus_len, self->padded,
+              padded_len, (long)pad_left, (long)read_len, max_errors, hit,
+              &in_read) ||
       hit->n_errors > floordiv(max_errors * in_read, (long)seq_len)) {
     not_found(hit);
     return false;
@@ -242,14 +260,16 @@ bool primer_search_run(primer_search_t *self, const primer_t *primer,
     const char *read, size_t read_len, long max_errors, bool partial_left,
     bool partial_right, primer_hit_t *hit) {
   assert(primer != NULL);
-  return run(self, primer->seq, primer->seq_len, primer->terminus_len,
-             read, read_len, max_errors, partial_left, partial_right, hit);
+  return run(self, primer->seq, primer->seq_len, primer->terminus_from,
+             primer->terminus_len, read, read_len, max_errors,
+             partial_left, partial_right, hit);
 }
 
 bool primer_search_run_seq(primer_search_t *self, const char *seq,
     size_t seq_len, const char *read, size_t read_len, long max_errors,
     bool partial_left, bool partial_right, primer_hit_t *hit) {
-  return run(self, seq, seq_len, 0, read, read_len, max_errors,
+  /* no terminus: the whole alignment is tail (see primer-search.h) */
+  return run(self, seq, seq_len, seq_len, 0, read, read_len, max_errors,
              partial_left, partial_right, hit);
 }
 
@@ -270,16 +290,17 @@ static void check(primer_search_t *s, const char *seq, const char *read,
   }
 }
 
-/* the position of the terminus of a primer found in a read */
+/* the bounds of the terminus of a primer found in a read */
 static void check_terminus(primer_search_t *s, const char *name,
     const char *read, long max_errors, bool left, bool right,
-    long terminus_start) {
+    long terminus_start, long terminus_end) {
   const primer_t *p = primers_builtin(name);
   test_assert(p != NULL);
   primer_hit_t hit;
   test_assert(primer_search_run(s, p, read, strlen(read), max_errors, left,
                                 right, &hit));
   test_eq(hit.terminus_start, terminus_start, long, "%ld");
+  test_eq(hit.terminus_end, terminus_end, long, "%ld");
 }
 
 void primer_search_test(void) {
@@ -306,21 +327,21 @@ void primer_search_test(void) {
   */
   /* the whole primer at the start of the read: the terminus begins at 10 */
   check_terminus(s, "mbtuni-12", "ACGCGTGATCAGCAAAAGCAGGTTTTTTTTTT", 2,
-                 true, false, 10);
+                 true, false, 10, 22);
   /* the primer after two bases of leader */
   check_terminus(s, "mbtuni-12", "TTACGCGTGATCAGCAAAAGCAGGTTTTTTTT", 2,
-                 true, false, 12);
+                 true, false, 12, 24);
   /* a deletion in the tail moves the terminus one base to the left */
   check_terminus(s, "mbtuni-12", "ACGCGTGAT" "AGCAAAAGCAGGTTTTTTTTTT", 2,
-                 true, false, 9);
+                 true, false, 9, 21);
   /* an insertion in the tail moves it one base to the right */
   check_terminus(s, "mbtuni-12", "ACGCGTGATCCAGCAAAAGCAGGTTTTTTTTT", 2,
-                 true, false, 11);
+                 true, false, 11, 23);
   /* the read begins inside the terminus (the primer overhangs the read
      on the left, here by half of its length, the maximum): the terminus
      begins one base before the read */
   check_terminus(s, "mbtuni-12", "GCAAAAGCAGGTTTTTTTTTTTTTTTTTTTT", 2,
-                 true, false, -1);
+                 true, false, -1, 11);
   /* a longer overhang (only 9 of the 22 bases of the primer are in the
      read) is not accepted */
   {
@@ -331,6 +352,24 @@ void primer_search_test(void) {
   }
   /* a primer without a tail: the terminus is the whole alignment */
   check_terminus(s, "uni12", "TTAGCAAAAGCAGGTTTTTTTTTTTTTT", 2, true,
-                 false, 2);
+                 false, 2, 14);
+  /* the reverse complement of a primer, as it is found at the other end
+     of an amplicon: its terminus is its prefix */
+  {
+    const primer_t *p = primers_builtin("mbtuni-13");
+    char rc_seq[32];
+    primer_t rc;
+    primers_reverse(p, rc_seq, &rc);
+    test_eq_size(rc.terminus_from, 0);
+    test_eq_mem(rc.seq, rc.seq_len, "CCTTGTTTCTACTGATCACGCGT");
+    primer_hit_t hit;
+    /* 10 bases of segment, the terminus, then the reverse tail */
+    const char *read = "TTTTTTTTTT" "CCTTGTTTCTACT" "GATCACGCGT";
+    test_assert(primer_search_run(s, &rc, read, strlen(read), 2, false,
+                                  true, &hit));
+    test_eq(hit.start, 10, long, "%ld");
+    test_eq(hit.terminus_start, 10, long, "%ld");
+    test_eq(hit.terminus_end, 23, long, "%ld");
+  }
   primer_search_delete(s);
 }

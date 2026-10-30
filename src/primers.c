@@ -15,7 +15,8 @@
    are computed by the compiler, so that each sequence is written once)
 */
 #define BUILTIN(NAME, SEQ, TERMINUS, END) \
-  {NAME, SEQ, LITLEN(SEQ), LITLEN(TERMINUS), END}
+  {NAME, SEQ, LITLEN(SEQ), LITLEN(SEQ) - LITLEN(TERMINUS), \
+   LITLEN(TERMINUS), END}
 
 /* The built-in primers (see primers.h for the source of each sequence) */
 static const primer_t builtin[] = {
@@ -90,6 +91,19 @@ static char complement(char code) {
   const char *p = strchr(from, code);
   assert(p != NULL);
   return to[p - from];
+}
+
+void primers_reverse(const primer_t *p, char *seq_buf, primer_t *dest) {
+  assert(p != NULL);
+  assert(seq_buf != NULL);
+  assert(dest != NULL);
+  primers_reverse_complement(p->seq, p->seq_len, seq_buf);
+  dest->name = p->name;
+  dest->seq = seq_buf;
+  dest->seq_len = p->seq_len;
+  dest->terminus_from = p->seq_len - (p->terminus_from + p->terminus_len);
+  dest->terminus_len = p->terminus_len;
+  dest->end = p->end;
 }
 
 void primers_reverse_complement(const char *seq, size_t len, char *dest) {
