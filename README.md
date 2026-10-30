@@ -57,11 +57,12 @@ exactly or with one mismatch), so the trimming has to be done before it.
 
 The conserved termini and the primers built into flucut are those of the
 publications, quoted and not derived; each sequence is documented with
-its source in `src/primers.h`. The built-in schemes are the tailed
-primers of the multisegment RT-PCR (`mbt`, the default) and the
-conserved termini used as primers without a tail (`uni`), and the
-combination used in practice of an untailed degenerate Uni12 primer with
-a tailed Uni13 primer (`uni12-mbt13`, the default).
+its source in `src/primers.h`. The built-in schemes are:
+
+- `uni12-mbt13` (the default): the untailed degenerate Uni12 primer and
+  the tailed Uni13 primer, the combination used in practice;
+- `mbt`: the tailed primers of the multisegment RT-PCR;
+- `uni`: the conserved termini used as primers, without a tail.
 
 ## Building
 

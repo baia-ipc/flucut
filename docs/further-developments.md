@@ -5,6 +5,12 @@ work is planned.
 
 ## Next
 
+- **Start contexts** (the main measure of internal priming, see
+  `docs/internal-priming.md`): group the reads of a run by the bases
+  which follow the trimmed 5' primer and rank the groups, so that the
+  starts of the real amplicons separate from the internal ones without
+  any reference sequence; report the unexpected groups with their
+  sequence and their share of the reads. Needs the counting pipeline.
 - **Command line program** (`src/options.c`, `src/flucut.c`): inputs
   (FASTQ/BAM, files, directories, MinKNOW run directories), `--trim
   primer|terminus`, `-e auto` (errors from the first reads), minimum
@@ -36,8 +42,11 @@ work is planned.
 ## Trimming and detection
 
 - **Concatemers**: several amplicons in one read, split into separate
-  reads; chimeras (amplicons of different segments joined).
-- **Internal priming**: a primer found far from both ends.
+  reads; chimeras (amplicons of different segments joined). The internal
+  matches already found are their junctions.
+- **Classification of the read starts against references** (optional,
+  the most direct measure of internal priming when the segment
+  references of the run are at hand).
 - **Sequencing adapters** left by the basecaller, searched outside the
   primers.
 - **Barcoded primers**: a barcode between the adapter and the primer,
