@@ -1,0 +1,31 @@
+exit status: 0
+== messages ==
+SUCCESS | OUTDIR/reads.fastq.gz: 11 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
+SUCCESS | OUTDIR/reads.fastq.gz: ends started by internal priming: 2 left, 2 right; not located in the references: 1 left, 1 right
+== reads.fastq.gz ==
+md5: 5d9414155e2e4a73604074b4729942ac
+@full_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	tl:i:0	tr:i:10
+1728 AGCAAAAGCAGGGGA...AACCTTGTTTCTACT
+@full_minus simulated	fs:Z:-	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	tl:i:10	tr:i:0
+1728 AGTAGAAACAAGGTT...TCCCCTGCTTTTGCT
+@flanked_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	tl:i:15	tr:i:20
+1728 AGCAAAAGCAGGGGA...AACCTTGTTTCTACT
+@errors_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1713:-	tl:i:0	tr:i:10
+1728 AGCAAAAGCAGGGGA...AACTGGGTTTCTACT
+@partial_left simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	tl:i:0	tr:i:10
+1723 AAGCAGGGGAATTAC...AACCTTGTTTCTACT
+@internal12_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:internal	ml:Z:NC_004908.1:712:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	tl:i:12	tr:i:10
+1016 AAGGCCCCTTGTCAA...AACCTTGTTTCTACT
+@internal12_minus simulated	fs:Z:-	fl:Z:uni12r	ol:Z:internal	ml:Z:NC_004908.1:712:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	tl:i:22	tr:i:12
+1016 AGTAGAAACAAGGTT...TTGACAAGGGGCCTT
+@internal13_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:internal	mr:Z:NC_004908.1:911:-	tl:i:0	tr:i:23
+912 AGCAAAAGCAGGGGA...AATGTCAGACTGAAA
+@no_primer simulated	fs:Z:.	tl:i:0	tr:i:0
+300 AACAAACTCCACAGA...TTTTAGTTCCGCTAG
+@short_amplicon simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:internal	mr:Z:NC_004908.1:31:-	tl:i:0	tr:i:23
+32 AGCAAAAGCAGGGGA...TACTTAACTAGCAAA
+@left_only simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	tl:i:0	tr:i:0
+512 AGCAAAAGCAGGGGA...TACAGGAGTATGAGA
+== summary.tsv ==
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown
+reads	12	12635	11	12423	10	1	1	2	1	1	0	8	2	1	7	2	1

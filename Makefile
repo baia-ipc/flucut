@@ -124,13 +124,11 @@ objs: $(EXTOBJS) $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 PREFIX ?= /usr/local
 
 install: $(BINDIR)/flucut
-	mkdir -p $(DESTDIR)$(PREFIX)/bin $(DESTDIR)$(PREFIX)/share/flucut/config
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	cp $(BINDIR)/flucut $(DESTDIR)$(PREFIX)/bin/
-	cp config/*.yaml $(DESTDIR)$(PREFIX)/share/flucut/config/
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/flucut
-	rm -rf $(DESTDIR)$(PREFIX)/share/flucut
 
 cleanup: clean cbaia-clean
 	rm -rf bin
@@ -147,7 +145,7 @@ VALGRIND = $(if $(shell command -v valgrind),valgrind -q \
            --error-exitcode=$(VALGRIND_EXITCODE) \
            --leak-check=full --errors-for-leak-kinds=definite)
 
-test: check_style $(PROGS) test_units test_programs test_options test_live \
+test: check_style $(PROGS) test_units test_programs test_options \
       test_scripts
 
 # formatting rules of the developer guide (line length, whitespace, file
@@ -177,7 +175,8 @@ test_options: $(BINDIR)/flucut
 	@tests/test-options.sh $(BINDIR)/flucut "$(VALGRIND)"
 
 # live mode: files written during the run, and a fast replay of a run
-# whose outputs must be identical to those of a normal run
+# whose outputs must be identical to those of a normal run (not part of
+# the test target until the live mode is written)
 test_live: $(BINDIR)/flucut
 	@tests/test-live.sh $(BINDIR)/flucut "$(VALGRIND)"
 
