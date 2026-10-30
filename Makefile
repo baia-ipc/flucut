@@ -153,7 +153,7 @@ VALGRIND = $(if $(shell command -v valgrind),valgrind -q \
            --leak-check=full --errors-for-leak-kinds=definite)
 
 test: check_style $(PROGS) test_units test_programs test_options \
-      test_scripts
+      test_live test_scripts
 
 # formatting rules of the developer guide (line length, whitespace, file
 # headers, include guards, indentation), for the C sources, the HTML
@@ -181,9 +181,9 @@ test_options: VALGRIND_EXITCODE = 99
 test_options: $(BINDIR)/flucut
 	@tests/test-options.sh $(BINDIR)/flucut "$(VALGRIND)"
 
-# live mode: files written during the run, and a fast replay of a run
-# whose outputs must be identical to those of a normal run (not part of
-# the test target until the live mode is written)
+# live mode: files written during the run, whose outputs must be
+# identical to those of a normal run on the final input; resume,
+# interruption, end of the run, -e auto (tests/test-live.sh)
 test_live: $(BINDIR)/flucut
 	@tests/test-live.sh $(BINDIR)/flucut "$(VALGRIND)"
 

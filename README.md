@@ -155,6 +155,17 @@ Outputs:
 - `flucut_summary.json`: the same content for programs, in a versioned
   format (`docs/json_summary.md`).
 
+## Live mode
+
+`flucut --live -o out /data/run1/fastq_pass` follows a MinKNOW run while
+it is sequencing (as the real-time mode of Lumipore): the files are
+trimmed as they are written (once not modified for `--min-age`, default
+60 s, and complete), appended to the outputs of their samples, and the
+tables and reports are updated after each file (the HTML report reloads
+itself). It stops at the end of the run (the `final_summary_*.txt` of
+MinKNOW), after `--timeout` without new files, or with Ctrl-C; with
+`--resume`, an interrupted live run continues where it stopped.
+
 ## Manual
 
 The user manual is `manual/flucut-manual.pdf` (sources in
@@ -180,8 +191,8 @@ schemes, the search of the primers (degenerate bases, partial primers
 at the read ends), the trimming of a read, the classification of the
 read ends against references, and the command line program with its
 gzipped FASTQ output, summary table, HTML report and JSON summary, the
-groups of input files (MinKNOW barcode directories) and the worker
-threads. The live mode and `-e auto` are next.
+groups of input files (MinKNOW barcode directories), the worker
+threads, the adapter search, `-e auto` and the live mode.
 
 ## License
 

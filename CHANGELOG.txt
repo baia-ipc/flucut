@@ -149,3 +149,14 @@
   (calibrated on reads simulated at 1-12% errors, benchmark/RESULTS.md);
   the value and the rate in the messages (-v) and in the reports
 - benchmark/simulate.py --error-rate: the mean error rate of the reads
+- live mode (--live, from the real-time mode of Lumipore, live.c): the
+  files of the input directories trimmed as they are written (e.g. by
+  MinKNOW), once not modified for --min-age (default 60 s) and complete;
+  appended to the outputs; the tables and reports updated after each
+  file (the HTML report reloads itself, the JSON summary "running":
+  true); ends at the final summary of MinKNOW, after --timeout without
+  new files, or with Ctrl-C; --scan-interval; --resume (the files
+  trimmed and the counts of each sample saved in the output directory);
+  tests/test-live.sh in make test
+- the tables and reports written by a module of their own (results.c);
+  the counts saved and loaded (counter_save(), counter_load())

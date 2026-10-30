@@ -22,6 +22,11 @@
 #define OPTIONS_DEFAULT_MAX_ERRORS OPTIONS_MAX_ERRORS_AUTO
 #define OPTIONS_DEFAULT_MIN_LENGTH 1
 #define OPTIONS_MAX_THREADS 256
+/* the live mode (see live.h): defaults of --min-age (seconds) and
+   --scan-interval (seconds), maximum of --scan-interval */
+#define OPTIONS_DEFAULT_MIN_AGE 60
+#define OPTIONS_DEFAULT_SCAN_INTERVAL 10
+#define OPTIONS_MAX_SCAN_INTERVAL 3600
 
 typedef struct {
   /* the inputs (files of reads, or directories of files of reads): the
@@ -42,6 +47,13 @@ typedef struct {
   bool tags;
   const char *adapters;       /* see adapters.h */
   size_t threads;
+  /* the live mode (see live.h): --live, --timeout (seconds, 0: none),
+     --min-age (seconds), --scan-interval (seconds), --resume */
+  bool live;
+  long live_timeout;
+  long live_min_age;
+  double live_scan_interval;
+  bool resume;
   /* show the banner: not quiet, messages to the standard error, which
      is a terminal */
   bool show_banner;
