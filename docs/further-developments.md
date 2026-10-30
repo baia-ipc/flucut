@@ -106,9 +106,9 @@ support the trimming; they are not the purpose of the program.
 
 ## Documentation
 
-- Sphinx manual, with the primers and their sources, the
-  classification against the references, the trimming policies and
-  what the consensus termini then contain.
+- Manual (`docs/manual`, `manual/flucut-manual.pdf`): a screenshot of
+  the banner in a terminal (as in Lumipore, `terminal.js`); the
+  chapters of the reports and of the live mode, when they exist.
 - Developer guide (`docs/dev_manual.md`).
 
 ## Open questions
