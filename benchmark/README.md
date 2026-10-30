@@ -69,6 +69,8 @@ the untranslated regions of the segments.
 
 `run-irma-checks.sh` simulates the reads, trims them, runs IRMA and
 compares each consensus with the truth (`compare_consensus.py`).
+`run-tools.sh` runs the other tools (cutadapt, the IRMA-core trimmer)
+on the same reads, scores them and runs IRMA on their output.
 `score_reads.py` scores the trimmed reads of any tool against the truth
 of each base:
 
