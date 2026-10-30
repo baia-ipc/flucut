@@ -3,7 +3,24 @@
 Rewritten after each task. The order is roughly the order in which the
 work is planned.
 
+The focus is the trimming of the primers and the preparation of the
+reads for IRMA: an advantage over the other trimmers has to show there,
+in the IRMA consensus, and is measured by the benchmark. The reports
+support the trimming; they are not the purpose of the program.
+
 ## Next
+
+- **IRMA and trimmed ends**: run IRMA on a small set of reads trimmed
+  with the default (every primer removed) and with `--trim terminus`,
+  and record what its consensus contains at the segment ends (shorter,
+  padded, or other) and whether its modules accept it. Not yet known.
+- **Where flucut can trim better than a generic trimmer**, to be
+  verified with the benchmark, not assumed: the 12-base degenerate
+  Uni12 primer found partial and with Nanopore errors at the read end
+  (remnants left by trimmers which need longer or exact adapters); no
+  template removed before a primer-like site inside a read (e.g. a
+  non-anchored 5' adapter in cutadapt removes everything before a match
+  anywhere in the read); both orientations; no configuration.
 
 - **Command line program** (`src/options.c`, `src/flucut.c`): inputs
   (FASTQ/BAM, files, directories, MinKNOW run directories), the
@@ -41,6 +58,21 @@ work is planned.
   (`--scan-interval 0.05`) whose outputs must be identical to those of
   a normal run on the same reads.
 
+## Benchmark
+
+- Simulated reads with a known truth (all eight segments, several
+  subtypes, the primer variants, tails and adapters, partial primers,
+  dimers, chimeras, reads without primer; Nanopore error profiles).
+- The tools of `benchmark/TOOLS.md`, each in its best documented
+  configuration; **Barbell** is the reference to match or beat, and its
+  `--use-extended` mode has to be included.
+- Real data: one or two public Nanopore runs amplified with the
+  universal primers.
+- The measures which matter for adoption: primer and adapter bases left
+  in the reads, template bases wrongly removed, reads lost, and the
+  effect on the IRMA consensus at the segment ends. Speed and memory are
+  secondary.
+
 ## Trimming and detection
 
 - **Is it only HA?** Run the classification on real data against the
@@ -74,21 +106,6 @@ work is planned.
 - Paired-end input, with the pairs kept in sync; the primers are only at
   the ends of the fragments which cover a segment end, as the fragments
   come from tagmentation.
-
-## Benchmark
-
-- Simulated reads with a known truth (all eight segments, several
-  subtypes, the primer variants, tails and adapters, partial primers,
-  dimers, chimeras, reads without primer; Nanopore error profiles).
-- The tools of `benchmark/TOOLS.md`, each in its best documented
-  configuration; **Barbell** is the reference to match or beat, and its
-  `--use-extended` mode has to be included.
-- Real data: one or two public Nanopore runs amplified with the
-  universal primers.
-- The measures which matter for adoption: primer and adapter bases left
-  in the reads, template bases wrongly removed, reads lost, and the
-  effect on the IRMA consensus at the segment ends. Speed and memory are
-  secondary.
 
 ## Documentation
 
