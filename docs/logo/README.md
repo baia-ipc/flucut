@@ -1,28 +1,31 @@
 # Logo
 
+The logos were generated with AI image tools and provided by the author
+(to be disclosed where they are used, e.g. in a paper).
+
 | file | what it is |
 |---|---|
-| `flucut-logo-original.png` | the logo as received, 1536 x 1024, on an off-white background (AI-generated image, provided by the author) |
-| `flucut-logo.png` | the same with a transparent background, cropped to the logo (1260 x 765) |
-| `flucut-logo-640.png` | `flucut-logo.png` 640 pixels wide, for the README (light theme) |
-| `flucut-logo-dark-640.png` | the same for the dark theme: the navy "flu" recolored to white |
+| `flucut-logo-original.png` | the square logo as received, 1536 x 1024, on an off-white background |
+| `flucut-logo.png` | the same with a transparent background, cropped (1260 x 765) |
+| `flucut-logo-640.png` | 640 pixels wide (light theme) |
+| `flucut-logo-dark-640.png` | the same for dark backgrounds: the navy "flu" recolored to white (derived, not a separate design: the near-white strands become dark) |
+| `flucut-banner-original.png` | the wide logo as received, 2172 x 724, on an off-white background |
+| `flucut-banner.png` | the same with a transparent background, cropped (1965 x 569) |
+| `flucut-banner-640.png` | 640 pixels wide, at the top of the README (light theme) |
+| `flucut-banner-dark-original.png` | the wide logo as received, designed on a black background, 2172 x 724 |
+| `flucut-banner-dark.png` | the same with a transparent background, cropped |
+| `flucut-banner-dark-640.png` | 640 pixels wide, at the top of the README (dark theme) |
+| `flucut-banner.ans` | the wide logo as colored text (Unicode Braille characters, 24-bit ANSI colors on black, 77 columns, 9 lines), as received from ASCIILogo.com in a shell script, without the script lines; embedded in the program and shown at the start of a run in a terminal (`src/banner.c`) |
 
-How the transparent and reduced versions were made (Python, Pillow and
-NumPy), from `flucut-logo-original.png`:
+The transparent and reduced versions are made by `make_logos.py` (Python,
+Pillow, NumPy; the method is described in the script):
 
-1. the white background is turned into transparency ("color to
-   alpha"): the alpha of a pixel is the largest distance of its
-   channels from white, and its color is unblended from white
-   accordingly, so that the glows stay partially transparent; alphas
-   below 0.02 (the noise of the background) are set to 0;
-2. the image is cropped to the pixels with alpha above 8 (of 255),
-   with a margin of 16 pixels;
-3. it is resized to 640 pixels wide (Lanczos);
-4. for the dark variant, the pixels of the lower 38% of the image
-   (the name) which are dark and bluish (blue above red by more than
-   15, mean of the channels below 140, alpha above 20) are made white,
-   keeping their alpha; then it is resized as above.
+    python3 docs/logo/make_logos.py docs/logo flucut-logo \
+        --name-box 0 0.62 1 1
+    python3 docs/logo/make_logos.py docs/logo flucut-banner --dark-original
 
-On a dark background, the near-white strands and the white stripe of
-the cutter, which became transparent, show as dark: the dark variant is
-derived, not a separate design.
+In short: the background (white, or black for the dark original) is
+made transparent pixel by pixel ("color to alpha"), so that the glows
+stay partly transparent; the image is cropped to the logo and reduced to
+640 pixels wide; the README shows the wide logo 480 pixels wide, so
+that it stays sharp on high-resolution screens.
