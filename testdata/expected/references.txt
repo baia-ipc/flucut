@@ -1,7 +1,7 @@
 exit status: 0
 == messages ==
 SUCCESS | OUTDIR/reads.fastq.gz: 11 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
-WARNING | OUTDIR/reads.fastq.gz: segment 4 (HA), NC_004908.1: 4 of 9 complete amplicons shorter than 90% of the reference (1714 bases), most at 1000-1009: internal priming or deletions
+WARNING | OUTDIR/reads.fastq.gz: HA segment: 4 of 9 complete amplicons shorter than the closest reference (NC_004908.1, 1714 bases), most at 1000-1009 bases: internal priming or deletions
 SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_summary.json
 == reads.fastq.gz ==
 md5: 9150c4fbab778441acc01c23ad4b339d
