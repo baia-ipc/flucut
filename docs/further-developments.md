@@ -10,12 +10,14 @@ support the trimming; they are not the purpose of the program.
 
 ## Next
 
-- **IRMA and trimmed ends**: run IRMA on a small set of reads trimmed
-  with the default (every primer removed) and with `--trim terminus`,
-  and record what its consensus contains at the segment ends (shorter,
-  padded, or other) and whether its modules accept it; also whether it
-  accepts the tags in the read titles (otherwise `--no-tags` becomes the
-  default). Not yet known.
+- **Benchmark, other tools** (`benchmark/`): the IRMA checks are done
+  (`benchmark/RESULTS.md`: flucut removes the I348K artefact, IRMA
+  accepts the tags, the consensus ends 12 and 13 bases short with the
+  default trimming). Next: the read-level measures from
+  `truth.tsv.gz`, then cutadapt, Barbell (default and
+  `--use-extended`), the IRMA-core trimmer, Porechop_ABI, BBDuk, dorado
+  trim and the alignment-based trimmers, on the same reads; other
+  shares of internal priming and error rates.
 - **Where flucut can trim better than a generic trimmer**, to be
   verified with the benchmark, not assumed: the 12-base degenerate
   Uni12 primer found partial and with Nanopore errors at the read end
