@@ -1,3 +1,20 @@
 == unreleased ==
 
-- first version
+- the universal primers of the influenza A multisegment RT-PCR
+  (Uni12/Uni13), built in: the conserved termini of the segments and the
+  tailed primers of the protocols, each with the source of its sequence;
+  a primer is stored as the whole oligonucleotide with the offset of its
+  conserved terminus, as the tail and the terminus overlap in the
+  published primers
+- search of a primer in a read: alignment with errors, at the ends of
+  the read also partial (a read can begin inside a primer), with the
+  degenerate bases of the primers (e.g. the two forms of the Uni12
+  primer) and of the reads; the bounds of the conserved terminus in the
+  read are computed from the alignment path
+- primer schemes: the primers expected at each end of an amplicon,
+  built-in "mbt" (the tailed primers, the default) and "uni" (the
+  conserved termini alone)
+- analysis of a read and trimming: both ends and both orientations, the
+  reads are not reverse-complemented; --trim primer (the default)
+  removes all the primer-derived bases, --trim terminus keeps the bases
+  of the conserved termini
