@@ -10,7 +10,7 @@ repository, after ``make``:
 
    bin/flucut -o out testdata/reads.fastq
 
-In a terminal, flucut shows its banner, then:
+flucut writes:
 
 ::
 
@@ -19,7 +19,8 @@ In a terminal, flucut shows its banner, then:
    SUCCESS | out/reads.fastq.gz: complete amplicons, lengths between the
      primers (peaks): 1700-1709 (5) 1000-1009 (2) 20-29 (1) 900-909 (1)
 
-(the lines are wrapped here). The output directory contains:
+(the lines are wrapped here, without the time stamps). The output
+directory contains:
 
 ``reads.fastq.gz``
    the trimmed reads, ready for IRMA;
@@ -48,22 +49,22 @@ started:
 
    bin/flucut -o out2 -r testdata/ref-ha.fasta testdata/reads.fastq
 
-::
-
-   SUCCESS | out2/reads.fastq.gz: ends started by internal priming: 2 left,
-     2 right; not located in the references: 1 left, 1 right
-   SUCCESS | out2/reads.fastq.gz: NC_004908.1: 4 of 9 complete amplicons
-     shorter than 90% of the reference (1714 bases), most at 1000-1009:
-     internal priming or deletions
-
-and the read simulated as started inside the segment, at position 712,
-is tagged as such:
+It reports the ends started by internal priming and the complete
+amplicons much shorter than the reference (the figure shows this run in
+a terminal, where flucut shows its banner first), and the read simulated
+as started inside the segment, at position 712, is tagged as such:
 
 ::
 
    @internal12_plus simulated  fs:Z:+  fl:Z:uni12r  ol:Z:internal
      ml:Z:NC_004908.1:712:+  fr:Z:mbtuni-13  or:Z:terminal
      mr:Z:NC_004908.1:1714:-  tl:i:12  tr:i:23
+
+.. figure:: figures/terminal_flucut.*
+   :width: 100%
+
+   ``flucut -o out -r testdata/ref-ha.fasta testdata/reads.fastq`` in a
+   terminal of 100 columns (``terminal.js``).
 
 To trim a real run, give the reads of each sample, as files or as
 directories (one output per input):

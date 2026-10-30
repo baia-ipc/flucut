@@ -12,3 +12,14 @@
 - `title.jpg`: the illustration of the title page, provided by the
   author (an AI-generated image), converted from PNG to JPEG (quality
   90) with Pillow.
+
+- `terminal.js`: a terminal transcript as an image (ANSI colors), from
+  the manual of Lumipore, with the long lines wrapped; requires
+  Playwright with Chromium and the fonts JetBrains Mono and FreeMono
+  (Braille). `terminal_flucut.png`, from a copy of `testdata` in an
+  empty directory, with `bin` in the PATH:
+
+      script -qec "stty cols 100; flucut -o out -r testdata/ref-ha.fasta \
+        testdata/reads.fastq" /dev/null > flucut.ans
+      node terminal.js flucut.ans terminal_flucut.png \
+        "flucut -o out -r testdata/ref-ha.fasta testdata/reads.fastq" 100

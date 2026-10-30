@@ -106,9 +106,9 @@ support the trimming; they are not the purpose of the program.
 
 ## Documentation
 
-- Manual (`docs/manual`, `manual/flucut-manual.pdf`): a screenshot of
-  the banner in a terminal (as in Lumipore, `terminal.js`); the
-  chapters of the reports and of the live mode, when they exist.
+- Manual (`docs/manual`, `manual/flucut-manual.pdf`): the chapters of
+  the reports and of the live mode, when they exist; the results of all
+  the tools of the benchmark in the performance chapter.
 - Developer guide (`docs/dev_manual.md`).
 
 ## Open questions
