@@ -98,7 +98,11 @@ typedef struct {
    the index thus only speeds up the probes it finds. It can differ from
    the exhaustive search only where a better match than the one found
    has no exact k-mer. The exhaustive search can also be chosen for all
-   probes, to check the index.
+   probes, to check the index; or it can be left out (seeds only), for
+   reads with few errors (Illumina), whose probes, if they belong to a
+   reference, share exact k-mers with it, while many probes belong to no
+   reference at all (e.g. reads of the host), each of which would be
+   aligned to every reference.
 
    The index is built once and shared, read-only, by the searchers of all
    threads.
@@ -137,6 +141,10 @@ reference_set_t* reference_set_new(const reference_index_t *index,
 /* Align each probe to every reference, without the index (slower; the
    result is the one the index approximates) */
 void reference_set_set_exhaustive(reference_set_t *self, bool exhaustive);
+
+/* Search the probes by their k-mers only, without the exhaustive search
+   of the probes they do not locate (see above) */
+void reference_set_set_seeds_only(reference_set_t *self, bool seeds_only);
 
 /*
    Locate <probe> (length <probe_len>; the start of the read after its 5'

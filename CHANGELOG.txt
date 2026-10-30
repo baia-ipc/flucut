@@ -175,3 +175,7 @@
   H5N1 cattle) whose GenBank HA consensus has the I348K artefact: IRMA
   gives AAA on the untrimmed reads, ATA after flucut -p illumina, the
   only difference in the 8 segments
+- -p illumina with --references: the read ends located by their k-mers
+  only (reference_set_set_seeds_only()), without the exhaustive search
+  of those the k-mers do not locate: 3 times faster on a run of milk
+  samples (reads of the host), with the same output

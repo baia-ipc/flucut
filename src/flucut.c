@@ -151,6 +151,7 @@ int main(int argc, char *argv[]) {
       .max_errors = autos.max_errors.value, .policy = opts.policy,
       .window = opts.window, .references = refs, .index = index,
       .exhaustive = opts.exhaustive_search,
+      .seeds_only = opts.illumina && !opts.exhaustive_search,
       .probe_len = opts.probe_len,
       .probe_error_rate = opts.probe_error_rate,
       .terminal_window = opts.terminal_window,

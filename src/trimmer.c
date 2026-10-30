@@ -41,6 +41,7 @@ trimmer_t* trimmer_new(const trimmer_config_t *config) {
     self->refs = reference_set_new(config->index, config->probe_len,
                                    config->probe_error_rate);
     reference_set_set_exhaustive(self->refs, config->exhaustive);
+    reference_set_set_seeds_only(self->refs, config->seeds_only);
     amplicon_analyzer_use_references(self->analyzer, self->refs,
                                      config->terminal_window);
   }
