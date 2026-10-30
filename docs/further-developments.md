@@ -55,6 +55,26 @@ support the trimming; they are not the purpose of the program.
 - **Report, next**: the remnants (primer bases left), the read lengths
   before and after the trimming, the primers found whole or partial,
   per segment; a mark of the internal sites in the length histograms.
+- **Read-origin plot per segment** (the strongest missing piece of the
+  report): for each reference, a profile along its length showing where
+  the amplicons start, by strand, so that internal priming is seen as a
+  step in the coverage (as in a coverage-depth plot of a mapped run, but
+  built from flucut's own classification, without mapping every base).
+  flucut already has, per read, the origin of each end and the mapped
+  position of the probe on the reference (the ml/mr tags, 1-based on the
+  plus strand), the strand (fs) and the kept length, so each read's span
+  on the reference is known. From these, accumulate per reference and
+  per strand: (a) a histogram of amplicon start positions (the internal
+  priming sites appear as spikes above the terminus baseline), and (b) a
+  reconstructed coverage step (add one over [start, start+length] of
+  each read): the step up at an internal site is the signature of the
+  artefact, quantified and placed, with the codon of the site marked.
+  The per-position site counts are already collected (counter.c); this
+  adds a per-position start/coverage accumulation (bounded memory: one
+  array per reference, as for the sites) and an SVG plot in the HTML
+  report (html-report.c, the plot helpers of libcbaia). It makes the
+  internal priming visible at a glance and is something no primer
+  trimmer offers.
 
 ## Benchmark
 
