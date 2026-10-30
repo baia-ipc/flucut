@@ -24,6 +24,7 @@
 #include "primer-search.h"
 #include "primers.h"
 #include "reference.h"
+#include "report.h"
 #include "scheme.h"
 #include "trimmer.h"
 
@@ -84,6 +85,7 @@ static test_group_t test_groups[] = {
   {'t', "the trimming of a batch of reads", trimmer_test, false},
   {'l', "the lengths of the complete amplicons", lengths_test, false},
   {'n', "the counts of the reads", counter_test, false},
+  {'R', "the content of the reports", report_test, false},
   {'g', "the groups of input files", run_input_groups_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))

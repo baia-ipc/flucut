@@ -1,0 +1,13 @@
+<!-- (c) 2026 Giorgio Gonnella -->
+<!-- report: the parameters of the run, at the right of the logo (rows of -->
+<!-- a table); references: the file (NULL: none) and its sequences -->
+<tr><td>version</td><td class="seq">{{version}}</td></tr>
+<tr><td>command</td><td class="seq"><code>{{command}}</code></td></tr>
+<tr><td>primer scheme</td><td class="seq">{{scheme}}</td></tr>
+<tr><td>trimming</td><td class="seq">{{policy}}</td></tr>
+{{#references}}
+<tr><td>references</td><td class="seq">{{references}} ({{n_references}} sequences)</td></tr>
+{{/references}}
+{{#no_references}}
+<tr><td>references</td><td class="seq">none</td></tr>
+{{/no_references}}

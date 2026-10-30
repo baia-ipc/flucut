@@ -29,3 +29,10 @@ made transparent pixel by pixel ("color to alpha"), so that the glows
 stay partly transparent; the image is cropped to the logo and reduced to
 640 pixels wide; the README shows the wide logo 480 pixels wide, so
 that it stays sharp on high-resolution screens.
+
+The logo of the HTML report (`src/report-logo-data.inc`: the wide logo
+and its dark variant, as WebP data URIs, 520 pixels wide) is made by
+`scripts/make_report_logo.py` (from Lumipore; Pillow):
+
+    python3 -I scripts/make_report_logo.py docs/logo/flucut-banner.png \
+        docs/logo/flucut-banner-dark.png > src/report-logo-data.inc

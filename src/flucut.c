@@ -31,6 +31,8 @@
 #include "options.h"
 #include "reads-reader.h"
 #include "reference.h"
+#include "report.h"
+#include "run-report.h"
 #include "scheme.h"
 #include "strbuf.h"
 #include "strutils.h"
@@ -181,7 +183,7 @@ static const char* group_name(const fasta_t *refs, size_t group) {
    groups with short amplicons; without, the peaks of the lengths.
    Returns the number of short amplicons of the references.
 */
-static size_t report_lengths(const lengths_t *l, const fasta_t *refs,
+static size_t write_lengths(const lengths_t *l, const fasta_t *refs,
     const char *output, const char *path, FILE *f, Logger *logger) {
   size_t n_short = 0;
   size_t n_groups = lengths_n_groups(l);
@@ -271,7 +273,8 @@ int main(int argc, char *argv[]) {
   counter_t **group_counts;
   XMALLOC(group_counts, sizeof(counter_t *) * (n_groups + 1));
   counter_t *total = counter_new(scheme, refs);
-  xmakedirs(opts.outdir, logger);
+  run_report_t *report = run_report_new(&opts, VERSION, scheme, refs, argc,
+                                        argv, logger);
   char *summary_path = path_join(opts.outdir, SUMMARY_FILENAME);
   FILE *summary = xfopen(summary_path, NULL, "w", "summary table", logger);
   summary_header(summary);
@@ -298,12 +301,20 @@ int main(int argc, char *argv[]) {
     counter_merge(total, counts);
     const counter_reads_t *stats = counter_reads(counts);
     log_stats(paths[i], stats, refs != NULL, logger);
-    size_t n_short = report_lengths(counter_lengths(counts), refs, g->name,
+    size_t n_short = write_lengths(counter_lengths(counts), refs, g->name,
                                     paths[i], lengths_file, logger);
     summary_line(summary, g->name, stats, refs != NULL, n_short);
   }
   xfclose(&summary, logger);
   xfclose(&lengths_file, logger);
+  report_section_t *sections;
+  XMALLOC(sections, sizeof(report_section_t) * (n_groups + 1));
+  for (size_t i = 0; i < n_groups; i++)
+    sections[i] = (report_section_t){groups[i].name, group_counts[i],
+                                     groups[i].n_files};
+  run_report_write(report, sections, n_groups, total, false, logger);
+  free(sections);
+  run_report_delete(report);
   free(lengths_path);
   for (size_t i = 0; i < n_groups; i++)
     counter_delete(group_counts[i]);
