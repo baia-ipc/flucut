@@ -20,6 +20,7 @@
 #include <string.h>
 #include "alloc.h"
 #include "banner.h"
+#include "counter.h"
 #include "fasta.h"
 #include "fastq-reader.h"
 #include "file.h"
@@ -72,16 +73,14 @@ typedef struct {
   const fastq_batch_t *batch;
   size_t from, to;
   strbuf_t text, gz;
-  trimmer_stats_t stats;
-  lengths_t *lengths;
+  counter_t *counts;
 } worker_t;
 
 static void* work(void *data) {
   worker_t *w = data;
   strbuf_clear(&w->text);
   strbuf_clear(&w->gz);
-  trimmer_run(w->trimmer, w->batch, w->from, w->to, &w->text, &w->stats,
-              w->lengths);
+  trimmer_run(w->trimmer, w->batch, w->from, w->to, &w->text, w->counts);
   if (w->text.len > 0)
     gzip_compressor_run(w->compressor, w->text.s, w->text.len, &w->gz);
   return NULL;
@@ -131,7 +130,7 @@ static void summary_header(FILE *f) {
 }
 
 static void summary_line(FILE *f, const char *name,
-    const trimmer_stats_t *s, bool refs, size_t short_complete) {
+    const counter_reads_t *s, bool refs, size_t short_complete) {
   fprintf(f, "%s\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu",
           name, s->reads_in, s->bases_in, s->reads_out, s->bases_out,
           s->n_ends[2], s->n_ends[1], s->n_ends[0], s->minus, s->dimers,
@@ -153,7 +152,7 @@ static void summary_line(FILE *f, const char *name,
 }
 
 /* log the counts of an output */
-static void log_stats(const char *name, const trimmer_stats_t *s, bool refs,
+static void log_stats(const char *name, const counter_reads_t *s, bool refs,
     Logger *logger) {
   lprintf(logger, LOG_SUCCESS, "%s: %zu of %zu reads written (%zu with "
           "both primers, %zu with one, %zu with none; %zu too short, of "
@@ -168,7 +167,7 @@ static void log_stats(const char *name, const trimmer_stats_t *s, bool refs,
             s->origin[1][ORIGIN_UNKNOWN]);
 }
 
-/* the name of a group of the lengths (see trimmer_n_length_groups()) */
+/* the name of a group of the lengths (see counter_lengths()) */
 static const char* group_name(const fasta_t *refs, size_t group) {
   if (refs == NULL)
     return "all";
@@ -266,9 +265,12 @@ int main(int argc, char *argv[]) {
     workers[t].compressor = gzip_compressor_new(COMPRESS_LEVEL);
     strbuf_init(&workers[t].text);
     strbuf_init(&workers[t].gz);
-    workers[t].lengths = lengths_new(trimmer_n_length_groups(&config));
+    workers[t].counts = counter_new(scheme, refs);
   }
-  lengths_t *lengths = lengths_new(trimmer_n_length_groups(&config));
+  /* the counts of each group, and of all reads */
+  counter_t **group_counts;
+  XMALLOC(group_counts, sizeof(counter_t *) * (n_groups + 1));
+  counter_t *total = counter_new(scheme, refs);
   xmakedirs(opts.outdir, logger);
   char *summary_path = path_join(opts.outdir, SUMMARY_FILENAME);
   FILE *summary = xfopen(summary_path, NULL, "w", "summary table", logger);
@@ -281,10 +283,8 @@ int main(int argc, char *argv[]) {
   fastq_batch_init(&batch);
   for (size_t i = 0; i < n_groups; i++) {
     const input_group_t *g = groups + i;
-    for (size_t t = 0; t < opts.threads; t++) {
-      memset(&workers[t].stats, 0, sizeof(trimmer_stats_t));
-      lengths_clear(workers[t].lengths);
-    }
+    for (size_t t = 0; t < opts.threads; t++)
+      counter_clear(workers[t].counts);
     FILE *out = xfopen(paths[i], NULL, "wb", "trimmed reads", logger);
     for (size_t j = 0; j < g->n_files; j++) {
       lprintf(logger, LOG_PHASE, "Trimming %s...\n", g->files[j]);
@@ -292,29 +292,30 @@ int main(int argc, char *argv[]) {
                 logger);
     }
     xfclose(&out, logger);
-    trimmer_stats_t stats;
-    memset(&stats, 0, sizeof(stats));
-    lengths_clear(lengths);
-    for (size_t t = 0; t < opts.threads; t++) {
-      trimmer_stats_add(&stats, &workers[t].stats);
-      lengths_add_all(lengths, workers[t].lengths);
-    }
-    log_stats(paths[i], &stats, refs != NULL, logger);
-    size_t n_short = report_lengths(lengths, refs, g->name, paths[i],
-                                    lengths_file, logger);
-    summary_line(summary, g->name, &stats, refs != NULL, n_short);
+    counter_t *counts = group_counts[i] = counter_new(scheme, refs);
+    for (size_t t = 0; t < opts.threads; t++)
+      counter_merge(counts, workers[t].counts);
+    counter_merge(total, counts);
+    const counter_reads_t *stats = counter_reads(counts);
+    log_stats(paths[i], stats, refs != NULL, logger);
+    size_t n_short = report_lengths(counter_lengths(counts), refs, g->name,
+                                    paths[i], lengths_file, logger);
+    summary_line(summary, g->name, stats, refs != NULL, n_short);
   }
   xfclose(&summary, logger);
   xfclose(&lengths_file, logger);
   free(lengths_path);
-  lengths_delete(lengths);
+  for (size_t i = 0; i < n_groups; i++)
+    counter_delete(group_counts[i]);
+  free(group_counts);
+  counter_delete(total);
   fastq_batch_free(&batch);
   for (size_t t = 0; t < opts.threads; t++) {
     trimmer_delete(workers[t].trimmer);
     gzip_compressor_delete(workers[t].compressor);
     strbuf_free(&workers[t].text);
     strbuf_free(&workers[t].gz);
-    lengths_delete(workers[t].lengths);
+    counter_delete(workers[t].counts);
   }
   free(workers);
   free(summary_path);

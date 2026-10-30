@@ -87,3 +87,7 @@
   warning); a directory without files of reads now gives a warning and
   an empty output, instead of an error; two groups with the same name
   are an error, as before
+- counts for the reports (counter): besides the counts of summary.tsv
+  and the lengths, the reads by primer found at each end, and, with
+  references, the internally primed read ends by reference, end and
+  position; per group and for all reads

@@ -41,35 +41,12 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "amplicon.h"
+#include "counter.h"
 #include "fasta.h"
 #include "fastq-reader.h"
-#include "lengths.h"
 #include "reference.h"
 #include "scheme.h"
 #include "strbuf.h"
-
-/* the counts of the reads */
-typedef struct {
-  size_t reads_in, bases_in;
-  size_t reads_out, bases_out;
-  /* reads not written, as shorter than the minimum length after the
-     trimming (dimers included) */
-  size_t too_short;
-  /* reads with both ends found and nothing between them */
-  size_t dimers;
-  /* reads by number of ends found (0, 1, 2) */
-  size_t n_ends[3];
-  /* reads whose layout was found on the minus strand */
-  size_t minus;
-  /* reads with primer matches inside them */
-  size_t with_internal;
-  /* ends found, by end (0: left, 1: right) and origin (end_origin_t);
-     all unknown without references */
-  size_t origin[2][3];
-} trimmer_stats_t;
-
-/* Add the counts <other> to <self> */
-void trimmer_stats_add(trimmer_stats_t *self, const trimmer_stats_t *other);
 
 /* the settings of a trimmer */
 typedef struct {
@@ -98,21 +75,11 @@ trimmer_t* trimmer_new(const trimmer_config_t *config);
 
 /*
    Trim the records <from> to <to> - 1 of <batch>; the records kept are
-   appended to <out> (FASTQ), the counts added to <stats>, the lengths of
-   the complete amplicons (the template between the two primers, primer
-   dimers excluded) to <lengths> (see lengths.h; its groups: see
-   trimmer_n_length_groups())
+   appended to <out> (FASTQ), the reads are counted in <counts> (created
+   for the scheme and the references of the configuration)
 */
 void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
-    size_t to, strbuf_t *out, trimmer_stats_t *stats, lengths_t *lengths);
-
-/*
-   The groups of the lengths: without references, one; with references,
-   one for each reference (the reference to which the probe of the left
-   end, or else of the right end, mapped) and a last one for the
-   amplicons not located
-*/
-size_t trimmer_n_length_groups(const trimmer_config_t *config);
+    size_t to, strbuf_t *out, counter_t *counts);
 
 /* Delete (NULL is accepted) */
 void trimmer_delete(trimmer_t *self);
