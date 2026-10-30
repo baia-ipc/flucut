@@ -1,0 +1,136 @@
+exit status: 0
+== messages ==
+SUCCESS | OUTDIR/reads.fastq.gz: 11 of 12 reads written (8 with both primers, 3 with one, 1 with none; 1 too short, of which 1 dimers)
+SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_summary.json
+== reads.fastq.gz ==
+md5: bbe7f06d1802e82763290f87ea0034ba
+@full_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
+@full_minus simulated	fs:Z:-	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:23	tr:i:12
+1703 TTATATACAAATGTT...TAGTTAAGTAATTCC
+@flanked_plus simulated	fs:Z:+	fr:Z:mbtuni-13	tl:i:0	tr:i:33	ni:i:1
+1730 TGGCTAGTGTCACTG...AACATTTGTATATAA
+@errors_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:24
+1702 GGAATTACTTAACTA...CAACATTTGTATATA
+@partial_left simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:7	tr:i:23
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
+@internal12_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
+1003 AAGGCCCCTTGTCAA...AACATTTGTATATAA
+@internal12_minus simulated	fs:Z:-	fl:Z:uni12r	tl:i:0	tr:i:12	ni:i:1
+1038 CTTCTGCTGACAACG...TTGACAAGGGGCCTT
+@internal13_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
+900 GGAATTACTTAACTA...AATGTCAGACTGAAA
+@no_primer simulated	fs:Z:.	tl:i:0	tr:i:0
+300 AACAAACTCCACAGA...TTTTAGTTCCGCTAG
+@short_amplicon simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
+20 GGAATTACTTAACTA...TACTTAACTAGCAAA
+@left_only simulated	fs:Z:+	fl:Z:uni12r	tl:i:12	tr:i:0
+500 GGAATTACTTAACTA...TACAGGAGTATGAGA
+== summary.tsv ==
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete
+reads	12	12635	11	12302	8	3	1	2	1	1	2	NA	NA	NA	NA	NA	NA	NA
+== lengths.tsv ==
+output	group	length	reads
+reads	all	20	1
+reads	all	900	1
+reads	all	1000	1
+reads	all	1700	4
+== flucut_summary.json ==
+{
+  "format": 1,
+  "program": "flucut",
+  "version": "0.1",
+  "updated": "DATE",
+  "running": false,
+  "command": "bin/flucut -o OUTDIR -p illumina testdata/reads.fastq",
+  "scheme": {
+    "name": "uni12-mbt13",
+    "left": ["uni12r"],
+    "right": ["mbtuni-13"]
+  },
+  "trim_policy": "primer",
+  "references": null,
+  "settings": {
+    "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0093, "reads": 12, "file": "testdata/reads.fastq"},
+    "platform": "illumina",
+    "window": 10,
+    "min_length": 1,
+    "probe_length": 32,
+    "probe_errors": 0.2,
+    "terminal_window": 60,
+    "exhaustive_search": false,
+    "tags": true,
+    "threads": 4,
+    "compress_level": 6
+  },
+  "length_bin": 10,
+  "length_max": 4000,
+  "short_fraction": 0.9,
+  "all": {
+    "reads": {
+      "in": 12,
+      "bases_in": 12635,
+      "written": 11,
+      "bases_written": 12302,
+      "both_primers": 8,
+      "one_primer": 3,
+      "no_primer": 1,
+      "dimers": 1,
+      "too_short": 1,
+      "minus_strand": 2,
+      "with_internal_match": 2,
+      "adapter_start": 0,
+      "adapter_end": 0
+    },
+    "primers": {
+      "left": {"uni12r": 10},
+      "right": {"mbtuni-13": 9}
+    },
+    "ends": null,
+    "internal_sites": null,
+    "short_complete": null,
+    "complete_amplicons": [
+      {"group": "all", "reference_length": null, "amplicons": 7, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4]}
+    ]
+  },
+  "groups": [
+    {
+      "name": "reads",
+      "files": 1,
+      "processed": true,
+      "reads": {
+        "in": 12,
+        "bases_in": 12635,
+        "written": 11,
+        "bases_written": 12302,
+        "both_primers": 8,
+        "one_primer": 3,
+        "no_primer": 1,
+        "dimers": 1,
+        "too_short": 1,
+        "minus_strand": 2,
+        "with_internal_match": 2,
+        "adapter_start": 0,
+        "adapter_end": 0
+      },
+      "primers": {
+        "left": {"uni12r": 10},
+        "right": {"mbtuni-13": 9}
+      },
+      "ends": null,
+      "internal_sites": null,
+      "short_complete": null,
+      "complete_amplicons": [
+        {"group": "all", "reference_length": null, "amplicons": 7, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4]}
+      ]
+    }
+  ]
+}
+== flucut_report.html ==
+</html>
+<h2>All reads</h2>
+<h3>Reads at each step</h3>
+<h3>Primers found</h3>
+<h3>Internal priming</h3>
+<h3>Complete amplicons</h3>
+<h3>Lengths of the complete amplicons</h3>

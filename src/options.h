@@ -22,6 +22,10 @@
 #define OPTIONS_DEFAULT_MAX_ERRORS OPTIONS_MAX_ERRORS_AUTO
 #define OPTIONS_DEFAULT_MIN_LENGTH 1
 #define OPTIONS_MAX_THREADS 256
+/* --platform: the settings of each platform (see the help): the window
+   of the Illumina reads (in which the primer is at the read start, the
+   adapters removed by the instrument) */
+#define OPTIONS_ILLUMINA_WINDOW 10
 /* the live mode (see live.h): defaults of --min-age (seconds) and
    --scan-interval (seconds), maximum of --scan-interval */
 #define OPTIONS_DEFAULT_MIN_AGE 60
@@ -38,6 +42,8 @@ typedef struct {
   trim_policy_t policy;
   double max_errors;
   long window;
+  /* --platform: illumina (false: nanopore) */
+  bool illumina;
   const char *references;     /* NULL: none */
   size_t probe_len;
   double probe_error_rate;

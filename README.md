@@ -109,8 +109,11 @@ The main options (`flucut -h` lists all of them, with their defaults):
 - `-e`: errors allowed in a primer (a fraction of its length, a number
   of bases, or `auto`, the default: 0.2, or 0.3 if the primers of the
   first 1000 reads have at least 4% errors);
+- `-p`: the platform: `nanopore` (default; reads of whole amplicons)
+  or `illumina` (reads of fragments of the amplicons: the primer is at
+  the read start; window 10, no adapter search);
 - `-w`: a primer must lie within this many bases of its end of the read
-  (default 100);
+  (default 100; 10 with `-p illumina`);
 - `-m`: reads shorter than this after trimming are not written
   (default 1; primer dimers are never written);
 - `-j`: worker threads (default 4), each trimming batches of 1000 reads

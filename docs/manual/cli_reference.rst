@@ -60,10 +60,20 @@ Options
    decided and the rate measured are in the messages (``-v``) and in the
    reports. Default: ``auto``.
 
+``-p, --platform <p>``
+   ``nanopore`` (default): reads of whole amplicons, with flanking bases
+   and adapters before the primers. ``illumina``: reads of fragments of
+   the amplicons (e.g. after tagmentation), whose adapters were removed
+   by the instrument: a primer, when there is one, is at the start of
+   the read; the window is 10 bases and the Nanopore adapters are not
+   searched (unless ``-w`` or ``--adapters`` are given). With the
+   window of 100 bases, a primer-like site in the first 100 bases of an
+   Illumina read would be taken for the primer (:doc:`performance`).
+
 ``-w, --window <n>``
    A primer is accepted at an end only if it begins (left end) or ends
    (right end) within ``<n>`` bases of that end of the read. Default:
-   100.
+   100; with ``-p illumina``, 10.
 
 ``-m, --min-length <n>``
    Reads shorter than ``<n>`` bases after the trimming are not written.

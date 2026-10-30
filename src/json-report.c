@@ -291,6 +291,8 @@ static void write_parameters(json_writer_t *w, const report_t *r) {
     fputs_json_string(s->file, f);
     fputc('}', f);
   }
+  member(w, "platform");
+  fputs(o->illumina ? "\"illumina\"" : "\"nanopore\"", f);
   count_member(w, "window", (size_t)o->window);
   count_member(w, "min_length", o->min_length);
   count_member(w, "probe_length", o->probe_len);

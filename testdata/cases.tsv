@@ -10,3 +10,4 @@ exhaustive	--exhaustive-search -r testdata/ref-ha.fasta testdata/reads.fastq
 run_directory	testdata/fastq_pass
 adapters	testdata/adapters.fastq
 no_adapters	--adapters none testdata/adapters.fastq
+illumina	-p illumina testdata/reads.fastq
