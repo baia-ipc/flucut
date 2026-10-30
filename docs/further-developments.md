@@ -14,12 +14,10 @@ support the trimming; they are not the purpose of the program.
   (see `amplicon.c`) doubled the time of the search (1.3 s instead of
   0.7 s for 3200 reads, one thread); a single alignment allowing a free
   start in the primer would replace them.
-- **Benchmark, next** (`benchmark/RESULTS.md`): Barbell with reads
-  simulated with kit adapters and barcodes; Porechop_ABI, BBDuk, dorado
-  trim and the alignment-based trimmers; lower coverage (where the
-  template cut by cutadapt may change the consensus), other error
-  rates and shares of internal priming; the frequencies of the
-  variants.
+- **Benchmark, next** (`benchmark/RESULTS.md`): other error rates and
+  shares of internal priming, several simulations per setting (with
+  barcodes, the artefact of the untrimmed reads came down to 158
+  reads against 152); the frequencies of the variants; real data.
 - **Where flucut trims better than a generic trimmer** (first results
   in `benchmark/RESULTS.md`): the consensus of cutadapt is the same on
   the simulated reads; cutadapt removes 80 times as much template (its
@@ -89,7 +87,9 @@ support the trimming; they are not the purpose of the program.
   reads; chimeras (amplicons of different segments joined). The internal
   matches already found are their junctions.
 - **Sequencing adapters** left by the basecaller, searched outside the
-  primers.
+  primers: with barcoded reads not trimmed before, flucut left 28685
+  adapter bases, at the read ends where it found no primer (Barbell
+  4375, dorado 360; `benchmark/RESULTS.md`).
 - **Barcoded primers**: a barcode between the adapter and the primer,
   used to assign the reads to samples. The layouts of the published
   barcoded protocols still have to be read from their supplementary

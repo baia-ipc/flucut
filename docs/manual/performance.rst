@@ -51,6 +51,24 @@ coverage. The comparison with the other tools (IRMA-core trimmer,
 BBDuk, Porechop_ABI, dorado, Barbell, samtools ampliconclip) is in
 ``benchmark/RESULTS.md``.
 
+Reads with barcodes
+-------------------
+
+On 3200 reads simulated with the native barcoding adapters of Oxford
+Nanopore (NB01-NB04) outside the primers:
+
+- the untrimmed reads gave the right codon at the I348K site, but only
+  by 158 reads against 152: the aligner of IRMA clips more of the start
+  of the internally primed reads after an adapter. The artefact thus
+  depends on the library and on chance; after flucut, 157 reads against
+  1;
+- with the elongation, the consensus of the reads trimmed by flucut has
+  no error, as with cutadapt, dorado, samtools ampliconclip and Barbell;
+- flucut removed 251 template bases and left 2198 primer bases, but
+  28685 bases of adapters, at the read ends where it found no primer:
+  flucut does not search the adapters. Demultiplex and trim the
+  barcodes first (e.g. with dorado or MinKNOW).
+
 Speed
 -----
 
