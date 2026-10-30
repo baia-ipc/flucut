@@ -55,6 +55,8 @@ expect 1 --no-such-option "$reads"
 expect 1 testdata/no-such-file.fastq
 expect 1 testdata/cases.tsv
 expect 1 "$reads" "$reads"
+# two groups with the same name (barcode01)
+expect 1 testdata/barcode01 testdata/fastq_pass
 # references: missing, not FASTA
 expect 1 -r testdata/no-such-file.fasta "$reads"
 expect 1 -r "$reads" "$reads"

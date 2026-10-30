@@ -13,7 +13,10 @@ Arguments
    directory of such files (recognised by the suffixes ``.fastq``,
    ``.fq``, optionally followed by ``.gz``, and ``.bam``; e.g. a barcode
    directory of a MinKNOW run, whose files are trimmed into one output).
-   Each input gives one output (:doc:`output`).
+   A directory with subdirectories whose name starts with ``barcode``
+   (e.g. the ``fastq_pass`` directory of a MinKNOW run) gives one output
+   for each of them, and the files beside them are not read. Each group
+   of files gives one output (:doc:`output`).
 
 Options
 -------

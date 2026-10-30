@@ -81,3 +81,9 @@
   left
 - the logo as colored text at the start of a run in a terminal (not
   with -q, -L, or when the messages are redirected)
+- groups of input files (from Lumipore): a directory with barcode*
+  subdirectories (e.g. the fastq_pass directory of a MinKNOW run) gives
+  one output for each of them, the files beside them are not read (a
+  warning); a directory without files of reads now gives a warning and
+  an empty output, instead of an error; two groups with the same name
+  are an error, as before

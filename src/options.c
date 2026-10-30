@@ -32,9 +32,11 @@ enum {
   "Arguments:\n" \
   "   <input>  FASTQ (optionally gzipped) or unaligned BAM file, or a\n" \
   "            directory of such files (e.g. a barcode directory of a\n" \
-  "            MinKNOW run); the trimmed reads of each input are written\n" \
-  "            to <outdir>/<name>.fastq.gz, where <name> is the name of\n" \
-  "            the file without its suffix, or that of the directory\n" \
+  "            MinKNOW run); a directory with barcode* subdirectories\n" \
+  "            (e.g. fastq_pass) gives one output for each of them; the\n" \
+  "            trimmed reads of each are written to\n" \
+  "            <outdir>/<name>.fastq.gz, where <name> is the name of the\n" \
+  "            file without its suffix, or that of the directory\n" \
   "\n" \
   "Options:\n" \
   "   -o, --outdir <dir>     output directory (default: " \

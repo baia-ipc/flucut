@@ -4,8 +4,9 @@
    flucut: removal of the primers of the influenza A multisegment RT-PCR
    from the reads, before the assembly (see README.md).
 
-   Each input (a file of reads, or a directory of files of reads, e.g. a
-   barcode directory) gives one gzipped FASTQ file in the output
+   Each group of input files (input-groups.h: a file of reads, a
+   directory of files of reads, or each barcode directory of a MinKNOW
+   fastq_pass directory) gives one gzipped FASTQ file in the output
    directory, and a line of the summary table (summary.tsv). The reads
    are read in batches; each batch is split between the threads, each of
    which trims and compresses its part; the parts are written in the
@@ -23,6 +24,7 @@
 #include "fastq-reader.h"
 #include "file.h"
 #include "gzip-compressor.h"
+#include "input-groups.h"
 #include "lengths.h"
 #include "logger.h"
 #include "options.h"
@@ -41,70 +43,26 @@
 /* the peaks of the lengths shown without references */
 #define MAX_PEAKS 12
 
-/* an output: its name, file and inputs */
-typedef struct {
-  char *name;
-  char *path;
-  char **files;
-  size_t n_files;
-} output_t;
-
-/* list_dir() filter: the files of reads */
-static bool is_reads_file(const char *name, const char *path, void *data) {
-  (void)data;
-  return reads_reader_is_reads_filename(name) && !is_directory(path);
-}
-
-/* the outputs of the inputs; two inputs with the same output name are an
-   error, as one would overwrite the other */
-static output_t* plan_outputs(const options_t *opts, Logger *logger) {
-  output_t *outputs;
-  XMALLOC(outputs, sizeof(output_t) * opts->n_inputs);
-  for (size_t i = 0; i < opts->n_inputs; i++) {
-    const char *in = opts->inputs[i];
-    output_t *o = outputs + i;
-    o->name = path_basename(in);
-    if (is_directory(in)) {
-      o->files = list_dir(in, is_reads_file, NULL, &o->n_files, logger);
-      LCHECK(o->n_files > 0, logger, "%s: no file of reads in the "
-             "directory (.fastq, .fq, optionally .gz, or .bam)\n", in);
-    } else {
-      LCHECK(reads_reader_is_reads_filename(o->name), logger,
-             "%s: not a file of reads (.fastq, .fq, optionally .gz, or "
-             ".bam)\n", in);
-      o->name[strlen(o->name) - reads_reader_filename_suffix_len(o->name)]
-        = '\0';
-      o->n_files = 1;
-      XMALLOC(o->files, sizeof(char *));
-      o->files[0] = xstrdup(in);
-    }
-    for (size_t j = 0; j < i; j++)
-      LCHECK(strcmp(outputs[j].name, o->name) != 0, logger,
-             "%s and %s: both would be written to %s.fastq.gz\n",
-             opts->inputs[j], in, o->name);
-    size_t len = strlen(o->name) + sizeof(".fastq.gz");
-    char *filename;
-    XMALLOC(filename, len);
-    snprintf(filename, len, "%s.fastq.gz", o->name);
-    o->path = path_join(opts->outdir, filename);
-    free(filename);
-    for (size_t j = 0; j < o->n_files; j++)
-      LCHECK(strcmp(o->files[j], o->path) != 0, logger,
+/* the paths of the outputs of the groups; an input which would be
+   overwritten by an output is an error */
+static char** output_paths(const input_group_t *groups, size_t n_groups,
+    const char *outdir, Logger *logger) {
+  char **paths;
+  XMALLOC(paths, sizeof(char *) * (n_groups + 1));
+  for (size_t i = 0; i < n_groups; i++) {
+    paths[i] = input_group_output_path(outdir, groups[i].name);
+    for (size_t j = 0; j < groups[i].n_files; j++)
+      LCHECK(strcmp(groups[i].files[j], paths[i]) != 0, logger,
              "%s: the input would be overwritten by the output\n",
-             o->files[j]);
+             groups[i].files[j]);
   }
-  return outputs;
+  return paths;
 }
 
-static void delete_outputs(output_t *outputs, size_t n) {
-  for (size_t i = 0; i < n; i++) {
-    free(outputs[i].name);
-    free(outputs[i].path);
-    for (size_t j = 0; j < outputs[i].n_files; j++)
-      free(outputs[i].files[j]);
-    free(outputs[i].files);
-  }
-  free(outputs);
+static void delete_output_paths(char **paths, size_t n) {
+  for (size_t i = 0; i < n; i++)
+    free(paths[i]);
+  free(paths);
 }
 
 /* the work of a thread on a part of a batch */
@@ -280,7 +238,10 @@ int main(int argc, char *argv[]) {
   options_parse(&opts, argc, argv, &logger);
   if (opts.show_banner)
     banner_print(stderr);
-  output_t *outputs = plan_outputs(&opts, logger);
+  size_t n_groups;
+  input_group_t *groups = input_groups_new(opts.inputs, opts.n_inputs,
+                                           &n_groups, false, true, logger);
+  char **paths = output_paths(groups, n_groups, opts.outdir, logger);
   scheme_t *scheme = scheme_new_builtin(opts.scheme, logger);
   fasta_t *refs = opts.references == NULL ? NULL :
                   fasta_read(opts.references, logger);
@@ -318,16 +279,16 @@ int main(int argc, char *argv[]) {
   fputs("output\tgroup\tlength\treads\n", lengths_file);
   fastq_batch_t batch;
   fastq_batch_init(&batch);
-  for (size_t i = 0; i < opts.n_inputs; i++) {
-    output_t *o = outputs + i;
+  for (size_t i = 0; i < n_groups; i++) {
+    const input_group_t *g = groups + i;
     for (size_t t = 0; t < opts.threads; t++) {
       memset(&workers[t].stats, 0, sizeof(trimmer_stats_t));
       lengths_clear(workers[t].lengths);
     }
-    FILE *out = xfopen(o->path, NULL, "wb", "trimmed reads", logger);
-    for (size_t j = 0; j < o->n_files; j++) {
-      lprintf(logger, LOG_PHASE, "Trimming %s...\n", o->files[j]);
-      trim_file(o->files[j], workers, opts.threads, &batch, out, o->path,
+    FILE *out = xfopen(paths[i], NULL, "wb", "trimmed reads", logger);
+    for (size_t j = 0; j < g->n_files; j++) {
+      lprintf(logger, LOG_PHASE, "Trimming %s...\n", g->files[j]);
+      trim_file(g->files[j], workers, opts.threads, &batch, out, paths[i],
                 logger);
     }
     xfclose(&out, logger);
@@ -338,10 +299,10 @@ int main(int argc, char *argv[]) {
       trimmer_stats_add(&stats, &workers[t].stats);
       lengths_add_all(lengths, workers[t].lengths);
     }
-    log_stats(o->path, &stats, refs != NULL, logger);
-    size_t n_short = report_lengths(lengths, refs, o->name, o->path,
+    log_stats(paths[i], &stats, refs != NULL, logger);
+    size_t n_short = report_lengths(lengths, refs, g->name, paths[i],
                                     lengths_file, logger);
-    summary_line(summary, o->name, &stats, refs != NULL, n_short);
+    summary_line(summary, g->name, &stats, refs != NULL, n_short);
   }
   xfclose(&summary, logger);
   xfclose(&lengths_file, logger);
@@ -360,7 +321,8 @@ int main(int argc, char *argv[]) {
   reference_index_delete(index);
   fasta_delete(refs);
   scheme_delete(scheme);
-  delete_outputs(outputs, opts.n_inputs);
+  delete_output_paths(paths, n_groups);
+  input_groups_delete(groups, n_groups);
   delete_logger(logger);
   return EXIT_SUCCESS;
 }

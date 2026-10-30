@@ -1,12 +1,21 @@
 Outputs
 =======
 
-For each input (a file of reads, or a directory of files of reads),
-flucut writes ``<outdir>/<name>.fastq.gz``; ``<name>`` is the name of
-the file without its suffix (``.fastq``, ``.fq``, optionally ``.gz``, or
-``.bam``), or that of the directory. Two inputs with the same name are an
-error, as one would overwrite the other. ``summary.tsv`` and
-``lengths.tsv`` have one part for each input.
+The inputs are read as groups of files, each of which gives one
+output, ``<outdir>/<name>.fastq.gz``:
+
+* a file of reads given directly is a group, named as the file without
+  its suffix (``.fastq``, ``.fq``, optionally ``.gz``, or ``.bam``);
+* a directory is a group of its files of reads, named as the directory;
+* unless the directory contains subdirectories whose name starts with
+  ``barcode`` (the ``fastq_pass`` directory of a MinKNOW run, with its
+  ``barcodeNN`` directories): then each of them is a group, named as the
+  subdirectory; the files beside them are not read (a warning is given),
+  and the other subdirectories (e.g. ``unclassified``) are ignored.
+
+The files of a directory are read in the order of their names. Two
+groups with the same name are an error, as one would overwrite the
+other. ``summary.tsv`` and ``lengths.tsv`` have one part for each group.
 
 The trimmed reads
 -----------------

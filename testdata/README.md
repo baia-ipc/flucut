@@ -43,3 +43,15 @@ gzipped, as a directory input (the output must be identical to that of
     head -n 24 testdata/reads.fastq > testdata/barcode01/part1.fastq
     tail -n +25 testdata/reads.fastq | gzip -n \
         > testdata/barcode01/part2.fastq.gz
+
+`fastq_pass/`: a run-like directory, as written by MinKNOW, with two
+barcode directories, each a group of its own (`barcode01`: the first 6
+reads, `barcode02`: the other 6, gzipped), and a file beside them, which
+is not read (a warning is output):
+
+    mkdir -p testdata/fastq_pass/barcode01 testdata/fastq_pass/barcode02
+    head -n 24 testdata/reads.fastq \
+        > testdata/fastq_pass/barcode01/part1.fastq
+    tail -n +25 testdata/reads.fastq | gzip -n \
+        > testdata/fastq_pass/barcode02/part2.fastq.gz
+    head -n 4 testdata/reads.fastq > testdata/fastq_pass/beside.fastq
