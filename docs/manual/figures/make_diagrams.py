@@ -64,8 +64,9 @@ def read_layout():
            (8.8, 1.0, GREY, "flank")]
   for x, w, c, label in parts:
     box(ax, x, w, 0, c, label)
-  bracket(ax, 2.0, 7.0, 0.85, "--trim primer (default): kept", BLUE)
-  bracket(ax, 1.0, 8.0, 1.45, "--trim terminus: kept", VERMILLION)
+  bracket(ax, 2.0, 7.0, 0.85, "no references (default): kept", BLUE)
+  bracket(ax, 1.0, 8.0, 1.45, "with references (terminal): kept",
+          VERMILLION)
   ax.text(0, -0.3, "5'", fontsize=8, ha="left", va="top")
   ax.text(9.8, -0.3, "3'", fontsize=8, ha="right", va="top")
   ax.text(4.9, -0.45, "a read of the plus strand of an amplicon (scheme "

@@ -7,11 +7,6 @@ with exit status 1.
 Errors in the command line
 --------------------------
 
-``--trim terminus requires --references``
-   Keeping the termini without references would keep the primer bases
-   of the internally primed reads (the artefact). Give the references
-   (``-r``), or use the default ``--trim primer``.
-
 ``unknown scheme '<name>'``
    The name given to ``-s`` is not a built-in scheme; the help lists
    them.

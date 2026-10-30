@@ -97,13 +97,15 @@ groups with the same name are an error.
 
 The main options (`flucut -h` lists all of them, with their defaults):
 
-- `-T primer` (default): remove every primer-derived base;
-  `-T terminus`: keep the conserved termini, which requires
-  `-r <references.fasta>`;
 - `-r <references.fasta>`: classify each read end as terminal or
-  internally primed against the segment references; with `-T primer`
-  the classification is only reported; the references are indexed by
-  their k-mers, so that the time hardly depends on their number
+  internally primed against the segment references. The mode follows
+  from this: **with** `-r`, the conserved termini are kept at the ends
+  confidently classified as terminal (complete segment ends) and the
+  whole primer is removed everywhere else (an internal or an
+  unclassified end: cut when unsure, so a primer base never reaches the
+  consensus unless the end is a known terminus); **without** `-r`, every
+  primer-derived base is removed. The references are indexed by their
+  k-mers, so that the time hardly depends on their number
   (`--exhaustive-search` aligns each read end to every reference, to
   check the index);
 - `-e`: errors allowed in a primer (a fraction of its length, a number

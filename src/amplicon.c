@@ -407,14 +407,19 @@ static void compute_keep(const amplicon_t *a, trim_policy_t policy,
     size_t len, long *from, long *to) {
   *from = 0;
   *to = (long)len - 1;
+  /* the conserved terminus is kept only when it is confidently terminal
+     (TRIM_TERMINUS and ORIGIN_TERMINAL); an internal or an unlocated end
+     ("cut when unsure") has its whole primer removed, so that a primer
+     base never reaches the consensus unless the end is known to be a
+     segment terminus */
   if (a->left.found)
-    *from = policy == TRIM_PRIMER || a->left.origin == ORIGIN_INTERNAL ?
-            a->left.hit.end + 1 :
-            clamp(a->left.hit.terminus_start, 0, (long)len);
+    *from = policy == TRIM_TERMINUS && a->left.origin == ORIGIN_TERMINAL ?
+            clamp(a->left.hit.terminus_start, 0, (long)len) :
+            a->left.hit.end + 1;
   if (a->right.found)
-    *to = policy == TRIM_PRIMER || a->right.origin == ORIGIN_INTERNAL ?
-          a->right.hit.start - 1 :
-          clamp(a->right.hit.terminus_end, 0, (long)len) - 1;
+    *to = policy == TRIM_TERMINUS && a->right.origin == ORIGIN_TERMINAL ?
+          clamp(a->right.hit.terminus_end, 0, (long)len) - 1 :
+          a->right.hit.start - 1;
   *from = clamp(*from, 0, (long)len);
   *to = clamp(*to, -1, (long)len - 1);
   /* no template between the two primers (a primer dimer): nothing is
@@ -655,15 +660,15 @@ static void test_references(Logger *logger) {
   snprintf(expected, sizeof(expected), "%.100s", site);
   test_eq_mem(read + r->keep_from, amplicon_kept_length(r), expected);
 
-  /* a template absent from the references: not classified, the policy
-     applies (the terminus is kept) */
+  /* a template absent from the references: not classified (unknown), so
+     cut when unsure (the whole primer removed) */
   snprintf(read, sizeof(read), "%s%s", uni12,
            "GGTTCCAAGGTTCCAAGGTTCCAAGGTTCCAAGGTTCCAA");
   r = amplicon_analyzer_run(a, read, strlen(read));
   test_assert(r->left.found);
   test_assert(r->left.origin == ORIGIN_UNKNOWN);
   test_assert(!r->left.ref.mapped);
-  test_eq_long(r->keep_from, 0);
+  test_eq_long(r->keep_from, (long)strlen(uni12));
 
   /* a primer dimer: no probe to locate */
   snprintf(read, sizeof(read), "%s%s", uni12, rc13);
@@ -689,15 +694,15 @@ static void test_references(Logger *logger) {
   test_eq_mem(read + r->keep_from, amplicon_kept_length(r), interior);
   amplicon_analyzer_delete(a);
 
-  /* with TRIM_TERMINUS and without the references, the internally
-     primed read keeps the primer bases (the artefact): this is why
-     that policy requires the references */
+  /* TRIM_TERMINUS without the references: the internally primed end is
+     unknown (no classification) and cut when unsure, so its primer is
+     removed and the artefact cannot reach the consensus */
   a = amplicon_analyzer_new(sc, 0.1, TRIM_TERMINUS,
                             AMPLICON_DEFAULT_WINDOW);
   snprintf(read, sizeof(read), "%s%s%s", uni12, site, rc13);
   r = amplicon_analyzer_run(a, read, strlen(read));
   test_assert(r->left.origin == ORIGIN_UNKNOWN);
-  test_eq_long(r->keep_from, 0);
+  test_eq_long(r->keep_from, (long)strlen(uni12));
   amplicon_analyzer_delete(a);
   scheme_delete(sc);
   reference_set_delete(refs);
@@ -810,15 +815,14 @@ void amplicon_test(void) {
   amplicon_analyzer_delete(a);
   r = NULL;
 
-  /* keeping the conserved termini: the body plus the 12 and 13 bases of
-     the termini, which come from the primers */
+  /* TRIM_TERMINUS without references: no end can be classified as
+     terminal, so every end is cut when unsure (the whole primer
+     removed, as in TRIM_PRIMER); keeping the termini needs the
+     references (see test_references) */
   a = amplicon_analyzer_new(sc, 0.2, TRIM_TERMINUS,
                             AMPLICON_DEFAULT_WINDOW);
   snprintf(read, sizeof(read), "%s%s%s", p12, body, rc13);
-  char expected[256];
-  snprintf(expected, sizeof(expected), "%s%s%s", PRIMERS_TERMINUS_12,
-           body, "CCTTGTTTCTACT");
-  check_keep(a, read, STRAND_PLUS, 2, expected);
+  check_keep(a, read, STRAND_PLUS, 2, body);
   /* a primer dimer: nothing is kept, also with this policy */
   snprintf(read, sizeof(read), "%s%s", p12, rc13);
   r = amplicon_analyzer_run(a, read, strlen(read));

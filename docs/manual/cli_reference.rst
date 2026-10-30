@@ -28,16 +28,15 @@ Options
    The primer scheme (:doc:`primers`): ``uni12-mbt13`` (default),
    ``mbt`` or ``uni``.
 
-``-T, --trim <policy>``
-   ``primer`` (default): remove every primer-derived base. ``terminus``:
-   keep the conserved termini; requires ``--references``
-   (:doc:`how_it_works`).
-
 ``-r, --references <file>``
-   A FASTA file of segment references: the read ends are classified as
-   terminal or internally primed (:doc:`internal_priming`). With
-   ``--trim primer`` the classification is only reported; with
-   ``--trim terminus`` it decides the trimming of the internal ends.
+   A FASTA file of segment references: each read end is classified as
+   terminal or internally primed (:doc:`internal_priming`), and the
+   trimming mode follows from this. **With** ``-r`` the conserved
+   termini are kept at the ends confidently classified as terminal
+   (complete segment ends) and the whole primer is removed elsewhere
+   (an internal or an unclassified end is cut when unsure). **Without**
+   ``-r`` every primer-derived base is removed. There is no separate
+   option to choose the mode (:doc:`how_it_works`).
    The messages and reports name a reference with its segment when its
    description (the header after the name) says it: ``segment <n>``
    (as in the NCBI records), or a gene or protein name (e.g. ``HA``,

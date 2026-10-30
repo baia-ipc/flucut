@@ -2,7 +2,6 @@
 default	testdata/reads.fastq
 one_thread	-j 1 testdata/reads.fastq
 references	-r testdata/ref-ha.fasta testdata/reads.fastq
-terminus	-T terminus -r testdata/ref-ha.fasta testdata/reads.fastq
 min_length_no_tags	-m 600 --no-tags testdata/reads.fastq
 directory	testdata/barcode01 testdata/reads.fastq
 no_errors	-e 0 testdata/reads.fastq

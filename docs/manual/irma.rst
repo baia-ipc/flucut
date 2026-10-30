@@ -25,7 +25,8 @@ reads (``benchmark/RESULTS.md``):
   by flucut ends exactly where the primers began: 12 bases short at one
   end and 13 at the other, without errors. With untrimmed reads, the
   consensus extends into the flanks, with insertions.
-- **Keeping the termini.** With ``--trim terminus`` and the elongation,
+- **Keeping the termini.** With ``--references`` (which keeps the
+  conserved termini at the terminal ends) and the elongation,
   the consensus has complete ends, but the bases there are the
   primer's: the fourth base is an ambiguity (R) in all segments, and
   where a segment differs from the primer, the primer's base is kept.

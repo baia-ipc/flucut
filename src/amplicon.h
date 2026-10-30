@@ -27,22 +27,26 @@
    primers.h). It can therefore offer a choice which a trimmer that only
    matches a sequence cannot:
 
-   - TRIM_PRIMER (the default, AMPLICON_DEFAULT_POLICY): all the
-     primer-derived bases are removed, tail and conserved terminus
-     together. No base of the output comes from a primer, so no variant
-     of the consensus can come from one, at the segment ends or at an
-     internal priming site, and no reference is needed. The consensus is
-     shorter than the segment by the termini (12 and 13 bases): those
-     bases would have been the primer's, not measured sequence, and they
-     are outside the coding sequences.
-   - TRIM_TERMINUS: only the tail (and anything outside the primer) is
-     removed, and the bases of the conserved terminus are kept, for the
-     cases in which complete termini are needed. The kept bases are
-     those of the primer (with the degenerate Uni12 primer, possibly the
-     base of the other variant). At an internal priming site they are
-     not the template at all: this policy therefore needs the references,
-     against which such ends are recognised and trimmed whole (see
-     below).
+   - TRIM_PRIMER: all the primer-derived bases are removed, tail and
+     conserved terminus together. No base of the output comes from a
+     primer, so no variant of the consensus can come from one, at the
+     segment ends or at an internal priming site, and no reference is
+     needed. The consensus is shorter than the segment by the termini
+     (12 and 13 bases): those bases would have been the primer's, not
+     measured sequence, and they are outside the coding sequences.
+   - TRIM_TERMINUS: the conserved terminus is kept, but only at an end
+     confidently classified as terminal (see below); the tail and
+     anything outside the primer are removed. This gives complete segment
+     ends while a primer base never reaches the consensus at an internal
+     priming site. It needs the references (to classify the ends).
+
+   The program chooses the mode from the references (options.c): with
+   references, TRIM_TERMINUS (complete ends, and the internal priming
+   located); without, TRIM_PRIMER. There is no option to override this.
+   The kept conserved-terminus bases are those of the primer (with the
+   degenerate Uni12 primer, possibly the base of the other variant);
+   they are the segment's own conserved ends, the same in all segments
+   and subtypes.
 
    The removal is by position, not by difference: the whole span of the
    primer alignment is removed, whether or not the bases under it differ
@@ -69,10 +73,11 @@
    The primer-derived bases of an internally primed read are at the end
    of the read, exactly as in a read of a real amplicon: the two cannot
    be told apart from the primer alone. TRIM_PRIMER removes the primer
-   from both, at the cost of the termini of every segment; TRIM_TERMINUS
-   keeps the terminus of both, and with it the wrong bases of the
-   internally primed reads. The classification against the references
-   removes the need to choose.
+   from both. TRIM_TERMINUS keeps the conserved terminus only where the
+   classification against the references says the end is a segment
+   terminus, and cuts the whole primer everywhere else, so the terminus
+   of a genuine amplicon is kept while the footprint of an internally
+   primed read is removed.
 
    Classification against the references
    -------------------------------------
@@ -83,16 +88,16 @@
    segments. If they map at a terminus, the amplicon started there and
    the end is trimmed by the policy (with TRIM_TERMINUS, the conserved
    terminus is kept, so that the consensus has complete ends). If they
-   map to an interior position, the amplicon was
-   internally primed, and the whole primer of that end is removed
-   whatever the policy: only that prefix, the rest of the read being
-   genuine template. An end whose probe is not located (no references,
-   a subtype absent from them, a probe too short) is trimmed by the
-   policy and reported as unknown.
+   map to an interior position, the amplicon was internally primed, and
+   the whole primer of that end is removed: only that prefix, the rest of
+   the read being genuine template. An end whose probe is not located (a
+   subtype absent from the references, a probe too short) is reported as
+   unknown and cut when unsure: its whole primer is removed, as at an
+   internal end, so a primer base reaches the consensus only at an end
+   known to be terminal.
 
-   With TRIM_PRIMER the classification does not change the trimming; it
-   is still useful to measure internal priming (which segments, which
-   sites, what share of the reads), for the report.
+   With TRIM_PRIMER (no references) the classification is not done; the
+   whole primer is removed at every end.
 
    The matches found between the two end primers are reported as
    internal matches: they are the sites at which the primer can anneal,
@@ -142,7 +147,8 @@ typedef enum {
 /* the greatest number of internal matches kept for one read */
 #define AMPLICON_MAX_INTERNAL 8
 
-/* default policy (see above) */
+/* the mode without references (the program derives the mode from the
+   references: TRIM_TERMINUS with them, TRIM_PRIMER without, see above) */
 #define AMPLICON_DEFAULT_POLICY TRIM_PRIMER
 
 /* the fewest bases of a primer searched at an end of a read, after a

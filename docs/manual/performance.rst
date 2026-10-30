@@ -49,8 +49,8 @@ at the internal site), assembled by IRMA 1.4.0 (FLU-minion):
   ATA, the truth;
 - with the reference elongation of IRMA, the consensus of the reads
   trimmed by flucut has no error, and ends 12 and 13 bases short of the
-  segments (the primers); with ``--trim terminus`` it has complete ends,
-  with the primer's bases there (:doc:`irma`);
+  segments (the primers); with ``--references`` it has complete ends,
+  with the primer's conserved-terminus bases there (:doc:`irma`);
 - at 10, 20 and 40 reads per segment (three simulations each), the
   untrimmed reads give the artefact in 5 of 9 runs, the reads trimmed by
   flucut in none.
