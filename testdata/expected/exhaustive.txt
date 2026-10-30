@@ -65,7 +65,8 @@ reads	NC_004908.1	1700	5
     "terminal_window": 60,
     "exhaustive_search": true,
     "tags": true,
-    "threads": 4
+    "threads": 4,
+    "compress_level": 6
   },
   "length_bin": 10,
   "length_max": 4000,

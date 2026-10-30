@@ -59,7 +59,8 @@ reads	all	1700	5
     "terminal_window": 60,
     "exhaustive_search": false,
     "tags": true,
-    "threads": 1
+    "threads": 1,
+    "compress_level": 6
   },
   "length_bin": 10,
   "length_max": 4000,

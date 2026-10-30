@@ -305,7 +305,7 @@ static worker_t* get_workers(live_t *w) {
   if (w->workers == NULL) {
     XMALLOC(w->workers, sizeof(worker_t) * w->opts->threads);
     for (size_t t = 0; t < w->opts->threads; t++)
-      worker_init(w->workers + t, w->config);
+      worker_init(w->workers + t, w->config, w->opts->compress_level);
   }
   return w->workers;
 }

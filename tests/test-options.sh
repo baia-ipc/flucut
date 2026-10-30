@@ -59,6 +59,9 @@ expect 1 --live --timeout x testdata/fastq_pass
 expect 1 --live --scan-interval 0 testdata/fastq_pass
 expect 1 --adapters "" "$reads"
 expect 1 -j 1000 "$reads"
+expect 1 --compress-level 0 "$reads"
+expect 1 --compress-level 13 "$reads"
+expect 1 --compress-level x "$reads"
 expect 1 --probe-len 10 -r "$refs" "$reads"
 expect 1 --probe-errors 1 -r "$refs" "$reads"
 expect 1 --terminal-window -5 -r "$refs" "$reads"

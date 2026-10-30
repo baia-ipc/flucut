@@ -37,6 +37,7 @@ Settings:
 | `probe_length`, `probe_errors`, `terminal_window`, `exhaustive_search` | integer, number, integer, boolean | the options of the classification against the references (used only with `-r`) |
 | `tags` | boolean | the tags are appended to the titles of the reads (`false`: `--no-tags`) |
 | `threads` | integer | `-j` |
+| `compress_level` | integer | `--compress-level`: the gzip compression level of the outputs |
 
 Section (statistics of a set of reads):
 
