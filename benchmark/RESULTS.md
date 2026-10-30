@@ -1,5 +1,38 @@
 # Results
 
+## 2026-10-30: low coverage (simulated reads)
+
+What was run: `benchmark/run-coverage.sh` with the genome of
+`make-genome.sh`: 10, 20 and 40 reads per segment, seeds 1 to 3 (other
+parameters as in `simulate.py`), the tools of `run-tools.sh` with the
+same commands (flucut at commit 3bfb35c), IRMA 1.4.0 FLU-minion. The
+consensus compared is the majority consensus (`A_<gene>.fasta`,
+`compare_consensus.py --plain`): the amended consensus of FLU-minion is
+all N at these coverages, as it replaces with N the bases supported by
+fewer than 50 reads (`MIN_CONS_SUPPORT=50`), whatever the trimming.
+
+Differences from the truth (substitutions, insertions and deletions,
+summed over the 8 segments) and the codon of the I348K site:
+
+| reads per segment | seed | untrimmed | flucut | cutadapt | IRMA-core w70 |
+|---|---|---|---|---|---|
+| 10 | 1 | 4, **AAA** | 2, ATA | 2, ATA | 2, ATA |
+| 10 | 2 | 36, **AAA** | 34, ATA | 34, ATA | 34, ATA |
+| 10 | 3 | 0, ATA | 0, ATA | 2, ATA | 0, ATA |
+| 20 | 1 | 0, ATA | 0, ATA | 0, ATA | 0, ATA |
+| 20 | 2 | 1, **AAA** | 0, ATA | 0, ATA | 0, ATA |
+| 20 | 3 | 1, ATA | 1, ATA | 1, ATA | 1, ATA |
+| 40 | 1 | 1, **AAA** | 0, ATA | 0, ATA | 0, ATA |
+| 40 | 2 | 0, ATA | 0, ATA | 0, ATA | 0, ATA |
+| 40 | 3 | 1, **AAA** | 0, ATA | 0, ATA | 0, ATA |
+
+All the runs assembled the 8 segments. The untrimmed reads give the
+artefact in 5 of the 9 runs; every trimming tool removes it. The errors
+which remain are the same for the three tools, from the low coverage
+itself, except one run (10 reads, seed 3) in which cutadapt has 2 more:
+on these reads, the template cut by cutadapt does not change the
+consensus measurably, even at 10 reads per segment.
+
 ## 2026-10-30: flucut with truncated primers at the read ends
 
 The change: at a read end, a primer is also searched without up to half

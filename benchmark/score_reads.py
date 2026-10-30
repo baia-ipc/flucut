@@ -15,6 +15,8 @@ benchmark/simulate.py) then tells what was kept and what was removed:
   internal_kept         primer bases kept at the internal priming site
                         (the bases which carry the artefact)
   not_found             written reads not found in their input read
+  pieces                written reads which are pieces of a read split
+                        by the tool (named <read>_<n>, e.g. Porechop)
 
 Usage:
   python3 -I benchmark/score_reads.py <simulation dir> <trimmed reads>
@@ -23,6 +25,7 @@ Output: a TSV line on the standard output (with a header).
 """
 
 import gzip
+import re
 import sys
 
 COMPLEMENT = str.maketrans("ACGTN", "TGCAN")
@@ -50,7 +53,8 @@ def read_fastq(path):
 
 
 COLUMNS = ["reads_in", "reads_out", "reads_lost", "template_removed",
-           "primer_kept", "flank_kept", "internal_kept", "not_found"]
+           "primer_kept", "flank_kept", "internal_kept", "not_found",
+           "pieces"]
 
 
 def main():
@@ -62,14 +66,20 @@ def main():
   with gzip.open(simdir + "/truth.tsv.gz", "rt") as f:
     f.readline()
     for line in f:
-      name, _, kind, _, labels = line.rstrip("\n").split("\t")
-      truth[name] = (kind, labels)
+      fields = line.rstrip("\n").split("\t")
+      truth[fields[0]] = (fields[2], fields[4])
   inputs = dict(read_fastq(simdir + "/reads.fastq.gz"))
   c = dict.fromkeys(COLUMNS, 0)
   c["reads_in"] = len(truth)
   written = set()
   for name, seq in read_fastq(trimmed):
     c["reads_out"] += 1
+    if name not in inputs:
+      m = re.match(r"(.*)_\d+$", name)
+      if m is None or m.group(1) not in inputs:
+        sys.exit("%s: read not in the simulation" % name)
+      name = m.group(1)
+      c["pieces"] += 1
     written.add(name)
     read = inputs[name]
     labels = truth[name][1]

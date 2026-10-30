@@ -54,10 +54,11 @@ for name in raw flucut notags terminus; do
         >> "$work/consensus.tsv"
     fi
     # the codon of the site (template ATA: Ile; primer AAA: Lys), found
-    # by its context in the plain consensus of HA
+    # by its context in the plain consensus of HA (the base before the
+    # codon can be the R of the primer, A or G, instead of the T)
     ha=$(grep -v '>' "$work/irma/$run"/A_HA_*.fasta | tr -d '\n')
-    codon=$(echo "$ha" | grep -o 'GGAGCT[ACGT]\{3\}GCAGGG' | head -1 \
-            | cut -c7-9)
+    codon=$(echo "$ha" | { grep -o 'GGAGC[A-Z]\{4\}GCAGGG' || true; } \
+            | head -1 | cut -c7-9)
     printf '%s\t%s\n' "$run" "${codon:-not found}" >> "$work/site.tsv"
   done
 done
