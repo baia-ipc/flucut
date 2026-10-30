@@ -1,0 +1,18 @@
+<!-- (c) 2026 Giorgio Gonnella -->
+<!-- report: the colors of flucut (of its logo: navy #03215A, orange-red -->
+<!-- #F84A2A, blue #0A72F5), over those of the page; lighter in the dark -->
+<!-- theme; div.plots: a grid of plots (div.plot) -->
+<style>
+  :root { --primary: #0a72f5; --accent: #f84a2a; --brand: #03215a; }
+  @media (prefers-color-scheme: dark) {
+    :root { --primary: #4d9bff; --accent: #ff6b4f; --brand: #9cc2ff; }
+  }
+  h2, h3 { color: var(--brand); }
+  h2 { border-top-color: var(--accent); }
+  .plots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 4px 24px;
+  }
+  .plot b { font-size: 0.9em; }
+</style>

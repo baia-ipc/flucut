@@ -1,0 +1,10 @@
+<!-- (c) 2026 Giorgio Gonnella -->
+<!-- report: the options of the trimming, rows of the table of the run, -->
+<!-- after the errors in a primer; probe: the options of the -->
+<!-- classification against the references (NULL: no references) -->
+<tr><td>window (bases)</td><td class="seq">{{window}}</td></tr>
+<tr><td>minimum length (bases)</td><td class="seq">{{min_length}}</td></tr>
+{{#probe}}
+<tr><td>probe</td><td class="seq">{{probe}} bases, errors {{probe_errors}}, terminal window {{terminal_window}} bases{{search}}</td></tr>
+{{/probe}}
+<tr><td>threads</td><td class="seq">{{threads}}</td></tr>

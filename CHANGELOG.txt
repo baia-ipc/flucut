@@ -91,3 +91,11 @@
   and the lengths, the reads by primer found at each end, and, with
   references, the internally primed read ends by reference, end and
   position; per group and for all reads
+- HTML report, always written: flucut_report.html in the output
+  directory, self-contained (inline SVG plots, no external resources),
+  light and dark themes, with the logo and colors of flucut (page,
+  templates and plots of libcbaia, as in Lumipore): the run parameters;
+  for all reads and for each group, the reads at each step, the primers
+  found at each end, with references the read ends by origin and the
+  internal priming sites with their reads, the complete amplicons (short
+  ones per reference) and their length histograms

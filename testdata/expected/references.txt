@@ -36,3 +36,11 @@ reads	NC_004908.1	20	1
 reads	NC_004908.1	900	1
 reads	NC_004908.1	1000	2
 reads	NC_004908.1	1700	5
+== flucut_report.html ==
+</html>
+<h2>All reads</h2>
+<h3>Reads at each step</h3>
+<h3>Primers found</h3>
+<h3>Internal priming</h3>
+<h3>Complete amplicons</h3>
+<h3>Lengths of the complete amplicons</h3>
