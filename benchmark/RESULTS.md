@@ -1,5 +1,26 @@
 # Results
 
+## 2026-10-30: read-level scores of flucut (simulated reads)
+
+`benchmark/score_reads.py` on the reads of the IRMA checks (3200 reads;
+`work/sim`), flucut at commit 45ceab0, default options, and with
+`--trim terminus -r` the genome. Bases by their true origin (see
+`score_reads.py`):
+
+| reads | written | lost | template removed | primer kept | flank kept | internal site kept |
+|---|---|---|---|---|---|---|
+| untrimmed | 3200 | 0 | 0 | 102554 | 127032 | 2698 |
+| flucut | 3177 | 0 | 1280 | 3403 | 10247 | 31 |
+| flucut --trim terminus | 3177 | 0 | 1035 | 73185 | 10681 | 31 |
+
+The 23 reads not written are the primer dimers (no template). The
+flanking bases kept are mostly at read ends without a primer (reads
+broken in the middle, reads with one primer), where nothing can be
+trimmed by position. The 31 bases of the internal site kept come from
+internally primed reads whose Uni12 primer was not found (more errors
+than allowed). With `--trim terminus`, the conserved termini are kept
+by design (primer kept).
+
 ## 2026-10-30: length check (simulated reads)
 
 flucut with `-r` the genome, on the reads of the IRMA checks: for the

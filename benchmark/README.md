@@ -69,3 +69,8 @@ the untranslated regions of the segments.
 
 `run-irma-checks.sh` simulates the reads, trims them, runs IRMA and
 compares each consensus with the truth (`compare_consensus.py`).
+`score_reads.py` scores the trimmed reads of any tool against the truth
+of each base:
+
+    python3 -I benchmark/score_reads.py work/sim work/flucut/reads.fastq.gz \
+        flucut
