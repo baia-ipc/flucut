@@ -35,13 +35,21 @@ YAML_OBJS = $(patsubst $(YAMLDIR)/%.c,$(OBJDIR)/yaml/%.o,\
 YAML_LDLIBS =
 endif
 
+# libdeflate (compression of the output): always the vendored copy, also
+# with SYSTEM_LIBS=1 (it is not installed on most systems); all the
+# sources of the library, including those of the other architectures
+# (their content is compiled only on them)
+DEFLATEDIR = $(EXTDIR)/libdeflate
+DEFLATE_OBJS = $(patsubst $(DEFLATEDIR)/%.c,$(OBJDIR)/libdeflate/%.o,\
+                 $(wildcard $(DEFLATEDIR)/lib/*.c $(DEFLATEDIR)/lib/*/*.c))
+
 CFLAGS += -Wall -Wextra -std=gnu11 -I$(EXTDIR) -I$(EXTDIR)/edlib \
-          $(CBAIA_INCLUDES) $(YAML_INCLUDES)
+          -I$(DEFLATEDIR) $(CBAIA_INCLUDES) $(YAML_INCLUDES)
 CXXFLAGS += -std=c++11 -I$(EXTDIR)/edlib
 LDLIBS += $(YAML_LDLIBS) $(CBAIA_LDLIBS) -lpthread
 
 # external libraries, linked into all programs
-EXTOBJS = $(OBJDIR)/edlib.o $(YAML_OBJS) $(CBAIA_LIBS)
+EXTOBJS = $(OBJDIR)/edlib.o $(YAML_OBJS) $(DEFLATE_OBJS) $(CBAIA_LIBS)
 
 DEBUGFLAGS_DEBUG = -gdwarf-3 -g3 -O0
 DEBUGFLAGS_NDEBUG = -O3 -DNDEBUG -flto
@@ -104,6 +112,16 @@ YAML_CFLAGS = -O2 -DYAML_VERSION_MAJOR=0 -DYAML_VERSION_MINOR=2 \
 $(OBJDIR)/yaml/%.o: $(YAMLDIR)/%.c $(YAMLDIR)/yaml.h $(YAMLDIR)/yaml_private.h \
     | $(OBJDIR)/yaml
 	$(CC) $(YAML_CFLAGS) -I$(YAMLDIR) -c -o $@ $<
+
+# (the flags of the build system of libdeflate, for a release build; the
+# objects are in subdirectories, as the sources: lib/x86, lib/arm)
+DEFLATE_CFLAGS = -O2 -I$(DEFLATEDIR)
+DEFLATE_HEADERS = $(DEFLATEDIR)/libdeflate.h $(DEFLATEDIR)/common_defs.h \
+                  $(wildcard $(DEFLATEDIR)/lib/*.h $(DEFLATEDIR)/lib/*/*.h)
+
+$(OBJDIR)/libdeflate/%.o: $(DEFLATEDIR)/%.c $(DEFLATE_HEADERS)
+	@mkdir -p $(@D)
+	$(CC) $(DEFLATE_CFLAGS) -c -o $@ $<
 
 # objects to link into each program, computed from the included headers
 # (see dev/objdeps.sh of libcbaia)
