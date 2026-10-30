@@ -15,6 +15,7 @@
 #include "options.h"
 #include "argparse-def.h"
 #include "amplicon.h"
+#include "counter.h"
 #include "fasta.h"
 #include "lengths.h"
 #include "file.h"
@@ -82,6 +83,7 @@ static test_group_t test_groups[] = {
    false},
   {'t', "the trimming of a batch of reads", trimmer_test, false},
   {'l', "the lengths of the complete amplicons", lengths_test, false},
+  {'n', "the counts of the reads", counter_test, false},
   {'g', "the groups of input files", run_input_groups_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))

@@ -6,6 +6,7 @@
 #include <string.h>
 #include "alloc.h"
 #include "amplicon.h"
+#include "counter.h"
 #include "fasta.h"
 #include "fastq-reader.h"
 #include "fastq-writer.h"
@@ -24,22 +25,6 @@ struct trimmer_t {
   reference_set_t *refs;
   strbuf_t title;
 };
-
-void trimmer_stats_add(trimmer_stats_t *self, const trimmer_stats_t *other) {
-  self->reads_in += other->reads_in;
-  self->bases_in += other->bases_in;
-  self->reads_out += other->reads_out;
-  self->bases_out += other->bases_out;
-  self->too_short += other->too_short;
-  self->dimers += other->dimers;
-  for (size_t i = 0; i < 3; i++)
-    self->n_ends[i] += other->n_ends[i];
-  self->minus += other->minus;
-  self->with_internal += other->with_internal;
-  for (size_t e = 0; e < 2; e++)
-    for (size_t o = 0; o < 3; o++)
-      self->origin[e][o] += other->origin[e][o];
-}
 
 trimmer_t* trimmer_new(const trimmer_config_t *config) {
   assert(config != NULL);
@@ -119,51 +104,8 @@ static void make_title(trimmer_t *self, const char *title, size_t title_len,
     sam_tag_append_int(t, "ni", (long)a->n_internal);
 }
 
-size_t trimmer_n_length_groups(const trimmer_config_t *config) {
-  return config->references == NULL ? 1 :
-         config->references->n_records + 1;
-}
-
-/* the length of the template of a complete amplicon, in its group (see
-   trimmer_n_length_groups()) */
-static void add_length(const trimmer_t *self, const amplicon_t *a,
-    lengths_t *lengths) {
-  if (!a->left.found || !a->right.found)
-    return;
-  long len = a->right.hit.start - a->left.hit.end - 1;
-  if (len <= 0)
-    return;
-  size_t group = 0;
-  if (self->refs != NULL) {
-    group = self->config->references->n_records;
-    if (a->left.ref.mapped)
-      group = a->left.ref.ref_index;
-    else if (a->right.ref.mapped)
-      group = a->right.ref.ref_index;
-  }
-  lengths_add(lengths, group, (size_t)len);
-}
-
-/* count the analysis of a read */
-static void count(const amplicon_t *a, size_t len, trimmer_stats_t *s) {
-  s->reads_in++;
-  s->bases_in += len;
-  size_t n_ends = amplicon_n_ends(a);
-  s->n_ends[n_ends]++;
-  if (a->strand == STRAND_MINUS)
-    s->minus++;
-  if (n_ends == 2 && amplicon_kept_length(a) == 0)
-    s->dimers++;
-  if (a->n_internal > 0)
-    s->with_internal++;
-  if (a->left.found)
-    s->origin[0][a->left.origin]++;
-  if (a->right.found)
-    s->origin[1][a->right.origin]++;
-}
-
 void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
-    size_t to, strbuf_t *out, trimmer_stats_t *stats, lengths_t *lengths) {
+    size_t to, strbuf_t *out, counter_t *counts) {
   assert(to <= batch->n_records);
   const char *data = batch->data.s;
   for (size_t i = from; i < to; i++) {
@@ -171,11 +113,10 @@ void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
     const char *seq = data + rec->seq_from;
     const amplicon_t *a = amplicon_analyzer_run(self->analyzer, seq,
                                                 rec->seq_len);
-    count(a, rec->seq_len, stats);
-    add_length(self, a, lengths);
+    counter_add_read(counts, a, rec->seq_len);
     size_t kept = amplicon_kept_length(a);
     if (kept == 0 || kept < self->config->min_length) {
-      stats->too_short++;
+      counter_add_too_short(counts);
       continue;
     }
     make_title(self, data + rec->title_from, rec->title_len, a,
@@ -183,8 +124,7 @@ void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
     fastq_writer_record(out, self->title.s, self->title.len,
                         seq + a->keep_from,
                         data + rec->qual_from + a->keep_from, kept);
-    stats->reads_out++;
-    stats->bases_out += kept;
+    counter_add_written(counts, kept);
   }
 }
 
@@ -225,36 +165,35 @@ void trimmer_test(void) {
   fastq_batch_init(&batch);
   strbuf_t out;
   strbuf_init(&out);
-  trimmer_stats_t stats;
-  memset(&stats, 0, sizeof(stats));
-  test_eq_size(trimmer_n_length_groups(&config), 1);
-  lengths_t *lengths = lengths_new(1);
+  counter_t *counts = counter_new(sc, NULL);
+  const counter_reads_t *stats = counter_reads(counts);
   char read[256], expected[512];
 
   /* a read with both primers: the body is written, the qualities are
      cut with the sequence, the tags tell what was removed */
   snprintf(read, sizeof(read), "%s%s%s", uni12, body, rc13);
   one_record(&batch, "r1 x=1", read);
-  trimmer_run(tr, &batch, 0, 1, &out, &stats, lengths);
+  trimmer_run(tr, &batch, 0, 1, &out, counts);
   snprintf(expected, sizeof(expected),
            "@r1 x=1\tfs:Z:+\tfl:Z:uni12r\tfr:Z:mbtuni-13\ttl:i:12"
            "\ttr:i:23\n%s\n+\n", body);
   test_eq_mem(out.s, strlen(expected), expected);
   test_eq_mem(out.s + strlen(expected), 3, "-./");
-  test_eq_size(stats.reads_out, 1);
-  test_eq_size(stats.bases_out, strlen(body));
-  test_eq_size(stats.n_ends[2], 1);
-  test_eq_size(lengths_count(lengths, 0, strlen(body) / LENGTHS_BIN), 1);
+  test_eq_size(stats->reads_out, 1);
+  test_eq_size(stats->bases_out, strlen(body));
+  test_eq_size(stats->n_ends[2], 1);
+  test_eq_size(lengths_count(counter_lengths(counts), 0,
+                             strlen(body) / LENGTHS_BIN), 1);
 
   /* a primer dimer is not written */
   snprintf(read, sizeof(read), "%s%s", uni12, rc13);
   one_record(&batch, "r2", read);
   strbuf_clear(&out);
-  trimmer_run(tr, &batch, 0, 1, &out, &stats, lengths);
+  trimmer_run(tr, &batch, 0, 1, &out, counts);
   test_eq_size(out.len, 0);
-  test_eq_size(stats.dimers, 1);
-  test_eq_size(stats.too_short, 1);
-  test_eq_size(stats.reads_in, 2);
+  test_eq_size(stats->dimers, 1);
+  test_eq_size(stats->too_short, 1);
+  test_eq_size(stats->reads_in, 2);
   trimmer_delete(tr);
 
   /* without tags, and with a minimum length */
@@ -264,25 +203,17 @@ void trimmer_test(void) {
   snprintf(read, sizeof(read), "%s%s%s", uni12, body, rc13);
   one_record(&batch, "r3", read);
   strbuf_clear(&out);
-  trimmer_run(tr, &batch, 0, 1, &out, &stats, lengths);
+  trimmer_run(tr, &batch, 0, 1, &out, counts);
   test_eq_size(out.len, 0);
   config.min_length = strlen(body);
   trimmer_delete(tr);
   tr = trimmer_new(&config);
-  trimmer_run(tr, &batch, 0, 1, &out, &stats, lengths);
+  trimmer_run(tr, &batch, 0, 1, &out, counts);
   snprintf(expected, sizeof(expected), "@r3\n%s\n+\n", body);
   test_eq_mem(out.s, strlen(expected), expected);
   trimmer_delete(tr);
 
-  /* the sum of counts */
-  trimmer_stats_t sum;
-  memset(&sum, 0, sizeof(sum));
-  trimmer_stats_add(&sum, &stats);
-  trimmer_stats_add(&sum, &stats);
-  test_eq_size(sum.reads_in, 2 * stats.reads_in);
-  test_eq_size(sum.n_ends[2], 2 * stats.n_ends[2]);
-
-  lengths_delete(lengths);
+  counter_delete(counts);
   strbuf_free(&out);
   fastq_batch_free(&batch);
   scheme_delete(sc);
