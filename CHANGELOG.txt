@@ -129,8 +129,9 @@
   and the step of writing the reports (PHASE)
 - the segment of a reference (segment number and gene, from its FASTA
   description: "segment <n>" or a gene or protein name) in the warning
-  of the short amplicons, in the HTML report and in the JSON summary
-  (references: segment, gene)
+  of the short amplicons ("HA segment: 4 of 9 complete amplicons
+  shorter than the closest reference (NC_004908.1, 1714 bases)..."), in
+  the HTML report and in the JSON summary (references: segment, gene)
 - adapter search (--adapters, default nb,rbk,lsk): at a read end
   without a primer, the adapters of Oxford Nanopore (native barcoding,
   rapid barcoding, ligation; sequences of Dorado, the barcode as Ns) are

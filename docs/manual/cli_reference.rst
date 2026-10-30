@@ -118,9 +118,11 @@ their kind:
 
 - ``SUCCESS`` (green): the reads written for each output, and the
   reports at the end;
-- ``WARNING`` (magenta): something to look at, e.g. many complete
-  amplicons shorter than their reference (internal priming or
-  deletions), or files of reads ignored beside the barcode directories;
+- ``WARNING`` (magenta): something to look at, e.g. complete amplicons
+  shorter than the closest reference (below 90% of its length: internal
+  priming or deletions; with ``-r``), named by their segment when the
+  reference says it, as in ``HA segment: 4 of 9 complete amplicons
+  shorter than the closest reference (NC_004908.1, 1714 bases)``, or files of reads ignored beside the barcode directories;
 - ``ERROR`` (red): the program stops;
 - with ``-v``, also ``PARAM`` (blue: the values of the options),
   ``PHASE`` (bright yellow: the steps, e.g. the trimming of each file)

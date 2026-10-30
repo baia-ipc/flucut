@@ -185,14 +185,16 @@ static size_t write_lengths(const lengths_t *l, const fasta_t *refs,
     n_short += s.short_count;
     if (s.short_count == 0)
       continue;
-    char label[256];
-    segments_label(name, refs->records[g].description, label,
-                   sizeof(label));
-    lprintf(logger, LOG_WARN, "%s: %s: %zu of %zu complete amplicons "
-            "shorter than %.0f%% of the reference (%zu bases), most at "
-            "%zu-%zu: internal priming or deletions\n", path, label,
-            s.short_count, s.total, LENGTHS_SHORT_FRACTION * 100,
-            refs->records[g].seq_len, s.short_bin * LENGTHS_BIN,
+    /* (shorter: below LENGTHS_SHORT_FRACTION of the reference) */
+    int segment = segments_of_description(refs->records[g].description);
+    char seg[32] = "";
+    if (segment > 0)
+      snprintf(seg, sizeof(seg), "%s segment: ", segments_gene(segment));
+    lprintf(logger, LOG_WARN, "%s: %s%zu of %zu complete amplicons "
+            "shorter than the closest reference (%s, %zu bases), most at "
+            "%zu-%zu bases: internal priming or deletions\n", path, seg,
+            s.short_count, s.total, name, refs->records[g].seq_len,
+            s.short_bin * LENGTHS_BIN,
             s.short_bin * LENGTHS_BIN + LENGTHS_BIN - 1);
   }
   return n_short;
