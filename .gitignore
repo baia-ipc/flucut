@@ -1,0 +1,12 @@
+*.found
+.d/
+__pycache__/
+bin/
+obj/
+
+# Python packaging (MultiQC plugin)
+build/
+*.egg-info/
+
+# Sphinx build of the manual
+docs/manual/_build/
