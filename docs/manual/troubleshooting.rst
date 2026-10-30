@@ -19,9 +19,9 @@ Errors in the command line
 ``'primer' or 'terminus' expected``
    The value of ``-T`` is neither.
 
-``a fraction below 1 or a whole number of bases expected``
-   The value of ``-e`` is negative, not a number, or a fraction above 1
-   (e.g. 1.5).
+``a fraction below 1, a whole number of bases or auto expected``
+   The value of ``-e`` is negative, not a number nor ``auto``, or a
+   fraction above 1 (e.g. 1.5).
 
 ``argument must be an integer ...``
    A value of ``-w``, ``-m`` or ``-j`` out of its range.
@@ -78,4 +78,5 @@ Messages about the reads
 Many reads without primers (``no_end`` in ``summary.tsv``)
    The scheme does not match the primers of the run (``-s``), the reads
    were already trimmed (e.g. by the basecaller), or the error rate of
-   the reads is higher than ``-e`` allows.
+   the reads is higher than ``-e`` allows (with ``-e auto``, see the rate
+   measured in the report).

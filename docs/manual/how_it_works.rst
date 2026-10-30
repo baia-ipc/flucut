@@ -26,9 +26,9 @@ The search of a primer
 ----------------------
 
 A primer is aligned to the read with edit distance (substitutions,
-insertions and deletions), allowing ``-e`` errors (default 0.2 of the
-length of the primer: 2 errors in Uni12). Degenerate bases (e.g. the R
-of Uni12) match any of the bases they stand for, in the primer and in
+insertions and deletions), allowing ``-e`` errors (a fraction of the
+length of the primer: with 0.2, 2 errors in Uni12). Degenerate bases
+(e.g. the R of Uni12) match any of the bases they stand for, in the primer and in
 the read (e.g. N).
 
 At an end of the read, the primer can be partial:
@@ -46,6 +46,19 @@ in which the missing outer bases cost as many errors as the shorter
 form is allowed fewer: the match with the fewest errors, counting this
 cost, is taken, and among equally good matches the outermost. The
 overhang is considered only if the primer is not found inside the read.
+
+With ``-e auto`` (the default), the errors allowed are decided from the
+first 1000 reads of the first input file: the primers are searched in
+them with 0.2, and the error rate of their alignments (errors per
+aligned read base) is measured. Below 4%, 0.2 is used; from 4% on, 0.3
+(3 errors in Uni12, 6 in the tailed Uni13). On reads simulated with mean
+error rates of 1, 2, 4, 8 and 12% (measured: 0.9, 1.7, 3.0, 5.0 and
+6.3%: the alignments with more errors than allowed are not found), 0.2
+left few primer bases up to 4%; at 8 and 12%, 0.3 left 4 times fewer
+primer bases and 2 to 4 times fewer bases of the internal priming site
+than 0.2, at the cost of about 3 times more template bases removed
+(``benchmark/RESULTS.md``). As in Lumipore, the rule has two values and
+one threshold, measured once, before the trimming.
 
 The window
 ----------

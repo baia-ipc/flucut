@@ -21,7 +21,10 @@ support the trimming; they are not the purpose of the program.
   IRMA-core trimmer leaves many primers. To measure where the template
   matters: low coverage, variant frequencies.
 
-- **`-e auto`**: the primer error rate estimated from the first reads.
+- **`-e auto`, next**: calibrated on simulated reads only (two values,
+  one threshold); to check on real runs of R9 and R10 flow cells, and
+  whether the error rate of the reads should also set the window or the
+  probe errors.
 - **Errors next to a primer**: with a substitution right next to a
   primer, the alignment can extend over it and remove one template base
   (seen in the program tests, read `errors_plus`). Small; to be weighed

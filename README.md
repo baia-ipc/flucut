@@ -106,7 +106,9 @@ The main options (`flucut -h` lists all of them, with their defaults):
   their k-mers, so that the time hardly depends on their number
   (`--exhaustive-search` aligns each read end to every reference, to
   check the index);
-- `-e`: errors allowed in a primer (default 0.2 of its length);
+- `-e`: errors allowed in a primer (a fraction of its length, a number
+  of bases, or `auto`, the default: 0.2, or 0.3 if the primers of the
+  first 1000 reads have at least 4% errors);
 - `-w`: a primer must lie within this many bases of its end of the read
   (default 100);
 - `-m`: reads shorter than this after trimming are not written

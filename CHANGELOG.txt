@@ -143,3 +143,9 @@
   left instead of 28539, 1019 primer bases instead of 2221
 - scripts/add-adapters.py and testdata/adapters.fastq: reads with
   adapters, for the program tests adapters and no_adapters
+- -e auto (the default; from Lumipore, auto-settings.c): the errors in
+  a primer decided from the error rate of the primer alignments in the
+  first 1000 reads of the first input file: 0.2, or 0.3 from 4%
+  (calibrated on reads simulated at 1-12% errors, benchmark/RESULTS.md);
+  the value and the rate in the messages (-v) and in the reports
+- benchmark/simulate.py --error-rate: the mean error rate of the reads
