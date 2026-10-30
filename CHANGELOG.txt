@@ -167,3 +167,11 @@
   of the JSON summary); 32,000 reads, 4 cores: 3.9 s instead of 6.6 s
   with -j 1, 1.6 s instead of 2.4 s with -j 4, an output 4% smaller
   (benchmark/RESULTS.md)
+- -p, --platform nanopore|illumina: with illumina (reads of fragments of
+  the amplicons, the primer at the read start), the window is 10 bases
+  and the Nanopore adapters are not searched; in the JSON summary and
+  the HTML report
+- benchmark/run-real-illumina.sh: a public Illumina run (SRR34913296,
+  H5N1 cattle) whose GenBank HA consensus has the I348K artefact: IRMA
+  gives AAA on the untrimmed reads, ATA after flucut -p illumina, the
+  only difference in the 8 segments

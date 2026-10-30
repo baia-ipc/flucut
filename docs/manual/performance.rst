@@ -8,8 +8,35 @@ commands, is in ``benchmark/RESULTS.md``; the scripts are in
 base is known: amplicons of a genome made of the segments of
 A/Puerto Rico/8/1934 (H1N1) and the HA of A/chicken/Cambodia/X0815302/
 2013 (H5N1), which carries the internal priming site of the I348K
-artefact, with Nanopore-like errors (``benchmark/README.md``). No real
-run has been measured yet.
+artefact, with Nanopore-like errors (``benchmark/README.md``). One real
+run, from Illumina, has been measured (below).
+
+A real run: the artefact in a public consensus
+-----------------------------------------------
+
+Of the H5N1 HA records of GenBank, 109 have AAA (lysine) at the codon
+of the Uni12-like site (the I348K artefact; 29777 have ATA, isoleucine);
+8 of them link to raw reads in SRA, all from the USDA surveillance of
+H5N1 in dairy cattle (Illumina NextSeq 2000, paired reads of 148
+bases). One of them, SRR34913296 (A/cattle/CA/25-020784-009-original/
+2025, HA consensus PX279898.1), was analysed with
+``benchmark/run-real-illumina.sh``:
+
+- the reads which cover the codon and start at least 10 bases before
+  the site, from amplicons started before it, have ATA in 35, AAA in 2;
+  those which start at the site have AAA in 92 of 94: the AAA of the
+  consensus is the primer's, not the virus';
+- IRMA (FLU) on the untrimmed reads gives AAA, as in GenBank; on the
+  reads trimmed by flucut (``-p illumina``), ATA; this is the only
+  difference in the 8 segments;
+- flucut kept 99.1% of the bases (HA coverage 1013 instead of 1018).
+
+With the Nanopore settings (a window of 100 bases), flucut takes the
+Uni12-like site for the primer in the reads which pass it within their
+first 100 bases, and cuts them there: the reads which show ATA were
+lost (10 left over the codon). ``-p illumina`` (a window of 10 bases:
+the primer, when there is one, is at the start of an Illumina read)
+is needed for such reads.
 
 The consensus
 -------------
