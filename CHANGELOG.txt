@@ -49,3 +49,16 @@
   ends which cannot be located in the references are reported as
   unclassified; the references are then required (with the default
   policy they are optional and measure internal priming)
+- command line program flucut: inputs FASTQ (optionally gzipped), BAM,
+  or directories of such files (one output per directory); one gzipped
+  FASTQ per input, ready for IRMA, with SAM-like tags in the titles
+  (--no-tags to omit them); summary.tsv; options --trim, --references
+  (required by --trim terminus), --max-errors, --window, --min-length,
+  --threads (the output does not depend on it), --probe-len,
+  --probe-errors, --terminal-window
+- primer dimers are not written, also with --trim terminus (their
+  conserved termini were kept)
+- a read starting inside a degenerate primer is found without errors:
+  the padding of the read now matches the IUPAC codes of the primer
+- program tests on simulated reads from a real HA record (testdata/)
+  and tests of the option validation, run by make test

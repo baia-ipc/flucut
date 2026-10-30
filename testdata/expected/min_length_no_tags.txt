@@ -1,0 +1,24 @@
+exit status: 0
+== messages ==
+SUCCESS | OUTDIR/reads.fastq.gz: 8 of 12 reads written (10 with both primers, 1 with one, 1 with none; 4 too short, of which 1 dimers)
+== reads.fastq.gz ==
+md5: add5d6543f583b3c15b467ef5576d17a
+@full_plus simulated
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
+@full_minus simulated
+1703 TTATATACAAATGTT...TAGTTAAGTAATTCC
+@flanked_plus simulated
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
+@errors_plus simulated
+1702 GGAATTACTTAACTA...CAACATTTGTATATA
+@partial_left simulated
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
+@internal12_plus simulated
+1003 AAGGCCCCTTGTCAA...AACATTTGTATATAA
+@internal12_minus simulated
+1003 TTATATACAAATGTT...TTGACAAGGGGCCTT
+@internal13_plus simulated
+900 GGAATTACTTAACTA...AATGTCAGACTGAAA
+== summary.tsv ==
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown
+reads	12	12635	8	11420	10	1	1	2	1	4	0	NA	NA	NA	NA	NA	NA

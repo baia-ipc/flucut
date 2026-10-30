@@ -13,7 +13,9 @@ support the trimming; they are not the purpose of the program.
 - **IRMA and trimmed ends**: run IRMA on a small set of reads trimmed
   with the default (every primer removed) and with `--trim terminus`,
   and record what its consensus contains at the segment ends (shorter,
-  padded, or other) and whether its modules accept it. Not yet known.
+  padded, or other) and whether its modules accept it; also whether it
+  accepts the tags in the read titles (otherwise `--no-tags` becomes the
+  default). Not yet known.
 - **Where flucut can trim better than a generic trimmer**, to be
   verified with the benchmark, not assumed: the 12-base degenerate
   Uni12 primer found partial and with Nanopore errors at the read end
@@ -22,25 +24,17 @@ support the trimming; they are not the purpose of the program.
   non-anchored 5' adapter in cutadapt removes everything before a match
   anywhere in the read); both orientations; no configuration.
 
-- **Command line program** (`src/options.c`, `src/flucut.c`): inputs
-  (FASTQ/BAM, files, directories, MinKNOW run directories), the
-  references (`--references`: optional with the default `--trim
-  primer`, where they only measure internal priming; required with
-  `--trim terminus`, which refuses to run without them), the probe
-  length, its error
-  rate and the terminal window of the classification, `-e auto` (errors
-  from the first reads), minimum length after trimming, threads, output
-  directory, the banner and the logo.
-- **Output of the trimmed reads**: FASTQ (gzip) ready for IRMA, with
-  what was found and removed at each end, and the origin of each end
-  (terminal, internal, unclassified, with the reference and position),
-  written in the read title as SAM-like tags; per sample/barcode when
-  the input is a MinKNOW run directory.
-- **Counting and statistics**: reads at each step, per end and per
-  variant of the primer, primer and tail remnants, and the origin of
-  the ends: internally primed reads per reference and per position
-  (the sites), and unclassified ends (a reference set which does not
-  fit the run).
+- **Per-barcode outputs of a MinKNOW run directory**: today a directory
+  is one sample; a run directory (`fastq_pass/barcodeNN/`) should give
+  one output per barcode, without listing the barcodes.
+- **`-e auto`**: the primer error rate estimated from the first reads.
+- **Errors next to a primer**: with a substitution right next to a
+  primer, the alignment can extend over it and remove one template base
+  (seen in the program tests, read `errors_plus`). Small; to be weighed
+  against the remnants left by a tighter alignment, in the benchmark.
+- **Internal priming sites**: the counts of `summary.tsv` per end and
+  origin exist; the sites themselves (reference and position, with
+  their number of reads) still have to be collected for the report.
 - **HTML report, always written** (self-contained, light and dark, no
   internet): run parameters, reads at each step, reads per sample and
   per segment, primers found per segment and end (whole, partial,
@@ -127,8 +121,10 @@ support the trimming; they are not the purpose of the program.
 
 ## Checks still to set up
 
-- Program tests (`testdata/cases.tsv`), option validation tests, fuzzing
-  harnesses, continuous integration started manually. Until the program
-  and `testdata/` exist, `make test` stops after the style check; the
-  unit tests run with `make test_units`.
+- Fuzzing harnesses (FASTA reader, options), continuous integration
+  started manually, and the live mode tests (`make test_live`, not in
+  `make test` until the live mode exists).
+- The subtype filter of `scripts/fetch_references.py`: asked for H5N1
+  with `--refseq-only`, it returned an H9N2 record (see
+  `testdata/README.md`).
 - A review of the code style and of the bugs, with subagents.

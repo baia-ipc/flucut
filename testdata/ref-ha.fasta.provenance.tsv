@@ -1,0 +1,2 @@
+accession	description	length	source_url	fetch_date
+NC_004908.1	Influenza A virus ha gene for Hemagglutinin, genomic RNA, strain A/Hong Kong/1073/99(H9N2)	1714	https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=32140163&rettype=fasta&retmode=text	2026-10-30T07:23:56.944916+00:00

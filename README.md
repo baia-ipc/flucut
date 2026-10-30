@@ -68,6 +68,52 @@ its source in `src/primers.h`. The built-in schemes are:
 - `mbt`: the tailed primers of the multisegment RT-PCR;
 - `uni`: the conserved termini used as primers, without a tail.
 
+## Usage
+
+```
+flucut -o trimmed sample1.fastq.gz barcode02/
+```
+
+Each input is a FASTQ file (optionally gzipped), an unaligned BAM file,
+or a directory of such files (e.g. a barcode directory of a MinKNOW
+run, whose files are merged). The trimmed reads of each input are
+written to `<outdir>/<name>.fastq.gz`, one file per sample, ready for
+IRMA. `<name>` is the file name without its suffix, or the directory
+name. Two inputs with the same name are an error.
+
+The main options (`flucut -h` lists all of them, with their defaults):
+
+- `-T primer` (default): remove every primer-derived base;
+  `-T terminus`: keep the conserved termini, which requires
+  `-r <references.fasta>`;
+- `-r <references.fasta>`: classify each read end as terminal or
+  internally primed against the segment references; with `-T primer`
+  the classification is only reported;
+- `-e`: errors allowed in a primer (default 0.2 of its length);
+- `-w`: a primer must lie within this many bases of its end of the read
+  (default 100);
+- `-m`: reads shorter than this after trimming are not written
+  (default 1; primer dimers are never written);
+- `-j`: threads (default 4); the output does not depend on it.
+
+Outputs:
+
+- `<name>.fastq.gz`: the trimmed reads, in their original orientation,
+  with their titles; unless `--no-tags` is given, tab-separated SAM-like
+  tags are appended to each title: `fs` (strand of the amplicon: `+`,
+  `-`, or `.` if no primer was found), `fl`/`fr` (the primer found at the
+  left/right end), `tl`/`tr` (bases removed at the start/end of the
+  read), `ni` (primer matches inside the read); with references also
+  `ol`/`or` (origin of the end: terminal, internal or unknown) and
+  `ml`/`mr` (where the bases after the primer mapped:
+  reference:position:strand). Whether IRMA accepts tags in the titles
+  has not been checked yet; `--no-tags` writes the titles unchanged.
+- `summary.tsv`: one line per output, with the reads and bases read and
+  written, the reads by number of primers found, those on the minus
+  strand, the dimers, the reads too short, the reads with internal
+  primer matches, and, with references, the left and right ends by
+  origin (`NA` without references).
+
 ## Building
 
 Only a C compiler and `make` are needed: the libraries used (libcbaia,
@@ -83,14 +129,12 @@ the included ones.
 
 ## State
 
-Early development. The parts which are implemented and tested are the
-built-in primers, the search of a primer in a read (with degenerate
-bases and partial primers at the read ends), the primer schemes, the
-analysis and trimming of a read, the detection of the primer matches
-inside a read, the reading of the reference sequences and the
-classification of the reads against them (normal or internally primed),
-which decides the trimming. The command line program, the reports and
-the live mode are being written.
+Early development. Implemented and tested: the built-in primers and
+schemes, the search of the primers (degenerate bases, partial primers
+at the read ends), the trimming of a read, the classification of the
+read ends against references, and the command line program with its
+gzipped FASTQ output and summary table. The benchmark, the HTML report
+and the live mode are next.
 
 ## License
 
