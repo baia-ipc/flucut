@@ -74,8 +74,20 @@ Nanopore (NB01-NB04) outside the primers:
   The consensus is the same. The reads without barcodes are trimmed as
   without the search.
 
-Speed
------
+Speed and memory
+----------------
+
+On 32000 reads (53 million bases; ``benchmark/RESULTS.md``), with 4
+threads on a 4-core machine: flucut 2.4 s (60 MB; 6.7 s and 27 MB with
+one thread; with 8 references, 2.5 s and 78 MB), cutadapt 3.7 s (41
+MB), BBDuk 4.0 s (954 MB), dorado trim 8.1 s (479 MB), minimap2 with
+samtools ampliconclip 15 s (125 MB), Porechop_ABI 34 s (253 MB); the
+IRMA-core trimmer, single-threaded, 7.5 s (11 MB); Barbell, on barcoded
+reads, 2.4 s (44 MB; it writes uncompressed FASTQ). A large part of the
+time of flucut is the compression of its output (gzip level 6).
+
+The earlier measures
+--------------------
 
 flucut trimmed the 3200 reads (5.3 million bases) in 0.7 seconds with
 one thread. The classification against references, through the k-mer
