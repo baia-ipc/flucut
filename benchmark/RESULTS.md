@@ -1,5 +1,44 @@
 # Results
 
+## 2026-10-30: time and memory, output compressed with libdeflate
+
+What was run: the flucut commands of `benchmark/run-speed.sh` (timed by
+`benchmark/measure.py`: wall time, CPU time, peak resident memory) on
+the reads of the section below (32000 reads, 43 MB gzipped), with flucut
+at commit 1b01d71 (output compressed with libdeflate 1.26, level 6, the
+default) and, for comparison, at commit 16d001d (zlib, level 6); three
+runs of each, the median of each column; the same machine (4 cores,
+otherwise idle). The other tools were not run again. The trimmed reads
+(decompressed) are the same as with zlib, for `-j 1` and `-j 4`.
+
+| flucut | wall s | CPU s | peak MB |
+|---|---|---|---|
+| libdeflate, 1 thread | 3.79 | 3.64 | 27 |
+| libdeflate, 4 threads | 1.62 | 5.00 | 61 |
+| libdeflate, 4 threads, 8 references (`-r`) | 1.77 | 5.35 | 78 |
+| zlib, 1 thread | 6.81 | 6.41 | 27 |
+| zlib, 4 threads | 2.56 | 8.13 | 60 |
+| zlib, 4 threads, 8 references (`-r`) | 2.72 | 8.89 | 78 |
+
+By compression level (`--compress-level`; a separate series of three
+runs of each, without references; output: the size of the gzipped
+FASTQ written, 10^6 bytes):
+
+| compression | 1 thread: wall s | CPU s | 4 threads: wall s | CPU s | output MB |
+|---|---|---|---|---|---|
+| zlib, level 6 (before) | 6.58 | 6.41 | 2.43 | 7.98 | 41.0 |
+| libdeflate, level 1 | 3.28 | 3.14 | 1.28 | 3.76 | 49.1 |
+| libdeflate, level 4 | 3.64 | 3.40 | 1.50 | 4.80 | 42.2 |
+| libdeflate, level 6 | 3.90 | 3.70 | 1.63 | 4.66 | 39.3 |
+| libdeflate, level 9 | 5.56 | 5.34 | 2.26 | 7.10 | 37.2 |
+
+The default is level 6: compared with zlib at the same level, 41% less
+time with 1 thread and 33% less with 4, for an output 4% smaller.
+Levels 1 and 4 save little more time (with 1 thread 16% and 7% less
+than level 6) for a larger output (25% and 7% larger than level 6, both
+larger than with zlib); level 9 is 5% smaller than level 6 and takes 43%
+longer. With 4 threads the times vary more between runs (in the three
+runs of level 6, from 1.34 to 1.74 s wall, from 4.03 to 5.34 CPU s).
 ## 2026-10-30: the inward extension of the primer alignment
 
 What was run: flucut at commit 16d001d, as it is and without the
