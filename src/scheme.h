@@ -32,7 +32,7 @@
 #include "primers.h"
 
 /* name of the default built-in scheme */
-#define SCHEME_DEFAULT "mbt"
+#define SCHEME_DEFAULT "uni12-mbt13"
 
 typedef struct {
   char *name;
@@ -53,8 +53,9 @@ typedef struct {
 
    The built-in schemes:
 
-   - "uni12-mbt13": the untailed degenerate Uni12 primer (uni12r) at the
-     left end and the tailed mbtuni-13 at the right end. The two ends of
+   - "uni12-mbt13" (the default): the untailed degenerate Uni12 primer
+     (uni12r) at the left end and the tailed mbtuni-13 at the right
+     end. The two ends of
      a protocol need not use the same form of the primers; with an
      untailed Uni12 primer the left end of an amplicon is only the 12
      bases of the conserved terminus, which are short enough to anneal

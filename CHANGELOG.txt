@@ -14,6 +14,14 @@
 - primer schemes: the primers expected at each end of an amplicon,
   built-in "mbt" (the tailed primers, the default) and "uni" (the
   conserved termini alone)
+- internal priming: a primer is accepted as the primer of an end only
+  within a window of that end of the read (default 100 bases), as a
+  match deeper inside the read is not the primer which started the
+  amplicon and trimming there would remove template; the matches
+  between the two end primers are reported as internal matches (see
+  docs/internal-priming.md)
+- primer schemes: "uni12-mbt13" (the untailed degenerate Uni12 primer
+  and the tailed Uni13 primer) is the default
 - analysis of a read and trimming: both ends and both orientations, the
   reads are not reverse-complemented; --trim primer (the default)
   removes all the primer-derived bases, --trim terminus keeps the bases
