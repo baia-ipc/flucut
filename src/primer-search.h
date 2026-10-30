@@ -28,6 +28,13 @@
    aligned region is then extended as long as the edit distance does not
    increase (i.e. primer bases unaligned at the ends of the alignment are
    counted as mismatches instead).
+
+   At an end of a read, the outer bases of the primer can be missing
+   (see primer_search_end()): the primer is then aligned to the end of
+   the read by a dynamic programming of its own (the primers are short,
+   and so is the end of a read searched), in which the alignment can
+   begin at any of the outer bases of the primer, at a cost, so that
+   all the shorter forms of the primer are searched in one alignment.
 */
 
 #ifndef PRIMER_SEARCH_H
@@ -97,6 +104,44 @@ bool primer_search_run(primer_search_t *self, const primer_t *primer,
 bool primer_search_run_seq(primer_search_t *self, const char *seq,
     size_t seq_len, const char *read, size_t read_len, long max_errors,
     bool partial_left, bool partial_right, primer_hit_t *hit);
+
+/*
+   Search the primer <primer> at an end of the read <read> (length
+   <read_len>): at its start (<left>: true) or at its end, where the
+   primer is expected as it is found in the read (for the right end of
+   an amplicon, reverse-complemented).
+
+   The outer bases of the primer (its first ones at the start of the
+   read, its last ones at the end) may be missing, in a single
+   alignment (dynamic programming, with the same equal characters as
+   edlib, see iupac_equalities): the alignment may begin at any primer
+   position on the outer side, at a cost which depends on the number q
+   of outer bases missing: <skip_cost>[q] when the primer begins inside
+   the read (after flanking bases), <edge_cost>[q] when the read begins
+   (or ends) with the rest of the primer (the primer overhangs the
+   read); both arrays have <primer>->seq_len + 1 elements, a negative
+   cost is a start which is not allowed, and the cost of q = 0 must be
+   0. A match is accepted if its errors plus the cost of its missing
+   bases are at most <max_cost>.
+
+   The match taken is the one with the lowest cost (errors plus the
+   cost of the missing bases); among equal ones, the outermost (the
+   primer which started an amplicon is the one nearest to the end of
+   the read), its end extended inside while the cost does not increase.
+   Among the paths of the alignment, a start with missing bases is
+   preferred to a mismatch at the same cost (fewer errors).
+
+   Returns true if found; the result is stored in <hit>, as for
+   primer_search_run(): <n_errors> are the errors of the alignment (not
+   the costs of the missing bases); <partial> is set if the alignment
+   begins at the end of the read with missing primer bases, which then
+   overhang the read; the bounds of the terminus are computed from the
+   alignment path (a missing terminus base is mapped outside the read
+   if the primer overhangs it, else to the outer end of the alignment).
+*/
+bool primer_search_end(primer_search_t *self, const primer_t *primer,
+    const char *read, size_t read_len, bool left, const long *skip_cost,
+    const long *edge_cost, long max_cost, primer_hit_t *hit);
 
 /* Delete a searcher (NULL is accepted) */
 void primer_search_delete(primer_search_t *self);
