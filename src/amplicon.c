@@ -17,6 +17,8 @@
 
 struct amplicon_analyzer_t {
   const scheme_t *scheme;
+  /* the errors allowed in a primer (see amplicon_analyzer_new()) */
+  double max_errors;
   trim_policy_t policy;
   /* the primer of an end must lie within this many bases of that end of
      the read (see amplicon.h) */
@@ -53,6 +55,7 @@ amplicon_analyzer_t* amplicon_analyzer_new(const scheme_t *scheme,
   amplicon_analyzer_t *self;
   XMALLOC(self, sizeof(amplicon_analyzer_t));
   self->scheme = scheme;
+  self->max_errors = max_errors;
   self->policy = policy;
   self->window = window;
   self->max_primer_len = 0;
@@ -100,14 +103,73 @@ void amplicon_analyzer_delete(amplicon_analyzer_t *self) {
 }
 
 /*
+   The primer <p> without <t> bases on its outer side (the start for a
+   primer of the left end, as found in a read, the end for one of the
+   right end), into <dest>: a read can begin (or end) inside a primer
+   after a flank, e.g. when the amplicon was shortened before the
+   adapter was ligated; the bounds of the terminus are kept inside the
+   truncated primer
+*/
+static void truncate_primer(const primer_t *p, size_t t, bool left,
+    primer_t *dest) {
+  assert(t < p->seq_len);
+  *dest = *p;
+  dest->seq_len = p->seq_len - t;
+  size_t from = p->terminus_from, to = p->terminus_from + p->terminus_len;
+  if (left) {
+    dest->seq = p->seq + t;
+    from = from > t ? from - t : 0;
+    to = to > t ? to - t : 0;
+  } else if (to > dest->seq_len) {
+    to = dest->seq_len;
+  }
+  if (from > to)
+    from = to;
+  dest->terminus_from = from;
+  dest->terminus_len = to - from;
+}
+
+/* the shortest truncated form of a primer searched at an end: half of
+   it, at least AMPLICON_MIN_TRUNCATED bases */
+static size_t min_truncated_len(size_t len) {
+  size_t half = (len + 1) / 2;
+  size_t min = half > AMPLICON_MIN_TRUNCATED ? half : AMPLICON_MIN_TRUNCATED;
+  return min < len ? min : len;
+}
+
+/*
+   Whether <hit> is better than <best> as the primer of an end of a read:
+   at the left end (<left>) the one ending first, at the right end the
+   one starting last (the primer which started the amplicon is the
+   outermost one: a primer-like sequence further inside is template);
+   then the one with fewer errors, then the longer one. For a match
+   inside the read (<end>: false), the one with fewer errors, then the
+   longer one.
+*/
+static bool better_hit(const primer_hit_t *hit, const primer_hit_t *best,
+    bool end, bool left) {
+  if (end && hit->end != best->end && left)
+    return hit->end < best->end;
+  if (end && hit->start != best->start && !left)
+    return hit->start > best->start;
+  if (hit->n_errors != best->n_errors)
+    return hit->n_errors < best->n_errors;
+  return hit->end - hit->start > best->end - best->start;
+}
+
+/*
    Search the primers of one end of the scheme in <seq>, and keep the
-   best hit: the one with the fewest errors (among those, the longest
-   alignment, then the first primer of the scheme, so that the result
-   does not depend on the order of the search).
+   best hit (see better_hit(); among equal hits, the first primer of the
+   scheme, so that the result does not depend on the order of the
+   search).
 
    <partial_left> and <partial_right>: whether the primer may overhang
-   that side of <seq>; both are false for a match inside the read, which
-   must be complete.
+   that side of <seq> (the search at an end of the read); both are false
+   for a match inside the read, which must be complete. At an end, the
+   primer is also searched without up to half of its bases on the outer
+   side (see truncate_primer()), with one error less than allowed for
+   the shorter length (a shorter sequence matches by chance more
+   easily).
 */
 static void search_end(amplicon_analyzer_t *self, const primer_t *primers,
     const long *max_errors, size_t n, const char *seq, size_t len,
@@ -116,22 +178,31 @@ static void search_end(amplicon_analyzer_t *self, const primer_t *primers,
   out->variant = 0;
   out->origin = ORIGIN_UNKNOWN;
   out->ref.mapped = false;
+  bool end = partial_left || partial_right;
   for (size_t i = 0; i < n; i++) {
-    primer_hit_t hit;
-    if (!primer_search_run(self->search, primers + i, seq, len,
-                           max_errors[i], partial_left, partial_right,
-                           &hit))
-      continue;
-    if (out->found) {
-      long best = out->hit.end - out->hit.start;
-      long cur = hit.end - hit.start;
-      if (hit.n_errors > out->hit.n_errors ||
-          (hit.n_errors == out->hit.n_errors && cur <= best))
+    size_t plen = primers[i].seq_len;
+    size_t max_t = end ? plen - min_truncated_len(plen) : 0;
+    for (size_t t = 0; t <= max_t; t++) {
+      primer_t p;
+      truncate_primer(primers + i, t, partial_left, &p);
+      // a truncated primer, shorter, matches by chance more easily: one
+      // error less than its length allows
+      long k = max_errors[i];
+      if (t > 0) {
+        k = max_errors_of(self->max_errors, p.seq_len) - 1;
+        if (k < 0)
+          k = 0;
+      }
+      primer_hit_t hit;
+      if (!primer_search_run(self->search, &p, seq, len, k, partial_left,
+                             partial_right, &hit))
         continue;
+      if (out->found && !better_hit(&hit, &out->hit, end, partial_left))
+        continue;
+      out->found = true;
+      out->variant = i;
+      out->hit = hit;
     }
-    out->found = true;
-    out->variant = i;
-    out->hit = hit;
   }
 }
 
@@ -601,6 +672,27 @@ void amplicon_test(void) {
            "%s%s%s%s%s%s%s%s%s", body, body, body, body, uni12, body,
            body, body, body);
   check_keep(a, internal_only, STRAND_NONE, 0, internal_only);
+  amplicon_analyzer_delete(a);
+
+  /*
+     A read which begins with flanking bases and then inside the primer
+     (here without its first two bases), and has a primer-like sequence
+     inside the window (the site of the HA of KF918483.1 at 1145-1157,
+     edit distance 2 from Uni12): the truncated primer, outermost, is
+     the primer of the left end, and the template is kept from after it
+  */
+  a = amplicon_analyzer_new(sc, 0.2, TRIM_PRIMER, AMPLICON_DEFAULT_WINDOW);
+  char trunc[512];
+  snprintf(trunc, sizeof(trunc), "TTGCA%s%sAGCAACGAGCAGG%s%s",
+           uni12 + 2, body, body, rc13);
+  r = amplicon_analyzer_run(a, trunc, strlen(trunc));
+  test_eq(r->keep_from, (long)(5 + strlen(uni12) - 2), long, "%ld");
+  /* without the truncated primer, the primer-like sequence would be
+     taken: it is the only match of the whole primer */
+  snprintf(trunc, sizeof(trunc), "TTGCAGG%sAGCAACGAGCAGG%s%s", body,
+           body, rc13);
+  r = amplicon_analyzer_run(a, trunc, strlen(trunc));
+  test_eq(r->keep_from, (long)(7 + strlen(body) + 13), long, "%ld");
   amplicon_analyzer_delete(a);
 
   /* with a window wide enough, the same match is taken as the primer of

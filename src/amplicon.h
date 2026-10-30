@@ -128,6 +128,10 @@ typedef enum {
 /* default policy (see above) */
 #define AMPLICON_DEFAULT_POLICY TRIM_PRIMER
 
+/* the shortest truncated form of a primer searched at an end of a read
+   (see amplicon.c, truncate_primer()) */
+#define AMPLICON_MIN_TRUNCATED 8
+
 /* default window: the primer of an end must begin (left) or end (right)
    within this many bases of that end of the read */
 #define AMPLICON_DEFAULT_WINDOW 100
