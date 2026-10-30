@@ -10,6 +10,12 @@ support the trimming; they are not the purpose of the program.
 
 ## Next
 
+- **Real runs, next**: the other 7 SRA runs whose GenBank HA consensus
+  has the I348K codon (benchmark/RESULTS.md), with
+  `run-real-illumina.sh` generalised; a real Nanopore run.
+- **Paired Illumina reads**: R1 and R2 are trimmed as two inputs; a
+  read too short is dropped from one file only (IRMA accepted it on
+  SRR34913296); keep the pairs in sync (an empty read instead).
 - **Benchmark, next** (`benchmark/RESULTS.md`): other error rates and
   shares of internal priming, several simulations per setting (with
   barcodes, the artefact of the untrimmed reads came down to 158

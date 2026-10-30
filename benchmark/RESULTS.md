@@ -1,5 +1,56 @@
 # Results
 
+## 2026-10-30: a real run (Illumina, SRA SRR34913296)
+
+What was run: `benchmark/run-real-illumina.sh` (flucut at commit
+45d69d7 with `-p illumina`, IRMA 1.4.0 FLU, minimap2 2.29 and samtools
+1.21 of IRMA), downloaded on 2026-10-30.
+
+The run was chosen from a scan of the 29997 H5N1 HA records of GenBank
+(query `"Influenza A virus"[Organism] AND H5N1 AND (segment 4 OR
+hemagglutinin) AND 1600:2000[SLEN]`, made in another session, branch
+`real-data-scan` of the repository): 109 have AAA (Lys) at the codon of
+the Uni12-like site (GLFGAKAG), 29777 ATA (Ile); 8 of the 109 link to
+SRA runs, all of the USDA surveillance of H5N1 in dairy cattle
+(PRJNA1102327; Illumina NextSeq 2000, paired, 148 bases): SRR31168528,
+SRR34913296, SRR37221768, SRR37221769, SRR39413549, SRR39565236,
+SRR40141855, SRR40141856.
+
+SRR34913296: A/cattle/CA/25-020784-009-original/2025, 282828 pairs;
+references: the 8 segments of its own consensus (PX279895.1-PX279902.1;
+HA PX279898.1, with AAA). The Uni12-like site is at 1050-1061 of the
+HA (GGCGAAAGCAGG in the consensus), the codon at 1054-1056.
+
+The codon in the reads mapped to the HA (minimap2 -ax sr), by where
+their alignment starts (`site_reads.py`):
+
+| reads | starting >= 10 bases before the site | at the site (+-3) | other |
+|---|---|---|---|
+| untrimmed | ATA 35, AAA 2 | AAA 92, ATA 2 | AAA 129, ATA 1 |
+| trimmed by flucut | ATA 35, AAA 2 | AAA 1 | AAA 2 |
+
+The reads from amplicons started before the site show ATA: the AAA of
+the consensus comes from the primer, at an internal priming site. The
+consensus of IRMA (FLU, paired):
+
+| reads | HA codon | differences from the untrimmed consensus, 8 segments |
+|---|---|---|
+| untrimmed | AAA (as PX279898.1) | 0 |
+| trimmed by flucut | ATA | 1 (the codon) |
+
+flucut wrote 99.1% of the bases (83.1 of 83.9 million); HA mean
+coverage 1013 instead of 1018.
+
+With the Nanopore settings (`-w 100`, before `-p` existed), flucut
+wrote 80% of the bases and only 10 reads were left over the codon (all
+ATA): in a read of 148 bases, the Uni12-like site within the first 100
+bases was taken for the primer, and the read cut there. With `-w 10`
+and `-w 3`, the same as `-p illumina`.
+
+Not done: the other 7 runs; the pairs of reads are trimmed as two
+inputs (a read too short is dropped from one file only: 49 and 59
+reads here; IRMA accepted the files).
+
 ## 2026-10-30: time and memory, output compressed with libdeflate
 
 What was run: the flucut commands of `benchmark/run-speed.sh` (timed by
