@@ -1,0 +1,156 @@
+acc	tech	assembly	strain	country	biosample	authors
+CY077110.1	-	-	A/ruddy turnstone/Delaware/103/2007	-	-	Spiro,D., Halpin,R., Bera,J., 
+CY081340.1	-	-	A/environment/Maryland/1152/2006	-	-	Spiro,D., Halpin,R., Bera,J., 
+MF598579.1	Illumina	CLC Genomics Workbench v. 9.0	A/Nanjing/1/2015	-	-	Yong,W., Shi,L. and Qiao,M.
+MH578700.1	IonTorrent	IRMA v. 0.6.7	A/ruddy turnstone/Delaware Bay/105/2007	-	-	-
+MN046334.1	Illumina	CLC Genomics workbench 11 v. 1	A/chicken/Myanmar/OP-11/2017	-	-	Thurain,K., Mon,P.P., Nasamran
+MN046342.1	Illumina	CLC Genomics workbench 11 v. 1	A/chicken/Myanmar/CS-13/2017	-	-	Thurain,K., Mon,P.P., Nasamran
+MN046358.1	Illumina	CLC Genomics workbench 11 v. 1	A/chicken/Myanmar/OP-12/2017	-	-	Thurain,K., Mon,P.P., Nasamran
+MT090452.1	Illumina	CLC Workbench v. 12.0	A/duck/Bangladesh/37631/2019	-	-	Barman,S., Turner,J.C., Kamrul
+MW466137.1	Illumina	CLC Workbench v. 12.0	A/environment/Bangladesh/41351/2019	-	-	Barman,S., Turner,J.C., Hasan,
+OP023579.1	Illumina	CLC Workbench v. 12.0	A/duck/Bangladesh/49997/2021	-	-	Barman,S., Turner,J.C., Hasan,
+OP776802.1	IonTorrent	SPAdes v. 3.11.1; BWA v. v0.7.	A/Cormorant/Namibia/141/2022	-	-	Molini,U., Yabe,J., Meki,I.K.,
+OQ962300.1	Illumina	IRMA v. 0.6.7	A/Mallard/New Hampshire/22-003417-039/2022	-	-	Youk,S., Torchetti,M.K., Lantz
+OQ967732.1	Illumina	IRMA v. 0.6.7	A/chicken/Nebraska/22-010905-001/2022	-	-	Youk,S., Torchetti,M.K., Lantz
+OR772995.1	Nanopore minION	minimap v. 2	A/Crow/Dhaka/BDADC-618/2022	-	-	Islam,A., Rahman,M.Z., Wille,M
+OR777116.1	Nanopore minION	minimap v. 2	A/Crow/Dhaka/BDADC-595/2021	-	-	Islam,A., Rahman,M.Z., Wille,M
+PP755853.1	-	-	A/domestic cat/New Mexico/24-009116-001/2024	-	-	Nguyen,T., Hutter,C., Markin,A
+PQ037309.1	-	-	A/duck/Bangladesh/59648/2023	-	-	Barman,S., Turner,J.C., Hasan,
+PQ037576.1	-	-	A/duck/Bangladesh/59603/2023	-	-	Barman,S., Turner,J.C., Hasan,
+PQ113933.1	Illumina; Oxford Nanopore Technologies	SPAdes v. 3.15.5	A/Southern Fulmar/South Georgia and the South
+                     Sandwich Islands/4/2023	-	-	Bennison,A., Byrne,A.M.P., Rei
+PQ113953.1	Illumina; Oxford Nanopore Technologies	SPAdes v. 3.15.5	A/Southern Elephant Seal/South Georgia and the
+                     South Sandwich Islands/24/2023	-	-	Bennison,A., Byrne,A.M.P., Rei
+PQ114001.1	Illumina; Oxford Nanopore Technologies	SPAdes v. 3.15.5	A/Kelp Gull/South Georgia and the South Sandwich
+                     Islands/72/2023	-	-	Bennison,A., Byrne,A.M.P., Rei
+PQ114009.1	Illumina; Oxford Nanopore Technologies	SPAdes v. 3.15.5	A/Brown Skua/South Georgia and the South Sandwich
+                     Islands/80/2023	-	-	Bennison,A., Byrne,A.M.P., Rei
+PQ114017.1	Illumina; Oxford Nanopore Technologies	SPAdes v. 3.15.5	A/South Georgia Shag/South Georgia and the South
+                     Sandwich Islands/88/2023	-	-	Bennison,A., Byrne,A.M.P., Rei
+PQ114033.1	Illumina; Oxford Nanopore Technologies	SPAdes v. 3.15.5	A/Brown Skua/South Georgia and the South Sandwich
+                     Islands/104/2023	-	-	Bennison,A., Byrne,A.M.P., Rei
+PQ114049.1	Illumina; Oxford Nanopore Technologies	SPAdes v. 3.15.5	A/Southern Elephant Seal/South Georgia and the
+                     South Sandwich Islands/120/2023	-	-	Bennison,A., Byrne,A.M.P., Rei
+PQ114057.1	Illumina; Oxford Nanopore Technologies	SPAdes v. 3.15.5	A/Antarctic Fur Seal/South Georgia and the South
+                     Sandwich Islands/128/2023	-	-	Bennison,A., Byrne,A.M.P., Rei
+PQ114065.1	Illumina; Oxford Nanopore Technologies	SPAdes v. 3.15.5	A/Kelp Gull/South Georgia and the South Sandwich
+                     Islands/136/2023	-	-	Bennison,A., Byrne,A.M.P., Rei
+PQ114073.1	Illumina; Oxford Nanopore Technologies	SPAdes v. 3.15.5	A/Brown Skua/South Georgia and the South Sandwich
+                     Islands/144/2023	-	-	Bennison,A., Byrne,A.M.P., Rei
+PQ129506.1	Illumina; Oxford Nanopore Technologies	SPAdes v. 3.14	A/Brown Skua/South Georgia and the South Sandwich
+                     Islands/8/2023	-	-	Bennison,A., Byrne,A.M.P., Rei
+PQ129522.1	Illumina; Oxford Nanopore Technologies	SPAdes v. 3.14	A/Brown Skua/South Georgia and the South Sandwich
+                     Islands/24/2023	-	-	Bennison,A., Byrne,A.M.P., Rei
+PQ283833.1	Illumina	SPAdes v. Nurk et al., 2017; C	A/Thalasseus
+                     acuflavidus/MacaeBR/1137-N-2024/2024	-	-	Rivetti,A.V. Jr., Reischak,D.,
+PQ334771.1	Illumina	CLC Workbench v. 21.0.1	A/duck/Bangladesh/61904/2024	-	-	Barman,S., Turner,J.C., Hasan,
+PQ701305.1	Illumina	IRMA v. 1.1.5	A/American Blue-winged
+                     teal/TX/22-029888-002-original/2022	-	-	Tawidian,P., Torchetti,M.K., K
+PQ712145.1	Illumina	IRMA v. 1.1.5	A/Great horned
+                     owl/WY/22-039597-001-original/2022	-	-	Tawidian,P., Torchetti,M.K., K
+PV018871.1	Illumina	CLC Workbench v. 23	A/Ruddy Turnstone/DE/944/2024	-	-	woodard,K., Mukherjee,N., Kerc
+PV060185.1	Illumina	IRMA v. 1.1.5	A/cattle/CA/24-028986-002-original/2024	-	SAMN44492993	Hicks,J.A., Stuber,T., Norris,
+PV112122.1	ONT	IRMA v. V1.2	A/Cygnus olor/Bruegg/V0004/2025	-	-	Wyler,M. and Bachofen,C.
+PV303472.1	Oxford Nanopore	IRMA: Iterative Refinement Met	A/Arctic Tern/NB/FAV-0841-3-2022/2022	-	-	Signore,A.V., Giacinti,J., Jon
+PV305616.1	Oxford Nanopore	IRMA: Iterative Refinement Met	A/Canada Goose/AB/FAV-1655-12-2022/2022	-	-	Signore,A.V., Giacinti,J., Jon
+PV307320.1	Oxford Nanopore	IRMA: Iterative Refinement Met	A/Canada Goose/PE/FAV-0086-4-2023/2023	-	-	Signore,A.V., Giacinti,J., Jon
+PV316208.1	Oxford Nanopore	IRMA: Iterative Refinement Met	A/Red Fox/QC/FAV-0836-13-2022/2022	-	-	Signore,A.V., Giacinti,J., Jon
+PV316680.1	Oxford Nanopore	IRMA: Iterative Refinement Met	A/Red-Tailed Hawk/ON/FAV-0163-2-2023/2023	-	-	Signore,A.V., Giacinti,J., Jon
+PV317680.1	Oxford Nanopore	IRMA: Iterative Refinement Met	A/Snow Goose/BC/FAV-0014-46-2023/2022	-	-	Signore,A.V., Giacinti,J., Jon
+PV318032.1	Oxford Nanopore	IRMA: Iterative Refinement Met	A/Snow Goose/QC/FAV-0204-1-2023/2022	-	-	Signore,A.V., Giacinti,J., Jon
+PV319856.1	Oxford Nanopore	IRMA: Iterative Refinement Met	A/Turkey Vulture/ON/FAV-0182-5-2023/2023	-	-	Signore,A.V., Giacinti,J., Jon
+PV387902.1	Illumina	denovoAssembly v. 2	A/duck/Bangladesh/CE-113-08-DB-12-DU-O/2023	-	-	Coggon,A., Linton-Jenkins,J., 
+PV387931.1	Illumina	denovoAssembly v. 2	A/duck/Bangladesh/CE-113-08-DB-13-DU-O/2023	-	-	Coggon,A., Linton-Jenkins,J., 
+PV422276.2	Sanger dideoxy sequencing	-	A/Bird/Yemen/EPI_ISL_HA19613464/2023	-	-	Wannigama,D.L.
+PV961352.1	Oxford Nanopore MinION	minimap2 v. v. 2.28	A/Layer
+                     chicken/Gazipur/A_chicken_Gazipur_Bangladesh_MGH-
+                     RF01_2025(H5N1) Seg 4/2025	-	-	Farazi,R., Tahmind,M.T., Roy,C
+PV979111.1	Illumina	IRMA v. 1.2.0	A/mallard duck/Ohio/24OS0668/2024	-	-	Nolting,J.M., Jahid,M.J. and B
+PV979149.1	Illumina	IRMA v. 1.2.0	A/mallard duck/Ohio/24OS0674/2024	-	-	Nolting,J.M., Jahid,M.J. and B
+PV979200.1	Illumina	IRMA v. 1.2.0	A/mallard duck/Ohio/24OS0677/2024	-	-	Nolting,J.M., Jahid,M.J. and B
+PV979228.1	Illumina	IRMA v. 1.2.0	A/mallard duck/Ohio/24OS0669/2024	-	-	Nolting,J.M., Jahid,M.J. and B
+PX279898.1	Illumina	IRMA v. 1.1.5	A/cattle/CA/25-020784-009-original/2025	-	SAMN50501550	Aufderhar,M., Franzen,K., Kill
+PX528891.1	Nanopore	Minimap2 v. 2.24	A/Great White
+                     Pelican/Germany-BW/2022AI01298/2022	-	-	Guenther,A., Harder,T., Beer,M
+PX528907.1	Nanopore	Minimap2 v. 2.24	A/Great White
+                     Pelican/Germany-BW/2025AI00327/2022	-	-	Guenther,A., Harder,T., Beer,M
+PX528915.1	Nanopore	Minimap2 v. 2.24	A/Great White
+                     Pelican/Germany-BW/2025AI00328/2022	-	-	Guenther,A., Harder,T., Beer,M
+PX528923.1	Nanopore	Minimap2 v. 2.24	A/Grey Heron/Germany-BW/2022AI01067/2022	-	-	Guenther,A., Harder,T., Beer,M
+PX528931.1	Nanopore	Minimap2 v. 2.24	A/Grey Heron/Germany-BW/2022AI01427/2022	-	-	Guenther,A., Harder,T., Beer,M
+PX528979.1	Nanopore	Minimap2 v. 2.24	A/Muscovy Duck/Germany-BW/2022AI01281/2022	-	-	Guenther,A., Harder,T., Beer,M
+PX796599.1	Oxford Nanopore MinION	MiniMap2 v. v2.17	A/mink/Finland/353/2023	-	-	Korhonen,E., Aaltonen,K., Erdi
+PX796600.1	Oxford Nanopore MinION	MiniMap2 v. v2.17	A/mink/Finland/355/2023	-	-	Korhonen,E., Aaltonen,K., Erdi
+PX796601.1	Oxford Nanopore MinION	MiniMap2 v. v2.17	A/mink/Finland/358/2023	-	-	Korhonen,E., Aaltonen,K., Erdi
+PX796602.1	Oxford Nanopore MinION	MiniMap2 v. v2.17	A/mink/Finland/361/2023	-	-	Korhonen,E., Aaltonen,K., Erdi
+PX846046.1	Oxford Nanopore Technologies	Medaka v. 1.8	A/Antarctic Fur Seal/Antarctica/029560:SG14/2024	-	-	Clessin,A.
+PX846070.1	Oxford Nanopore Technologies	Medaka v. 1.8	A/Antarctic Fur Seal/South Georgia and the South
+                     Sandwich Islands/004691:SG2/2024	-	-	Clessin,A.
+PX846078.1	Oxford Nanopore Technologies	Medaka v. 1.8	A/Antarctic Fur Seal/South Georgia and the South
+                     Sandwich Islands/004708:SG4/2024	-	-	Clessin,A.
+PX846086.1	Oxford Nanopore Technologies	Medaka v. 1.8	A/Antarctic Fur Seal/South Georgia and the South
+                     Sandwich Islands/004722:SG5/2025	-	-	Clessin,A.
+PX846094.1	Oxford Nanopore Technologies	Medaka v. 1.8	A/Antarctic Fur Seal/South Georgia and the South
+                     Sandwich Islands/004732:SG6/2025	-	-	Clessin,A.
+PX846102.1	Oxford Nanopore Technologies	Medaka v. 1.8	A/Antarctic Fur Seal/South Georgia and the South
+                     Sandwich Islands/004737:SG7/2025	-	-	Clessin,A.
+PX846110.1	Oxford Nanopore Technologies	Medaka v. 1.8	A/Antarctic Fur Seal/South Georgia and the South
+                     Sandwich Islands/004738:SG8/2025	-	-	Clessin,A.
+PX846118.1	Oxford Nanopore Technologies	Medaka v. 1.8	A/Antarctic Fur Seal/South Georgia and the South
+                     Sandwich Islands/004767:SG9/2025	-	-	Clessin,A.
+PX846134.1	Oxford Nanopore Technologies	Medaka v. 1.8	A/Antarctic Fur Seal/South Georgia and the South
+                     Sandwich Islands/004783:SG11/2025	-	-	Clessin,A.
+PX846142.1	Oxford Nanopore Technologies	Medaka v. 1.8	A/Antarctic Fur Seal/South Georgia and the South
+                     Sandwich Islands/004795:SG12/2025	-	-	Clessin,A.
+PX846150.1	Oxford Nanopore Technologies	Medaka v. 1.8	A/Antarctic Fur Seal/South Georgia and the South
+                     Sandwich Islands/004801:SG13/2025	-	-	Clessin,A.
+PX919694.1	IonTorrent	IRMA v. 1.1.4	A/Macronectes giganteus/Two Summit
+                     Island/MGIG_1224/2024	-	-	Timm,F.C.B., Bermann,T., Gaspa
+PX919726.1	IonTorrent	IRMA v. 1.1.4	A/Pygoscelis papua/King George
+                     Island/PPAP_1224/2024	-	-	Timm,F.C.B., Bermann,T., Gaspa
+PZ128741.1	Illumina	IRMA v. 1.1.5	A/cattle/CA/26G01054-008-original/2024	-	SAMN55340283	Lantz,K. and Stuber,T.
+PZ128749.1	Illumina	IRMA v. 1.1.5	A/cattle/CA/26G01054-010-original/2024	-	SAMN55340284	Lantz,K. and Stuber,T.
+PZ229762.1	Illumina	CLC Workbench v. 24.0.1	A/environment/Bangladesh/69788/2025	-	-	Barman,S., Turner,J.C., Hasan,
+PZ239622.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Black vulture/Maryland/25HP00307/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239627.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Black vulture/Massachusetts/24WP00293/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239634.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Black vulture/Massachusetts/24WP00295/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239645.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Common eider/Massachusetts/25WI00081/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239652.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Great black-backed
+                     gull/Massachusetts/25HP00805/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239657.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Great black-backed
+                     gull/Massachusetts/25HP00807/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239663.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Great black-backed
+                     gull/Massachusetts/25HP00809/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239675.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Great black-backed
+                     gull/Massachusetts/25HP00810/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239681.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Great black-backed
+                     gull/Massachusetts/25HP00813/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239690.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Great black-backed
+                     gull/Massachusetts/25HP00814/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239700.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Great black-backed
+                     gull/Massachusetts/25HP00815/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239708.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Great black-backed
+                     gull/Massachusetts/25HP00816/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239713.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Great black-backed
+                     gull/Massachusetts/25HP00817/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239726.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Great black-backed
+                     gull/Massachusetts/25HP00818/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239728.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Great black-backed
+                     gull/Massachusetts/25HP00823/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239749.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Red-tailed hawk/Maine/24NE02055/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239757.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Red-tailed hawk/Maine/24NE02056/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239761.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/Turkey Vulture/Maine/24NE00175/2024	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239771.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/White-winged
+                     Scoter/Massachusetts/24HP00245/2024	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239775.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/White-winged
+                     Scoter/Massachusetts/24HP00276/2024	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239787.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/blue jay/Massachusetts/25NE00188/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239798.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/surf scoter/Massachusetts/24HP00239/2024	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239802.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/wild turkey/Massachusetts/25NE00158/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ239813.1	Oxford Nanopore	Iterative Refinement Meta-Asse	A/wild turkey/Massachusetts/25NE00167/2025	-	-	Lauring,A.S., Papalambros,L.K.
+PZ796633.1	Illumina	IRMA v. 1.1.5	A/cattle/ID/26G08404-029-original/2026	-	SAMN61244613	Torchetti,M., Stuber,T., Hicks
+PZ796657.1	Illumina	IRMA v. 1.1.5	A/cattle/UT/26G08463-001-original-repeat2/2026	-	SAMN61548177	Torchetti,M., Stuber,T., Hicks
+PZ832377.1	IonTorrent	IRMA v. v.1.3.5	A/Coscoroba coscoroba/Rio Grande do
+                     Sul/ECOT014/2026	-	-	Grazini-Capelin,I., Melgarejo,
+QB029675.1	Illumina	IRMA v. 1.1.5	A/cattle/UT/26G10577-001-original/2026	-	SAMN62372306	Torchetti,M., Stuber,T., Hicks
+QB029683.1	Illumina	IRMA v. 1.1.5	A/cattle/UT/26G10578-001-original/2026	-	SAMN62372307	Torchetti,M., Stuber,T., Hicks

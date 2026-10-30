@@ -1,5 +1,12 @@
 # flucut real-data search — Nanopore only
 
+> **Correction (step 6).** Steps 1-2 below concluded that no deposited
+> Nanopore consensus carries the artefact. That is wrong: it only
+> covered consensus linked to Nanopore SRA runs through BioSample links,
+> which missed most records. About 69 of the 109 GenBank H5N1 HA records
+> with GLFGAKAG (scan of branch real-data-scan) report Nanopore; see
+> step 6.
+
 All queries, downloads and runs recorded. GISAID not used (not accessible).
 Date of work: 2026-10-30. Attribution: H5N1 HA "I348K" (GLFGAIAG→GLFGAKAG)
 Uni12 internal-priming artefact; see docs/internal-priming.md.
@@ -110,6 +117,38 @@ has no read with the site flank. No Uni12 internal-priming signal.
 Not yet scanned: PRJNA1400594 (Michigan, 63 wild-bird H5N1 runs,
 "universal IAV primers", avgLength 427), PRJEB79943 (Bern, 2 H5N1 runs).
 
+## Step 6: deposited Nanopore consensus WITH the artefact
+
+The 109 GenBank H5N1 HA records with GLFGAKAG (branch real-data-scan,
+mut_accessions.txt) were fetched with their structured comments
+(out/artefact_records_109_meta.tsv). Sequencing Technology:
+Nanopore (any spelling) 57, Illumina + Nanopore 12, Illumina 29,
+IonTorrent 5, Sanger 1, not stated 5. So 69 have Nanopore data.
+Nanopore groups: University of Michigan (PZ239622-PZ239813, 24
+records, Maine/Massachusetts/Maryland wild birds 2024-25), Canada FAV
+(Signore et al., PV303472-PV319856), FLI Germany (PX528891-PX528979),
+Finland mink (PX796599-PX796602), Antarctic fur seals (PX846046-
+PX846150), Bangladesh (OR772995, OR777116, PV961352), Bern swan
+(PV112122, ONT, IRMA).
+
+**Michigan records link to raw reads**: 23 of the 24 match a run of
+PRJNA1400594 by sample name (out/michigan_consensus_to_runs.tsv; the
+turkey vulture 24NE00175 has no run). Reads checked (same counter):
+
+| run | consensus | site at read start: AAA / ATA | read spans site: AAA / ATA |
+|---|---|---|---|
+| SRR36760543 | PZ239634.1 (black vulture MA 24WP00295) | 1547 / 3 | 8 / 791 |
+| SRR36760506 | PZ239813.1 (wild turkey MA 25NE00167) | 2832 / 16 | 41 / 1217 |
+| SRR36760520 | PZ239713.1 (gull MA 25HP00817) | 8044 / 6 | 24 / 557 |
+
+(out/michigan_codon_counts.tsv; reads starting at the site far outnumber spanning reads, which is why
+the consensus calls AAA). These three runs are natural wild-bird H5N1
+with a public consensus carrying the artefact and the Nanopore reads:
+**best benchmark candidates**: PRJNA1400594 runs SRR36760543, SRR36760506,
+SRR36760520 (and the other 20 matched runs).
+Not yet checked: the other Nanopore groups (links to raw reads via their
+BioSamples), and flucut/IRMA on these runs.
+
 ## Files
 - out/nanopore_runs.tsv — merged SRA runinfo (4123 runs)
 - out/motif_hits.tsv — all 243 motif-covering consensus records + residue
@@ -117,4 +156,6 @@ Not yet scanned: PRJNA1400594 (Michigan, 63 wild-bird H5N1 runs,
 - out/cornell_codon_counts.tsv — codon counts of step 4
 - out/cornell_PRJNA1406649_ena.tsv — ENA run list of PRJNA1406649
 - out/cornell2024_codon_counts.tsv — codon counts of step 5
+- out/artefact_records_109*.{txt,tsv} — the 109 records and metadata
+- out/michigan_consensus_to_runs.tsv — Michigan records to SRA runs
 - dl/ — downloaded data (gitignored)
