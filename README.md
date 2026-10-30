@@ -137,6 +137,11 @@ Outputs:
   most of them are; without references, it lists the peaks of the
   lengths.
 
+## Manual
+
+The user manual is `manual/flucut-manual.pdf` (sources in
+`docs/manual`; `make manual` rebuilds it, with Sphinx and LaTeX).
+
 ## Building
 
 Only a C compiler and `make` are needed: the libraries used (libcbaia,
