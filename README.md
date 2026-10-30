@@ -108,7 +108,9 @@ The main options (`flucut -h` lists all of them, with their defaults):
   (default 100);
 - `-m`: reads shorter than this after trimming are not written
   (default 1; primer dimers are never written);
-- `-j`: threads (default 4); the output does not depend on it.
+- `-j`: worker threads (default 4), each trimming batches of 1000 reads
+  in turn, written in the order of the input: the output does not
+  depend on it.
 
 Outputs:
 

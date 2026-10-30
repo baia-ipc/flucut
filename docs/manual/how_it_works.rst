@@ -96,7 +96,10 @@ bases after the trimming are not written.
 Threads
 -------
 
-The reads are read in batches; each batch is split between the threads
-(``-j``), each of which trims and compresses its part, and the parts are
-written in the order of the input: the output is the same for any
-number of threads.
+The files are trimmed by ``-j`` worker threads, started for each file
+(as in Lumipore): each thread reads a batch of 1000 reads in turn,
+trims it and compresses it with its own objects, and writes it in the
+order of the input, waiting for its turn. Each batch is a gzip member of
+its own, so that the output file is the same, byte for byte, for any
+number of threads. Each thread counts its reads; the counts are summed
+at the end of the file.
