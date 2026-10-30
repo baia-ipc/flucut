@@ -6,8 +6,8 @@ Cambodge. It is free software under the ISC license (``LICENSE``).
 
 The source code: https://github.com/baia-ipc/flucut
 
-flucut includes libcbaia (ISC), edlib (MIT), libyaml (MIT) and zlib
-(zlib license), in ``ext``, each with its license.
+flucut includes libcbaia (ISC), edlib (MIT), libyaml (MIT), zlib (zlib
+license) and libdeflate (MIT), in ``ext``, each with its license.
 
 Use of AI tools
 ---------------

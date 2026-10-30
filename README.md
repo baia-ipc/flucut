@@ -177,7 +177,8 @@ The user manual is `manual/flucut-manual.pdf` (sources in
 ## Building
 
 Only a C compiler and `make` are needed: the libraries used (libcbaia,
-edlib, libyaml, zlib) are included in `ext`.
+edlib, libyaml, zlib, libdeflate) are included in `ext` (see
+`ext/README.md`).
 
 ```
 make
@@ -185,7 +186,8 @@ make test
 ```
 
 `make SYSTEM_LIBS=1` uses the zlib and libyaml of the system instead of
-the included ones.
+the included ones (libdeflate, which compresses the output, is always
+the included one).
 
 ## State
 

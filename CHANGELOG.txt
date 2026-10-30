@@ -160,3 +160,10 @@
   tests/test-live.sh in make test
 - the tables and reports written by a module of their own (results.c);
   the counts saved and loaded (counter_save(), counter_load())
+- the output compressed with libdeflate (1.26, included in ext/libdeflate,
+  also with SYSTEM_LIBS=1) instead of zlib, one gzip member for each
+  batch as before (the decompressed output is unchanged); option
+  --compress-level (1 to 12, default 6; compress_level in the settings
+  of the JSON summary); 32,000 reads, 4 cores: 3.9 s instead of 6.6 s
+  with -j 1, 1.6 s instead of 2.4 s with -j 4, an output 4% smaller
+  (benchmark/RESULTS.md)
