@@ -17,7 +17,9 @@
 
 /* defaults of the options which are not defaults of a module */
 #define OPTIONS_DEFAULT_OUTDIR "flucut-output"
-#define OPTIONS_DEFAULT_MAX_ERRORS 0.2
+/* -e auto (see auto-settings.h): the default */
+#define OPTIONS_MAX_ERRORS_AUTO -1.0
+#define OPTIONS_DEFAULT_MAX_ERRORS OPTIONS_MAX_ERRORS_AUTO
 #define OPTIONS_DEFAULT_MIN_LENGTH 1
 #define OPTIONS_MAX_THREADS 256
 

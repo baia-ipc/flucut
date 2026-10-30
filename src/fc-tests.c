@@ -17,6 +17,7 @@
 #include "adapters.h"
 #include "adaptor-search.h"
 #include "amplicon.h"
+#include "auto-settings.h"
 #include "counter.h"
 #include "fasta.h"
 #include "lengths.h"
@@ -92,6 +93,7 @@ static test_group_t test_groups[] = {
   {'g', "the groups of input files", run_input_groups_test, false},
   {'S', "the recognition of the segments", segments_test, false},
   {'A', "the search of the adapters", adapters_test, false},
+  {'u', "the automatic settings", auto_settings_test, false},
   {'d', "the search of an adaptor (from Lumipore)", adaptor_search_test,
    false},
 };

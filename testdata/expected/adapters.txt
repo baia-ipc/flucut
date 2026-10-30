@@ -42,7 +42,7 @@ adapters	all	1700	6
   "trim_policy": "primer",
   "references": null,
   "settings": {
-    "max_errors": {"mode": "fixed", "value": 0.2},
+    "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0242, "reads": 8, "file": "testdata/adapters.fastq"},
     "window": 100,
     "min_length": 1,
     "probe_length": 32,

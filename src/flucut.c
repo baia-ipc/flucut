@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
+#include "auto-settings.h"
 #include "banner.h"
 #include "counter.h"
 #include "fasta.h"
@@ -220,8 +221,10 @@ int main(int argc, char *argv[]) {
             refs->n_records, opts.references);
     index = reference_index_new(refs);
   }
+  auto_settings_t autos;
+  auto_settings_init(&autos, &opts);
   trimmer_config_t config = {.scheme = scheme,
-      .max_errors = opts.max_errors, .policy = opts.policy,
+      .max_errors = autos.max_errors.value, .policy = opts.policy,
       .window = opts.window, .references = refs, .index = index,
       .exhaustive = opts.exhaustive_search,
       .probe_len = opts.probe_len,
@@ -229,6 +232,10 @@ int main(int argc, char *argv[]) {
       .terminal_window = opts.terminal_window,
       .adapters = opts.adapters, .min_length = opts.min_length,
       .tags = opts.tags};
+  /* -e auto: from the first file */
+  for (size_t i = 0; i < n_groups && auto_settings_pending(&autos); i++)
+    if (groups[i].n_files > 0)
+      auto_settings_decide(&autos, &config, groups[i].files[0], logger);
   worker_t *workers;
   XMALLOC(workers, sizeof(worker_t) * opts.threads);
   for (size_t t = 0; t < opts.threads; t++)
@@ -239,6 +246,7 @@ int main(int argc, char *argv[]) {
   counter_t *total = counter_new(scheme, refs);
   run_report_t *report = run_report_new(&opts, VERSION, scheme, refs, argc,
                                         argv, logger);
+  run_report_set_max_errors(report, &autos.max_errors);
   char *summary_path = path_join(opts.outdir, SUMMARY_FILENAME);
   FILE *summary = xfopen(summary_path, NULL, "w", "summary table", logger);
   summary_header(summary);
@@ -279,6 +287,7 @@ int main(int argc, char *argv[]) {
           RUN_REPORT_JSON_FILE);
   free(sections);
   run_report_delete(report);
+  auto_settings_free(&autos);
   free(lengths_path);
   for (size_t i = 0; i < n_groups; i++)
     counter_delete(group_counts[i]);

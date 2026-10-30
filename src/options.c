@@ -8,6 +8,7 @@
 #include "options.h"
 #include "argparse-def.h"
 #include "amplicon.h"
+#include "auto-settings.h"
 #include "reference.h"
 #include "scheme.h"
 
@@ -52,9 +53,12 @@ enum {
   "                          classified as terminal or internally primed\n" \
   "                          (with --trim primer: reported only)\n" \
   "   -e, --max-errors <x>   errors allowed in a primer: a number of\n" \
-  "                          bases, or below 1 a fraction of its length\n" \
-  "                          (default: " XSTR(OPTIONS_DEFAULT_MAX_ERRORS) \
-  ")\n" \
+  "                          bases, below 1 a fraction of its length, or\n" \
+  "                          auto: " XSTR(AUTO_MAX_ERRORS_LOW) ", or " \
+  XSTR(AUTO_MAX_ERRORS_HIGH) " if the primers of the\n" \
+  "                          first reads have at least " \
+  XSTR(AUTO_MAX_ERRORS_HIGH_RATE) " errors per\n" \
+  "                          base (default: auto)\n" \
   "   -w, --window <n>       a primer must lie within <n> bases of its\n" \
   "                          end of the read (default: " \
   XSTR(AMPLICON_DEFAULT_WINDOW) ")\n" \
@@ -179,10 +183,14 @@ void options_parse(options_t *self, int argc, char *argv[],
         self->references = optarg;
         break;
       case 'e':
+        if (strcmp(optarg, "auto") == 0) {
+          self->max_errors = OPTIONS_MAX_ERRORS_AUTO;
+          break;
+        }
         if (!parse_double(optarg, &x) || x < 0 ||
             (x >= 1 && x != floor(x)))
-          OPT_ERR(c, "a fraction below 1 or a whole number of bases "
-                  "expected ('%s' found)", optarg);
+          OPT_ERR(c, "a fraction below 1, a whole number of bases or "
+                  "auto expected ('%s' found)", optarg);
         self->max_errors = x;
         break;
       case 'w':
@@ -252,7 +260,10 @@ void options_parse(options_t *self, int argc, char *argv[],
             self->policy == TRIM_PRIMER ? "primer" : "terminus");
   PARSE_LOG("References: %s\n",
             self->references == NULL ? "none" : self->references);
-  PARSE_LOG("Errors in a primer: %g\n", self->max_errors);
+  if (self->max_errors == OPTIONS_MAX_ERRORS_AUTO)
+    PARSE_LOG("Errors in a primer: auto\n");
+  else
+    PARSE_LOG("Errors in a primer: %g\n", self->max_errors);
   PARSE_LOG("Window: %ld\n", self->window);
   PARSE_LOG("Minimum length: %zu\n", self->min_length);
   PARSE_LOG("Adapters: %s\n", self->adapters);
