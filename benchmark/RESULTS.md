@@ -1,5 +1,42 @@
 # Results
 
+## 2026-10-30: flucut with the adapter search
+
+What was run: flucut at commit 6393a2d (adapters searched at the read
+ends without a primer, `--adapters nb,rbk,lsk`, the default), `-j 1`,
+on the reads of the sections below, scored with `score_reads.py`; on the
+barcoded reads, IRMA 1.4.0 FLU-minion with and without the elongation,
+compared with `compare_consensus.py`.
+
+| reads | template removed | primer kept | flank kept | internal site kept |
+|---|---|---|---|---|
+| with barcodes, `--adapters none` | 254 | 2221 | 28539 | 99 |
+| with barcodes, adapters | 267 | 1019 | 698 | 44 |
+| without barcodes, `--adapters none` | 680 | 1819 | 7542 | 23 |
+| without barcodes, adapters | 680 | 1819 | 7542 | 23 |
+
+On the barcoded reads, an adapter was removed at the start of 234 reads
+and at the end of 181. The reads without barcodes are trimmed as without
+the search (no adapter found). Barbell, on the same barcoded reads:
+1883, 445, 4375, 21; dorado trim: 3714, 6452, 360, 27 (below).
+
+The IRMA consensus of the barcoded reads trimmed with the adapter search
+is the same as before: with the elongation, 96 and 104 bases missing at
+the ends (the primers), no error, ATA at the I348K codon; without it,
+219 and 276 missing, no error.
+
+Two settings were changed on the way, both found on these reads:
+an adapter with a barcode was first allowed to overhang the read, and
+then matched almost anywhere, the part left in the read being mostly
+the barcode (Ns): on the reads without barcodes, 194 more template
+bases were removed; and after the removal of an adapter, the primer was
+first searched in the usual window of 100 bases, where primer-like
+sequences of the template were taken for it (1255 template bases
+removed): the primer must now lie within 5 bases of the adapter.
+
+Time (3200 reads, one thread): 0.75 s on the barcoded reads, with or
+without the search.
+
 ## 2026-10-30: flucut, one alignment for the primers at the read ends
 
 What was run: flucut at commit 9e69ba0 (the search of a primer with
