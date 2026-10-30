@@ -31,14 +31,17 @@ at the internal site), assembled by IRMA 1.4.0 (FLU-minion):
 The reads
 ---------
 
-Bases of the 3200 reads by their true origin, after the trimming:
+Bases of the 3200 reads by their true origin, after the trimming (flucut
+of the current version; the consensus above was made with the reads of
+the previous one, which removed 882 template bases, kept 1852 primer
+bases and 7557 flank bases):
 
 =================== ========= ========= ======== ===========
 tool                template  primer    flank    internal
                     removed   kept      kept     site kept
 =================== ========= ========= ======== ===========
 untrimmed           0         102554    127032   2698
-flucut              882       1852      7557     23
+flucut              680       1819      7542     23
 cutadapt            102408    3037      8784     25
 =================== ========= ========= ======== ===========
 
@@ -64,16 +67,20 @@ Nanopore (NB01-NB04) outside the primers:
   1;
 - with the elongation, the consensus of the reads trimmed by flucut has
   no error, as with cutadapt, dorado, samtools ampliconclip and Barbell;
-- flucut removed 251 template bases and left 2198 primer bases, but
-  28685 bases of adapters, at the read ends where it found no primer:
+- flucut removed 254 template bases and left 2221 primer bases, but
+  28539 bases of adapters, at the read ends where it found no primer:
   flucut does not search the adapters. Demultiplex and trim the
   barcodes first (e.g. with dorado or MinKNOW).
 
 Speed
 -----
 
-flucut trimmed the 3200 reads (5.3 million bases) in 1.3 seconds with
+flucut trimmed the 3200 reads (5.3 million bases) in 0.7 seconds with
 one thread. The classification against references, through the k-mer
 index, adds little: 0.8 s instead of 0.7 s with 8 references, 1.1 s with
 80 (measured before the search of the truncated primers; with the
 exhaustive search, 2.0 and 14-16 s).
+
+With threads: the same reads ten times (32,000 reads), with the 8
+references, on a computer with 4 cores: 12.4 s with ``-j 1``, 3.5 s
+with ``-j 4`` (the output files identical).

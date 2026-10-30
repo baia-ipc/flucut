@@ -1,5 +1,22 @@
 # Results
 
+## 2026-10-30: flucut, one alignment for the primers at the read ends
+
+What was run: flucut at commit 9e69ba0 (the search of a primer with
+missing outer bases in one alignment instead of one per shorter form),
+`-j 1`, on the reads of the next two sections, scored with
+`score_reads.py`. IRMA was not run again.
+
+| reads | template removed | primer kept | flank kept | internal site kept |
+|---|---|---|---|---|
+| without barcodes, before | 882 | 1852 | 7557 | 23 |
+| without barcodes, 9e69ba0 | 680 | 1819 | 7542 | 23 |
+| with barcodes, before | 251 | 2198 | 28685 | 110 |
+| with barcodes, 9e69ba0 | 254 | 2221 | 28539 | 99 |
+
+Time for the 3200 reads without barcodes, one thread: 0.63-0.71 s
+(three runs, load average about 2.5), instead of 1.15-1.35 s.
+
 ## 2026-10-30: all the tools (simulated reads with barcodes)
 
 What was run: `benchmark/run-tools.sh` as in the next section, on 3200
