@@ -35,7 +35,13 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include "edlib.h"
 #include "primers.h"
+
+/* the pairs of characters edlib must treat as equal: the IUPAC codes and
+   the bases they stand for (shared by all edlib alignments of flucut) */
+extern const EdlibEqualityPair iupac_equalities[];
+extern const int n_iupac_equalities;
 
 typedef struct primer_search_t primer_search_t;
 

@@ -20,6 +20,7 @@
 #include "logger.h"
 #include "primer-search.h"
 #include "primers.h"
+#include "reference.h"
 #include "scheme.h"
 
 /* the directory for temporary files (-T; NULL: a new one, see
@@ -73,6 +74,8 @@ static test_group_t test_groups[] = {
   {'c', "the primer schemes", scheme_test, false},
   {'a', "the analysis and trimming of a read", amplicon_test, false},
   {'F', "reading of FASTA files", run_fasta_test, false},
+  {'r', "the location of the reads in the references", reference_test,
+   false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 
