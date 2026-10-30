@@ -20,9 +20,10 @@
    code with each of the bases it stands for, in both directions (a
    degenerate base can be in the primer, e.g. R, or in the read, e.g. N,
    which is also the padding character). Written out, so that the table
-   is a constant: it is shared by the searchers of all threads.
+   is a constant: it is shared by the searchers of all threads (and by
+   the location of the reads in the references, see reference.c).
 */
-static const EdlibEqualityPair iupac_equalities[] = {
+const EdlibEqualityPair iupac_equalities[] = {
   {'R', 'A'}, {'R', 'G'},
   {'Y', 'C'}, {'Y', 'T'},
   {'S', 'C'}, {'S', 'G'},
@@ -36,8 +37,8 @@ static const EdlibEqualityPair iupac_equalities[] = {
   {'N', 'A'}, {'N', 'C'}, {'N', 'G'}, {'N', 'T'},
   {'U', 'T'},
 };
-#define N_IUPAC_EQUALITIES \
-  ((int)(sizeof(iupac_equalities) / sizeof(iupac_equalities[0])))
+const int n_iupac_equalities =
+  (int)(sizeof(iupac_equalities) / sizeof(iupac_equalities[0]));
 
 struct primer_search_t {
   char *padded;
@@ -65,7 +66,7 @@ static long distance(const char *primer, size_t primer_len,
   EdlibAlignResult result = edlibAlign(primer, (int)primer_len,
       target + start, (int)(end - start + 1),
       edlibNewAlignConfig(-1, EDLIB_MODE_NW, EDLIB_TASK_DISTANCE,
-                          iupac_equalities, N_IUPAC_EQUALITIES));
+                          iupac_equalities, n_iupac_equalities));
   assert(result.status == EDLIB_STATUS_OK);
   long d = result.editDistance;
   edlibFreeAlignResult(result);
@@ -103,7 +104,7 @@ static void map_primer_positions(const char *primer, size_t primer_len,
   EdlibAlignResult result = edlibAlign(primer, (int)primer_len,
       target + start, (int)(end - start + 1),
       edlibNewAlignConfig(-1, EDLIB_MODE_NW, EDLIB_TASK_PATH,
-                          iupac_equalities, N_IUPAC_EQUALITIES));
+                          iupac_equalities, n_iupac_equalities));
   assert(result.status == EDLIB_STATUS_OK);
   long qpos = 0, tpos = start;
   bool got_a = pos_a == 0, got_b = false;
@@ -164,7 +165,7 @@ static bool search(const char *primer, size_t primer_len,
   EdlibAlignResult result = edlibAlign(primer, (int)primer_len,
       target, (int)target_len,
       edlibNewAlignConfig((int)max_errors, EDLIB_MODE_HW, EDLIB_TASK_LOC,
-                          iupac_equalities, N_IUPAC_EQUALITIES));
+                          iupac_equalities, n_iupac_equalities));
   assert(result.status == EDLIB_STATUS_OK);
   long n_errors = result.editDistance;
   if (n_errors < 0) {

@@ -50,13 +50,34 @@
 typedef struct {
   bool mapped;
   size_t ref_index;    /* the reference the probe mapped to */
-  bool reverse;        /* the probe mapped to the reverse complement */
+  long ref_len;        /* its length */
+  /* the probe mapped to the minus strand of the reference (its reverse
+     complement mapped to the plus strand): the read runs from the end of
+     the segment towards its start */
+  bool reverse;
   /* the position in the reference (on its plus strand) of the first base
-     of the probe, i.e. of the first base of the read after its 5' primer
-     (for a reverse match, the position of the last base of the probe) */
+     of the probe, i.e. of the first base of the read after its 5' primer;
+     for a reverse match, this is the last position of the alignment on
+     the plus strand */
   long ref_start;
   long n_errors;
 } reference_hit_t;
+
+/* probes shorter than this are not located (too short to be placed
+   reliably in a segment); reference_set_locate() then reports no hit */
+#define REFERENCE_MIN_PROBE_LEN 16
+
+/* default length of the probe */
+#define REFERENCE_DEFAULT_PROBE_LEN 32
+
+/* default fraction of the probe allowed to be errors (Nanopore reads) */
+#define REFERENCE_DEFAULT_MAX_ERROR_RATE 0.2
+
+/* default terminal window (see reference_hit_is_terminal()): generous,
+   as the references downloaded from the databases may lack some of the
+   bases of the termini, while the internal sites to detect are hundreds
+   of bases inside the segment */
+#define REFERENCE_DEFAULT_TERMINAL_WINDOW 60
 
 typedef struct reference_set_t reference_set_t;
 
@@ -74,17 +95,26 @@ reference_set_t* reference_set_new(const fasta_t *fasta, size_t probe_len,
 
 /*
    Locate <probe> (length <probe_len>; the start of the read after its 5'
-   primer) in the references; the best match (fewest errors) is stored in
-   <hit>. The searcher contains buffers: use one per thread.
+   primer) in the references, on both strands; only the first
+   min(<probe_len>, probe length of the set) bases are used, and a probe
+   shorter than REFERENCE_MIN_PROBE_LEN is not located.
+
+   The best match (fewest errors) is stored in <hit>. Among equally good
+   matches, the one nearest to the terminus from which the read would
+   start (the start of the segment for a forward match, its end for a
+   reverse one) is chosen: an ambiguous read is classified as terminal,
+   and thus kept intact. The searcher contains buffers: use one per
+   thread.
 */
 void reference_set_locate(reference_set_t *self, const char *probe,
     size_t probe_len, reference_hit_t *hit);
 
 /*
-   Whether a probe mapped at <ref_start> is at the start of a segment (a
+   Whether the mapped probe <hit> is at a terminus of the segment (a
    normal amplicon) rather than at an interior position (internal
-   priming): the mapping position is within <terminal_window> bases of the
-   start of the segment.
+   priming): within <terminal_window> bases of the start of the segment
+   for a forward match, of its end for a reverse match. The hit must be
+   mapped.
 */
 bool reference_hit_is_terminal(const reference_hit_t *hit,
     long terminal_window);
