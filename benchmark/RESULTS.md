@@ -1,5 +1,24 @@
 # Results
 
+## 2026-10-30: the inward extension of the primer alignment
+
+What was run: flucut at commit 16d001d, as it is and without the
+extension of the primer alignment inward at equal cost (the loop after
+the choice of the end in `primer_search_end()`, removed for this test
+only), scored with `score_reads.py` (template removed, primer kept,
+flank kept, internal site kept).
+
+| reads | as it is | without the extension |
+|---|---|---|
+| IRMA checks (4% errors) | 680, 1819, 7542, 23 | 472, 2136, 7546, 28 |
+| barcoded | 267, 1019, 698, 44 | 92, 1311, 701, 55 |
+| 12% errors | 5916, 3715, 7662, 101 | 5299, 4585, 7680, 125 |
+| 1% errors | 607, 1073, 6457, 1 | 556, 1127, 6421, 5 |
+
+Without the extension, fewer template bases are removed, and more
+primer bases (and bases of the internal site) are kept, in every set:
+the extension is kept.
+
 ## 2026-10-30: time and memory
 
 What was run: `benchmark/run-speed.sh` (the commands of
