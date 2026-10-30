@@ -1,0 +1,12 @@
+# Large data files - download with the provided scripts/commands
+h5n1_ha_all.fasta
+h5n1_ha_chunk_*.fasta
+sra_download/
+flucut_out_*/
+cambodia_h5n1_ha.fasta
+cambodia_h5n1_ha.docsum.xml
+cambodia_h5n1_search.xml
+h5n1_ha_search.xml
+sra_esummary.xml
+sra_links.txt
+sra_via_biosample.txt

@@ -1,0 +1,138 @@
+total=29997 wt_GLFGAIAG=29777 mut_GLFGAKAG=109 other_GLFGA.AG=27 no_motif=84
+--- MUT / OTHER hits ---
+MUT	QB029683.1 Influenza A virus (A/cattle/UT/26G10578-001-original/2026(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	QB029675.1 Influenza A virus (A/cattle/UT/26G10577-001-original/2026(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ832377.1 Influenza A virus (A/Coscoroba coscoroba/Rio Grande do Sul/ECOT014/2026(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ796657.1 Influenza A virus (A/cattle/UT/26G08463-001-original-repeat2/2026(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ796633.1 Influenza A virus (A/cattle/ID/26G08404-029-original/2026(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX796602.1 Influenza A virus (A/mink/Finland/361/2023(H5N1)) segment 4 hemagglutinin (HA) gene, partial cds
+MUT	PX796601.1 Influenza A virus (A/mink/Finland/358/2023(H5N1)) segment 4 hemagglutinin (HA) gene, partial cds
+MUT	PX796600.1 Influenza A virus (A/mink/Finland/355/2023(H5N1)) segment 4 hemagglutinin (HA) gene, partial cds
+MUT	PX796599.1 Influenza A virus (A/mink/Finland/353/2023(H5N1)) segment 4 hemagglutinin (HA) gene, partial cds
+MUT	PV422276.2 Influenza A virus (A/Bird/Yemen/EPI_ISL_HA19613464/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239813.1 Influenza A virus (A/wild turkey/Massachusetts/25NE00167/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239802.1 Influenza A virus (A/wild turkey/Massachusetts/25NE00158/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239798.1 Influenza A virus (A/surf scoter/Massachusetts/24HP00239/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239787.1 Influenza A virus (A/blue jay/Massachusetts/25NE00188/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239775.1 Influenza A virus (A/White-winged Scoter/Massachusetts/24HP00276/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239771.1 Influenza A virus (A/White-winged Scoter/Massachusetts/24HP00245/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239761.1 Influenza A virus (A/Turkey Vulture/Maine/24NE00175/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239757.1 Influenza A virus (A/Red-tailed hawk/Maine/24NE02056/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239749.1 Influenza A virus (A/Red-tailed hawk/Maine/24NE02055/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239728.1 Influenza A virus (A/Great black-backed gull/Massachusetts/25HP00823/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239726.1 Influenza A virus (A/Great black-backed gull/Massachusetts/25HP00818/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239713.1 Influenza A virus (A/Great black-backed gull/Massachusetts/25HP00817/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239708.1 Influenza A virus (A/Great black-backed gull/Massachusetts/25HP00816/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239700.1 Influenza A virus (A/Great black-backed gull/Massachusetts/25HP00815/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239690.1 Influenza A virus (A/Great black-backed gull/Massachusetts/25HP00814/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239681.1 Influenza A virus (A/Great black-backed gull/Massachusetts/25HP00813/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239675.1 Influenza A virus (A/Great black-backed gull/Massachusetts/25HP00810/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239663.1 Influenza A virus (A/Great black-backed gull/Massachusetts/25HP00809/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239657.1 Influenza A virus (A/Great black-backed gull/Massachusetts/25HP00807/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239652.1 Influenza A virus (A/Great black-backed gull/Massachusetts/25HP00805/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239645.1 Influenza A virus (A/Common eider/Massachusetts/25WI00081/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239634.1 Influenza A virus (A/Black vulture/Massachusetts/24WP00295/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239627.1 Influenza A virus (A/Black vulture/Massachusetts/24WP00293/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ239622.1 Influenza A virus (A/Black vulture/Maryland/25HP00307/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ229762.1 Influenza A virus (A/environment/Bangladesh/69788/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ128749.1 Influenza A virus (A/cattle/CA/26G01054-010-original/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PZ128741.1 Influenza A virus (A/cattle/CA/26G01054-008-original/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX846150.1 Influenza A virus (A/Antarctic Fur Seal/South Georgia and the South Sandwich Islands/004801:SG13/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX846142.1 Influenza A virus (A/Antarctic Fur Seal/South Georgia and the South Sandwich Islands/004795:SG12/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX846134.1 Influenza A virus (A/Antarctic Fur Seal/South Georgia and the South Sandwich Islands/004783:SG11/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX846118.1 Influenza A virus (A/Antarctic Fur Seal/South Georgia and the South Sandwich Islands/004767:SG9/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX846110.1 Influenza A virus (A/Antarctic Fur Seal/South Georgia and the South Sandwich Islands/004738:SG8/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX846102.1 Influenza A virus (A/Antarctic Fur Seal/South Georgia and the South Sandwich Islands/004737:SG7/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX846094.1 Influenza A virus (A/Antarctic Fur Seal/South Georgia and the South Sandwich Islands/004732:SG6/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX846086.1 Influenza A virus (A/Antarctic Fur Seal/South Georgia and the South Sandwich Islands/004722:SG5/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX846078.1 Influenza A virus (A/Antarctic Fur Seal/South Georgia and the South Sandwich Islands/004708:SG4/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX846070.1 Influenza A virus (A/Antarctic Fur Seal/South Georgia and the South Sandwich Islands/004691:SG2/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX846046.1 Influenza A virus (A/Antarctic Fur Seal/Antarctica/029560:SG14/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX919726.1 Influenza A virus (A/Pygoscelis papua/King George Island/PPAP_1224/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX919694.1 Influenza A virus (A/Macronectes giganteus/Two Summit Island/MGIG_1224/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ283833.1 Influenza A virus (A/Thalasseus acuflavidus/MacaeBR/1137-N-2024/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX528979.1 Influenza A virus (A/Muscovy Duck/Germany-BW/2022AI01281/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX528931.1 Influenza A virus (A/Grey Heron/Germany-BW/2022AI01427/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX528923.1 Influenza A virus (A/Grey Heron/Germany-BW/2022AI01067/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX528915.1 Influenza A virus (A/Great White Pelican/Germany-BW/2025AI00328/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX528907.1 Influenza A virus (A/Great White Pelican/Germany-BW/2025AI00327/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX528891.1 Influenza A virus (A/Great White Pelican/Germany-BW/2022AI01298/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PX279898.1 Influenza A virus (A/cattle/CA/25-020784-009-original/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV979228.1 Influenza A virus (A/mallard duck/Ohio/24OS0669/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV979200.1 Influenza A virus (A/mallard duck/Ohio/24OS0677/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV979149.1 Influenza A virus (A/mallard duck/Ohio/24OS0674/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV979111.1 Influenza A virus (A/mallard duck/Ohio/24OS0668/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV961352.1 Influenza A virus (A/Layer chicken/Gazipur/A_chicken_Gazipur_Bangladesh_MGH-RF01_2025(H5N1) Seg 4/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV319856.1 Influenza A virus (A/Turkey Vulture/ON/FAV-0182-5-2023/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV318032.1 Influenza A virus (A/Snow Goose/QC/FAV-0204-1-2023/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PV317768.1 Influenza A virus (A/Snow Goose/BC/OTH-0097-2-2022/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV317680.1 Influenza A virus (A/Snow Goose/BC/FAV-0014-46-2023/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV316680.1 Influenza A virus (A/Red-Tailed Hawk/ON/FAV-0163-2-2023/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV316208.1 Influenza A virus (A/Red Fox/QC/FAV-0836-13-2022/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PV308368.1 Influenza A virus (A/Common Murre/NB/FAV-0762-1-2022/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PV308072.1 Influenza A virus (A/Common Eider/QC/FAV-0571-3-2022/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PV308056.1 Influenza A virus (A/Common Eider/QC/FAV-0571-1-2022/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV307320.1 Influenza A virus (A/Canada Goose/PE/FAV-0086-4-2023/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV305616.1 Influenza A virus (A/Canada Goose/AB/FAV-1655-12-2022/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV303472.1 Influenza A virus (A/Arctic Tern/NB/FAV-0841-3-2022/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PV738513.1 Influenza A virus (A/Greylag Goose/Germany-HE/2024AI01561/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PV132406.1 Influenza A virus (A/Bos taurus/Kansas/SM-6/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV387931.1 Influenza A virus (A/duck/Bangladesh/CE-113-08-DB-13-DU-O/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV387902.1 Influenza A virus (A/duck/Bangladesh/CE-113-08-DB-12-DU-O/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAVAG	PV213863.1 Influenza A virus (A/Duck/IL/25-000059-001-original/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAVAG	PV159535.1 Influenza A virus (A/Duck/IL/25-000059-001-original/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV112122.1 Influenza A virus (A/Cygnus olor/Bruegg/V0004/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV060185.1 Influenza A virus (A/cattle/CA/24-028986-002-original/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PV033329.1 Influenza A virus (A/England/0480160/2025(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PV018871.1 Influenza A virus (A/Ruddy Turnstone/DE/944/2024(H5N1)) clone H5 segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ334771.1 Influenza A virus (A/duck/Bangladesh/61904/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ037576.1 Influenza A virus (A/duck/Bangladesh/59603/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ037309.1 Influenza A virus (A/duck/Bangladesh/59648/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAVAG	PP785712.1 Influenza A virus (A/Great grabe/Atacama/231482-2/2023(H5N1)) clone new segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ712145.1 Influenza A virus (A/Great horned owl/WY/22-039597-001-original/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ701305.1 Influenza A virus (A/American Blue-winged teal/TX/22-029888-002-original/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PQ645047.1 Influenza A virus (A/Chroicocephalus ridibundus/Greifensee/V0336/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PQ645039.1 Influenza A virus (A/Chroicocephalus ridibundus/Greifensee/V0338/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PQ643854.1 Influenza A virus (A/Chroicocephalus ridibundus/Thalwil/V0334/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PQ643467.1 Influenza A virus (A/Chroicocephalus ridibundus/Zollikon/V0335/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ129522.1 Influenza A virus (A/Brown Skua/South Georgia and the South Sandwich Islands/24/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ129506.1 Influenza A virus (A/Brown Skua/South Georgia and the South Sandwich Islands/8/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ114073.1 Influenza A virus (A/Brown Skua/South Georgia and the South Sandwich Islands/144/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ114065.1 Influenza A virus (A/Kelp Gull/South Georgia and the South Sandwich Islands/136/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ114057.1 Influenza A virus (A/Antarctic Fur Seal/South Georgia and the South Sandwich Islands/128/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ114049.1 Influenza A virus (A/Southern Elephant Seal/South Georgia and the South Sandwich Islands/120/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ114033.1 Influenza A virus (A/Brown Skua/South Georgia and the South Sandwich Islands/104/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ114017.1 Influenza A virus (A/South Georgia Shag/South Georgia and the South Sandwich Islands/88/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ114009.1 Influenza A virus (A/Brown Skua/South Georgia and the South Sandwich Islands/80/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ114001.1 Influenza A virus (A/Kelp Gull/South Georgia and the South Sandwich Islands/72/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ113953.1 Influenza A virus (A/Southern Elephant Seal/South Georgia and the South Sandwich Islands/24/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PQ113933.1 Influenza A virus (A/Southern Fulmar/South Georgia and the South Sandwich Islands/4/2023(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PP802358.1 Influenza A virus (A/common raven/USA/22-031265-001/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PP801974.1 Influenza A virus (A/mallard/USA/IZ22_0788/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PP801843.1 Influenza A virus (A/great blue heron/USA/22-036616-001/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	PP801741.1 Influenza A virus (A/green-winged teal/USA/22-031399-018/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAVAG	PP757839.1 Influenza A virus (A/great grebe/Atacama/231482-2/2023(H5N1)) clone new segment 4 hemagglutinin (HA) gene, complete cds
+MUT	PP755853.1 Influenza A virus (A/domestic cat/New Mexico/24-009116-001/2024(H5N1)) segment 4 hemagglutinin-like (HA) gene, complete sequence
+OTHER:GLFGAXAG	PP577943.1 Influenza A virus (A/Texas/37/2024(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	OR777116.1 Influenza A virus (A/Crow/Dhaka/BDADC-595/2021(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	OR772995.1 Influenza A virus (A/Crow/Dhaka/BDADC-618/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	OQ967732.1 Influenza A virus (A/chicken/Nebraska/22-010905-001/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	OQ962300.1 Influenza A virus (A/Mallard/New Hampshire/22-003417-039/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	OP776802.1 Influenza A virus (A/Cormorant/Namibia/141/2022(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	OP023579.1 Influenza A virus (A/duck/Bangladesh/49997/2021(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	MW466137.1 Influenza A virus (A/environment/Bangladesh/41351/2019(H9N2)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	MT090452.1 Influenza A virus (A/duck/Bangladesh/37631/2019(H10N3)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAVAG	MT090438.1 Influenza A virus (A/quail/Bangladesh/40420/2019(H9N2)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	MN046358.1 Influenza A virus (A/chicken/Myanmar/OP-12/2017(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	MN046342.1 Influenza A virus (A/chicken/Myanmar/CS-13/2017(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	MN046334.1 Influenza A virus (A/chicken/Myanmar/OP-11/2017(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	MF598579.1 Influenza A virus (A/Nanjing/1/2015(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	MH578700.1 Influenza A virus (A/ruddy turnstone/Delaware Bay/105/2007(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	KT338561.1 Influenza A virus (A/northern pintail/Alaska/861/2014(H3N8)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	KT338483.1 Influenza A virus (A/northern pintail/Alaska/580/2014(H3N8)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	KT338460.1 Influenza A virus (A/northern pintail/Alaska/562/2014(H3N8)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGAXAG	KT338444.1 Influenza A virus (A/northern pintail/Alaska/523/2014(H3N8)) segment 4 hemagglutinin (HA) gene, complete cds
+MUT	CY081340.1 Influenza A virus (A/environment/Maryland/1152/2006(mixed)) hemagglutinin (HA) gene, complete cds
+MUT	CY077110.1 Influenza A virus (A/ruddy turnstone/Delaware/103/2007(H5N1)) segment 4, complete sequence
+OTHER:GLFGAVAG	FJ784849.1 Influenza A virus (A/duck/Hunan/1964/2007(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds
+OTHER:GLFGATAG	EF178531.1 Influenza A virus (A/tiger/Thailand/VSMU-11-SPB/2004(H5N1)) segment 4 hemagglutinin (HA) gene, complete cds

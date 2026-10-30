@@ -1,0 +1,85 @@
+LOCUS       KF918483                1779 bp    cRNA    linear   VRL 01-JUN-2014
+DEFINITION  Influenza A virus (A/chicken/Cambodia/X0815302/2013(H5N1)) segment
+            4 hemagglutinin (HA) gene, complete cds.
+ACCESSION   KF918483
+VERSION     KF918483.1
+KEYWORDS    .
+SOURCE      Influenza A virus (A/chicken/Cambodia/X0815302/2013(H5N1))
+  ORGANISM  Influenza A virus (A/chicken/Cambodia/X0815302/2013(H5N1))
+            Viruses; Riboviria; Orthornavirae; Negarnaviricota;
+            Polyploviricotina; Insthoviricetes; Articulavirales;
+            Orthomyxoviridae; Alphainfluenzavirus; Alphainfluenzavirus
+            influenzae.
+REFERENCE   1  (bases 1 to 1779)
+  AUTHORS   Rith,S., Horm,S.V. and Buchy,P.
+  TITLE     Antigenic drift in H5N1 avian influenza in Cambodia driven by
+            reassortment
+  JOURNAL   Unpublished
+REFERENCE   2  (bases 1 to 1779)
+  AUTHORS   Rith,S., Horm,S.V. and Buchy,P.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (27-NOV-2013) Virology, Instiutut Pasteur in Cambodia, 5,
+            Monivong Boulevards, PB 983, Phnom Penh 12201, Cambodia
+FEATURES             Location/Qualifiers
+     source          1..1779
+                     /organism="Influenza A virus
+                     (A/chicken/Cambodia/X0815302/2013(H5N1))"
+                     /mol_type="viral cRNA"
+                     /strain="A/chicken/Cambodia/X0815302/2013"
+                     /serotype="H5N1"
+                     /host="chicken"
+                     /db_xref="taxon:1431638"
+                     /segment="4"
+                     /geo_loc_name="Cambodia: Battambang"
+                     /collection_date="13-Aug-2013"
+     gene            29..1735
+                     /gene="HA"
+     CDS             29..1735
+                     /gene="HA"
+                     /codon_start=1
+                     /product="hemagglutinin"
+                     /protein_id="AHF20420.1"
+                     /translation="MEKIVLLFAIVSLVKSDQICIGYHANNSTEQVDTIMEKNVTVTH
+                     APDILEKTHNGKLCDLDGVRPLILRDCSVAGWLLGNPMCDEFINVPEWSYIVEKANPV
+                     NDLCYPGVFNDYEELKHLLSRINHFEKIQIIPKNSWPSHEASLGVSAACPYQGQSSFF
+                     RNVVWLIKKNNTYPTIKRSYNNTNQEDLLVMWGIHHPNDAVEQTKLYQNPTTYISVGT
+                     STLNQRLTPRIATRSKVNGQSGRMEFFWTILKPNDAINFESNGNFIAPEYAYKIVKKG
+                     DSTIMRSELEYGNCNTKCQTPMGAINSSMPFHNIHPLTIGECPKYVKSTRLVLATGLR
+                     NSPQREERRKKRGLFGAIAGFIEGGWQGMVDGWYGYHHSNEQGSGYAADKESTQKAID
+                     GVTNKVNSIIDKMNTQFEAVGREFNNLERRIENLNKKMEDGFLDVWTYNAELLVLMEN
+                     ERTLDFHDSNVKNLYDKVRLQLRDNAKELGNGCFEFYHKCDNECMESVRNGTYDYPQY
+                     SEEARLKREEISGVKLESIGVYQILSIYSTVASSLALAIMVAGLSLWMCSNGSLQCRI
+                     CI"
+ORIGIN      
+        1 agcaaaagca ggggtttaat ctgtcaaaat ggagaaaata gtgcttcttt ttgcgatagt
+       61 cagtcttgtt aaaagtgacc agatttgcat tggctaccat gcaaacaact cgacagagca
+      121 ggttgacacg ataatggaaa agaacgttac tgttacacat gccccagaca tactagaaaa
+      181 gacacataac ggaaagctct gtgacttaga tggagttagg cctctaattt tgagagattg
+      241 tagtgtagct ggatggcttc tcggaaaccc aatgtgtgac gaattcatca atgtgccaga
+      301 atggtcttat atagtggaga aggccaatcc agtcaatgac ctctgctacc caggagtttt
+      361 caatgactat gaagaattga aacacctatt gagcagaata aaccattttg agaaaattca
+      421 gatcatcccc aagaattctt ggcccagtca tgaagcctca ttgggggtga gcgcagcatg
+      481 tccataccag gggcagtcct cttttttccg aaatgtggtg tggcttatca aaaagaacaa
+      541 tacataccca acaataaaga ggagttacaa taataccaac caagaagatc ttttggtaat
+      601 gtgggggatc caccatccta atgatgcagt agaacagaca aaactctatc aaaatccaac
+      661 cacctatatc tccgttggga cgtcaacatt aaaccagaga ttgacaccaa gaatagctac
+      721 tagatccaaa gtaaacggac aaagtgggag gatggagttc ttttggacaa tcttaaaacc
+      781 gaatgatgca atcaacttcg agagtaatgg aaatttcatc gctccagaat atgcatacaa
+      841 aattgtcaag aaaggggact caacaattat gagaagtgaa ctggaatatg gtaactgcaa
+      901 caccaagtgt caaactccaa tgggggcgat aaactctagt atgccattcc acaatataca
+      961 tcctctcact attggagaat gccccaaata tgtgaaatca accagattag tccttgcgac
+     1021 tgggctcaga aatagccctc aaagagagga aagaagaaaa aagagaggat tatttggagc
+     1081 tatagcaggg tttatagaag gaggatggca ggggatggta gatggttggt atgggtacca
+     1141 tcatagcaac gagcagggaa gcgggtacgc tgcagacaaa gaatccactc aaaaggctat
+     1201 agatggagtc accaataagg tcaactcgat cattgacaaa atgaacactc agtttgaggc
+     1261 tgttgggagg gaatttaaca acttagaaag aagaatagag aatttaaaca agaagatgga
+     1321 agacgggttc ctagatgttt ggacttataa tgctgaactt ctggttctca tggaaaatga
+     1381 gagaactcta gacttccatg actcaaatgt aaagaacctt tacgacaagg tccgattaca
+     1441 gcttagggat aatgccaagg agctgggtaa cggttgtttt gagttctatc acaaatgtga
+     1501 taatgaatgt atggaaagtg tgagaaatgg gacatatgac tatccgcagt attcagaaga
+     1561 agcaagatta aaaagagagg agataagtgg agtgaaattg gaatcgatag gagtttacca
+     1621 aatactgtca atttattcta cagtggcgag ttccctagca ctggcaatca tggtagctgg
+     1681 tctatcctta tggatgtgct ccaatgggtc gttacaatgc agaatttgca tttaaatttg
+     1741 tgagttcaga ttgtagttaa aaacaccctt gtttctact
+//
+
