@@ -31,7 +31,9 @@ def main():
   print("run\tclass\tcodon\treads")
   for path in sys.argv[4:]:
     c = collections.Counter()
+    # a truncated download (partial gzip) is read up to its end
     with gzip.open(path, "rt") as f:
+     try:
       for i, l in enumerate(f):
         if i % 4 != 1: continue
         r = l.strip().upper()
@@ -42,6 +44,8 @@ def main():
             # internal priming starts the read at the site
             start = j - 12
             c[(strand, "site_within_60_of_read_start" if start <= 60 else "site_inside", cod)] += 1
+     except EOFError:
+      pass
     for (st, cl, cod), n in sorted(c.items(), key=lambda x: (x[0][0], x[0][1], -x[1])):
       print("%s\t%s%s\t%s\t%d" % (path.split("/")[-1][:12], st, " " + cl, cod, n))
 

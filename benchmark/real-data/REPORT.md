@@ -79,10 +79,42 @@ trimmed) was not run here (no IRMA in this container).
 **Candidate benchmark data: SRR39646237 and SRR39646239 (PRJNA1406649,
 Nanopore, H5N1, Uni12/Uni13).**
 
+## Step 5: natural (non-engineered) isolates in Nanopore reads
+
+Searched for natural H5N1 isolates with the artefact in reads, same
+counter (scripts/count_codon_nanopore.py, reference PX279898.1, site
+HA nt 1050).
+
+**Positive: PRJNA1114404** (Cornell University, 41 runs, GridION,
+"targeted whole genome sequencing of Influenza A virus H5N1", "PCR
+amplification using MBTuni primers", host samples 2024, spillover of
+HPAI H5N1 to dairy cattle). The five smallest runs, all positive:
+
+| run | BioSample | sample | site at read start: AAA / ATA | read spans site: AAA / ATA |
+|---|---|---|---|---|
+| SRR29165103 | SAMN41527190 | 078707-24-14 | 456 / 15 | 5 / 956 |
+| SRR29165110 | SAMN41527219 | 067041-24-1 | 175 / 2 | 0 / 153 |
+| SRR29165113 | SAMN41527216 | 063224-24-10 | 264 / 7 | 0 / 552 |
+| SRR29165115 | SAMN41527215 | 063224-24-1 | 372 / 4 | 3 / 824 |
+| SRR29165125 | SAMN41527188 | 078707-24-12 | 120 / 3 | 2 / 320 |
+
+(out/cornell2024_codon_counts.tsv.) None of these BioSamples has a
+motif-covering consensus among the deposited records screened in step
+1-2, so the artefact is in the reads and no K-consensus is public for
+them. The other 35 runs of the project were not scanned.
+
+**Negative:** PRJNA1312032 (Penn State, retail milk H5N1, 3 runs): reads
+spanning the site are all ATA (SRR35186256: 69; SRR35186257, first
+150 MB: 1153), no read starts at the site; SRR35186258 (first 150 MB)
+has no read with the site flank. No Uni12 internal-priming signal.
+Not yet scanned: PRJNA1400594 (Michigan, 63 wild-bird H5N1 runs,
+"universal IAV primers", avgLength 427), PRJEB79943 (Bern, 2 H5N1 runs).
+
 ## Files
 - out/nanopore_runs.tsv — merged SRA runinfo (4123 runs)
 - out/motif_hits.tsv — all 243 motif-covering consensus records + residue
 - scripts/ — all scripts (runinfo, elink, esearch, efetch, screen)
 - out/cornell_codon_counts.tsv — codon counts of step 4
 - out/cornell_PRJNA1406649_ena.tsv — ENA run list of PRJNA1406649
+- out/cornell2024_codon_counts.tsv — codon counts of step 5
 - dl/ — downloaded data (gitignored)
