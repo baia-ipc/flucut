@@ -8,3 +8,5 @@ directory	testdata/barcode01 testdata/reads.fastq
 no_errors	-e 0 testdata/reads.fastq
 exhaustive	--exhaustive-search -r testdata/ref-ha.fasta testdata/reads.fastq
 run_directory	testdata/fastq_pass
+adapters	testdata/adapters.fastq
+no_adapters	--adapters none testdata/adapters.fastq

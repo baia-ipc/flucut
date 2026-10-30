@@ -139,10 +139,13 @@ static void write_steps(html_writer_t *w, const counter_reads_t *s) {
   const char *labels[] = {"all reads", "both primers", "one primer",
                           "no primer", "primer dimers",
                           "too short (not written)", "written",
-                          "minus strand"};
+                          "minus strand", "adapter at the start",
+                          "adapter at the end"};
   size_t values[] = {s->reads_in, s->n_ends[2], s->n_ends[1], s->n_ends[0],
-                     s->dimers, s->too_short, s->reads_out, s->minus};
-  const char *classes[] = {"p", "s", "s", "p", "p", "p", "s", "p"};
+                     s->dimers, s->too_short, s->reads_out, s->minus,
+                     s->adapter_start, s->adapter_end};
+  const char *classes[] = {"p", "s", "s", "p", "p", "p", "s", "p", "p",
+                           "p"};
   html_hbars(w, sizeof(values) / sizeof(values[0]), labels, values,
              classes, s->reads_in, 0);
   html_template(w, steps_note_tmpl);

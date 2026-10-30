@@ -23,6 +23,7 @@ struct trimmer_t {
   const trimmer_config_t *config;
   amplicon_analyzer_t *analyzer;
   reference_set_t *refs;
+  adapters_t *adapters;
   strbuf_t title;
 };
 
@@ -43,6 +44,11 @@ trimmer_t* trimmer_new(const trimmer_config_t *config) {
     amplicon_analyzer_use_references(self->analyzer, self->refs,
                                      config->terminal_window);
   }
+  self->adapters = NULL;
+  if (config->adapters != NULL) {
+    self->adapters = adapters_new(config->adapters, config->window, NULL);
+    amplicon_analyzer_use_adapters(self->analyzer, self->adapters);
+  }
   strbuf_init(&self->title);
   return self;
 }
@@ -52,6 +58,7 @@ void trimmer_delete(trimmer_t *self) {
     return;
   amplicon_analyzer_delete(self->analyzer);
   reference_set_delete(self->refs);
+  adapters_delete(self->adapters);
   strbuf_free(&self->title);
   free(self);
 }
@@ -102,6 +109,14 @@ static void make_title(trimmer_t *self, const char *title, size_t title_len,
   sam_tag_append_int(t, "tr", (long)len - 1 - a->keep_to);
   if (a->n_internal > 0)
     sam_tag_append_int(t, "ni", (long)a->n_internal);
+  if (a->adapter_start.found) {
+    const char *kit = adapters_kit_name(a->adapter_start.kit);
+    sam_tag_append_string(t, "a5", kit, strlen(kit));
+  }
+  if (a->adapter_end.found) {
+    const char *kit = adapters_kit_name(a->adapter_end.kit);
+    sam_tag_append_string(t, "a3", kit, strlen(kit));
+  }
 }
 
 void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,

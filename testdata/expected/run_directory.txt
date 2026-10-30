@@ -82,7 +82,9 @@ barcode02	all	1000	1
       "dimers": 1,
       "too_short": 1,
       "minus_strand": 2,
-      "with_internal_match": 0
+      "with_internal_match": 0,
+      "adapter_start": 0,
+      "adapter_end": 0
     },
     "primers": {
       "left": {"uni12r": 11},
@@ -111,7 +113,9 @@ barcode02	all	1000	1
         "dimers": 0,
         "too_short": 0,
         "minus_strand": 1,
-        "with_internal_match": 0
+        "with_internal_match": 0,
+        "adapter_start": 0,
+        "adapter_end": 0
       },
       "primers": {
         "left": {"uni12r": 6},
@@ -139,7 +143,9 @@ barcode02	all	1000	1
         "dimers": 1,
         "too_short": 1,
         "minus_strand": 1,
-        "with_internal_match": 0
+        "with_internal_match": 0,
+        "adapter_start": 0,
+        "adapter_end": 0
       },
       "primers": {
         "left": {"uni12r": 5},

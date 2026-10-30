@@ -131,3 +131,14 @@
   description: "segment <n>" or a gene or protein name) in the warning
   of the short amplicons, in the HTML report and in the JSON summary
   (references: segment, gene)
+- adapter search (--adapters, default nb,rbk,lsk): at a read end
+  without a primer, the adapters of Oxford Nanopore (native barcoding,
+  rapid barcoding, ligation; sequences of Dorado, the barcode as Ns) are
+  searched with the adaptor search of Lumipore (src/adaptor-search.c)
+  and removed with everything outside them; the part between them is
+  analyzed again, a primer next to an adapter removed as well; tags a5
+  and a3, counts in the JSON summary (adapter_start, adapter_end) and in
+  the HTML report; on the simulated barcoded reads, 698 adapter bases
+  left instead of 28539, 1019 primer bases instead of 2221
+- scripts/add-adapters.py and testdata/adapters.fastq: reads with
+  adapters, for the program tests adapters and no_adapters

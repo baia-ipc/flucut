@@ -1,0 +1,125 @@
+exit status: 0
+== messages ==
+SUCCESS | OUTDIR/adapters.fastq.gz: 8 of 8 reads written (6 with both primers, 2 with one, 0 with none; 0 too short, of which 0 dimers)
+SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_summary.json
+== adapters.fastq.gz ==
+md5: 8e0b33c234d5f6303f55558054056a45
+@full_plus_broken simulated, with adapters	fs:Z:+	fr:Z:mbtuni-13	tl:i:46	tr:i:68	a5:Z:nb
+1705 GGGGAATTACTTAAC...AACATTTGTATATAA
+@full_plus_lsk simulated, with adapters	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:39	tr:i:68
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
+@full_minus_broken simulated, with adapters	fs:Z:-	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:59	tr:i:57
+1703 TTATATACAAATGTT...TAGTTAAGTAATTCC
+@full_minus_lsk simulated, with adapters	fs:Z:-	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:50	tr:i:57
+1703 TTATATACAAATGTT...TAGTTAAGTAATTCC
+@flanked_plus_broken simulated, with adapters	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:63	tr:i:78
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
+@flanked_plus_lsk simulated, with adapters	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:54	tr:i:78
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
+@errors_plus_broken simulated, with adapters	fs:Z:+	fr:Z:mbtuni-13	tl:i:46	tr:i:69	a5:Z:nb
+1704 GGGGAATTACTTAAC...CAACATTTGTATATA
+@errors_plus_lsk simulated, with adapters	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:39	tr:i:69
+1702 GGAATTACTTAACTA...CAACATTTGTATATA
+== summary.tsv ==
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete
+adapters	8	14566	8	13626	6	2	0	2	0	0	0	NA	NA	NA	NA	NA	NA	NA
+== lengths.tsv ==
+output	group	length	reads
+adapters	all	1700	6
+== flucut_summary.json ==
+{
+  "format": 1,
+  "program": "flucut",
+  "version": "0.1",
+  "updated": "DATE",
+  "running": false,
+  "command": "bin/flucut -o OUTDIR testdata/adapters.fastq",
+  "scheme": {
+    "name": "uni12-mbt13",
+    "left": ["uni12r"],
+    "right": ["mbtuni-13"]
+  },
+  "trim_policy": "primer",
+  "references": null,
+  "settings": {
+    "max_errors": {"mode": "fixed", "value": 0.2},
+    "window": 100,
+    "min_length": 1,
+    "probe_length": 32,
+    "probe_errors": 0.2,
+    "terminal_window": 60,
+    "exhaustive_search": false,
+    "tags": true,
+    "threads": 4
+  },
+  "length_bin": 10,
+  "length_max": 4000,
+  "short_fraction": 0.9,
+  "all": {
+    "reads": {
+      "in": 8,
+      "bases_in": 14566,
+      "written": 8,
+      "bases_written": 13626,
+      "both_primers": 6,
+      "one_primer": 2,
+      "no_primer": 0,
+      "dimers": 0,
+      "too_short": 0,
+      "minus_strand": 2,
+      "with_internal_match": 0,
+      "adapter_start": 2,
+      "adapter_end": 0
+    },
+    "primers": {
+      "left": {"uni12r": 6},
+      "right": {"mbtuni-13": 8}
+    },
+    "ends": null,
+    "internal_sites": null,
+    "short_complete": null,
+    "complete_amplicons": [
+      {"group": "all", "reference_length": null, "amplicons": 6, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6]}
+    ]
+  },
+  "groups": [
+    {
+      "name": "adapters",
+      "files": 1,
+      "processed": true,
+      "reads": {
+        "in": 8,
+        "bases_in": 14566,
+        "written": 8,
+        "bases_written": 13626,
+        "both_primers": 6,
+        "one_primer": 2,
+        "no_primer": 0,
+        "dimers": 0,
+        "too_short": 0,
+        "minus_strand": 2,
+        "with_internal_match": 0,
+        "adapter_start": 2,
+        "adapter_end": 0
+      },
+      "primers": {
+        "left": {"uni12r": 6},
+        "right": {"mbtuni-13": 8}
+      },
+      "ends": null,
+      "internal_sites": null,
+      "short_complete": null,
+      "complete_amplicons": [
+        {"group": "all", "reference_length": null, "amplicons": 6, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6]}
+      ]
+    }
+  ]
+}
+== flucut_report.html ==
+</html>
+<h2>All reads</h2>
+<h3>Reads at each step</h3>
+<h3>Primers found</h3>
+<h3>Internal priming</h3>
+<h3>Complete amplicons</h3>
+<h3>Lengths of the complete amplicons</h3>

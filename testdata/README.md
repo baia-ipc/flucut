@@ -55,3 +55,14 @@ is not read (a warning is output):
     tail -n +25 testdata/reads.fastq | gzip -n \
         > testdata/fastq_pass/barcode02/part2.fastq.gz
     head -n 4 testdata/reads.fastq > testdata/fastq_pass/beside.fastq
+
+`adapters.fastq`: the first 4 reads, each with the adapters of Oxford
+Nanopore added (native barcode NB01 at the start, the reverse complement
+of its bottom adapter at the end), once without its first 10 bases (the
+read begins inside or after the primer: the adapter is what can be
+found) and once with the ligation adapter instead at the start, no base
+removed (see the script); for the cases `adapters` and `no_adapters`
+(`--adapters none`):
+
+    python3 -I scripts/add-adapters.py testdata/reads.fastq \
+        > testdata/adapters.fastq
