@@ -39,6 +39,9 @@ typedef struct {
   size_t min_length;
   bool tags;
   size_t threads;
+  /* show the banner: not quiet, messages to the standard error, which
+     is a terminal */
+  bool show_banner;
 } options_t;
 
 /*

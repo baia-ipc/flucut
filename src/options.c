@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "options.h"
 #include "argparse-def.h"
 #include "amplicon.h"
@@ -225,6 +226,8 @@ void options_parse(options_t *self, int argc, char *argv[],
               "keep the primer bases (the artefact)");
   self->inputs = argv + optind;
   self->n_inputs = (size_t)(argc - optind);
+  self->show_banner = !quiet && logfile == stderr &&
+                      isatty(fileno(stderr));
   INIT_LOGGER(*logger);
   PARSE_LOG("Inputs: %zu\n", self->n_inputs);
   PARSE_LOG("Output directory: %s\n", self->outdir);

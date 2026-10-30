@@ -75,6 +75,13 @@ $(OBJDIR)/%-html.inc: $(SRCDIR)/%.html $(CBAIA_EMBED) | $(OBJDIR)
 	$(CBAIA_EMBED) $< > $@
 $(OBJDIR)/html-report.o: | $(TEMPLATE_INCS)
 
+# the banner shown in a terminal (docs/logo/flucut-banner.ans), embedded
+# in the same way
+BANNER_INC = $(OBJDIR)/flucut-banner-ans.inc
+$(BANNER_INC): docs/logo/flucut-banner.ans $(CBAIA_EMBED) | $(OBJDIR)
+	$(CBAIA_EMBED) $< > $@
+$(OBJDIR)/banner.o: | $(BANNER_INC)
+
 $(DEPDIR)/%.d: ;
 .PRECIOUS: $(DEPDIR)/%.d
 

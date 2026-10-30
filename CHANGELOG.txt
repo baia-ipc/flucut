@@ -79,3 +79,5 @@
   primer-like sequence further inside is template): on the benchmark
   reads, fewer template bases removed and fewer primer and flank bases
   left
+- the logo as colored text at the start of a run in a terminal (not
+  with -q, -L, or when the messages are redirected)
