@@ -7,7 +7,9 @@
    buffers, counts), and writes its compressed output in the order of
    the input, waiting for its turn, so that the output does not depend on
    the number of threads. The batches have WORKER_BATCH_SIZE reads, each
-   compressed as a gzip member of its own.
+   compressed (with libdeflate) as a gzip member of its own; the
+   concatenation of the members is a valid gzip file, also when a file is
+   appended to (live mode).
 */
 
 #ifndef WORKER_H
@@ -17,7 +19,7 @@
 #include <stddef.h>
 #include "counter.h"
 #include "fastq-reader.h"
-#include "gzip-compressor.h"
+#include "libdeflate.h"
 #include "logger.h"
 #include "strbuf.h"
 #include "trimmer.h"
@@ -34,7 +36,7 @@ typedef struct worker_job_t worker_job_t;
 typedef struct {
   worker_job_t *job;
   trimmer_t *trimmer;
-  gzip_compressor_t *compressor;
+  struct libdeflate_compressor *compressor;
   counter_t *counts;
   fastq_batch_t batch;
   strbuf_t text, gz;
