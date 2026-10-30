@@ -21,24 +21,11 @@ support the trimming; they are not the purpose of the program.
   IRMA-core trimmer leaves many primers. To measure where the template
   matters: low coverage, variant frequencies.
 
-- **Per-barcode outputs of a MinKNOW run directory**: today a directory
-  is one sample; a run directory (`fastq_pass/barcodeNN/`) should give
-  one output per barcode, without listing the barcodes.
 - **`-e auto`**: the primer error rate estimated from the first reads.
 - **Errors next to a primer**: with a substitution right next to a
   primer, the alignment can extend over it and remove one template base
   (seen in the program tests, read `errors_plus`). Small; to be weighed
   against the remnants left by a tighter alignment, in the benchmark.
-- **Internal priming sites**: the counts of `summary.tsv` per end and
-  origin exist; the sites themselves (reference and position, with
-  their number of reads) still have to be collected for the report.
-- **HTML report, always written** (self-contained, light and dark, no
-  internet): run parameters, reads at each step, reads per sample and
-  per segment, primers found per segment and end (whole, partial,
-  missing), the internal priming sites with their share of the reads,
-  remnants, read lengths before and after trimming.
-- **JSON summary**, same content, versioned format, written to a
-  temporary file and renamed.
 - **Live mode** `--live`: follow a MinKNOW run while it is sequencing
   (`--min-age`, `--scan-interval`, `--resume`, end of the run from the
   final summary file, barcode directories appearing during the run);
@@ -48,6 +35,12 @@ support the trimming; they are not the purpose of the program.
   report at the end of the run. Test: a fast replay
   (`--scan-interval 0.05`) whose outputs must be identical to those of
   a normal run on the same reads.
+  The report model (`report.h`: refresh, running, dashboard, the
+  settings decided automatically) and the worker threads are ready for
+  it; the dashboard itself is still to be written.
+- **Report, next**: the remnants (primer bases left), the read lengths
+  before and after the trimming, the primers found whole or partial,
+  per segment; a mark of the internal sites in the length histograms.
 
 ## Benchmark
 
@@ -76,9 +69,9 @@ support the trimming; they are not the purpose of the program.
 - **Start contexts**: group the reads by the bases which follow the 5'
   primer and rank the groups; a second reference-free cross-check, next
   to the length check (`lengths.tsv`), for the report.
-- **Length check in the report**: a plot of `lengths.tsv` per segment
-  in the HTML report; the expected length of a segment without
-  references (today only the peaks are listed).
+- **Length check without references**: the expected length of a
+  segment (today only the peaks are listed, in the log; the report has
+  one histogram of all lengths).
 - **Concatemers**: several amplicons in one read, split into separate
   reads; chimeras (amplicons of different segments joined). The internal
   matches already found are their junctions.
@@ -102,8 +95,8 @@ support the trimming; they are not the purpose of the program.
 
 ## Documentation
 
-- Manual (`docs/manual`, `manual/flucut-manual.pdf`): the chapters of
-  the reports and of the live mode, when they exist; the results of all
+- Manual (`docs/manual`, `manual/flucut-manual.pdf`): the chapter of
+  the live mode, when it exists; the results of all
   the tools of the benchmark in the performance chapter.
 - Developer guide (`docs/dev_manual.md`).
 

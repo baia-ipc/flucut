@@ -141,6 +141,14 @@ Outputs:
   references, each reference with such amplicons and the length where
   most of them are; without references, it lists the peaks of the
   lengths.
+- `flucut_report.html`: the HTML report, self-contained (inline SVG
+  plots, light and dark themes): the run parameters and, for all reads
+  and for each group, the reads at each step, the primers found at each
+  end, with references the internal priming sites with their reads, the
+  complete amplicons shorter than 90% of their reference and the
+  histograms of the lengths.
+- `flucut_summary.json`: the same content for programs, in a versioned
+  format (`docs/json_summary.md`).
 
 ## Manual
 
@@ -166,8 +174,9 @@ Early development. Implemented and tested: the built-in primers and
 schemes, the search of the primers (degenerate bases, partial primers
 at the read ends), the trimming of a read, the classification of the
 read ends against references, and the command line program with its
-gzipped FASTQ output and summary table. The benchmark, the HTML report
-and the live mode are next.
+gzipped FASTQ output, summary table, HTML report and JSON summary, the
+groups of input files (MinKNOW barcode directories) and the worker
+threads. The live mode and `-e auto` are next.
 
 ## License
 
