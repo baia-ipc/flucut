@@ -58,6 +58,7 @@ barcode02	all	1000	1
   "references": null,
   "settings": {
     "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0146, "reads": 6, "file": "testdata/fastq_pass/barcode01/part1.fastq"},
+    "platform": "nanopore",
     "window": 100,
     "min_length": 1,
     "probe_length": 32,

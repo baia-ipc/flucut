@@ -43,6 +43,7 @@ adapters	all	1700	6
   "references": null,
   "settings": {
     "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0242, "reads": 8, "file": "testdata/adapters.fastq"},
+    "platform": "nanopore",
     "window": 100,
     "min_length": 1,
     "probe_length": 32,

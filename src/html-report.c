@@ -412,7 +412,8 @@ static void write_parameters(html_writer_t *w, const report_t *r) {
                 "n_references", n_refs,
                 "no_references", r->references == NULL ? "" : NULL);
   write_max_errors(w, r);
-  html_template(w, options_tmpl, "window", window,
+  html_template(w, options_tmpl, "platform",
+                o->illumina ? "illumina" : "nanopore", "window", window,
                 "min_length", min_length,
                 "probe", r->references != NULL ? probe : NULL,
                 "probe_errors", probe_errors,

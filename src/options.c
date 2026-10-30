@@ -32,6 +32,7 @@ enum {
   OPT_SCAN_INTERVAL,
   OPT_RESUME,
   OPT_COMPRESS_LEVEL,
+  OPT_PLATFORM,
 };
 
 #define PURPOSE "Remove the primers of the influenza A multisegment " \
@@ -69,9 +70,16 @@ enum {
   "                          first reads have at least " \
   XSTR(AUTO_MAX_ERRORS_HIGH_RATE) " errors per\n" \
   "                          base (default: auto)\n" \
+  "   -p, --platform <p>     nanopore (default): whole amplicons, with\n" \
+  "                          flanks and adapters before the primers;\n" \
+  "                          illumina: fragments of the amplicons (e.g.\n" \
+  "                          tagmentation), the primer only at the read\n" \
+  "                          start: window " XSTR(OPTIONS_ILLUMINA_WINDOW) \
+  ", adapters none\n" \
   "   -w, --window <n>       a primer must lie within <n> bases of its\n" \
   "                          end of the read (default: " \
-  XSTR(AMPLICON_DEFAULT_WINDOW) ")\n" \
+  XSTR(AMPLICON_DEFAULT_WINDOW) "; illumina: " \
+  XSTR(OPTIONS_ILLUMINA_WINDOW) ")\n" \
   "   -m, --min-length <n>   shorter reads after trimming are not\n" \
   "                          written (default: " \
   XSTR(OPTIONS_DEFAULT_MIN_LENGTH) ")\n" \
@@ -170,6 +178,8 @@ void options_parse(options_t *self, int argc, char *argv[],
   self->min_length = OPTIONS_DEFAULT_MIN_LENGTH;
   self->tags = true;
   self->adapters = ADAPTERS_DEFAULT;
+  self->illumina = false;
+  bool window_given = false, adapters_given = false;
   self->live = false;
   self->live_timeout = 0;
   self->live_min_age = OPTIONS_DEFAULT_MIN_AGE;
@@ -183,6 +193,7 @@ void options_parse(options_t *self, int argc, char *argv[],
     {"outdir", required_argument, NULL, 'o'},
     {"scheme", required_argument, NULL, 's'},
     {"trim", required_argument, NULL, 'T'},
+    {"platform", required_argument, NULL, 'p'},
     {"references", required_argument, NULL, 'r'},
     {"max-errors", required_argument, NULL, 'e'},
     {"window", required_argument, NULL, 'w'},
@@ -206,7 +217,7 @@ void options_parse(options_t *self, int argc, char *argv[],
   int c;
   double x;
   opterr = 0;
-  while ((c = getopt_long(argc, argv, COMMON_OPTS_STR "o:s:T:r:e:w:m:j:",
+  while ((c = getopt_long(argc, argv, COMMON_OPTS_STR "o:s:T:r:e:w:m:j:p:",
                           longopts, NULL)) != -1) {
     switch (c) {
       case 'o':
@@ -244,6 +255,15 @@ void options_parse(options_t *self, int argc, char *argv[],
         break;
       case 'w':
         PARSE_INTEGER_OPT_MIN(c, &self->window, 0);
+        window_given = true;
+        break;
+      case 'p':
+        if (strcmp(optarg, "nanopore") == 0)
+          self->illumina = false;
+        else if (strcmp(optarg, "illumina") == 0)
+          self->illumina = true;
+        else
+          OPT_ERR(c, "nanopore or illumina expected ('%s' found)", optarg);
         break;
       case 'm':
         PARSE_INTEGER_OPT_MIN(c, &self->min_length, 1);
@@ -301,6 +321,7 @@ void options_parse(options_t *self, int argc, char *argv[],
                     ADAPTERS_KITS ", or none, expected ('%s' found)",
                     optarg);
         self->adapters = optarg;
+        adapters_given = true;
         break;
       case OPT_EXHAUSTIVE:
         self->exhaustive_search = true;
@@ -337,6 +358,11 @@ void options_parse(options_t *self, int argc, char *argv[],
     PARSE_ERR("--trim terminus requires --references: without them the "
               "internally primed reads cannot be recognised, and would "
               "keep the primer bases (the artefact)");
+  /* the settings of the platform, unless given */
+  if (self->illumina && !window_given)
+    self->window = OPTIONS_ILLUMINA_WINDOW;
+  if (self->illumina && !adapters_given)
+    self->adapters = "none";
   /* the options of the live mode require it */
   if (timeout_given && !self->live)
     PARSE_ERR("Option '--timeout': the live mode (--live) is required");
@@ -370,6 +396,7 @@ void options_parse(options_t *self, int argc, char *argv[],
     PARSE_LOG("Errors in a primer: auto\n");
   else
     PARSE_LOG("Errors in a primer: %g\n", self->max_errors);
+  PARSE_LOG("Platform: %s\n", self->illumina ? "illumina" : "nanopore");
   PARSE_LOG("Window: %ld\n", self->window);
   PARSE_LOG("Minimum length: %zu\n", self->min_length);
   PARSE_LOG("Adapters: %s\n", self->adapters);

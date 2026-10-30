@@ -32,6 +32,7 @@ Settings:
 | key | type | description |
 |---|---|---|
 | `max_errors` | object | the errors allowed in a primer (`-e`): `mode` (`"fixed"`), `value` (below 1: a fraction of the length of the primer, otherwise a number of bases) |
+| `platform` | string | `-p`: `"nanopore"` or `"illumina"` |
 | `window` | integer | `-w`: a primer must lie within this many bases of its end of the read |
 | `min_length` | integer | `-m`: shorter reads after the trimming are not written |
 | `probe_length`, `probe_errors`, `terminal_window`, `exhaustive_search` | integer, number, integer, boolean | the options of the classification against the references (used only with `-r`) |

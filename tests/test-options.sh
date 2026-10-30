@@ -47,6 +47,7 @@ expect 1 -e autox "$reads"
 expect 1 -w -1 "$reads"
 expect 1 -m 0 "$reads"
 expect 1 -j 0 "$reads"
+expect 1 -p pacbio "$reads"
 expect 1 --adapters nb,xx "$reads"
 # live mode: its options require it, its inputs must be directories
 expect 1 --timeout 5m testdata/fastq_pass

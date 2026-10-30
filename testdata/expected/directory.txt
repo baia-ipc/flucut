@@ -82,6 +82,7 @@ reads	all	1700	5
   "references": null,
   "settings": {
     "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0146, "reads": 6, "file": "testdata/barcode01/part1.fastq"},
+    "platform": "nanopore",
     "window": 100,
     "min_length": 1,
     "probe_length": 32,
