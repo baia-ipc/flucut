@@ -5,7 +5,9 @@ Without arguments, checks offline the esearch terms built for the
 eight influenza A segments: each segment is queried by gene names
 which NCBI uses (segment 7 by M1/M2, segment 8 by NS1/NEP/NS2, as
 MP[Gene] and NS[Gene] match no RefSeq record), and the --subtype and
---refseq-only terms are kept.
+--refseq-only terms are kept; and, with a simulated server, that a
+request answered by HTTP 429 (too many requests) is retried with
+backoff, honoring Retry-After, and that other errors are not retried.
 
 With --live, also downloads the RefSeq references of all eight
 segments from NCBI (network access required, through HTTPS_PROXY if
@@ -18,10 +20,13 @@ Usage (from the repository root):
   python3 -I tests/test-fetch-references.py --live    # also NCBI
 """
 
+import email.message
 import importlib.util
+import io
 import os
 import sys
 import tempfile
+import urllib.error
 
 SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                       "..", "scripts", "fetch_references.py")
@@ -66,6 +71,69 @@ def test_queries(fr):
   check(fr.resolve_segments("ns") == ["NS"], "lowercase segment name")
 
 
+class FakeOpener:
+  """An opener answering with the given HTTP error codes, then "ok"."""
+
+  def __init__(self, codes, retry_after=None):
+    self.codes = list(codes)
+    self.retry_after = retry_after
+    self.calls = 0
+
+  def open(self, req, timeout=None):
+    self.calls += 1
+    if self.codes:
+      headers = email.message.Message()
+      if self.retry_after is not None:
+        headers["Retry-After"] = self.retry_after
+      raise urllib.error.HTTPError(req.full_url, self.codes.pop(0),
+                                   "error", headers, None)
+    return io.BytesIO(b"ok")
+
+
+def with_opener(fr, opener, url="https://example.org/"):
+  """Run http_get with the opener, without sleeping.
+
+  Returns the result (or the HTTPError raised) and the waits.
+  """
+  waits = []
+  saved = (fr.urllib.request.build_opener, fr.time.sleep, fr.log)
+  fr.urllib.request.build_opener = lambda *handlers: opener
+  fr.time.sleep = waits.append
+  fr.log = lambda msg: None
+  try:
+    try:
+      return fr.http_get(url), waits
+    except urllib.error.HTTPError as err:
+      return err, waits
+  finally:
+    (fr.urllib.request.build_opener, fr.time.sleep, fr.log) = saved
+
+
+def test_retry(fr):
+  """The retries of the requests answered by HTTP 429."""
+  n = len(fr.RETRY_WAITS)
+  result, waits = with_opener(fr, FakeOpener([429, 429]))
+  check(result == b"ok" and waits == fr.RETRY_WAITS[:2],
+        "429 twice: result %r, waits %r" % (result, waits))
+  opener = FakeOpener([429] * (n + 1))
+  result, waits = with_opener(fr, opener)
+  check(isinstance(result, urllib.error.HTTPError) and result.code == 429
+        and waits == fr.RETRY_WAITS and opener.calls == n + 1,
+        "429 always: result %r, waits %r" % (result, waits))
+  result, waits = with_opener(fr, FakeOpener([429], retry_after="7"))
+  check(result == b"ok" and waits == [7],
+        "Retry-After 7: result %r, waits %r" % (result, waits))
+  result, waits = with_opener(fr, FakeOpener([429], retry_after="9999"))
+  check(waits == [fr.MAX_RETRY_WAIT], "Retry-After 9999: waits %r" % waits)
+  result, waits = with_opener(fr, FakeOpener([429], retry_after="soon"))
+  check(waits == fr.RETRY_WAITS[:1], "Retry-After soon: waits %r" % waits)
+  opener = FakeOpener([500])
+  result, waits = with_opener(fr, opener)
+  check(isinstance(result, urllib.error.HTTPError) and result.code == 500
+        and waits == [] and opener.calls == 1,
+        "500: result %r, waits %r" % (result, waits))
+
+
 def test_live(fr):
   """Download the RefSeq references of all segments from NCBI."""
   # the records downloaded for each segment
@@ -107,6 +175,7 @@ def test_live(fr):
 def main():
   fr = load_script()
   test_queries(fr)
+  test_retry(fr)
   if "--live" in sys.argv[1:]:
     test_live(fr)
     print("[OK] fetch_references (with the NCBI download)")

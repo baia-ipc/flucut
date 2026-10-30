@@ -34,6 +34,10 @@
   them, instead of MP[Gene] and NS[Gene], which matched no record: with
   --segment all, they were silently left out; test of the queries in
   make test (tests/test-fetch-references.py, --live for the download)
+- scripts/fetch_references.py: a request answered by HTTP 429 (too many
+  requests) is retried up to 5 times, with exponential backoff (1, 2, 4,
+  8, 16 s) or the wait of the Retry-After header if longer (at most
+  60 s), instead of stopping the download
 - classification of a read against the references: the bases after the
   primer of each end are located in the segments (both strands, with
   errors and IUPAC codes); at a terminus the read is a normal amplicon,
