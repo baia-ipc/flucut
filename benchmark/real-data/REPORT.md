@@ -1,4 +1,4 @@
-# flucut real-data search — Nanopore only (in progress)
+# flucut real-data search — Nanopore only
 
 All queries, downloads and runs recorded. GISAID not used (not accessible).
 Date of work: 2026-10-30. Attribution: H5N1 HA "I348K" (GLFGAIAG→GLFGAKAG)
@@ -40,27 +40,49 @@ the artefact *in its reads* while its deposited/QC'd consensus reads Ile,
 or while no consensus was deposited. That is Step 3–4, below, and is the
 point of checking reads directly with flucut.)
 
-## Step 4 (next): Nanopore Uni12/Uni13 multisegment RT-PCR read datasets
+## Step 4: Nanopore Uni12/Uni13 reads checked directly — artefact FOUND in reads
 
-3232 of the 4123 Nanopore runs are AMPLICON or RT-PCR/PCR selection —
-candidate multisegment RT-PCR data to check directly with flucut even
-without a deposited K consensus. Largest projects (out/nanopore_runs.tsv):
+Protocol screen (SRA experiment XML, ENA) of the H5 Nanopore amplicon
+projects: **PRJNA1406649** (Cornell University, "Oxford Nanopore
+sequencing of Highly Pathogenic Avian Influenza H5N1 reporter viruses",
+clade 2.3.4.4b; design: "MBTUni Primers were used to Amplify all 8
+segments", SQK-LSK109; 6 runs, SRR39646234-SRR39646239) uses the
+Uni12/Uni13 (MBTuni) multisegment RT-PCR. Others looked at: PRJNA1312032
+(Penn State, retail milk, no primer stated), PRJEB79943 (Bern, mRT-PCR,
+2 H5N1 runs, not yet checked), PRJNA1173216 (USDA, SISPA, not Uni12).
 
-| runs | BioProject | center |
+Two smallest Cornell runs were downloaded (ENA) and the HA site counted
+in the raw reads (scripts/count_codon_nanopore.py, exact match on the 12
+template bases downstream of the Uni12-like site, both strands; the
+site is HA nt 1050 of PX279898.1, codon nt 1054-1056). Reads are split
+by whether the site lies at the read start (<= 60 bases: internal
+priming) or inside the read (the read spans it: the template).
+
+| run | site at read start: AAA / ATA | read spans site: AAA / ATA |
 |---|---|---|
-| 1068 | PRJEB56915 | University of Oxford |
-| 998 | PRJNA1213174 | Hong Kong Polytechnic University |
-| 200 | PRJNA1456957 | Public Health Agency of Canada |
-| 144 | PRJEB79943 | Inst. for Infectious Diseases, Bern |
-| 61 | PRJNA1153990 | CDC-FLU |
-| 41 | PRJNA1114404 | Cornell University |
+| SRR39646237 (12,532 reads) | 512 / 5 | 9 / 837 |
+| SRR39646239 (15,482 reads) | 122 / 4 | 3 / 508 |
 
-To do: identify which use Uni12/Uni13 (MBTuni) multisegment RT-PCR, pick
-1–2 small H5N1 runs, run `flucut -r <refs>`, and count reads starting at
-the site (primer `AAA`) vs reads spanning it (`ATA`).
+Reads spanning the site carry the template codon ATA (Ile); reads that
+start at the site carry AAA (Lys), the primer's own bases. This is the
+artefact in raw Nanopore reads. flucut (`-r isolate.fasta`, default
+`--trim primer`) reports an HA length peak at ~600 bases (internally
+primed amplicons from the site to the 3' end) and 1661 / 490
+left-internal reads (summary.tsv).
+
+Caveat: the reference used for flucut and the count is PX279898.1
+(H5N1 cattle isolate, carries AAA); the isolates of the Cornell runs
+are reporter viruses (NS reporter) of the same clade, so the site
+flank matches exactly. The effect on a consensus (IRMA untrimmed vs
+trimmed) was not run here (no IRMA in this container).
+
+**Candidate benchmark data: SRR39646237 and SRR39646239 (PRJNA1406649,
+Nanopore, H5N1, Uni12/Uni13).**
 
 ## Files
 - out/nanopore_runs.tsv — merged SRA runinfo (4123 runs)
 - out/motif_hits.tsv — all 243 motif-covering consensus records + residue
 - scripts/ — all scripts (runinfo, elink, esearch, efetch, screen)
+- out/cornell_codon_counts.tsv — codon counts of step 4
+- out/cornell_PRJNA1406649_ena.tsv — ENA run list of PRJNA1406649
 - dl/ — downloaded data (gitignored)
