@@ -25,7 +25,9 @@ void worker_init(worker_t *w, const trimmer_config_t *config) {
   assert(config != NULL);
   w->job = NULL;
   w->trimmer = trimmer_new(config);
-  w->compressor = gzip_compressor_new(WORKER_COMPRESS_LEVEL);
+  w->compressor = libdeflate_alloc_compressor(WORKER_COMPRESS_LEVEL);
+  if (w->compressor == NULL)
+    fatal_printf("Initialization of the gzip compression failed\n");
   w->counts = counter_new(config->scheme, config->references);
   fastq_batch_init(&w->batch);
   strbuf_init(&w->text);
@@ -34,11 +36,26 @@ void worker_init(worker_t *w, const trimmer_config_t *config) {
 
 void worker_free(worker_t *w) {
   trimmer_delete(w->trimmer);
-  gzip_compressor_delete(w->compressor);
+  libdeflate_free_compressor(w->compressor);
   counter_delete(w->counts);
   fastq_batch_free(&w->batch);
   strbuf_free(&w->text);
   strbuf_free(&w->gz);
+}
+
+/*
+   Compress <len> bytes of <data> as a gzip member, appended to <out>
+   (in a space of the size of the bound of libdeflate: the compression
+   cannot fail for lack of space)
+*/
+static void worker_compress(struct libdeflate_compressor *compressor,
+    const char *data, size_t len, strbuf_t *out) {
+  size_t bound = libdeflate_gzip_compress_bound(compressor, len);
+  char *dest = strbuf_reserve(out, bound);
+  size_t n = libdeflate_gzip_compress(compressor, data, len, dest, bound);
+  if (n == 0)
+    fatal_printf("gzip compression failed\n");
+  strbuf_commit(out, n);
 }
 
 /*
@@ -61,7 +78,7 @@ static void *worker_run(void *data) {
     strbuf_clear(&w->gz);
     trimmer_run(w->trimmer, &w->batch, 0, n, &w->text, w->counts);
     if (w->text.len > 0)
-      gzip_compressor_run(w->compressor, w->text.s, w->text.len, &w->gz);
+      worker_compress(w->compressor, w->text.s, w->text.len, &w->gz);
     pthread_mutex_lock(&job->output_mutex);
     while (job->next_to_write != batch_num)
       pthread_cond_wait(&job->output_cond, &job->output_mutex);
