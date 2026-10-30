@@ -1,0 +1,15 @@
+<!-- (c) 2026 Giorgio Gonnella -->
+<!-- left column of the head of a report with a logo -->
+<!-- (html_page_start_logo()) -->
+<div class="brand">
+  <h1 class="logo">
+    <picture>
+      {{#logo_dark}}
+      <source media="(prefers-color-scheme: dark)" srcset="{{logo_dark}}">
+      {{/logo_dark}}
+      <img src="{{logo}}" alt="{{logo_alt}}" height="{{logo_height}}">
+    </picture>
+    <span>{{heading}}</span>
+  </h1>
+  <p class="sub updated">Updated: {{updated}}</p>
+</div>
