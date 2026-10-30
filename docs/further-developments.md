@@ -5,28 +5,29 @@ work is planned.
 
 ## Next
 
-- **Start contexts** (the main measure of internal priming, see
-  `docs/internal-priming.md`): group the reads of a run by the bases
-  which follow the trimmed 5' primer and rank the groups, so that the
-  starts of the real amplicons separate from the internal ones without
-  any reference sequence; report the unexpected groups with their
-  sequence and their share of the reads. Needs the counting pipeline.
 - **Command line program** (`src/options.c`, `src/flucut.c`): inputs
-  (FASTQ/BAM, files, directories, MinKNOW run directories), `--trim
-  primer|terminus`, `-e auto` (errors from the first reads), minimum
-  length after trimming, threads, output directory, the banner and the
-  logo.
+  (FASTQ/BAM, files, directories, MinKNOW run directories), the
+  references (`--references`, required: flucut refuses to run without
+  them), `--trim terminus|primer` (default `terminus`, now that the
+  internally primed reads are recognised), the probe length, its error
+  rate and the terminal window of the classification, `-e auto` (errors
+  from the first reads), minimum length after trimming, threads, output
+  directory, the banner and the logo.
 - **Output of the trimmed reads**: FASTQ (gzip) ready for IRMA, with
-  what was found and removed at each end written in the read title as
-  SAM-like tags; per sample/barcode when the input is a MinKNOW run
-  directory.
+  what was found and removed at each end, and the origin of each end
+  (terminal, internal, unclassified, with the reference and position),
+  written in the read title as SAM-like tags; per sample/barcode when
+  the input is a MinKNOW run directory.
 - **Counting and statistics**: reads at each step, per end and per
-  variant of the primer, primer and tail remnants, artefacts.
+  variant of the primer, primer and tail remnants, and the origin of
+  the ends: internally primed reads per reference and per position
+  (the sites), and unclassified ends (a reference set which does not
+  fit the run).
 - **HTML report, always written** (self-contained, light and dark, no
   internet): run parameters, reads at each step, reads per sample and
   per segment, primers found per segment and end (whole, partial,
-  missing), remnants, artefacts, read lengths before and after
-  trimming.
+  missing), the internal priming sites with their share of the reads,
+  remnants, read lengths before and after trimming.
 - **JSON summary**, same content, versioned format, written to a
   temporary file and renamed.
 - **Live mode** `--live`: follow a MinKNOW run while it is sequencing
@@ -41,12 +42,22 @@ work is planned.
 
 ## Trimming and detection
 
+- **Is it only HA?** Run the classification on real data against the
+  references of all eight segments and report the internal sites found
+  per segment and per primer (Uni12 and Uni13); extend the defaults if
+  sites appear outside HA. Not yet measured.
+- **Choice of the references for a run**: a default set from
+  `scripts/fetch_references.py` covering the subtypes seen at the
+  institute, and a check that the unclassified ends stay rare with it.
+- **Speed of the classification**: each end is aligned to every
+  reference (both strands); with many references, a k-mer prefilter
+  could select the candidates. Measure first.
+- **Start contexts**: group the reads by the bases which follow the 5'
+  primer and rank the groups; a reference-free cross-check of the
+  classification, for the report.
 - **Concatemers**: several amplicons in one read, split into separate
   reads; chimeras (amplicons of different segments joined). The internal
   matches already found are their junctions.
-- **Classification of the read starts against references** (optional,
-  the most direct measure of internal priming when the segment
-  references of the run are at hand).
 - **Sequencing adapters** left by the basecaller, searched outside the
   primers.
 - **Barcoded primers**: a barcode between the adapter and the primer,
@@ -56,12 +67,6 @@ work is planned.
 - **User-defined schemes** (YAML): the tail, the adapter and the
   barcodes can be changed; the conserved termini cannot, as they are the
   binding sites on the segments.
-- **Segment of a read**: which of the eight segments and which end a
-  read covers, for the report (not needed for the trimming itself).
-- **Padding of the termini**: with the default trimming the consensus is
-  shorter than the segment at both ends; an option could write the
-  termini as N, for the programs which expect complete ends (e.g. the
-  FLU-utr module of IRMA). To be decided with the users.
 
 ## Illumina (second phase)
 
@@ -86,8 +91,9 @@ work is planned.
 
 ## Documentation
 
-- Sphinx manual, with the primers and their sources, the trimming
-  policies and what the consensus termini then contain.
+- Sphinx manual, with the primers and their sources, the
+  classification against the references, the trimming policies and
+  what the consensus termini then contain.
 - Developer guide (`docs/dev_manual.md`).
 
 ## Open questions
@@ -104,5 +110,7 @@ work is planned.
 ## Checks still to set up
 
 - Program tests (`testdata/cases.tsv`), option validation tests, fuzzing
-  harnesses, continuous integration started manually.
+  harnesses, continuous integration started manually. Until the program
+  and `testdata/` exist, `make test` stops after the style check; the
+  unit tests run with `make test_units`.
 - A review of the code style and of the bugs, with subagents.

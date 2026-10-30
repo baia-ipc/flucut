@@ -23,6 +23,17 @@
 - primer schemes: "uni12-mbt13" (the untailed degenerate Uni12 primer
   and the tailed Uni13 primer) is the default
 - analysis of a read and trimming: both ends and both orientations, the
-  reads are not reverse-complemented; --trim primer (the default)
-  removes all the primer-derived bases, --trim terminus keeps the bases
-  of the conserved termini
+  reads are not reverse-complemented; the policy "terminus" (the
+  default) keeps the bases of the conserved termini, "primer" removes
+  all the primer-derived bases
+- reference sequences: FASTA reader; scripts/fetch_references.py
+  downloads the segment references from NCBI with their provenance
+- classification of a read against the references: the bases after the
+  primer of each end are located in the segments (both strands, with
+  errors and IUPAC codes); at a terminus the read is a normal amplicon,
+  at an interior position it was internally primed; ambiguous reads are
+  classified as terminal
+- trimming decided per read: the conserved termini of the normal
+  amplicons are kept (only tails are removed), the whole primer of an
+  internally primed end is removed; ends which cannot be located in the
+  references are trimmed by the policy and reported as unclassified

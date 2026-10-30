@@ -27,7 +27,7 @@
    primers.h). It can therefore offer a choice which a trimmer that only
    matches a sequence cannot:
 
-   - TRIM_PRIMER (the default): all the primer-derived bases are removed,
+   - TRIM_PRIMER: all the primer-derived bases are removed,
      tail and conserved terminus together. No base of the output comes
      from a primer, so no variant of the consensus at the segment ends
      can come from one. The consensus is then shorter than the segment
@@ -35,10 +35,13 @@
      matters for the programs which expect complete termini (e.g. the
      FLU-utr module of IRMA): the ends are either missing or have to be
      padded.
-   - TRIM_TERMINUS: only the tail (and anything outside the primer) is
-     removed, and the bases of the conserved terminus are kept. The
-     consensus then has complete termini, but the kept bases are those of
-     the primer, not those of the template.
+   - TRIM_TERMINUS (the default of flucut): only the tail (and anything
+     outside the primer) is removed, and the bases of the conserved
+     terminus are kept. The consensus then has complete termini; the kept
+     bases are those of the primer, which at a real terminus are the
+     conserved sequence of the segment. At an internal priming site they
+     are not: such ends are recognised against the references and
+     trimmed whole (see below).
 
    The removal is by position, not by difference: the whole span of the
    primer alignment is removed, whether or not the bases under it differ
@@ -57,18 +60,34 @@
    they carry the sequence of the primer into the consensus, as a
    variant which looks real and is not.
 
-   Two things follow for the trimming:
+   A primer must be searched only near the ends of a read. A match deep
+   inside a read is not the primer which started the amplicon, and
+   trimming there would remove real template. The primer of an end is
+   therefore only accepted within <window> bases of that end.
 
-   - the primer-derived bases of an internally primed read are at the
-     end of the read, exactly as in a read of a real amplicon, so
-     TRIM_PRIMER removes them from both and the wrong bases never reach
-     the consensus. TRIM_TERMINUS, which keeps the bases of the
-     terminus, keeps the wrong bases: it must not be used when internal
-     priming is possible;
-   - a primer must be searched only near the ends of a read. A match
-     deep inside a read is not the primer which started the amplicon,
-     and trimming there would remove real template. The primer of an
-     end is therefore only accepted within <window> bases of that end.
+   The primer-derived bases of an internally primed read are at the end
+   of the read, exactly as in a read of a real amplicon: the two cannot
+   be told apart from the primer alone. TRIM_PRIMER removes the primer
+   from both, at the cost of the termini of every segment; TRIM_TERMINUS
+   keeps the terminus of both, and with it the wrong bases of the
+   internally primed reads. The classification against the references
+   removes the need to choose.
+
+   Classification against the references
+   -------------------------------------
+
+   With the references of the segments (see reference.h), the bases
+   which follow the primer of an end (the probe: for the right end, the
+   reverse complement of the bases before the primer) are located in the
+   segments. If they map at a terminus, the amplicon started there and
+   the end is trimmed by the policy (with TRIM_TERMINUS, the default of
+   flucut, the conserved terminus is kept, so that the consensus has
+   complete ends). If they map to an interior position, the amplicon was
+   internally primed, and the whole primer of that end is removed
+   whatever the policy: only that prefix, the rest of the read being
+   genuine template. An end whose probe is not located (no references,
+   a subtype absent from them, a probe too short) is trimmed by the
+   policy and reported as unknown.
 
    The matches found between the two end primers are reported as
    internal matches: they are the sites at which the primer can anneal,
@@ -82,6 +101,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "primer-search.h"
+#include "reference.h"
 #include "scheme.h"
 
 /* what is removed at the conserved ends (see above) */
@@ -113,11 +133,21 @@ typedef struct {
   long n_errors;
 } amplicon_match_t;
 
+/* where the amplicon started, at one end (see "Classification against
+   the references" above) */
+typedef enum {
+  ORIGIN_UNKNOWN,      /* no references, or the probe was not located */
+  ORIGIN_TERMINAL,     /* at a terminus of a segment: a normal amplicon */
+  ORIGIN_INTERNAL,     /* at an interior position: internal priming */
+} end_origin_t;
+
 /* the primer found at one end of a read */
 typedef struct {
   bool found;
   size_t variant;      /* which primer of that end of the scheme */
   primer_hit_t hit;    /* positions in the analyzed orientation */
+  end_origin_t origin;
+  reference_hit_t ref; /* the location of the probe (if located) */
 } amplicon_end_t;
 
 typedef struct {
@@ -156,6 +186,15 @@ amplicon_analyzer_t* amplicon_analyzer_new(const scheme_t *scheme,
 */
 const amplicon_t* amplicon_analyzer_run(amplicon_analyzer_t *self,
     const char *seq, size_t len);
+
+/*
+   Classify the ends of the reads against the references <refs> (see
+   above); <refs> must exist as long as the analyzer is used, and belongs
+   to the thread of the analyzer (it contains buffers). <terminal_window>:
+   see reference_hit_is_terminal().
+*/
+void amplicon_analyzer_use_references(amplicon_analyzer_t *self,
+    reference_set_t *refs, long terminal_window);
 
 /* Delete an analyzer (NULL is accepted) */
 void amplicon_analyzer_delete(amplicon_analyzer_t *self);
