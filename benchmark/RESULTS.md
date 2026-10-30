@@ -1,5 +1,26 @@
 # Results
 
+## 2026-10-30: flucut with truncated primers at the read ends
+
+The change: at a read end, a primer is also searched without up to half
+of its bases on the outer side (with one error less than its length
+allows), and the outermost match near the end is the primer of that end
+(before: the match with the fewest errors). Same reads and scoring as
+below; flucut before (4e819ae) and after the change, default options:
+
+| flucut | written | template removed | primer kept | flank kept | internal site kept |
+|---|---|---|---|---|---|
+| before | 3177 | 1280 | 3403 | 10247 | 31 |
+| after | 3176 | 882 | 1852 | 7557 | 23 |
+| (cutadapt, below) | 3177 | 102408 | 3037 | 8784 | 25 |
+
+The read not written any more is a primer dimer (no template). A first
+version allowed the truncated primers as many errors as their length
+allows: it removed more template (1910 bases: 8-base truncated forms
+with an error matched by chance inside the template of reads without
+the primer), hence one error less. The time of the run went from 0.7 s
+to 1.3 s (one thread).
+
 ## 2026-10-30: tools compared (simulated reads)
 
 What was run: `benchmark/run-tools.sh` on the 3200 simulated reads of

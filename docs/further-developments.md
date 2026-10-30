@@ -10,12 +10,10 @@ support the trimming; they are not the purpose of the program.
 
 ## Next
 
-- **A partial primer at the read start before a primer-like sequence
-  further in**: reads which begin inside Uni12 and have a Uni12-like
-  sequence within the window lose the template up to it (benchmark: 15
-  internally primed HA reads, about 68 bases each, at HA 1145-1157).
-  Prefer the partial primer at the end, or allow fewer errors further
-  from the end; measure on the benchmark.
+- **Speed of the primer search**: the truncated forms of the primers
+  (see `amplicon.c`) doubled the time of the search (1.3 s instead of
+  0.7 s for 3200 reads, one thread); a single alignment allowing a free
+  start in the primer would replace them.
 - **Benchmark, next** (`benchmark/RESULTS.md`): Barbell with reads
   simulated with kit adapters and barcodes; Porechop_ABI, BBDuk, dorado
   trim and the alignment-based trimmers; lower coverage (where the

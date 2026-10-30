@@ -73,3 +73,9 @@
   shorter than 90% of their reference in summary.tsv (short_complete)
   and in the log, the peaks of the lengths in the log without
   references
+- a primer is also found at a read end when its outer bases are
+  missing (a read beginning inside the primer after a flank), and the
+  outermost match near an end is the primer of that end (a
+  primer-like sequence further inside is template): on the benchmark
+  reads, fewer template bases removed and fewer primer and flank bases
+  left
