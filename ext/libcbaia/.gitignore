@@ -1,0 +1,12 @@
+bin/
+obj/
+lib/
+.d/
+docs/manual/_build/
+docs/manual/examples/readcount
+docs/manual/examples/bcdemux
+docs/manual/examples/logdemo
+docs/manual/examples/htmlreport
+docs/manual/examples/colors
+docs/manual/examples/out/
+__pycache__/

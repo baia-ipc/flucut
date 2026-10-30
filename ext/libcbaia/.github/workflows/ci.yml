@@ -1,0 +1,55 @@
+name: CI
+
+# run only manually (Actions tab, "Run workflow"), to save the Actions
+# minutes of the account; run the tests locally with "make test"
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        libs: [vendored, system]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install valgrind and zlib
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y valgrind zlib1g-dev
+      - name: Build and test
+        run: |
+          OPTS=""
+          if [ "${{ matrix.libs }}" = "system" ]; then OPTS="SYSTEM_LIBS=1"; fi
+          make $OPTS
+          make $OPTS test
+  sanitizers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test with AddressSanitizer and UBSan
+        run: |
+          make VALGRIND= CC=clang \
+            DEBUGFLAGS="-g -O1 -fsanitize=address,undefined -fno-sanitize-recover=undefined" test
+  fuzzing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the clang runtime libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libclang-rt-18-dev
+      - name: Build the fuzzing harnesses
+        run: make fuzz
+      - name: Fuzz each harness for one minute
+        run: |
+          for h in reads bam whitelist; do
+            tests/fuzz/run.sh $h 60 2
+          done
+      - name: Upload crashing inputs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-crashes
+          path: obj/fuzz/crashes-*

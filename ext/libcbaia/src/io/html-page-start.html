@@ -1,0 +1,36 @@
+<!-- (c) 2026 Giorgio Gonnella -->
+<!-- start of the pages of html-page.c, up to the content (in main); -->
+<!-- refresh: maximal interval of the reload (NULL: not reloaded), see -->
+<!-- html_page_start(); updated: the time of writing (a value of the -->
+<!-- script, not escaped there: only digits, -, : and spaces) -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {{#refresh}}
+  <noscript><meta http-equiv="refresh" content="{{refresh}}"></noscript>
+  <script>
+    (function () {
+      var max = {{refresh}}, min = {{min_refresh}}, updated = "{{updated}}",
+          t = min, key = "html_page_reload:" + location.pathname;
+      try {
+        var last = JSON.parse(sessionStorage.getItem(key));
+        if (last)
+          t = last.updated !== updated ? Math.max(min, last.t / 2)
+                                       : Math.min(max, last.t * 2);
+        sessionStorage.setItem(key, JSON.stringify({updated: updated, t: t}));
+      } catch (e) {
+        t = max;
+      }
+      setTimeout(function () { location.reload(); }, t * 1000);
+    })();
+  </script>
+  {{/refresh}}
+  <title>{{title}}</title>
+  <style>
+    {{{css}}}
+  </style>
+</head>
+<body class="{{body_class}}">
+<main>

@@ -1,0 +1,15 @@
+<!-- (c) 2026 Giorgio Gonnella -->
+<!-- left part of the top bar of a dashboard: the logo is optional -->
+<!-- (html_dashboard_start()) -->
+<div class="brand">
+  {{#logo}}
+  <picture>
+    {{#logo_dark}}
+    <source media="(prefers-color-scheme: dark)" srcset="{{logo_dark}}">
+    {{/logo_dark}}
+    <img src="{{logo}}" alt="{{logo_alt}}" height="{{logo_height}}">
+  </picture>
+  {{/logo}}
+  <span>{{heading}}</span>
+  <p class="sub updated">Updated: {{updated}}</p>
+</div>
