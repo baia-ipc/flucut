@@ -15,6 +15,7 @@
 #include "options.h"
 #include "argparse-def.h"
 #include "amplicon.h"
+#include "fasta.h"
 #include "file.h"
 #include "logger.h"
 #include "primer-search.h"
@@ -24,6 +25,8 @@
 /* the directory for temporary files (-T; NULL: a new one, see
    make_tmpdir()) */
 static const char *tmpdir = NULL;
+
+static void run_fasta_test(void) { fasta_test(tmpdir); }
 
 /* a new directory for the temporary files, in $TMPDIR or /tmp (so that
    several runs do not use the same files); <path>: its path */
@@ -69,6 +72,7 @@ static test_group_t test_groups[] = {
   {'s', "the search of a primer in a read", primer_search_test, false},
   {'c', "the primer schemes", scheme_test, false},
   {'a', "the analysis and trimming of a read", amplicon_test, false},
+  {'F', "reading of FASTA files", run_fasta_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 
