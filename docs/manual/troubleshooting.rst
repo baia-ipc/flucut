@@ -39,13 +39,18 @@ Errors in the inputs
    An input which is not a directory must end in ``.fastq``, ``.fq``
    (optionally ``.gz``) or ``.bam``.
 
-``<dir>: no file of reads in the directory``
-   A directory given as input contains no file with these suffixes.
+``No FASTQ or BAM files in the input group <name>`` (warning)
+   A directory given as input, or one of its barcode directories,
+   contains no file with these suffixes: its output is empty.
 
-``<a> and <b>: both would be written to <name>.fastq.gz``
-   Two inputs have the same name (e.g. two directories ``barcode01`` in
-   different runs): trim them in separate runs, with different output
-   directories.
+``The input directory <dir> contains barcode directories and <n> FASTQ or BAM file(s) outside them`` (warning)
+   Only the barcode directories are trimmed; the files beside them are
+   not read.
+
+``The input group name <name> is not unique``
+   Two groups have the same name (e.g. two directories ``barcode01`` in
+   different runs, or a file and a directory with the same name): trim
+   them in separate runs, with different output directories.
 
 ``<file>: the input would be overwritten by the output``
    The output directory is the directory of an input with the same

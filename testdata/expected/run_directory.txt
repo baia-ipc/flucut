@@ -1,0 +1,44 @@
+exit status: 0
+== messages ==
+WARNING | The input directory testdata/fastq_pass contains barcode directories and 1 FASTQ or BAM file outside them (e.g. testdata/fastq_pass/beside.fastq): only the barcode directories are processed
+SUCCESS | OUTDIR/barcode01.fastq.gz: 6 of 6 reads written (6 with both primers, 0 with one, 0 with none; 0 too short, of which 0 dimers)
+SUCCESS | OUTDIR/barcode01.fastq.gz: complete amplicons, lengths between the primers (peaks): 1700-1709 (5) 1000-1009 (1)
+SUCCESS | OUTDIR/barcode02.fastq.gz: 5 of 6 reads written (4 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
+SUCCESS | OUTDIR/barcode02.fastq.gz: complete amplicons, lengths between the primers (peaks): 20-29 (1) 900-909 (1) 1000-1009 (1)
+== barcode01.fastq.gz ==
+md5: c311b36791b450b3545caa85f0767285
+@full_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
+@full_minus simulated	fs:Z:-	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:23	tr:i:12
+1703 TTATATACAAATGTT...TAGTTAAGTAATTCC
+@flanked_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:27	tr:i:33
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
+@errors_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:24
+1702 GGAATTACTTAACTA...CAACATTTGTATATA
+@partial_left simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:7	tr:i:23
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
+@internal12_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
+1003 AAGGCCCCTTGTCAA...AACATTTGTATATAA
+== barcode02.fastq.gz ==
+md5: d414dd0f7059b9fea43446440e728f66
+@internal12_minus simulated	fs:Z:-	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:35	tr:i:12
+1003 TTATATACAAATGTT...TTGACAAGGGGCCTT
+@internal13_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
+900 GGAATTACTTAACTA...AATGTCAGACTGAAA
+@no_primer simulated	fs:Z:.	tl:i:0	tr:i:0
+300 AACAAACTCCACAGA...TTTTAGTTCCGCTAG
+@short_amplicon simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
+20 GGAATTACTTAACTA...TACTTAACTAGCAAA
+@left_only simulated	fs:Z:+	fl:Z:uni12r	tl:i:12	tr:i:0
+500 GGAATTACTTAACTA...TACAGGAGTATGAGA
+== summary.tsv ==
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete
+barcode01	6	9748	6	9517	6	0	0	1	0	0	0	NA	NA	NA	NA	NA	NA	NA
+barcode02	6	2887	5	2723	4	1	1	1	1	1	0	NA	NA	NA	NA	NA	NA	NA
+== lengths.tsv ==
+output	group	length	reads
+barcode01	all	1000	1
+barcode01	all	1700	5
+barcode02	all	20	1
+barcode02	all	900	1
+barcode02	all	1000	1

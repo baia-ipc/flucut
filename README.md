@@ -84,10 +84,13 @@ flucut -o trimmed sample1.fastq.gz barcode02/
 
 Each input is a FASTQ file (optionally gzipped), an unaligned BAM file,
 or a directory of such files (e.g. a barcode directory of a MinKNOW
-run, whose files are merged). The trimmed reads of each input are
-written to `<outdir>/<name>.fastq.gz`, one file per sample, ready for
-IRMA. `<name>` is the file name without its suffix, or the directory
-name. Two inputs with the same name are an error.
+run, whose files are merged); a directory with `barcode*`
+subdirectories (the `fastq_pass` directory of a MinKNOW run) gives one
+group of files for each of them (the files beside them are not read).
+The trimmed reads of each group are written to
+`<outdir>/<name>.fastq.gz`, one file per sample, ready for IRMA.
+`<name>` is the file name without its suffix, or the directory name. Two
+groups with the same name are an error.
 
 The main options (`flucut -h` lists all of them, with their defaults):
 

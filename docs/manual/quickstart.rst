@@ -73,4 +73,11 @@ directories (one output per input):
 
    flucut -o trimmed barcode01/ barcode02/ barcode03/
 
+or the ``fastq_pass`` directory of the run, which gives one output for
+each of its barcode directories:
+
+::
+
+   flucut -o trimmed run/fastq_pass/
+
 and give the outputs to IRMA (:doc:`irma`).

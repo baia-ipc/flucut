@@ -18,6 +18,7 @@
 #include "fasta.h"
 #include "lengths.h"
 #include "file.h"
+#include "input-groups.h"
 #include "logger.h"
 #include "primer-search.h"
 #include "primers.h"
@@ -30,6 +31,7 @@
 static const char *tmpdir = NULL;
 
 static void run_fasta_test(void) { fasta_test(tmpdir); }
+static void run_input_groups_test(void) { input_groups_test(tmpdir); }
 
 /* a new directory for the temporary files, in $TMPDIR or /tmp (so that
    several runs do not use the same files); <path>: its path */
@@ -80,6 +82,7 @@ static test_group_t test_groups[] = {
    false},
   {'t', "the trimming of a batch of reads", trimmer_test, false},
   {'l', "the lengths of the complete amplicons", lengths_test, false},
+  {'g', "the groups of input files", run_input_groups_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 
