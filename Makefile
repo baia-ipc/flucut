@@ -8,6 +8,7 @@ PROGS = $(BINDIR)/flucut $(BINDIR)/fc-tests
 
 .PHONY: default objs install uninstall clean cleanup cleandep cbaia-clean \
         test check_style test_units test_programs test_options test_live \
+        test_scripts \
         manual
 
 # (a failed rule, e.g. the embedding of a template, leaves no partial file)
@@ -146,7 +147,8 @@ VALGRIND = $(if $(shell command -v valgrind),valgrind -q \
            --error-exitcode=$(VALGRIND_EXITCODE) \
            --leak-check=full --errors-for-leak-kinds=definite)
 
-test: check_style $(PROGS) test_units test_programs test_options test_live
+test: check_style $(PROGS) test_units test_programs test_options test_live \
+      test_scripts
 
 # formatting rules of the developer guide (line length, whitespace, file
 # headers, include guards, indentation), for the C sources, the HTML
@@ -178,6 +180,11 @@ test_options: $(BINDIR)/flucut
 # whose outputs must be identical to those of a normal run
 test_live: $(BINDIR)/flucut
 	@tests/test-live.sh $(BINDIR)/flucut "$(VALGRIND)"
+
+# the scripts, offline (the download of the references from NCBI:
+# python3 -I tests/test-fetch-references.py --live)
+test_scripts:
+	@python3 -I tests/test-fetch-references.py
 
 # (a static pattern rule: the implicit rules are not searched for the
 # phony targets)

@@ -44,8 +44,18 @@ from datetime import datetime, timezone
 
 EUTILS_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
 
-# The eight influenza A genome segments, by the gene names NCBI uses.
+# The eight influenza A genome segments, in segment order (1-8).
 SEGMENTS = ["PB2", "PB1", "PA", "HA", "NP", "NA", "MP", "NS"]
+
+# The gene names of the segments whose records NCBI annotates by the
+# names of their genes rather than of the segment: segment 7 (MP)
+# encodes M1 and M2, segment 8 (NS) NS1 and NEP (formerly NS2);
+# MP[Gene] and NS[Gene] match none of the RefSeq records. The other
+# segments are queried by their own name.
+GENE_ALIASES = {
+  "MP": ["M1", "M2"],
+  "NS": ["NS1", "NEP", "NS2"],
+}
 
 # Be polite to NCBI: at most ~3 req/s without a key, ~10 with a key.
 # We sleep a little more than the minimum to stay well within limits.
@@ -62,11 +72,23 @@ def log(msg):
   sys.stderr.flush()
 
 
+def gene_term(segment):
+  """The esearch term selecting the records of the genes of a segment.
+
+  For example HA[Gene], or (M1[Gene] OR M2[Gene]) for MP.
+  """
+  genes = GENE_ALIASES.get(segment)
+  if genes is None:
+    return "%s[Gene]" % segment
+  return "(%s)" % " OR ".join("%s[Gene]" % g for g in genes)
+
+
 def build_query(segment, subtype, refseq_only):
   """Build the esearch term for one influenza A segment.
 
   The base query restricts to influenza A virus nucleotide records
-  for the given gene (segment). Example resulting term:
+  for the genes of the given segment (see gene_term()). Example
+  resulting term:
 
     Influenza A virus[Organism] AND HA[Gene] AND refseq[filter]
 
@@ -76,7 +98,7 @@ def build_query(segment, subtype, refseq_only):
   set when ``--refseq-only`` is requested.
   """
   parts = ['Influenza A virus[Organism]']
-  parts.append('%s[Gene]' % segment)
+  parts.append(gene_term(segment))
   if subtype:
     parts.append('%s' % subtype)
   if refseq_only:

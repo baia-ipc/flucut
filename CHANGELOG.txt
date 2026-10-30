@@ -29,6 +29,11 @@
   bases of the conserved termini
 - reference sequences: FASTA reader; scripts/fetch_references.py
   downloads the segment references from NCBI with their provenance
+- scripts/fetch_references.py: segments 7 (MP) and 8 (NS) are searched
+  by the names of their genes (M1/M2, NS1/NEP/NS2), as NCBI annotates
+  them, instead of MP[Gene] and NS[Gene], which matched no record: with
+  --segment all, they were silently left out; test of the queries in
+  make test (tests/test-fetch-references.py, --live for the download)
 - classification of a read against the references: the bases after the
   primer of each end are located in the segments (both strands, with
   errors and IUPAC codes); at a terminus the read is a normal amplicon,
