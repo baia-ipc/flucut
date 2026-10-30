@@ -62,3 +62,9 @@
   the padding of the read now matches the IUPAC codes of the primer
 - program tests on simulated reads from a real HA record (testdata/)
   and tests of the option validation, run by make test
+- the classification against the references uses a k-mer index (the
+  k-mer index module of libcbaia): only the windows around the
+  candidate diagonals are aligned, and a read end without a candidate
+  is searched exhaustively; same results as the exhaustive search on
+  the benchmark reads, at a cost which hardly depends on the number of
+  references; --exhaustive-search to check it

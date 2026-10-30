@@ -88,7 +88,10 @@ The main options (`flucut -h` lists all of them, with their defaults):
   `-r <references.fasta>`;
 - `-r <references.fasta>`: classify each read end as terminal or
   internally primed against the segment references; with `-T primer`
-  the classification is only reported;
+  the classification is only reported; the references are indexed by
+  their k-mers, so that the time hardly depends on their number
+  (`--exhaustive-search` aligns each read end to every reference, to
+  check the index);
 - `-e`: errors allowed in a primer (default 0.2 of its length);
 - `-w`: a primer must lie within this many bases of its end of the read
   (default 100);

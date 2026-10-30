@@ -78,9 +78,6 @@ support the trimming; they are not the purpose of the program.
 - **Choice of the references for a run**: a default set from
   `scripts/fetch_references.py` covering the subtypes seen at the
   institute, and a check that the unclassified ends stay rare with it.
-- **Speed of the classification**: each end is aligned to every
-  reference (both strands); with many references, a k-mer prefilter
-  could select the candidates. Measure first.
 - **Start contexts**: group the reads by the bases which follow the 5'
   primer and rank the groups; a reference-free cross-check of the
   classification, for the report.

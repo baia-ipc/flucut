@@ -35,6 +35,7 @@ typedef struct {
   size_t probe_len;
   double probe_error_rate;
   long terminal_window;
+  bool exhaustive_search;     /* without the k-mer index (slower) */
   size_t min_length;
   bool tags;
   size_t threads;
