@@ -1,5 +1,64 @@
 # Results
 
+## 2026-10-30: the errors in a primer, by error rate of the reads (-e auto)
+
+What was run: `benchmark/simulate.py` with `--error-rate` 0.01, 0.02,
+0.04, 0.08 and 0.12 (the mean of the error rate drawn for each read;
+the genome of the IRMA checks, seed 1, 400 reads per segment, without
+barcodes; 0.04 gives the reads of the other sections), then flucut at
+commit dddfb6c with `-e` from 0.1 to 0.35 (`-j 4`), scored with
+`score_reads.py`. With Uni12 (12 bases), 0.1 and 0.15 allow 1 error, 0.2
+2, 0.25 and 0.3 3, 0.35 4; with mbtuni-13 (23 bases), 2, 3, 4, 5, 6, 8.
+
+| mean error rate | -e | template removed | primer kept | flank kept | internal site kept |
+|---|---|---|---|---|---|
+| 0.01 | 0.1 | 56 | 2486 | 9017 | 85 |
+| 0.01 | 0.15 | 57 | 1804 | 8239 | 85 |
+| 0.01 | 0.2 | 607 | 1073 | 6457 | 1 |
+| 0.01 | 0.25 | 1734 | 483 | 4009 | 1 |
+| 0.01 | 0.3 | 1876 | 409 | 3576 | 1 |
+| 0.01 | 0.35 | 5693 | 130 | 1070 | 13 |
+| 0.02 | 0.1 | 165 | 4034 | 11744 | 114 |
+| 0.02 | 0.15 | 172 | 2668 | 10114 | 114 |
+| 0.02 | 0.2 | 842 | 1419 | 7451 | 11 |
+| 0.02 | 0.25 | 2437 | 622 | 4458 | 5 |
+| 0.02 | 0.3 | 2598 | 600 | 4136 | 5 |
+| 0.02 | 0.35 | 7370 | 272 | 1306 | 5 |
+| 0.04 | 0.1 | 196 | 9283 | 16898 | 227 |
+| 0.04 | 0.15 | 224 | 5197 | 13283 | 227 |
+| 0.04 | 0.2 | 680 | 1819 | 7542 | 23 |
+| 0.04 | 0.25 | 2105 | 801 | 4824 | 3 |
+| 0.04 | 0.3 | 2366 | 810 | 4601 | 3 |
+| 0.04 | 0.35 | 7912 | 360 | 1400 | 3 |
+| 0.08 | 0.1 | 438 | 26381 | 37011 | 548 |
+| 0.08 | 0.15 | 531 | 16817 | 28099 | 548 |
+| 0.08 | 0.2 | 1296 | 6540 | 14094 | 157 |
+| 0.08 | 0.25 | 3609 | 2123 | 6519 | 64 |
+| 0.08 | 0.3 | 3847 | 1691 | 5654 | 64 |
+| 0.08 | 0.35 | 7904 | 995 | 2346 | 54 |
+| 0.12 | 0.1 | 682 | 43164 | 55528 | 1074 |
+| 0.12 | 0.15 | 715 | 30292 | 44026 | 1074 |
+| 0.12 | 0.2 | 2203 | 14554 | 23210 | 386 |
+| 0.12 | 0.25 | 5562 | 5871 | 10360 | 109 |
+| 0.12 | 0.3 | 5916 | 3715 | 7662 | 101 |
+| 0.12 | 0.35 | 12662 | 1944 | 2414 | 70 |
+
+The error rate of the primer alignments in the first 1000 reads, with
+0.2, as measured by `-e auto` (`auto-settings.c`): 0.9, 1.7, 3.0, 5.0 and
+6.3% (below the mean of the simulation: the alignments with more errors
+than allowed are not found, and the rate counts the read bases aligned).
+
+The rule of `-e auto` (as in Lumipore: two values, one threshold): 0.2
+below a measured rate of 4%, 0.3 from 4% on; it chooses 0.2 for the
+reads at 1, 2 and 4%, and 0.3 at 8 and 12%. At 1-4%, 0.2 leaves 1073 to
+1819 primer bases and 1 to 23 of the internal site, and removes 607 to
+842 template bases; 0.3 would remove about 3 times more template for
+about half the primer bases. At 8 and 12%, 0.2 leaves 6540 and 14554
+primer bases and 157 and 386 of the internal site; 0.3 leaves 1691 and
+3715, 64 and 101, and removes 3847 and 5916 template bases (1296 and
+2203 with 0.2). 0.35 removes 2 to 3 times more template than 0.3 at
+every rate. The consensus was not assembled for these runs.
+
 ## 2026-10-30: flucut with the adapter search
 
 What was run: flucut at commit 6393a2d (adapters searched at the read
