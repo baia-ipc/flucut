@@ -15,8 +15,8 @@ The modules are organized in four components:
 - `io`: external sorting, parallel gzip and BGZF compression, MD5, HTML
   reports;
 - `seq`: FASTQ and BAM reading and writing, SAM tags and headers, edit
-  distance of short sequences, barcode whitelists, cell calling, library
-  complexity.
+  distance of short sequences, k-mer index of sequences, barcode
+  whitelists, cell calling, library complexity.
 
 ## Installation
 

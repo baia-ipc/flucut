@@ -26,6 +26,39 @@ Sequence utilities (``sequtil.h``)
    range are clipped), useful for reproducing exactly the results of
    Python programs.
 
+K-mer index (``kmer-index.h``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The k-mer index finds where a query may align in a set of sequences
+(e.g. reference sequences), without aligning it to the whole of each:
+the k-mers of the query which occur in the indexed sequences give
+**candidate diagonals** (position in the sequence minus position in the
+query), around which the caller aligns the query (e.g. with edlib).
+
+The k-mers are encoded with 2 bits per base (k up to
+``KMER_INDEX_MAX_K``, 12); k-mers with a character other than A, C, G, T
+are not indexed. The table of the offsets has 4^k + 1 entries (4 MB for
+k = 10). The index is only read after its construction, and can be
+shared by threads; the buffer of the candidates belongs to the caller
+(one per thread). A k-mer occurring more often than a limit (e.g. of low
+complexity) can be skipped. A candidate needs an exact k-mer: a query
+with an error in each of its k-mers gives none.
+
+.. code-block:: c
+
+   kmer_index_t *ix = kmer_index_new(seqs, lens, n_seqs, 10);
+   kmer_index_hit_t *hits = NULL;
+   size_t cap = 0;
+   size_t n = kmer_index_diagonals(ix, query, query_len, 1000, &hits,
+                                   &cap);
+   for (size_t i = 0; i < n; i++)
+     align(query, seqs[hits[i].seq], hits[i].diagonal);
+   free(hits);
+   kmer_index_delete(ix);
+
+The candidates are sorted by sequence and diagonal, without duplicates,
+so that nearby diagonals can be merged into one window to align.
+
 Reading FASTQ files (``fastq-reader.h``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
