@@ -1,7 +1,7 @@
 exit status: 0
 == messages ==
 SUCCESS | OUTDIR/reads.fastq.gz: 11 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
-SUCCESS | OUTDIR/reads.fastq.gz: complete amplicons, lengths between the primers (peaks): 1700-1709 (5) 1000-1009 (2) 20-29 (1) 900-909 (1)
+SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_summary.json
 == reads.fastq.gz ==
 md5: e03dd06176b873cd319f6e67c375698a
 @full_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23

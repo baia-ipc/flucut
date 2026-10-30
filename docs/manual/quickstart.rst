@@ -16,8 +16,8 @@ flucut writes:
 
    SUCCESS | out/reads.fastq.gz: 11 of 12 reads written (10 with both
      primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
-   SUCCESS | out/reads.fastq.gz: complete amplicons, lengths between the
-     primers (peaks): 1700-1709 (5) 1000-1009 (2) 20-29 (1) 900-909 (1)
+   SUCCESS | Reports written: out/flucut_report.html,
+     out/flucut_summary.json
 
 (the lines are wrapped here, without the time stamps). The output
 directory contains:

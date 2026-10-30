@@ -121,3 +121,9 @@
 - manual: chapter on the reports (with screenshots of the report of the
   simulated reads of the benchmark, docs/manual/figures/screenshot.js
   from Lumipore), the groups and the report files in the outputs
+- messages: by default, one SUCCESS (green) line for each output, a
+  WARNING (magenta) for many complete amplicons shorter than their
+  reference, and a SUCCESS line for the reports written; with -v also
+  the scheme and its primers, the input groups, the internally primed
+  ends, the lengths without references and the tables written (INFO)
+  and the step of writing the reports (PHASE)

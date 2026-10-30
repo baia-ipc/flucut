@@ -1,8 +1,8 @@
 exit status: 0
 == messages ==
 SUCCESS | OUTDIR/reads.fastq.gz: 11 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
-SUCCESS | OUTDIR/reads.fastq.gz: ends started by internal priming: 2 left, 2 right; not located in the references: 1 left, 1 right
-SUCCESS | OUTDIR/reads.fastq.gz: NC_004908.1: 4 of 9 complete amplicons shorter than 90% of the reference (1714 bases), most at 1000-1009: internal priming or deletions
+WARNING | OUTDIR/reads.fastq.gz: NC_004908.1: 4 of 9 complete amplicons shorter than 90% of the reference (1714 bases), most at 1000-1009: internal priming or deletions
+SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_summary.json
 == reads.fastq.gz ==
 md5: 9150c4fbab778441acc01c23ad4b339d
 @full_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	tl:i:12	tr:i:23
