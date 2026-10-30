@@ -285,6 +285,13 @@ static void compute_keep(const amplicon_t *a, trim_policy_t policy,
           clamp(a->right.hit.terminus_end, 0, (long)len) - 1;
   *from = clamp(*from, 0, (long)len);
   *to = clamp(*to, -1, (long)len - 1);
+  /* no template between the two primers (a primer dimer): nothing is
+     kept, whatever the policy (the termini alone are primer sequence) */
+  if (a->left.found && a->right.found &&
+      a->right.hit.start <= a->left.hit.end + 1) {
+    *from = 1;
+    *to = 0;
+  }
 }
 
 /* the number of errors of the primers found (for the comparison of the
@@ -539,6 +546,11 @@ void amplicon_test(void) {
   snprintf(expected, sizeof(expected), "%s%s%s", PRIMERS_TERMINUS_12,
            body, "CCTTGTTTCTACT");
   check_keep(a, read, STRAND_PLUS, 2, expected);
+  /* a primer dimer: nothing is kept, also with this policy */
+  snprintf(read, sizeof(read), "%s%s", p12, rc13);
+  r = amplicon_analyzer_run(a, read, strlen(read));
+  test_eq_size(amplicon_n_ends(r), 2);
+  test_eq_size(amplicon_kept_length(r), 0);
   amplicon_analyzer_delete(a);
   scheme_delete(sc);
 
