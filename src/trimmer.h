@@ -43,6 +43,7 @@
 #include "amplicon.h"
 #include "fasta.h"
 #include "fastq-reader.h"
+#include "lengths.h"
 #include "reference.h"
 #include "scheme.h"
 #include "strbuf.h"
@@ -97,10 +98,21 @@ trimmer_t* trimmer_new(const trimmer_config_t *config);
 
 /*
    Trim the records <from> to <to> - 1 of <batch>; the records kept are
-   appended to <out> (FASTQ), the counts added to <stats>
+   appended to <out> (FASTQ), the counts added to <stats>, the lengths of
+   the complete amplicons (the template between the two primers, primer
+   dimers excluded) to <lengths> (see lengths.h; its groups: see
+   trimmer_n_length_groups())
 */
 void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
-    size_t to, strbuf_t *out, trimmer_stats_t *stats);
+    size_t to, strbuf_t *out, trimmer_stats_t *stats, lengths_t *lengths);
+
+/*
+   The groups of the lengths: without references, one; with references,
+   one for each reference (the reference to which the probe of the left
+   end, or else of the right end, mapped) and a last one for the
+   amplicons not located
+*/
+size_t trimmer_n_length_groups(const trimmer_config_t *config);
 
 /* Delete (NULL is accepted) */
 void trimmer_delete(trimmer_t *self);

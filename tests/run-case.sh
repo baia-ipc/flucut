@@ -9,7 +9,7 @@
 # the exit status, the messages without their time stamps, and, for each
 # output file, the md5 of its decompressed content and, for each read,
 # its title, its length and its first and last 15 bases; then the
-# summary table.
+# summary table and the lengths table.
 #
 # Usage: tests/run-case.sh <flucut> <case> "<valgrind command or empty>"
 #
@@ -41,4 +41,8 @@ done
 if [ -e "$outdir/summary.tsv" ]; then
   echo "== summary.tsv =="
   cat "$outdir/summary.tsv"
+fi
+if [ -e "$outdir/lengths.tsv" ]; then
+  echo "== lengths.tsv =="
+  cat "$outdir/lengths.tsv"
 fi

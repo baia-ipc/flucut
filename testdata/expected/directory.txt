@@ -1,7 +1,9 @@
 exit status: 0
 == messages ==
 SUCCESS | OUTDIR/barcode01.fastq.gz: 11 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
+SUCCESS | OUTDIR/barcode01.fastq.gz: complete amplicons, lengths between the primers (peaks): 1700-1709 (5) 1000-1009 (2) 20-29 (1) 900-909 (1)
 SUCCESS | OUTDIR/reads.fastq.gz: 11 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
+SUCCESS | OUTDIR/reads.fastq.gz: complete amplicons, lengths between the primers (peaks): 1700-1709 (5) 1000-1009 (2) 20-29 (1) 900-909 (1)
 == barcode01.fastq.gz ==
 md5: e03dd06176b873cd319f6e67c375698a
 @full_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
@@ -51,6 +53,16 @@ md5: e03dd06176b873cd319f6e67c375698a
 @left_only simulated	fs:Z:+	fl:Z:uni12r	tl:i:12	tr:i:0
 500 GGAATTACTTAACTA...TACAGGAGTATGAGA
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown
-barcode01	12	12635	11	12240	10	1	1	2	1	1	0	NA	NA	NA	NA	NA	NA
-reads	12	12635	11	12240	10	1	1	2	1	1	0	NA	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete
+barcode01	12	12635	11	12240	10	1	1	2	1	1	0	NA	NA	NA	NA	NA	NA	NA
+reads	12	12635	11	12240	10	1	1	2	1	1	0	NA	NA	NA	NA	NA	NA	NA
+== lengths.tsv ==
+output	group	length	reads
+barcode01	all	20	1
+barcode01	all	900	1
+barcode01	all	1000	2
+barcode01	all	1700	5
+reads	all	20	1
+reads	all	900	1
+reads	all	1000	2
+reads	all	1700	5

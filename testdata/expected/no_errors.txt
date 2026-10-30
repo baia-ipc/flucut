@@ -1,6 +1,7 @@
 exit status: 0
 == messages ==
 SUCCESS | OUTDIR/reads.fastq.gz: 11 of 12 reads written (9 with both primers, 2 with one, 1 with none; 1 too short, of which 1 dimers)
+SUCCESS | OUTDIR/reads.fastq.gz: complete amplicons, lengths between the primers (peaks): 1700-1709 (4) 1000-1009 (2) 20-29 (1) 900-909 (1)
 == reads.fastq.gz ==
 md5: 27f823ceaa8cda782abf3926d8110ecd
 @full_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
@@ -26,5 +27,11 @@ md5: 27f823ceaa8cda782abf3926d8110ecd
 @left_only simulated	fs:Z:+	fl:Z:uni12r	tl:i:12	tr:i:0
 500 GGAATTACTTAACTA...TACAGGAGTATGAGA
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown
-reads	12	12635	11	12264	9	2	1	2	1	1	0	NA	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete
+reads	12	12635	11	12264	9	2	1	2	1	1	0	NA	NA	NA	NA	NA	NA	NA
+== lengths.tsv ==
+output	group	length	reads
+reads	all	20	1
+reads	all	900	1
+reads	all	1000	2
+reads	all	1700	4

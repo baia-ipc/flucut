@@ -79,8 +79,11 @@ support the trimming; they are not the purpose of the program.
   `scripts/fetch_references.py` covering the subtypes seen at the
   institute, and a check that the unclassified ends stay rare with it.
 - **Start contexts**: group the reads by the bases which follow the 5'
-  primer and rank the groups; a reference-free cross-check of the
-  classification, for the report.
+  primer and rank the groups; a second reference-free cross-check, next
+  to the length check (`lengths.tsv`), for the report.
+- **Length check in the report**: a plot of `lengths.tsv` per segment
+  in the HTML report; the expected length of a segment without
+  references (today only the peaks are listed).
 - **Concatemers**: several amplicons in one read, split into separate
   reads; chimeras (amplicons of different segments joined). The internal
   matches already found are their junctions.

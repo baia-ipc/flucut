@@ -68,3 +68,8 @@
   is searched exhaustively; same results as the exhaustive search on
   the benchmark reads, at a cost which hardly depends on the number of
   references; --exhaustive-search to check it
+- length check of the complete amplicons: lengths.tsv (in bins of 10
+  bases, per reference with --references), the complete amplicons
+  shorter than 90% of their reference in summary.tsv (short_complete)
+  and in the log, the peaks of the lengths in the log without
+  references
