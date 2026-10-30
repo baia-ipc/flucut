@@ -46,20 +46,39 @@ not do this: it is long enough to be specific.
 
 ## What flucut does about it
 
-### Trimming removes the artefact
+### Only the internally primed reads are trimmed, decided per read
 
 A read started at an internal site looks exactly like a read of a real
-amplicon: the primer-derived bases are at the end of the read. flucut
-trims by position at the ends of the read, so those bases are removed
-from an internally primed read just as from a real one. The wrong bases
-never reach the assembler.
+amplicon: the primer-derived bases are at the end of the read. From the
+primer alone the two cannot be told apart, which leaves two bad choices:
+remove the primer from every read (no artefact, but every segment loses
+its conserved termini in the consensus), or keep it in every read
+(complete termini, and the artefact).
 
-This is why the default is `--trim primer`, which removes every
-primer-derived base. **`--trim terminus`, which keeps the bases of the
-conserved terminus, keeps exactly the wrong bases at an internal site
-and reintroduces the artefact.** It exists for protocols where internal
-priming is excluded and complete termini are needed; flucut warns when
-it is used.
+flucut decides per read, against the references of the segments
+(`src/reference.h`). The bases which follow the primer (the probe) are
+located in the references:
+
+- at the start (or, for the other primer, the end) of a segment: a
+  normal amplicon. The primer bases are the conserved terminus of the
+  segment and are kept; only a tail added by the protocol is removed.
+  The consensus keeps complete ends.
+- at an interior position: internal priming. The primer bases are not
+  the template there; that 5' prefix, and only it, is removed. The rest
+  of the read is genuine template from the interior of the segment and
+  is kept.
+- not located (subtype absent from the references, probe too short): the
+  read is not changed beyond the tail, and is counted as unclassified, so
+  that a reference set which does not fit the run shows in the report.
+
+Among equally good locations, the one at a terminus wins: an ambiguous
+read is kept intact rather than trimmed.
+
+The references are required: without them flucut does not run, rather
+than guess. `scripts/fetch_references.py` downloads them from NCBI, with
+their provenance. The same classification runs on both ends and against
+all eight segments, so whether internal priming happens outside HA, or
+with the Uni13 primer, is measured on the data rather than assumed.
 
 ### A primer is only searched near the ends of a read
 
@@ -75,8 +94,9 @@ the same read loses everything before that match.
 ### Detection and reporting
 
 Removing the artefact is not enough: the point is also to show that it
-happened, and how often. flucut reports it in three layers; the first is
-implemented, the other two are planned with the counting pipeline.
+happened, and how often. flucut reports it in three layers; the first and the
+third are implemented in the analysis of a read, the counting and the
+reports are being written.
 
 1. **Internal matches** (implemented). The matches of a primer between
    the two end primers are collected (`amplicon_t.internal`), with their
@@ -97,10 +117,11 @@ implemented, the other two are planned with the counting pipeline.
    report names the unexpected groups and gives their sequence and their
    share of the reads, which is the number to put in a paper.
 
-3. **Against references** (planned, optional). With the segment
-   references of the run, each read start can be classified as terminal
-   or internal outright. This is the most direct measure, and the one to
-   use when references are at hand.
+3. **Against references** (implemented). Each read start is
+   classified as terminal, internal or unclassified against the segment
+   references (see above). This is the measure that decides the
+   trimming; the report gives, per segment and per position, the number
+   of internally primed reads.
 
 ## Consequences for the benchmark
 

@@ -1,13 +1,16 @@
 /* (c) 2026 Giorgio Gonnella */
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
 #include "amplicon.h"
+#include "fasta.h"
 #include "logger.h"
 #include "primer-search.h"
 #include "primers.h"
+#include "reference.h"
 #include "scheme.h"
 #include "sequtil.h"
 #include "test.h"
@@ -26,6 +29,11 @@ struct amplicon_analyzer_t {
   /* the reverse complement of the read */
   char *rc;
   size_t rc_cap;
+  /* the references, if any (see amplicon_analyzer_use_references()) */
+  reference_set_t *refs;
+  long terminal_window;
+  /* the probe of the right end (reference_set_probe_len() + 1 bytes) */
+  char *probe;
   amplicon_t result;
 };
 
@@ -65,7 +73,19 @@ amplicon_analyzer_t* amplicon_analyzer_new(const scheme_t *scheme,
   self->search = primer_search_new();
   self->rc = NULL;
   self->rc_cap = 0;
+  self->refs = NULL;
+  self->terminal_window = 0;
+  self->probe = NULL;
   return self;
+}
+
+void amplicon_analyzer_use_references(amplicon_analyzer_t *self,
+    reference_set_t *refs, long terminal_window) {
+  assert(refs != NULL);
+  assert(terminal_window >= 0);
+  self->refs = refs;
+  self->terminal_window = terminal_window;
+  XREALLOC(self->probe, reference_set_probe_len(refs) + 1);
 }
 
 void amplicon_analyzer_delete(amplicon_analyzer_t *self) {
@@ -75,6 +95,7 @@ void amplicon_analyzer_delete(amplicon_analyzer_t *self) {
   free(self->right_max_errors);
   primer_search_delete(self->search);
   free(self->rc);
+  free(self->probe);
   free(self);
 }
 
@@ -93,6 +114,8 @@ static void search_end(amplicon_analyzer_t *self, const primer_t *primers,
     bool partial_left, bool partial_right, amplicon_end_t *out) {
   out->found = false;
   out->variant = 0;
+  out->origin = ORIGIN_UNKNOWN;
+  out->ref.mapped = false;
   for (size_t i = 0; i < n; i++) {
     primer_hit_t hit;
     if (!primer_search_run(self->search, primers + i, seq, len,
@@ -144,6 +167,8 @@ static void search_layout(amplicon_analyzer_t *self, const char *seq,
     right_from = after_left;
   out->right.found = false;
   out->right.variant = 0;
+  out->right.origin = ORIGIN_UNKNOWN;
+  out->right.ref.mapped = false;
   if (right_from < (long)len) {
     search_end(self, sc->right, self->right_max_errors, sc->n_right,
                seq + right_from, len - (size_t)right_from, false, true,
@@ -205,19 +230,58 @@ static long clamp(long v, long lo, long hi) {
   return v < lo ? lo : (v > hi ? hi : v);
 }
 
+/* locate the probe <probe> (length <len>) of an end in the references,
+   and set the origin of the end accordingly */
+static void classify_end(amplicon_analyzer_t *self, const char *probe,
+    size_t len, amplicon_end_t *end) {
+  reference_set_locate(self->refs, probe, len, &end->ref);
+  if (!end->ref.mapped)
+    end->origin = ORIGIN_UNKNOWN;
+  else
+    end->origin = reference_hit_is_terminal(&end->ref,
+        self->terminal_window) ? ORIGIN_TERMINAL : ORIGIN_INTERNAL;
+}
+
+/*
+   Classify the ends of the amplicon <a> found in <seq> (length <len>)
+   against the references (see amplicon.h): the probe of the left end is
+   the sequence after its primer; that of the right end the reverse
+   complement of the sequence before its primer, so that both are read
+   from the primer into the template, as the strand the primer started.
+   The probes are taken from the bases before the other primer only.
+*/
+static void classify_ends(amplicon_analyzer_t *self, const char *seq,
+    size_t len, amplicon_t *a) {
+  long lo = a->left.found ? a->left.hit.end + 1 : 0;
+  long hi = a->right.found ? a->right.hit.start : (long)len;
+  long avail = hi > lo ? hi - lo : 0;
+  long probe_len = (long)reference_set_probe_len(self->refs);
+  long n = avail < probe_len ? avail : probe_len;
+  if (a->left.found)
+    classify_end(self, seq + lo, (size_t)n, &a->left);
+  if (a->right.found) {
+    primers_reverse_complement(seq + hi - n, (size_t)n, self->probe);
+    self->probe[n] = '\0';
+    classify_end(self, self->probe, (size_t)n, &a->right);
+  }
+}
+
 /*
    The part of <seq> (length <len>) to keep, in the orientation in which
-   the layout was found
+   the layout was found; an end started by internal priming is trimmed
+   as by TRIM_PRIMER, whatever the policy (see amplicon.h)
 */
 static void compute_keep(const amplicon_t *a, trim_policy_t policy,
     size_t len, long *from, long *to) {
   *from = 0;
   *to = (long)len - 1;
   if (a->left.found)
-    *from = policy == TRIM_PRIMER ? a->left.hit.end + 1 :
+    *from = policy == TRIM_PRIMER || a->left.origin == ORIGIN_INTERNAL ?
+            a->left.hit.end + 1 :
             clamp(a->left.hit.terminus_start, 0, (long)len);
   if (a->right.found)
-    *to = policy == TRIM_PRIMER ? a->right.hit.start - 1 :
+    *to = policy == TRIM_PRIMER || a->right.origin == ORIGIN_INTERNAL ?
+          a->right.hit.start - 1 :
           clamp(a->right.hit.terminus_end, 0, (long)len) - 1;
   *from = clamp(*from, 0, (long)len);
   *to = clamp(*to, -1, (long)len - 1);
@@ -264,6 +328,8 @@ const amplicon_t* amplicon_analyzer_run(amplicon_analyzer_t *self,
         total_errors(&minus) < total_errors(&plus)));
   *out = use_minus ? minus : plus;
   search_internal(self, use_minus ? self->rc : seq, len, out);
+  if (self->refs != NULL)
+    classify_ends(self, use_minus ? self->rc : seq, len, out);
   out->strand = amplicon_n_ends(out) == 0 ? STRAND_NONE :
                 (use_minus ? STRAND_MINUS : STRAND_PLUS);
   long from, to;
@@ -295,6 +361,115 @@ static void check_keep(amplicon_analyzer_t *a, const char *read,
   test_assert(r->strand == strand);
   test_eq_size(amplicon_n_ends(r), n_ends);
   test_eq_mem(read + r->keep_from, amplicon_kept_length(r), kept);
+}
+
+/* the reverse complement of <seq> into <dest> (0-terminated) */
+static void test_rc(const char *seq, char *dest) {
+  size_t len = strlen(seq);
+  reverse_complement(seq, len, dest);
+  dest[len] = '\0';
+}
+
+/*
+   The classification of the ends against the references, with the
+   default scheme and policy: the conserved termini of the reads of a
+   normal amplicon are kept, the primer of an internally primed read is
+   removed whole.
+*/
+static void test_references(Logger *logger) {
+  /* the interior of a segment (not similar to the primers) */
+  const char *interior =
+    "GCTAAAGACAATTACATAACATACACGTCAGCACGAAACTTGTTGGCCCAGTGTGAATCG"
+    "CTTAAGGGTTAAGTAAGTGTGATGCATACGCCTTTACTTGCTGTGTCCACCCCATCGGAC"
+    "TGGCATTTTTATTACACTCAGAAACAGAACTCGGGTAATTTTGACAGGTCACGCAGAGGC"
+    "GCGCCCTCCTGAAGTGCGTGGACACTCGCTATGAATCTCTGATTTACCCACTCTGCCAAA"
+    "CTCCAGCGCGGTCAGTTCCATCACCCTAAGTAACCGAATAATGCGTTCGCTCTATTGACT";
+  const char *uni12 = "AGCAAAAGCAGG";
+  const char *end13 = "CCTTGTTTCTACT";                /* rc of Uni13 */
+  const char *rc13 = "CCTTGTTTCTACTGATCACGCGT";       /* rc mbtuni-13 */
+  /* the segment: the conserved termini and the interior */
+  char segment[512];
+  snprintf(segment, sizeof(segment), "%s%s%s", uni12, interior, end13);
+  fasta_record_t record = {.name = NULL, .description = NULL,
+                           .seq = segment, .seq_len = strlen(segment)};
+  fasta_t fa = {.records = &record, .n_records = 1};
+  reference_set_t *refs = reference_set_new(&fa,
+      REFERENCE_DEFAULT_PROBE_LEN, REFERENCE_DEFAULT_MAX_ERROR_RATE);
+  scheme_t *sc = scheme_new_builtin(SCHEME_DEFAULT, logger);
+  amplicon_analyzer_t *a = amplicon_analyzer_new(sc, 0.1, TRIM_TERMINUS,
+      AMPLICON_DEFAULT_WINDOW);
+  amplicon_analyzer_use_references(a, refs,
+                                   REFERENCE_DEFAULT_TERMINAL_WINDOW);
+  char read[512], rc[512], expected[512], rc_expected[512];
+
+  /* a normal amplicon: both ends terminal, the termini are kept and
+     only the tail of the Uni13 primer is removed */
+  snprintf(read, sizeof(read), "%s%s%s", uni12, interior, rc13);
+  const amplicon_t *r = amplicon_analyzer_run(a, read, strlen(read));
+  test_assert(r->left.origin == ORIGIN_TERMINAL);
+  test_assert(r->right.origin == ORIGIN_TERMINAL);
+  test_eq_long(r->left.ref.ref_start, (long)strlen(uni12));
+  test_eq_mem(read + r->keep_from, amplicon_kept_length(r), segment);
+
+  /* internal priming: the Uni12 primer started the amplicon 150 bases
+     into the segment; its bases are not the template there and are
+     removed, the rest of the read is kept */
+  const char *site = interior + 150;
+  snprintf(read, sizeof(read), "%s%s%s", uni12, site, rc13);
+  r = amplicon_analyzer_run(a, read, strlen(read));
+  test_assert(r->strand == STRAND_PLUS);
+  test_assert(r->left.origin == ORIGIN_INTERNAL);
+  test_assert(r->right.origin == ORIGIN_TERMINAL);
+  test_eq_long(r->left.ref.ref_start, (long)strlen(uni12) + 150);
+  snprintf(expected, sizeof(expected), "%s%s", site, end13);
+  test_eq_mem(read + r->keep_from, amplicon_kept_length(r), expected);
+
+  /* the same read sequenced in the other orientation: the primer is at
+     the end of the original read, and is removed there */
+  test_rc(read, rc);
+  test_rc(expected, rc_expected);
+  r = amplicon_analyzer_run(a, rc, strlen(rc));
+  test_assert(r->strand == STRAND_MINUS);
+  test_assert(r->left.origin == ORIGIN_INTERNAL);
+  test_eq_mem(rc + r->keep_from, amplicon_kept_length(r), rc_expected);
+
+  /* a read starting at an interior site without the right primer (a
+     partial read) is classified all the same */
+  snprintf(read, sizeof(read), "%s%.100s", uni12, site);
+  r = amplicon_analyzer_run(a, read, strlen(read));
+  test_eq_size(amplicon_n_ends(r), 1);
+  test_assert(r->left.origin == ORIGIN_INTERNAL);
+  snprintf(expected, sizeof(expected), "%.100s", site);
+  test_eq_mem(read + r->keep_from, amplicon_kept_length(r), expected);
+
+  /* a template absent from the references: not classified, the policy
+     applies (the terminus is kept) */
+  snprintf(read, sizeof(read), "%s%s", uni12,
+           "GGTTCCAAGGTTCCAAGGTTCCAAGGTTCCAAGGTTCCAA");
+  r = amplicon_analyzer_run(a, read, strlen(read));
+  test_assert(r->left.found);
+  test_assert(r->left.origin == ORIGIN_UNKNOWN);
+  test_assert(!r->left.ref.mapped);
+  test_eq_long(r->keep_from, 0);
+
+  /* a primer dimer: no probe to locate */
+  snprintf(read, sizeof(read), "%s%s", uni12, rc13);
+  r = amplicon_analyzer_run(a, read, strlen(read));
+  test_assert(r->left.origin == ORIGIN_UNKNOWN);
+  test_assert(r->right.origin == ORIGIN_UNKNOWN);
+  amplicon_analyzer_delete(a);
+
+  /* without the references, the internally primed read keeps the
+     primer bases (the artefact) */
+  a = amplicon_analyzer_new(sc, 0.1, TRIM_TERMINUS,
+                            AMPLICON_DEFAULT_WINDOW);
+  snprintf(read, sizeof(read), "%s%s%s", uni12, site, rc13);
+  r = amplicon_analyzer_run(a, read, strlen(read));
+  test_assert(r->left.origin == ORIGIN_UNKNOWN);
+  test_eq_long(r->keep_from, 0);
+  amplicon_analyzer_delete(a);
+  scheme_delete(sc);
+  reference_set_delete(refs);
 }
 
 void amplicon_test(void) {
@@ -405,5 +580,6 @@ void amplicon_test(void) {
           "%ld");
   amplicon_analyzer_delete(a);
   scheme_delete(sc);
+  test_references(logger);
   delete_logger(logger);
 }

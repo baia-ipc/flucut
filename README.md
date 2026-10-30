@@ -4,8 +4,9 @@ Primer trimming for influenza A whole-genome sequencing.
 
 flucut removes the primer-derived bases from the reads of the influenza A
 multisegment RT-PCR with the universal Uni12/Uni13 primers, before the
-assembly of the segments (e.g. with IRMA). It is written for Oxford
-Nanopore reads; support for Illumina reads is planned.
+assembly of the segments (e.g. with IRMA). It is not specific to a
+sequencing platform: the error rates are parameters (the defaults are
+those of Oxford Nanopore reads), and Illumina reads are handled as well.
 
 ## Why
 
@@ -32,19 +33,20 @@ exactly or with one mismatch), so the trimming has to be done before it.
 
 - finds the Uni12/Uni13 primers at both ends of a read and in both
   orientations, whole or partial (a read can begin inside a primer),
-  with the error rates of Nanopore reads;
-- removes, by position and not by difference, the primer-derived bases;
+  with errors (the defaults are those of Nanopore reads);
+- decides, for each read, whether it is a normal amplicon or an
+  internally primed one, by locating the bases after its primer in the
+  references of the segments (required: flucut does not run without
+  them; `scripts/fetch_references.py` downloads them from NCBI):
+
+  - a normal amplicon keeps its conserved termini (only a tail added by
+    the protocol is removed), so the consensus has complete ends;
+  - an internally primed read loses its primer-derived 5' prefix, and
+    only that: the rest is genuine template;
+
 - because flucut knows which primers were used, it knows where inside a
-  primer the tail added by the protocol ends and the conserved terminus
-  begins, and can therefore offer a choice no generic trimmer can:
-
-  - remove every primer-derived base, tail and conserved terminus
-    together (the default): no base of the output comes from a primer,
-    and the consensus is shorter than the segment by the termini
-    (12 and 13 bases);
-  - remove only the tail and keep the conserved terminus: the consensus
-    has complete termini, but those bases come from the primer.
-
+  primer the tail ends and the conserved terminus begins; the removal is
+  by position, not by difference;
 - a primer is accepted as the primer of an end only near that end of
   the read: a match deeper inside is not the primer which started the
   amplicon, and trimming there would remove template. Those matches are
@@ -82,9 +84,11 @@ the included ones.
 Early development. The parts which are implemented and tested are the
 built-in primers, the search of a primer in a read (with degenerate
 bases and partial primers at the read ends), the primer schemes, the
-analysis and trimming of a read, and the detection of the primer
-matches inside a read. The command line program, the reports
-and the live mode are being written.
+analysis and trimming of a read, the detection of the primer matches
+inside a read, the reading of the reference sequences and the
+classification of the reads against them (normal or internally primed),
+which decides the trimming. The command line program, the reports and
+the live mode are being written.
 
 ## License
 
