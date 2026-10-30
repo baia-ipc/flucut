@@ -25,10 +25,20 @@ support the trimming; they are not the purpose of the program.
   one threshold); to check on real runs of R9 and R10 flow cells, and
   whether the error rate of the reads should also set the window or the
   probe errors.
-- **Errors next to a primer**: with a substitution right next to a
-  primer, the alignment can extend over it and remove one template base
-  (seen in the program tests, read `errors_plus`). Small; to be weighed
-  against the remnants left by a tighter alignment, in the benchmark.
+- **Errors next to a primer** (measured, kept as it is): at equal cost,
+  the alignment of a primer is extended inward, and can take one
+  template base (e.g. the last primer base deleted in the read). Without
+  the extension, on the reads of the benchmark, 208 fewer template bases
+  were removed but 317 more primer bases kept (also at 1% and 12%
+  errors: `benchmark/RESULTS.md`): no gain.
+- **Reads cut too deep** (6 of 3200 reads, about 70 template bases each):
+  internally primed reads whose primer was cut to 4-5 bases after a
+  flank; a primer-like sequence of the template within the window is
+  taken for the primer. With references, an extension of the alignment
+  to the reference from the read end would recognise it, and would also
+  cut the ends without a primer found at the segment terminus (1864
+  primer bases left in about 210 of 6400 read ends; the consensus is not
+  affected in the benchmark). Not done: few reads.
 - **Live mode, next**: the dashboard of Lumipore (a report which fits
   the screen without scrolling while the run is in progress; today the
   report itself reloads every 30 seconds); a test on a replay of a real
