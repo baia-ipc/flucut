@@ -54,7 +54,9 @@ Options
    Default: 1 (empty reads, e.g. primer dimers, are never written).
 
 ``-j, --threads <n>``
-   The number of threads (1 to 256). The output does not depend on it.
+   The number of worker threads (1 to 256; default 4), each trimming
+   batches of 1000 reads (:doc:`how_it_works`). The output does not
+   depend on it.
    Default: 4.
 
 ``--no-tags``

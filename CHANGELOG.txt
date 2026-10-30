@@ -110,3 +110,11 @@
   benchmark reads, one thread); of the best matches the outermost is
   taken: on the benchmark reads, fewer template, primer and flank
   bases wrongly removed or kept
+- worker threads as in Lumipore (worker.h): the threads are started
+  once for each file, each reads a batch of 1000 reads in turn under a
+  lock, trims and compresses it with its own objects and writes it in
+  the order of the input, waiting for its turn; the counts of each
+  thread are summed at the end of the file. The output files are the
+  same, byte for byte, for any -j (before, the last batch was split
+  depending on -j); 32,000 reads with 8 references: 3.5 s with -j 4
+  instead of 5.1 s
