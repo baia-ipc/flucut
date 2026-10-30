@@ -27,21 +27,22 @@
    primers.h). It can therefore offer a choice which a trimmer that only
    matches a sequence cannot:
 
-   - TRIM_PRIMER: all the primer-derived bases are removed,
-     tail and conserved terminus together. No base of the output comes
-     from a primer, so no variant of the consensus at the segment ends
-     can come from one. The consensus is then shorter than the segment
-     by the length of the termini at each end (12 and 13 bases), which
-     matters for the programs which expect complete termini (e.g. the
-     FLU-utr module of IRMA): the ends are either missing or have to be
-     padded.
-   - TRIM_TERMINUS (the default of flucut): only the tail (and anything
-     outside the primer) is removed, and the bases of the conserved
-     terminus are kept. The consensus then has complete termini; the kept
-     bases are those of the primer, which at a real terminus are the
-     conserved sequence of the segment. At an internal priming site they
-     are not: such ends are recognised against the references and
-     trimmed whole (see below).
+   - TRIM_PRIMER (the default, AMPLICON_DEFAULT_POLICY): all the
+     primer-derived bases are removed, tail and conserved terminus
+     together. No base of the output comes from a primer, so no variant
+     of the consensus can come from one, at the segment ends or at an
+     internal priming site, and no reference is needed. The consensus is
+     shorter than the segment by the termini (12 and 13 bases): those
+     bases would have been the primer's, not measured sequence, and they
+     are outside the coding sequences.
+   - TRIM_TERMINUS: only the tail (and anything outside the primer) is
+     removed, and the bases of the conserved terminus are kept, for the
+     cases in which complete termini are needed. The kept bases are
+     those of the primer (with the degenerate Uni12 primer, possibly the
+     base of the other variant). At an internal priming site they are
+     not the template at all: this policy therefore needs the references,
+     against which such ends are recognised and trimmed whole (see
+     below).
 
    The removal is by position, not by difference: the whole span of the
    primer alignment is removed, whether or not the bases under it differ
@@ -80,14 +81,18 @@
    which follow the primer of an end (the probe: for the right end, the
    reverse complement of the bases before the primer) are located in the
    segments. If they map at a terminus, the amplicon started there and
-   the end is trimmed by the policy (with TRIM_TERMINUS, the default of
-   flucut, the conserved terminus is kept, so that the consensus has
-   complete ends). If they map to an interior position, the amplicon was
+   the end is trimmed by the policy (with TRIM_TERMINUS, the conserved
+   terminus is kept, so that the consensus has complete ends). If they
+   map to an interior position, the amplicon was
    internally primed, and the whole primer of that end is removed
    whatever the policy: only that prefix, the rest of the read being
    genuine template. An end whose probe is not located (no references,
    a subtype absent from them, a probe too short) is trimmed by the
    policy and reported as unknown.
+
+   With TRIM_PRIMER the classification does not change the trimming; it
+   is still useful to measure internal priming (which segments, which
+   sites, what share of the reads), for the report.
 
    The matches found between the two end primers are reported as
    internal matches: they are the sites at which the primer can anneal,
@@ -119,6 +124,9 @@ typedef enum {
 
 /* the greatest number of internal matches kept for one read */
 #define AMPLICON_MAX_INTERNAL 8
+
+/* default policy (see above) */
+#define AMPLICON_DEFAULT_POLICY TRIM_PRIMER
 
 /* default window: the primer of an end must begin (left) or end (right)
    within this many bases of that end of the read */

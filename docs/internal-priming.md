@@ -46,18 +46,27 @@ not do this: it is long enough to be specific.
 
 ## What flucut does about it
 
-### Only the internally primed reads are trimmed, decided per read
+### The default: every primer is removed
 
 A read started at an internal site looks exactly like a read of a real
-amplicon: the primer-derived bases are at the end of the read. From the
-primer alone the two cannot be told apart, which leaves two bad choices:
-remove the primer from every read (no artefact, but every segment loses
-its conserved termini in the consensus), or keep it in every read
-(complete termini, and the artefact).
+amplicon: the primer-derived bases are at the end of the read. Removing
+the primer from every read therefore removes the artefact, without any
+reference: the internal site is still covered by the reads of the
+full-length amplicons, which carry the template there.
 
-flucut decides per read, against the references of the segments
-(`src/reference.h`). The bases which follow the primer (the probe) are
-located in the references:
+The cost is the termini: the consensus lacks the 12 and 13 bases under
+the primers. Nothing measured is lost: in a normal amplicon those bases
+come from the primer, not from the sample, and with the degenerate Uni12
+primer they can even be the base of the other primer variant. They lie
+outside the coding sequences.
+
+### Keeping the termini: a decision per read
+
+When complete termini are needed, `--trim terminus` keeps them, and
+then has to tell the internally primed reads apart, as for them the
+primer bases are the artefact. This mode requires the references of the
+segments (`src/reference.h`). The bases which follow the primer (the
+probe) are located in the references:
 
 - at the start (or, for the other primer, the end) of a segment: a
   normal amplicon. The primer bases are the conserved terminus of the
@@ -74,9 +83,11 @@ located in the references:
 Among equally good locations, the one at a terminus wins: an ambiguous
 read is kept intact rather than trimmed.
 
-The references are required: without them flucut does not run, rather
-than guess. `scripts/fetch_references.py` downloads them from NCBI, with
-their provenance. The same classification runs on both ends and against
+In this mode the references are required: without them flucut does
+not run, rather than keep the artefact. `scripts/fetch_references.py`
+downloads them from NCBI, with their provenance. With the default
+trimming the references are optional, and only measure internal
+priming. The same classification runs on both ends and against
 all eight segments, so whether internal priming happens outside HA, or
 with the Uni13 primer, is measured on the data rather than assumed.
 

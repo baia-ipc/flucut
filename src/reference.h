@@ -27,8 +27,11 @@
    prefix: the rest of the read is genuine interior template and is kept,
    see trimmer).
 
-   This needs references, and does not guess: without them flucut does not
-   run. The references are whole segments (or at least enough of each
+   The classification decides the trimming only when the conserved
+   termini are kept (TRIM_TERMINUS, see amplicon.h), which then requires
+   the references; with the default trimming, which removes every
+   primer, it measures internal priming for the report. The references
+   are whole segments (or at least enough of each
    segment to contain both the terminal and the interior mapping
    positions); scripts/fetch_references.py downloads them.
 

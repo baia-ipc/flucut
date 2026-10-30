@@ -34,19 +34,21 @@ exactly or with one mismatch), so the trimming has to be done before it.
 - finds the Uni12/Uni13 primers at both ends of a read and in both
   orientations, whole or partial (a read can begin inside a primer),
   with errors (the defaults are those of Nanopore reads);
-- decides, for each read, whether it is a normal amplicon or an
-  internally primed one, by locating the bases after its primer in the
-  references of the segments (required: flucut does not run without
-  them; `scripts/fetch_references.py` downloads them from NCBI):
-
-  - a normal amplicon keeps its conserved termini (only a tail added by
-    the protocol is removed), so the consensus has complete ends;
-  - an internally primed read loses its primer-derived 5' prefix, and
-    only that: the rest is genuine template;
-
-- because flucut knows which primers were used, it knows where inside a
-  primer the tail ends and the conserved terminus begins; the removal is
-  by position, not by difference;
+- removes, by position and not by difference, every primer-derived base
+  (the default): this removes the internal priming artefact as well, as
+  the primer bases of an internally primed read are at its end, like
+  those of any other read. The consensus then lacks the 12 and 13 bases
+  of the conserved termini, which would have been the primer's sequence,
+  not measured sequence;
+- optionally keeps the conserved termini, for complete ends: because
+  flucut knows which primers were used, it knows where inside a primer
+  the tail ends and the terminus begins. This mode requires the
+  references of the segments (`scripts/fetch_references.py` downloads
+  them from NCBI): the bases after the primer of each read are located
+  in them, and a read which starts at an interior position of a segment
+  (internally primed) loses its whole primer, the others only the tail;
+- with the references, in either mode, measures internal priming: which
+  segments, which sites, what share of the reads;
 - a primer is accepted as the primer of an end only near that end of
   the read: a match deeper inside is not the primer which started the
   amplicon, and trimming there would remove template. Those matches are

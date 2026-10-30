@@ -459,8 +459,26 @@ static void test_references(Logger *logger) {
   test_assert(r->right.origin == ORIGIN_UNKNOWN);
   amplicon_analyzer_delete(a);
 
-  /* without the references, the internally primed read keeps the
-     primer bases (the artefact) */
+  /* with the default policy, every primer is removed: the internally
+     primed read loses its primer with or without the classification,
+     which is still reported */
+  a = amplicon_analyzer_new(sc, 0.1, AMPLICON_DEFAULT_POLICY,
+                            AMPLICON_DEFAULT_WINDOW);
+  amplicon_analyzer_use_references(a, refs,
+                                   REFERENCE_DEFAULT_TERMINAL_WINDOW);
+  snprintf(read, sizeof(read), "%s%s%s", uni12, site, rc13);
+  r = amplicon_analyzer_run(a, read, strlen(read));
+  test_assert(r->left.origin == ORIGIN_INTERNAL);
+  test_eq_mem(read + r->keep_from, amplicon_kept_length(r), site);
+  snprintf(read, sizeof(read), "%s%s%s", uni12, interior, rc13);
+  r = amplicon_analyzer_run(a, read, strlen(read));
+  test_assert(r->left.origin == ORIGIN_TERMINAL);
+  test_eq_mem(read + r->keep_from, amplicon_kept_length(r), interior);
+  amplicon_analyzer_delete(a);
+
+  /* with TRIM_TERMINUS and without the references, the internally
+     primed read keeps the primer bases (the artefact): this is why
+     that policy requires the references */
   a = amplicon_analyzer_new(sc, 0.1, TRIM_TERMINUS,
                             AMPLICON_DEFAULT_WINDOW);
   snprintf(read, sizeof(read), "%s%s%s", uni12, site, rc13);
