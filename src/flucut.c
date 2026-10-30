@@ -92,6 +92,24 @@ static void summary_line(FILE *f, const char *name,
     fputs("\tNA\n", f);
 }
 
+/* log the scheme and the input groups (verbose) */
+static void log_setup(const scheme_t *scheme, const input_group_t *groups,
+    size_t n_groups, Logger *logger) {
+  lprintf(logger, LOG_INFO, "Scheme %s: left", scheme->name);
+  for (size_t i = 0; i < scheme->n_left; i++)
+    lnprintf(logger, LOG_INFO, " %s (%s)", scheme->left[i].name,
+             scheme->left[i].seq);
+  lnprintf(logger, LOG_INFO, "; right");
+  for (size_t i = 0; i < scheme->n_right; i++)
+    lnprintf(logger, LOG_INFO, " %s (%zu bases)", scheme->right[i].name,
+             scheme->right[i].seq_len);
+  lnprintf(logger, LOG_INFO, "\n");
+  lprintf(logger, LOG_INFO, "Input groups: %zu\n", n_groups);
+  for (size_t i = 0; i < n_groups; i++)
+    lprintf(logger, LOG_INFO, "  %s: %zu file%s\n", groups[i].name,
+            groups[i].n_files, groups[i].n_files == 1 ? "" : "s");
+}
+
 /* log the counts of an output */
 static void log_stats(const char *name, const counter_reads_t *s, bool refs,
     Logger *logger) {
@@ -101,7 +119,7 @@ static void log_stats(const char *name, const counter_reads_t *s, bool refs,
           s->n_ends[2], s->n_ends[1], s->n_ends[0], s->too_short,
           s->dimers);
   if (refs)
-    lprintf(logger, LOG_SUCCESS, "%s: ends started by internal priming: "
+    lprintf(logger, LOG_INFO, "%s: ends started by internal priming: "
             "%zu left, %zu right; not located in the references: %zu "
             "left, %zu right\n", name, s->origin[0][ORIGIN_INTERNAL],
             s->origin[1][ORIGIN_INTERNAL], s->origin[0][ORIGIN_UNKNOWN],
@@ -149,7 +167,7 @@ static size_t write_lengths(const lengths_t *l, const fasta_t *refs,
                  lengths_count(l, g, peaks[i]));
         strbuf_append_str(&line, peak);
       }
-      lprintf(logger, LOG_SUCCESS, "%s: complete amplicons, lengths "
+      lprintf(logger, LOG_INFO, "%s: complete amplicons, lengths "
               "between the primers (peaks):%.*s\n", path, (int)line.len,
               line.s);
       strbuf_free(&line);
@@ -162,7 +180,7 @@ static size_t write_lengths(const lengths_t *l, const fasta_t *refs,
     n_short += s.short_count;
     if (s.short_count == 0)
       continue;
-    lprintf(logger, LOG_SUCCESS, "%s: %s: %zu of %zu complete amplicons "
+    lprintf(logger, LOG_WARN, "%s: %s: %zu of %zu complete amplicons "
             "shorter than %.0f%% of the reference (%zu bases), most at "
             "%zu-%zu: internal priming or deletions\n", path, name,
             s.short_count, s.total, LENGTHS_SHORT_FRACTION * 100,
@@ -183,6 +201,7 @@ int main(int argc, char *argv[]) {
                                            &n_groups, false, true, logger);
   char **paths = output_paths(groups, n_groups, opts.outdir, logger);
   scheme_t *scheme = scheme_new_builtin(opts.scheme, logger);
+  log_setup(scheme, groups, n_groups, logger);
   fasta_t *refs = opts.references == NULL ? NULL :
                   fasta_read(opts.references, logger);
   reference_index_t *index = NULL;
@@ -240,7 +259,13 @@ int main(int argc, char *argv[]) {
   for (size_t i = 0; i < n_groups; i++)
     sections[i] = (report_section_t){groups[i].name, group_counts[i],
                                      groups[i].n_files};
+  lprintf(logger, LOG_PHASE, "Writing the reports...\n");
   run_report_write(report, sections, n_groups, total, false, logger);
+  lprintf(logger, LOG_INFO, "Tables written: %s, %s\n", summary_path,
+          lengths_path);
+  lprintf(logger, LOG_SUCCESS, "Reports written: %s/%s, %s/%s\n",
+          opts.outdir, RUN_REPORT_HTML_FILE, opts.outdir,
+          RUN_REPORT_JSON_FILE);
   free(sections);
   run_report_delete(report);
   free(lengths_path);

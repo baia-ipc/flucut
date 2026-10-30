@@ -101,3 +101,21 @@ Other options
 
 Only one of ``-q``, ``-v`` and ``-D`` can be given. Invalid values of the
 options are errors (exit status 1), reported with the usage.
+
+The messages go to the standard error; in a terminal they are colored by
+their kind:
+
+- ``SUCCESS`` (green): the reads written for each output, and the
+  reports at the end;
+- ``WARNING`` (magenta): something to look at, e.g. many complete
+  amplicons shorter than their reference (internal priming or
+  deletions), or files of reads ignored beside the barcode directories;
+- ``ERROR`` (red): the program stops;
+- with ``-v``, also ``PARAM`` (blue: the values of the options),
+  ``PHASE`` (bright yellow: the steps, e.g. the trimming of each file)
+  and ``INFO`` (yellow: the scheme and its primers, the input groups,
+  the references read, the internally primed ends, the lengths of the
+  amplicons without references, the tables written).
+
+Without ``-v``, a run thus prints one green line for each output, a
+warning if any, and a green line for the reports.
