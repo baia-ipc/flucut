@@ -2,21 +2,26 @@
 """Compare the consensus of an IRMA run with the truth of a simulation.
 
 For each segment, the amended consensus of IRMA
-(amended_consensus/<sample>_<n>.fa, n = segment number) is aligned to
-the true segment (genome.fasta of benchmark/simulate.py, whose headers
-contain "segment <n>"), and the following are reported:
+(amended_consensus/<sample>_<n>.fa, n = segment number), or with
+--plain the majority consensus (A_<gene>*.fasta), is aligned to the
+true segment (genome.fasta of benchmark/simulate.py, whose headers
+contain "segment <n>"; N in the consensus matches any base), and the
+following are reported:
 
   missing_5, missing_3   true bases missing at each end of the consensus
   extra_5, extra_3       consensus bases beyond the ends of the truth
   subst, ins, del        differences inside the aligned part
-  ambiguous              consensus bases which are not A, C, G or T
+  ambiguous              consensus bases which are not A, C, G, T or N
                          (counted apart, not as substitutions)
+  n_bases                N in the consensus (e.g. the amended consensus
+                         where fewer reads than MIN_CONS_SUPPORT of IRMA
+                         support a base: 50 with FLU-minion)
   site_errors            for the segment of the internal priming site
                          (site.tsv): differences in the replaced bases
                          (NA for the other segments)
 
 Usage:
-  python3 -I benchmark/compare_consensus.py <simulation dir> \\
+  python3 -I benchmark/compare_consensus.py [--plain] <simulation dir> \\
       <IRMA output dir> <label>
 Output: a TSV table on the standard output (one line per segment, with
 the label in the first column; a header unless --no-header).
@@ -50,7 +55,9 @@ def segment_number(header):
 def compare(truth, cons, site):
   """The measures of one segment (see the module documentation)."""
   # the consensus, end-free in the truth, then the ends beyond it
-  res = edlib.align(cons, truth, mode="HW", task="path")
+  eq = [("N", b) for b in "ACGT"]
+  res = edlib.align(cons, truth, mode="HW", task="path",
+                    additionalEqualities=eq)
   start, end = res["locations"][0]
   aln = edlib.getNiceAlignment(res, cons, truth)
   q, t = aln["query_aligned"], aln["target_aligned"]
@@ -63,7 +70,7 @@ def compare(truth, cons, site):
   while trail < len(t) - lead and t[len(t) - 1 - trail] == "-":
     trail += 1
   extra_5, extra_3 = lead, trail
-  subst = ins = dele = amb = 0
+  subst = ins = dele = amb = n_bases = 0
   site_errors = 0
   tpos = start
   for i in range(lead, len(q) - trail):
@@ -77,7 +84,9 @@ def compare(truth, cons, site):
       ins += 1
       site_errors += in_site
     else:
-      if a not in "ACGT":
+      if a == "N":
+        n_bases += 1
+      elif a not in "ACGT":
         amb += 1
       elif a != b:
         subst += 1
@@ -86,16 +95,22 @@ def compare(truth, cons, site):
   return {"cons_len": len(cons), "truth_len": len(truth),
           "missing_5": start, "missing_3": len(truth) - 1 - end,
           "extra_5": extra_5, "extra_3": extra_3, "subst": subst,
-          "ins": ins, "del": dele, "ambiguous": amb,
+          "ins": ins, "del": dele, "ambiguous": amb, "n_bases": n_bases,
           "site_errors": site_errors if site is not None else "NA"}
 
 
 COLUMNS = ["cons_len", "truth_len", "missing_5", "missing_3", "extra_5",
-           "extra_3", "subst", "ins", "del", "ambiguous", "site_errors"]
+           "extra_3", "subst", "ins", "del", "ambiguous", "site_errors",
+           "n_bases"]
+
+# the genes of the segments, in the names of the consensus files of IRMA
+GENES = {1: "PB2", 2: "PB1", 3: "PA", 4: "HA", 5: "NP", 6: "NA", 7: "MP",
+         8: "NS"}
 
 
 def main():
-  args = [a for a in sys.argv[1:] if a != "--no-header"]
+  args = [a for a in sys.argv[1:] if a not in ("--no-header", "--plain")]
+  plain = "--plain" in sys.argv
   if len(args) != 3:
     sys.exit(__doc__)
   simdir, irmadir, label = args
@@ -112,8 +127,11 @@ def main():
     print("\t".join(["label", "segment"] + COLUMNS))
   for n in sorted(truth):
     name, tseq = truth[n]
-    files = glob.glob(os.path.join(irmadir, "amended_consensus",
-                                   "*_%d.fa" % n))
+    if plain:
+      files = glob.glob(os.path.join(irmadir, "A_%s*.fasta" % GENES[n]))
+    else:
+      files = glob.glob(os.path.join(irmadir, "amended_consensus",
+                                     "*_%d.fa" % n))
     if not files:
       print("\t".join([label, str(n)] + ["NA"] * len(COLUMNS)))
       continue

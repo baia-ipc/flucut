@@ -15,7 +15,10 @@ mismatches, without gaps; found in the sequence, not chosen) is used as
 an internal priming site: a share of the HA reads start there
 with the bases of the primer, which replace those of the template.
 
-Each read gets, independently: an orientation; random flanking bases
+With --barcodes, each amplicon gets the native barcoding adapter of
+Oxford Nanopore (flank, barcode, flank: sequences of Dorado) of one of
+the first N barcodes at both ends, as in a ligation library. Each read
+gets, independently: an orientation; random flanking bases
 (standing for adapter and barcode remnants: random, not a real adapter
 sequence); sometimes a start or an end inside a primer, or a break in
 the middle; and sequencing errors (substitutions, insertions and
@@ -28,9 +31,13 @@ Outputs, in <outdir>:
   truth.tsv.gz     for each read: name, segment, kind (full, internal,
                    dimer, broken), orientation, and the origin of each of
                    its bases (a string as long as the read: f flank,
+                   including the barcoding adapters,
                    t primer tail, p primer bases at a terminus, i primer
-                   bases at the internal site, T template)
+                   bases at the internal site, T template), and the
+                   barcode (or none)
   genome.fasta     the truth (a copy of the input genome)
+  barcodes.fasta   with --barcodes: the barcoding adapters used
+                   (flank, barcode, flank), named NB01 to NB04
   site.tsv         the internal priming site (segment, 0-based start,
                    template bases replaced, primer, mismatches)
 
@@ -47,6 +54,14 @@ import random
 UNI12 = "AGCRAAAGCAGG"
 MBT_TAIL = "ACGCGTGATC"
 UNI13 = "AGTAGAAACAAGG"
+# the native barcoding adapters of Oxford Nanopore (flank, barcode,
+# flank), as defined in Dorado (utils/barcode_kits.cpp, commit e72f149,
+# quoted in src/kits/kits.rs of Barbell 0.3.3): NB01 to NB04
+NB_FRONT = "ATTGCTAAGGTTAA"
+NB_REAR = "CAGCACCT"
+NB_BARCODES = ["CACAAAGACACCGACAACTTTCTT", "ACAGACGACTACAAACGGAATCGA",
+               "CCTGGTAACTGGGACACAAGACTC", "TAGGGAAACACGATAGAATCCGAA"]
+
 COMPLEMENT = str.maketrans("ACGTRN", "TGCAYN")
 IUPAC = {"R": "AG", "N": "ACGT"}
 
@@ -130,6 +145,10 @@ def main():
            "(default 0.6: enough for the artefact to reach a majority "
            "consensus when nothing is trimmed)")
   parser.add_argument("--seed", type=int, default=1)
+  parser.add_argument(
+      "--barcodes", type=int, default=0, choices=range(0, 5),
+      help="native barcoding: each amplicon gets the adapter of one of the "
+           "first N barcodes (NB01-NB04) at both ends (default 0: none)")
   args = parser.parse_args()
   rng = random.Random(args.seed)
   genome = read_fasta(args.genome)
@@ -151,11 +170,16 @@ def main():
     for _, seq, header in genome:
       f.write(">%s\n%s\n" % (header, seq))
 
+  if args.barcodes > 0:
+    with open(os.path.join(args.outdir, "barcodes.fasta"), "w") as f:
+      for b in range(args.barcodes):
+        f.write(">NB%02d\n%s\n" % (b + 1,
+                                    NB_FRONT + NB_BARCODES[b] + NB_REAR))
   rc13 = revcomp(MBT_TAIL + UNI13)
   rc13_labels = "p" * len(UNI13) + "t" * len(MBT_TAIL)
   fq = gzip.open(os.path.join(args.outdir, "reads.fastq.gz"), "wt")
   truth = gzip.open(os.path.join(args.outdir, "truth.tsv.gz"), "wt")
-  truth.write("read\tsegment\tkind\tstrand\tlabels\n")
+  truth.write("read\tsegment\tkind\tstrand\tlabels\tbarcode\n")
   n = 0
   for name, seq in segments:
     for k in range(args.reads_per_segment):
@@ -189,6 +213,13 @@ def main():
         else:
           amp, labels = amp[cut:], labels[cut:]
         kind = "broken" if kind == "full" else kind + "_broken"
+      barcode = "none"
+      if args.barcodes > 0:
+        b = rng.randrange(args.barcodes)
+        barcode = "NB%02d" % (b + 1)
+        adapter = NB_FRONT + NB_BARCODES[b] + NB_REAR
+        amp = adapter + amp + revcomp(adapter)
+        labels = "f" * len(adapter) + labels + "f" * len(adapter)
       strand = "+"
       if rng.random() < 0.5:
         amp, labels = revcomp(amp), labels[::-1]
@@ -203,8 +234,8 @@ def main():
       n += 1
       rname = "r%05d" % n
       fq.write("@%s\n%s\n+\n%s\n" % (rname, read, qual))
-      truth.write("%s\t%s\t%s\t%s\t%s\n"
-                  % (rname, name, kind, strand, read_labels))
+      truth.write("%s\t%s\t%s\t%s\t%s\t%s\n"
+                  % (rname, name, kind, strand, read_labels, barcode))
   fq.close()
   truth.close()
 
