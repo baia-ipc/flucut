@@ -42,12 +42,25 @@ The reports
 -----------
 
 After each file, ``summary.tsv``, ``lengths.tsv``, the JSON summary and
-the HTML report are written again (each to a temporary file, then
-renamed, so that a reader never sees an incomplete one). While the run
-is in progress, the HTML report says so and reloads itself every 30
-seconds in the browser, and the JSON summary has ``"running": true``.
-At the end, the final versions are written, and the counts of each
-sample are reported as in a normal run, with the warnings of the
+``flucut_report.html`` are written again (each to a temporary file, then
+renamed, so that a reader never sees an incomplete one).
+
+While the run is in progress, ``flucut_report.html`` is a **dashboard**:
+a single screen, without scrolling, that reloads itself every 30 seconds
+(the JSON summary has ``"running": true``). It shows, as the run builds
+up, the reads at each step, a per-barcode summary (one row per barcode
+directory), the internal priming and its sites, the complete amplicons,
+and the coverage of the segments by read origin.
+
+.. figure:: figures/dashboard.*
+   :width: 100%
+
+   The dashboard of a live run of two barcodes (the reads of two real
+   H5N1 Nanopore runs, against complete segment references).
+
+At the end, the final version is written as the **full report**
+(:doc:`reports`), scrolling, with a section for each barcode; the counts
+of each sample are reported as in a normal run, with the warnings of the
 lengths.
 
 The end

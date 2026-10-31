@@ -197,3 +197,8 @@
   UTRs (they start at a start codon and end at a stop codon): the
   full-length reads then cannot be located, as their probe is the 5' UTR,
   absent from a CDS reference; complete segment references are required
+- live mode: a dashboard. While a run is in progress the HTML report is a
+  dashboard (one screen, no scrolling, reloaded every 30 seconds): the
+  reads at each step, a per-barcode summary, the internal priming and its
+  sites, the complete amplicons and the coverage by read origin; the final
+  report, at the end of the run, is the full scrolling report

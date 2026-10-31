@@ -52,8 +52,11 @@ void run_report_write(const run_report_t *self,
     .options = self->opts, .scheme = self->scheme,
     .references = self->references, .sections = sections,
     .n_sections = n, .total = total, .max_errors = self->max_errors,
+    /* while a run is in progress (live mode) the HTML is a dashboard, one
+       screen that fits without scrolling; the final report, at the end, is
+       the full scrolling report */
     .refresh = running ? RUN_REPORT_REFRESH : 0, .running = running,
-    .dashboard = false};
+    .dashboard = running};
   html_report_write(self->html_path, &r, logger);
   json_report_write(self->json_path, &r, logger);
 }
