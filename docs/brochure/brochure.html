@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>flucut brochure</title>
+<style>
+@font-face{font-family:Fira;font-weight:300;src:url(file:///usr/share/texlive/texmf-dist/fonts/opentype/public/fira/FiraSans-Light.otf)}
+@font-face{font-family:Fira;font-weight:400;src:url(file:///usr/share/texlive/texmf-dist/fonts/opentype/public/fira/FiraSans-Regular.otf)}
+@font-face{font-family:Fira;font-weight:400;font-style:italic;src:url(file:///usr/share/texlive/texmf-dist/fonts/opentype/public/fira/FiraSans-Italic.otf)}
+@font-face{font-family:Fira;font-weight:500;src:url(file:///usr/share/texlive/texmf-dist/fonts/opentype/public/fira/FiraSans-Medium.otf)}
+@font-face{font-family:Fira;font-weight:600;src:url(file:///usr/share/texlive/texmf-dist/fonts/opentype/public/fira/FiraSans-SemiBold.otf)}
+@font-face{font-family:Fira;font-weight:700;src:url(file:///usr/share/texlive/texmf-dist/fonts/opentype/public/fira/FiraSans-Bold.otf)}
+@font-face{font-family:Fira;font-weight:800;src:url(file:///usr/share/texlive/texmf-dist/fonts/opentype/public/fira/FiraSans-ExtraBold.otf)}
+@page{size:A4;margin:0}
+:root{--navy:#0f1b2d;--blue:#2a78d6;--sky:#8ec5ff;--orange:#eb6834;
+--teal:#0b9e73;--amber:#e8a013;--ink:#2b2b2b;--muted:#6b7280;
+--light:#f2f5f9;--red:#e5202f}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:Fira,sans-serif;color:var(--ink);font-size:9.6pt;
+line-height:1.42;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{width:210mm;height:297mm;position:relative;overflow:hidden;
+page-break-after:always;background:#fff}
+.page:last-child{page-break-after:auto}
+h2{font-size:15pt;font-weight:700;color:var(--navy);margin:0 0 2.5mm;
+letter-spacing:-0.01em}
+h3{font-size:10.5pt;font-weight:700;color:var(--navy);margin:0 0 1.2mm}
+p{margin:0 0 2mm}
+.kicker{font-size:7.5pt;font-weight:700;letter-spacing:0.16em;
+text-transform:uppercase;color:var(--blue);margin-bottom:1.5mm}
+.pad{padding:0 14mm}
+code,.mono{font-family:'JetBrains Mono',monospace;font-size:8pt}
+code{background:var(--light);border-radius:1mm;padding:0.2mm 1mm}
+
+/* page 1: hero */
+.hero{background:#000;height:62mm;overflow:hidden;display:flex;
+align-items:center;justify-content:center}
+.hero img{width:100%;display:block}
+.head{padding:7mm 14mm 0}
+.head h1{font-size:21pt;line-height:1.12;font-weight:800;color:var(--navy);
+margin:0 0 3mm;letter-spacing:-0.015em}
+.head h1 span{color:var(--blue)}
+.head .lead{font-size:10.3pt;color:var(--ink);font-weight:400}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:3.5mm;
+margin:5mm 14mm 6mm}
+.stat{background:var(--light);border-radius:3mm;padding:3.5mm 4mm 3mm}
+.stat .v{font-size:18pt;font-weight:800;color:var(--blue);line-height:1}
+.stat:nth-child(2) .v{color:var(--teal)}
+.stat:nth-child(3) .v{color:var(--orange)}
+.stat:nth-child(4) .v{color:var(--navy)}
+.stat .l{font-size:7.8pt;color:var(--ink);margin-top:1.5mm;line-height:1.3}
+.stat .s{font-size:6.8pt;color:var(--muted);margin-top:0.8mm}
+
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:8mm}
+.how img{width:100%;display:block;margin:1.5mm 0 3mm;border-radius:1.5mm}
+ul.dots{margin:0;padding:0;list-style:none}
+ul.dots li{position:relative;padding-left:4.2mm;margin:0 0 1.5mm}
+ul.dots li:before{content:"";position:absolute;left:0;top:1.6mm;width:1.8mm;
+height:1.8mm;border-radius:50%;background:var(--blue)}
+.chips{display:flex;flex-wrap:wrap;gap:1.6mm;margin:1mm 0 3mm}
+.chip{border:0.3mm solid #cfd8e3;border-radius:5mm;padding:0.6mm 2.6mm;
+font-size:7.8pt;font-weight:500;color:var(--navy);background:#fff}
+.chip.hl{background:var(--navy);color:#fff;border-color:var(--navy)}
+.term{width:100%;display:block;border-radius:2mm;margin-top:2mm;
+box-shadow:0 0.8mm 3mm rgba(15,27,45,.18)}
+.foot{position:absolute;left:14mm;right:14mm;bottom:9mm;display:flex;
+justify-content:space-between;align-items:center;font-size:7.5pt;
+color:var(--muted);border-top:0.3mm solid #e1e6ec;padding-top:2.5mm}
+.foot b{color:var(--navy)}
+
+/* page 2 */
+.band{background:var(--navy);color:#fff;padding:9mm 14mm 7mm}
+.band .kicker{color:var(--sky)}
+.band h2{color:#fff;font-size:19pt;margin-bottom:2mm}
+.band p{color:#d5deea;font-size:9.6pt;width:165mm;margin-bottom:0}
+.cov{padding:5mm 14mm 0}
+.cov img{height:51mm;width:auto;max-width:100%;display:block;margin:0 auto;
+border-radius:2mm;
+box-shadow:0 0.8mm 3mm rgba(15,27,45,.14);border:0.3mm solid #e1e6ec}
+.cov .cap{font-size:7.6pt;color:var(--muted);margin-top:2mm}
+.cov .cap b{color:var(--navy)}
+
+table.feat{width:calc(100% - 28mm);margin:6mm 14mm 0;border-collapse:collapse;
+font-size:7.9pt}
+table.feat th,table.feat td{padding:1.4mm 1.5mm;text-align:center;
+border-bottom:0.3mm solid #e6ebf1}
+table.feat thead th{font-size:7.8pt;color:var(--navy);font-weight:700;
+border-bottom:0.5mm solid #c9d4e0;vertical-align:bottom}
+table.feat tbody th{text-align:left;font-weight:500;color:var(--ink);
+width:52mm}
+table.feat .me{background:#eaf3fd}
+table.feat thead .me{color:var(--blue);font-weight:800}
+table.feat .y{color:var(--teal);font-weight:700}
+table.feat .n{color:#c2c8d0;font-weight:700}
+table.feat .num{font-weight:700;color:var(--navy)}
+table.feat .me .num{color:var(--blue)}
+.tnote{margin:1.5mm 14mm 0;font-size:6.8pt;color:var(--muted)}
+
+.live{display:grid;grid-template-columns:1.15fr 1fr;gap:7mm;
+padding:5mm 14mm 0;align-items:center}
+.live img{width:100%;display:block;border-radius:2mm;
+box-shadow:0 0.8mm 3mm rgba(15,27,45,.14);border:0.3mm solid #e1e6ec}
+.live h3{margin-bottom:1.5mm}
+.get{margin:5mm 14mm 0;border-radius:3.5mm;padding:4mm 6mm;display:grid;
+grid-template-columns:1.2fr 1fr;gap:6mm;align-items:center;
+background:linear-gradient(110deg,#eef5fd,#fff 70%);
+border:0.3mm solid #d8e6f6}
+.get h2{margin:0 0 1.5mm}
+.get .url{font-size:12.5pt;font-weight:700;color:var(--blue)}
+.cmd{background:#111;color:#e6e6e6;border-radius:2mm;padding:3mm 3.5mm;
+font-family:'JetBrains Mono',monospace;font-size:7.6pt;line-height:1.55}
+.cmd .p{color:#2ebfa5}
+</style>
+</head>
+<body>
+
+<!-- ======================= page 1 ======================= -->
+<section class="page">
+  <div class="hero"><img src="img/banner.png" alt="flucut"></div>
+
+  <div class="head">
+    <div class="kicker">Influenza A amplicon QC, before IRMA</div>
+    <h1>Primers off, the internal-priming<br>
+      <span>artefact caught.</span></h1>
+    <p class="lead">flucut removes the universal RT-PCR primers
+    (Uni12/Uni13) from influenza&nbsp;A reads and, with references, finds
+    and measures <b>internal priming</b> &mdash; the hidden artefact that
+    writes wrong bases into the consensus (the HA I348K lysine). One
+    command before IRMA, no configuration, on Nanopore and Illumina.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="v">1.6&nbsp;s</div>
+      <div class="l">for 32,000 reads</div>
+      <div class="s">4 threads, libdeflate</div></div>
+    <div class="stat"><div class="v">60&nbsp;MB</div>
+      <div class="l">of memory</div>
+      <div class="s">runs on any laptop</div></div>
+    <div class="stat"><div class="v">99.6%</div>
+      <div class="l">internally primed reads tolerated, still no N in the
+        consensus</div>
+      <div class="s">~91% for the IRMA-core trimmer</div></div>
+    <div class="stat"><div class="v">8 / 8</div>
+      <div class="l">segments classified, terminal vs internal, by
+        strand</div>
+      <div class="s">reported, not trimmed silently</div></div>
+  </div>
+
+  <div class="pad cols">
+    <div class="how">
+      <div class="kicker">How it works</div>
+      <h2>One read, one amplicon</h2>
+      <img src="img/read_layout.png" alt="">
+      <ul class="dots">
+        <li>the primer is searched only near the read end, aligned with
+          errors, on both strands, degenerate bases and all</li>
+        <li>the sequence after the primer (a probe) is located in the
+          segment: at the terminus it is a real amplicon, deeper inside it
+          is internally primed</li>
+        <li>an internal or unsure end loses its <b>whole</b> primer (cut
+          when unsure), so the artefact never reaches the consensus</li>
+        <li>Nanopore adapters (native, rapid, ligation) removed at broken
+          ends; one IRMA-ready FASTQ per sample</li>
+      </ul>
+    </div>
+    <div>
+      <div class="kicker">Built for the protocol</div>
+      <h2>No primer files, no tuning</h2>
+      <div class="chips">
+        <span class="chip hl">Uni12 / Uni13</span>
+        <span class="chip">mbt tailed</span>
+        <span class="chip">uni</span>
+        <span class="chip">Nanopore</span>
+        <span class="chip">Illumina</span>
+        <span class="chip">FASTQ / BAM</span>
+        <span class="chip">MinKNOW dirs</span>
+      </div>
+      <ul class="dots">
+        <li>the schemes and primers are built in &mdash; no
+          <code>-g/-a/-e</code> to guess</li>
+        <li>the error rate is measured on the first reads
+          (<code>-e&nbsp;auto</code>); a Nanopore and an Illumina profile
+          (<code>-p</code>)</li>
+        <li>with <code>-r</code>, the conserved 12/13-base termini are kept
+          at the ends confidently terminal &mdash; complete segment ends
+          in one pass</li>
+      </ul>
+      <img class="term" src="img/terminal_flucut.png" alt="">
+    </div>
+  </div>
+
+  <div class="foot">
+    <span><b>flucut</b> &middot; influenza&nbsp;A primer trimming and
+      internal-priming QC for IRMA</span>
+    <span>BAIA &middot; Institut Pasteur du Cambodge</span>
+  </div>
+</section>
+
+<!-- ======================= page 2 ======================= -->
+<section class="page">
+  <div class="band">
+    <div class="kicker">What the others miss</div>
+    <h2>See the internal priming &mdash; don't just trim it</h2>
+    <p>Every primer-aware trimmer removes the Uni12 footprint. Only flucut
+    tells you it was there: it reconstructs the coverage of each segment
+    from its own read classification, so internal priming shows as a step
+    up above the full-length baseline &mdash; here the HA I348K site, in a
+    real H5N1 Nanopore run.</p>
+  </div>
+
+  <div class="cov">
+    <img src="img/coverage.png" alt="">
+    <div class="cap"><b>Coverage by read origin</b> (SRA SRR36760543,
+      complete H5N1 segment references). Green: full-length amplicons, a
+      flat baseline. Amber + blue: internally primed reads, by strand,
+      beginning at the red site line. HA steps up sharply (the I348K
+      artefact); PB1 shows a smaller internal site.</div>
+  </div>
+
+  <table class="feat">
+    <thead>
+      <tr><th></th><th class="me">flucut</th><th>cutadapt</th><th>BBDuk</th>
+        <th>IRMA-core</th><th>dorado</th><th>Barbell</th></tr>
+    </thead>
+    <tbody>
+      <tr><th>Nanopore</th>
+        <td class="me y">&#10003;</td><td class="y">&#10003;</td>
+        <td class="y">&#10003;</td><td class="y">&#10003;</td>
+        <td class="y">&#10003;</td><td class="y">&#10003;</td></tr>
+      <tr><th>Illumina</th>
+        <td class="me y">&#10003;</td><td class="y">&#10003;</td>
+        <td class="y">&#10003;</td><td class="y">&#10003;</td>
+        <td class="n">&mdash;</td><td class="n">&mdash;</td></tr>
+      <tr><th>Max internal priming, no N in consensus<sup>&dagger;</sup></th>
+        <td class="me"><span class="num">99.6%</span></td>
+        <td><span class="num">99.6%</span><sup>&Dagger;</sup></td>
+        <td><span class="num">93%</span></td>
+        <td><span class="num">91%</span></td>
+        <td><span class="num">99.7%</span></td>
+        <td class="n">&mdash;</td></tr>
+      <tr><th>Keeps the correct segment ends in the consensus</th>
+        <td class="me y">&#10003;</td><td class="n">&mdash;</td>
+        <td class="n">&mdash;</td><td class="n">&mdash;</td>
+        <td class="n">&mdash;</td><td class="n">&mdash;</td></tr>
+      <tr><th>Internal-priming analysis + coverage plot</th>
+        <td class="me y">&#10003;</td><td class="n">&mdash;</td>
+        <td class="n">&mdash;</td><td class="n">&mdash;</td>
+        <td class="n">&mdash;</td><td class="n">&mdash;</td></tr>
+      <tr><th>Built-in flu protocol, no primer file</th>
+        <td class="me y">&#10003;</td><td class="n">&mdash;</td>
+        <td class="n">&mdash;</td><td class="y">&#10003;</td>
+        <td class="n">&mdash;</td><td class="n">&mdash;</td></tr>
+      <tr><th>Speed / memory, 32k reads</th>
+        <td class="me"><span class="num">1.6&nbsp;s</span> / 60&nbsp;MB</td>
+        <td>3.7&nbsp;s / 41&nbsp;MB</td>
+        <td>4.0&nbsp;s / 950&nbsp;MB</td>
+        <td>7.5&nbsp;s / 11&nbsp;MB</td>
+        <td>8.1&nbsp;s / 480&nbsp;MB</td>
+        <td>2.4&nbsp;s / 44&nbsp;MB</td></tr>
+    </tbody>
+  </table>
+  <div class="tnote">&dagger; the highest share of internally primed reads
+    at the HA site at which IRMA still calls the correct base; derived from
+    the measured read retention (<code>benchmark/COMPARISON.md</code>).
+    &Dagger; cutadapt reaches it only by also discarding ~27% of the
+    genuine full-length reads. Barbell removes barcodes, not the internal
+    Uni primer, so it cannot correct the artefact.</div>
+
+  <div class="live">
+    <div>
+      <div class="kicker">Real time</div>
+      <h3>Live, while you sequence</h3>
+      <p>With <code>--live</code>, flucut follows a MinKNOW run: each new
+      file is trimmed as it is written, and the report and JSON summary are
+      updated and reloaded in the browser &mdash; the internal priming of
+      the run building up live, on the sequencing laptop. Resume,
+      interruption and end-of-run are handled, and the output matches a
+      normal run on the final files.</p>
+    </div>
+    <img src="img/live_report.png" alt="">
+  </div>
+
+  <div class="get">
+    <div>
+      <div class="kicker">Get flucut</div>
+      <h2>Free and open source</h2>
+      <div class="url">github.com/baia-ipc/flucut</div>
+      <p style="margin:1.5mm 0 0;color:var(--muted);font-size:8.3pt">C, ISC
+      license, Linux and macOS, no dependencies.</p>
+    </div>
+    <div class="cmd"><span class="p">$</span> make<br>
+      <span class="p">$</span> flucut -r refs.fasta -o out/ \<br>
+      &nbsp;&nbsp;&nbsp;run/fastq_pass/<br>
+      <span class="p">$</span> IRMA FLU-minion out/*.fastq.gz sample</div>
+  </div>
+
+  <div class="foot">
+    <span><b>flucut</b> &middot; one command between the basecaller and
+      IRMA</span>
+    <span>BAIA &middot; Institut Pasteur du Cambodge</span>
+  </div>
+</section>
+
+</body>
+</html>
