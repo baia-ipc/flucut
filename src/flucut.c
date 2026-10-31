@@ -35,6 +35,42 @@
 #include "worker.h"
 
 
+/*
+   Whether the references look like coding sequences (CDS) without the
+   untranslated regions (UTRs) of the segments: most start with a start
+   codon and end with a stop codon, and none begins with the conserved
+   terminus of a segment. flucut locates the read in the references by the
+   sequence just after the 5' primer (the probe), which in a full segment
+   is the 5' UTR; a CDS reference does not contain it, so the terminal
+   reads cannot be classified (they are reported as not located), and only
+   the internally primed reads, whose probe falls inside the ORF, map.
+   The references must be complete segments, with the UTRs.
+*/
+static bool references_look_cds_only(const fasta_t *refs) {
+  if (refs == NULL || refs->n_records == 0)
+    return false;
+  size_t cds = 0;
+  for (size_t i = 0; i < refs->n_records; i++) {
+    const char *s = refs->records[i].seq;
+    size_t n = refs->records[i].seq_len;
+    if (n < 6)
+      continue;
+    /* a complete segment begins with the universal terminus (AGCrAAAGCAGG);
+       such a reference is never flagged */
+    if (n >= 12 && (memcmp(s, "AGCAAAAGCAGG", 12) == 0 ||
+                    memcmp(s, "AGCGAAAGCAGG", 12) == 0))
+      return false;
+    bool starts = memcmp(s, "ATG", 3) == 0;
+    const char *e = s + n - 3;
+    bool ends = memcmp(e, "TAA", 3) == 0 || memcmp(e, "TAG", 3) == 0 ||
+                memcmp(e, "TGA", 3) == 0;
+    if (starts && ends)
+      cds++;
+  }
+  return cds * 2 >= refs->n_records;   /* at least half look like a CDS */
+}
+
+
 /* the paths of the outputs of the groups; an input which would be
    overwritten by an output is an error */
 static char** output_paths(const input_group_t *groups, size_t n_groups,
@@ -143,6 +179,14 @@ int main(int argc, char *argv[]) {
   if (refs != NULL) {
     lprintf(logger, LOG_INFO, "%zu reference sequences read from %s\n",
             refs->n_records, opts.references);
+    if (references_look_cds_only(refs))
+      lprintf(logger, LOG_WARN,
+          "the references look like coding sequences without the UTRs "
+          "(they start at a start codon and end at a stop codon); the 5' "
+          "origin of the reads cannot be classified (they will be reported "
+          "as not located) and only internal priming inside the ORF is "
+          "seen. Use complete segment references, with the UTRs "
+          "(scripts/fetch_references.py).\n");
     index = reference_index_new(refs);
   }
   auto_settings_t autos;

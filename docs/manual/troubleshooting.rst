@@ -56,6 +56,20 @@ Errors in the references file
    ``invalid base``, ``sequence before the first header line``: the
    file given to ``-r`` is not a valid FASTA file.
 
+``the references look like coding sequences without the UTRs ...`` (warning)
+   The references given to ``-r`` start at a start codon and end at a
+   stop codon: they are coding sequences (CDS), without the untranslated
+   regions (UTRs) of the segments. flucut locates a read by the sequence
+   just after its 5' primer, which in a complete segment is the 5' UTR;
+   a CDS reference does not contain it, so the full-length (terminal)
+   reads cannot be located (they are counted as not located) and only
+   the internally primed reads, whose probe falls inside the ORF, map —
+   the internal-priming classification and the coverage plot are then
+   misleading. Use **complete segment references, with the UTRs**:
+   ``scripts/fetch_references.py`` downloads them, and the records of a
+   complete segment begin with the conserved terminus (``AGCRAAAGCAGG``),
+   not with ``ATG``.
+
 Messages about the reads
 ------------------------
 

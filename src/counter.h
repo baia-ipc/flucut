@@ -33,6 +33,18 @@
 /* the ends of an amplicon */
 enum { COUNTER_LEFT, COUNTER_RIGHT, COUNTER_N_ENDS };
 
+/* the categories of a read for the coverage plot (counter_coverage()):
+   where its amplicon started, and for an internally primed one, on which
+   strand; a read is counted only if an end mapped to a reference */
+enum { COVER_TERMINAL_PLUS,   /* started at a segment end, plus strand */
+       COVER_TERMINAL_MINUS,  /* started at a segment end, minus strand */
+       COVER_INTERNAL_PLUS,   /* internally primed, plus strand */
+       COVER_INTERNAL_MINUS,  /* internally primed, minus strand */
+       COVER_NO_PRIMER,       /* no primer at the 5' end (placed by the
+                                 other end and the length) */
+       COVER_UNMAPPED,        /* a 5' primer, but its probe not located */
+       COVER_N_CATEGORIES };
+
 /* the counts of the reads at each step */
 typedef struct {
   size_t reads_in, bases_in;
@@ -103,6 +115,23 @@ size_t counter_primer(const counter_t *self, size_t end, size_t variant);
    NULL if there are none (or no references)
 */
 const size_t* counter_sites(const counter_t *self, size_t ref, size_t end);
+
+/*
+   The reconstructed coverage of the reference <ref> by the category
+   <cat> (COVER_*): the span of each located read on the reference is
+   [start, start + template length) (see amplicon.h: the mapped probe
+   positions and the kept length); <out> is filled with the number of
+   reads of that category covering each of the <seq_len> positions of the
+   reference, and the greatest value is returned (0 and <out> zeroed if
+   none). <out> must have room for the reference length. This is an
+   overview from the classification, not a base-by-base mapping: it
+   ignores indels and the reads whose ends were not located.
+*/
+size_t counter_coverage(const counter_t *self, size_t ref, size_t cat,
+    size_t *out);
+
+/* Whether any located read was counted for the coverage of <ref> */
+bool counter_has_coverage(const counter_t *self, size_t ref);
 
 /*
    The lengths of the complete amplicons; the groups: without references,

@@ -70,6 +70,17 @@ terminus.
 ``scripts/fetch_references.py`` downloads segment references from NCBI,
 with their provenance.
 
+The references must be **complete segments, with the untranslated
+regions (UTRs)**, not coding sequences (CDS). A read is located by the
+sequence just after its 5' primer, which in a full segment is the 5'
+UTR; a CDS reference (starting at the ATG, ending at the stop codon)
+does not contain it, so the full-length reads cannot be located and only
+the internally primed reads, whose probe falls inside the ORF, map —
+which would make the classification and the coverage plot misleading.
+flucut warns when the references look like coding sequences
+(:doc:`troubleshooting`); a complete segment begins with the conserved
+terminus (``AGCRAAAGCAGG``), not with ``ATG``.
+
 The length check
 ----------------
 

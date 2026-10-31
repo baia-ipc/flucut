@@ -23,10 +23,12 @@ and it uses no external resources (and no JavaScript), so that it can
 be opened offline in any browser, archived, and sent by e-mail. It
 follows the light or dark theme of the browser.
 
-The figures of this chapter show the report of the simulated reads of
+Most figures of this chapter show the report of the simulated reads of
 the benchmark (3,200 reads of the eight segments, of which 239 HA reads
 internally primed, :doc:`performance`), trimmed with the references
-(``-r``); see ``docs/manual/figures/README.md`` for how they were made.
+(``-r``); the coverage figure is from a real Nanopore run, where it is
+more telling. See ``docs/manual/figures/README.md`` for how they were
+made.
 
 **The run parameters.**
    At the right of the logo: the version of flucut, the command line,
@@ -119,6 +121,54 @@ Then, for all reads and for each group:
       each reference and one for the amplicon whose read ends were not
       located; that of the HA (KF918483.1) has two peaks, the amplicons
       started at the internal site and the complete segment.
+
+**Coverage by read origin.**
+   With references: for each reference, a reconstructed coverage along
+   its length, stacked by the origin of the reads covering each
+   position. Each located read covers the span ``[start, start + length)``
+   on the reference (from the mapped position of its probe, the
+   ``ml``/``mr`` tags, and its kept length); the reads are coloured by
+   where their amplicon started and on which strand:
+
+   * **terminal +** and **terminal -**: started at a segment end (a
+     genuine full-length amplicon), on the plus or the minus strand;
+   * **internal +** and **internal -**: internally primed, on the plus
+     or the minus strand;
+   * **no 5' primer** and **5' probe not located** (grey, at the
+     bottom): reads placed by their 3' end and their length. A read with
+     no 5' primer is a fragment of unknown origin; the few remaining here
+     are the reads whose 5' probe could not be located at all.
+
+   When only the 3' end of a read maps, its 5' origin is inferred from
+   where its 5' end falls (the mapped 3' position less the read length):
+   within the segment terminus it is counted as terminal, deeper as
+   internal.
+
+   Internal priming shows as a step up in the coloured (amber, blue)
+   bands at the site, marked with the red line of the largest site of
+   the reference. This is an overview built from flucut's classification,
+   not a base-by-base mapping: it ignores indels and the reads whose
+   ends were not located. No other primer trimmer shows it.
+
+   .. note::
+      The coverage can only be reconstructed when the references are
+      **complete segments, with the UTRs**. A read is located by the
+      sequence just after its 5' primer, which in a full segment is the
+      5' UTR; against coding-sequence (CDS) references, which lack the
+      UTRs, only the internally primed reads map (their probe falls
+      inside the ORF) and flucut warns (:doc:`troubleshooting`). Use
+      ``scripts/fetch_references.py`` for complete segments.
+
+   .. figure:: figures/report_coverage.*
+      :width: 100%
+
+      The coverage by read origin of a real Nanopore run of an H5N1
+      isolate (SRA ``SRR36760543``, against complete H5N1 segment
+      references): every segment is covered by full-length amplicons
+      (green), and the HA (segment 4) shows the internal-priming step
+      at the site (the red line) with the internally primed reads (amber,
+      blue) rising far above the terminal baseline — the I348K artefact
+      (:doc:`internal_priming`). PB1 shows a smaller internal step.
 
 The JSON summary
 ----------------
