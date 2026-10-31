@@ -8,7 +8,7 @@ both ends of each read, in both orientations, also when a read begins
 inside a primer, and removes them by position. It recognises the reads
 started by a primer at an internal site of a segment (internal
 priming), whose primer bases otherwise reach the consensus as false
-variants, such as the I348K change of the H5 hemagglutinin.
+variants.
 
 This manual explains how to install and use flucut, from a first run on
 the test data of the repository to the classification of the reads

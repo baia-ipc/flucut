@@ -52,6 +52,15 @@ So on the consensus the primer-aware tools agree; flucut's addition is to
 segment (the coverage plot, `docs/manual/figures/report_coverage.png`,
 is `SRR36760543`), which the others do not.
 
+**Speed at the scale of a full run.** The three runs concatenated to
+941,255 reads (680 MB gzipped), trimmed with the complete references
+(`-r`, 4 threads), took 32 s wall (115 s CPU) and 45 MB of peak memory
+(`benchmark/measure.py`). The memory does not grow with the number of
+reads (it is the reference index and the per-thread buffers), so a run of
+any size fits in tens of MB; the time is linear in the reads. A typical
+Nanopore run of about a million reads is thus trimmed in well under a
+minute on a laptop.
+
 ## 2026-10-30: a real run (Illumina, SRA SRR34913296)
 
 What was run: `benchmark/run-real-illumina.sh` (flucut at commit

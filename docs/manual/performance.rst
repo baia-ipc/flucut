@@ -7,15 +7,15 @@ commands, is in ``benchmark/RESULTS.md``; the scripts are in
 ``benchmark/``. The reads are simulated, so that the origin of every
 base is known: amplicons of a genome made of the segments of
 A/Puerto Rico/8/1934 (H1N1) and the HA of A/chicken/Cambodia/X0815302/
-2013 (H5N1), which carries the internal priming site of the I348K
-artefact, with Nanopore-like errors (``benchmark/README.md``). One real
+2013 (H5N1), which carries an internal priming site of the Uni12
+primer, with Nanopore-like errors (``benchmark/README.md``). One real
 run, from Illumina, has been measured (below).
 
 A real run: the artefact in a public consensus
 -----------------------------------------------
 
-Of the H5N1 HA records of GenBank, 109 have AAA (lysine) at the codon
-of the Uni12-like site (the I348K artefact; 29777 have ATA, isoleucine);
+Of the H5N1 HA records of GenBank, 109 have AAA at the codon
+of the Uni12-like site (29777 have ATA);
 8 of them link to raw reads in SRA, all from the USDA surveillance of
 H5N1 in dairy cattle (Illumina NextSeq 2000, paired reads of 148
 bases). One of them, SRR34913296 (A/cattle/CA/25-020784-009-original/
@@ -44,7 +44,7 @@ The consensus
 On 3200 simulated reads (400 per segment, 60% of the HA reads started
 at the internal site), assembled by IRMA 1.4.0 (FLU-minion):
 
-- the untrimmed reads give the artefact: AAA (lysine) at the I348K
+- the untrimmed reads give the artefact: AAA at the
   codon of the majority consensus; the reads trimmed by flucut give
   ATA, the truth;
 - with the reference elongation of IRMA, the consensus of the reads
@@ -75,7 +75,7 @@ cutadapt            102408    3037      8784     25
 cutadapt (``-g`` and ``-a``, not anchored, as the reads have flanking
 bases) removes everything before a primer-like sequence found anywhere
 in a read: with 2 errors, Uni12 also matches inside the segments, e.g. at
-the I348K site, and complete HA reads are cut there. Its consensus is
+an internal site, and complete HA reads are cut there. Its consensus is
 nonetheless the same as that of flucut in these simulations, also at low
 coverage. The comparison with the other tools (IRMA-core trimmer,
 BBDuk, Porechop_ABI, dorado, Barbell, samtools ampliconclip) is in
@@ -87,7 +87,7 @@ Reads with barcodes
 On 3200 reads simulated with the native barcoding adapters of Oxford
 Nanopore (NB01-NB04) outside the primers:
 
-- the untrimmed reads gave the right codon at the I348K site, but only
+- the untrimmed reads gave the right codon at the site, but only
   by 158 reads against 152: the aligner of IRMA clips more of the start
   of the internally primed reads after an adapter. The artefact thus
   depends on the library and on chance; after flucut, 157 reads against

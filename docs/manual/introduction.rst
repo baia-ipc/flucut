@@ -33,11 +33,9 @@ The untailed Uni12 primer is only twelve bases long, with a degenerate
 base. Sequences similar enough to anneal to it occur inside the
 segments: the primer can start an amplicon in the middle of a segment,
 and the reads of such an amplicon carry the primer's bases where the
-template has others. In the H5 hemagglutinin (HA) of Cambodian H5N1
-viruses this changes the isoleucine at position 348 to a lysine (I348K):
-a false variant, reproducible from run to run (see
-:doc:`internal_priming`). Removing the primers from the reads removes
-it.
+template has others. This can change the consensus at the site: a false
+variant, reproducible from run to run (see :doc:`internal_priming`).
+Removing the primers from the reads removes it.
 
 IRMA, the assembler used for influenza by many laboratories, does not
 remove primers: it matches a single adapter sequence, and its pipeline
