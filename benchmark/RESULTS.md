@@ -1,5 +1,21 @@
 # Results
 
+## 2026-10-31: time and memory at the scale of a real run
+
+flucut on 1,129,506 real Nanopore reads (the three H5N1 runs below,
+pooled and replicated), with the complete-segment references (`-r`), 4
+threads, measured with `benchmark/measure.py`:
+
+| reads | wall | CPU | peak memory |
+|---|---|---|---|
+| 1,129,506 | 34.2 s | 127.2 s | 45 MB |
+
+About 33,000 reads a second, and the memory does not grow with the number
+of reads (the counts are per reference, not per read). A typical MinION
+influenza run is of this order; the per-tool comparison below is on the
+smaller shared benchmark set (32,000 reads), where the tools were run
+together on one machine.
+
 ## 2026-10-31: three real Nanopore runs, internal priming detected
 
 Three public Nanopore runs of H5N1, amplified with the universal
