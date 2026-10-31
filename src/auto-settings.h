@@ -29,6 +29,9 @@
 #include "trimmer.h"
 
 #define AUTO_MAX_ERRORS_READS 1000
+/* reads used to detect the subtype of a group (see
+   auto_settings_detect_subtype) */
+#define AUTO_SUBTYPE_READS 2000
 #define AUTO_MAX_ERRORS_LOW 0.2
 #define AUTO_MAX_ERRORS_HIGH 0.3
 #define AUTO_MAX_ERRORS_HIGH_RATE 0.04
@@ -61,6 +64,19 @@ double auto_settings_error_rate(const trimmer_config_t *config,
    and set them in <config> (the decisions are reported to <logger>)
 */
 void auto_settings_decide(auto_settings_t *self, trimmer_config_t *config,
+    const char *file, Logger *logger);
+
+/*
+   Detect the dominant subtype of the reads of <file> (an id into the
+   subtypes of the references, see reference_index_subtype): a sample of
+   the reads is classified against all the references, and the subtype
+   most of the located reads belong to is returned; -1 if the references
+   have fewer than two subtypes or no read was located. Each group (a
+   barcode, a different sample) is then classified against its own subtype
+   only, so that the references of the other subtypes do not match it
+   spuriously.
+*/
+int auto_settings_detect_subtype(const trimmer_config_t *config,
     const char *file, Logger *logger);
 
 /* Free the memory */

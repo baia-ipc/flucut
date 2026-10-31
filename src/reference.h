@@ -123,6 +123,15 @@ const fasta_t* reference_index_fasta(const reference_index_t *self);
 /* Delete (NULL is accepted) */
 void reference_index_delete(reference_index_t *self);
 
+/* The subtype of the reference <ref> (an id, -1 if its description has
+   none), its number of distinct subtypes, and the name of a subtype id
+   (NULL if out of range); the subtype is parsed from the FASTA
+   description (e.g. the "(H5N1)" of an influenza record) */
+int reference_index_subtype(const reference_index_t *self, size_t ref);
+size_t reference_index_n_subtypes(const reference_index_t *self);
+const char* reference_index_subtype_name(const reference_index_t *self,
+    int subtype);
+
 /* a searcher of probes in the references */
 typedef struct reference_set_t reference_set_t;
 
@@ -141,6 +150,13 @@ reference_set_t* reference_set_new(const reference_index_t *index,
 /* Align each probe to every reference, without the index (slower; the
    result is the one the index approximates) */
 void reference_set_set_exhaustive(reference_set_t *self, bool exhaustive);
+
+/* Consider only the references of the subtype <subtype> (an id, see
+   reference_index_subtype); -1 (the default) considers all. Each read
+   should be classified against the subtype it belongs to, as the
+   references of other subtypes match it spuriously (their untranslated
+   regions are conserved, their coding regions diverge) */
+void reference_set_restrict(reference_set_t *self, int subtype);
 
 /* Search the probes by their k-mers only, without the exhaustive search
    of the probes they do not locate (see above) */

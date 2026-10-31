@@ -142,6 +142,14 @@ static void trim_groups(const options_t *opts, trimmer_config_t *config,
     const input_group_t *g = groups + i;
     counter_t *counts = group_counts[i] = counter_new(scheme, refs);
     FILE *out = xfopen(paths[i], NULL, "wb", "trimmed reads", logger);
+    /* each barcode is a different sample: classify it only against its own
+       subtype (detected from its first file), so the references of the
+       other subtypes do not match it spuriously */
+    if (g->n_files > 0) {
+      int sub = auto_settings_detect_subtype(config, g->files[0], logger);
+      for (size_t t = 0; t < opts->threads; t++)
+        worker_restrict_subtype(workers + t, sub);
+    }
     for (size_t j = 0; j < g->n_files; j++) {
       lprintf(logger, LOG_PHASE, "Trimming %s...\n", g->files[j]);
       worker_process_file(workers, opts->threads, g->files[j], out,
