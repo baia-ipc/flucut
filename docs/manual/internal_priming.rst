@@ -60,14 +60,34 @@ hardly depends on their number; a probe without a candidate is aligned
 to all of them. ``--exhaustive-search`` aligns every probe to all of
 them, to check the index (the outputs were identical in the benchmark).
 
-Without references the classification is not done and every primer is
-removed. With references, an end classified as internal (or whose origin
-cannot be determined: cut when unsure) loses its whole primer, and only
-an end confidently classified as terminal keeps its conserved
-terminus.
+With references, an end classified as internal (or whose origin cannot be
+determined: cut when unsure) loses its whole primer, and only an end
+confidently classified as terminal keeps its conserved terminus. With
+``-r off`` the classification is not done and every primer is removed.
 
-``scripts/fetch_references.py`` downloads segment references from NCBI,
-with their provenance.
+The built-in references
+-----------------------
+
+By default (no ``-r``) flucut classifies the reads against a **built-in
+reference set**: complete segments, with the UTRs, of several influenza A
+subtypes (H1N1, H3N2, H5N1, H7N9, H9N2). It is not shipped with the
+program; it is downloaded from NCBI on the first run that needs it and
+cached (under ``$XDG_CACHE_HOME/flucut`` or ``~/.cache/flucut``), so later
+runs do not download it again. If it cannot be downloaded (no network, no
+``curl``), flucut warns and runs without references.
+
+Each barcode (a different sample) is classified against the subtype its
+reads belong to: the subtype is detected from a sample of the reads, and
+only the references of that subtype are used. This matters because the
+UTRs are conserved across subtypes (so a terminal read matches any
+subtype's segment) and the coding regions diverge (so a read with a noisy
+start finds spurious interior matches); using one subtype avoids
+scattering the reads and inflating the internal priming.
+
+``-r <file>`` uses your own references instead of the built-in set (e.g.
+the exact segments of the run's isolate), and ``-r off`` turns references
+off. ``scripts/fetch_references.py`` downloads segment references from
+NCBI, with their provenance.
 
 The references must be **complete segments, with the untranslated
 regions (UTRs)**, not coding sequences (CDS). A read is located by the

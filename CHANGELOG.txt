@@ -212,3 +212,14 @@
   clearly, and a line of basic run statistics (reads and bases in and out,
   mean read lengths, minus strand) is shown below the tiles; the dashboard
   per-sample panels also show the primers found, as the report does
+- a built-in reference set is the default: without -r, flucut classifies
+  the reads against complete segments (with the UTRs) of several influenza
+  A subtypes (H1N1, H3N2, H5N1, H7N9, H9N2), downloaded from NCBI on first
+  use and cached (no data shipped with the program; curl, honoring
+  HTTPS_PROXY). -r <file> uses the user's references instead; -r off
+  disables them (every primer-derived base removed, the former default)
+- subtype detection: with references of several subtypes, each barcode (a
+  different sample) is classified against the subtype its reads belong to,
+  so the references of the other subtypes do not scatter the reads or
+  inflate the internal priming; the reference subtype is parsed from the
+  FASTA description (e.g. "(H5N1)")

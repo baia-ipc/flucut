@@ -56,6 +56,14 @@ Errors in the references file
    ``invalid base``, ``sequence before the first header line``: the
    file given to ``-r`` is not a valid FASTA file.
 
+``could not download the built-in references ...`` (warning)
+   The default reference set could not be downloaded (no network, or
+   ``curl`` is missing) and is not cached yet, so the run proceeds without
+   references (every primer-derived base removed). Connect to the network
+   for the first run (it is cached afterwards, under
+   ``$XDG_CACHE_HOME/flucut`` or ``~/.cache/flucut``), pass your own with
+   ``-r <file>``, or ``-r off`` to turn references off and silence this.
+
 ``the references look like coding sequences without the UTRs ...`` (warning)
    The references given to ``-r`` start at a start codon and end at a
    stop codon: they are coding sequences (CDS), without the untranslated
