@@ -19,6 +19,8 @@
 
 set -euo pipefail
 export LC_ALL=C
+# the built-in reference set is a local file in the tests (no download)
+export FLUCUT_BUILTIN_REFERENCES=testdata/ref-ha.fasta
 prog=$1
 name=$2
 valgrind=${3:-}

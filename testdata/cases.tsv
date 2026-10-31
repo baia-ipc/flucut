@@ -1,12 +1,16 @@
 # program tests: name, tab, arguments of flucut (see tests/run-case.sh)
-default	testdata/reads.fastq
-one_thread	-j 1 testdata/reads.fastq
+# (the built-in references default to FLUCUT_BUILTIN_REFERENCES, set by
+# run-case.sh to testdata/ref-ha.fasta, so no download in the tests; the
+# primer-only cases use -r off)
+default	-r off testdata/reads.fastq
+one_thread	-r off -j 1 testdata/reads.fastq
 references	-r testdata/ref-ha.fasta testdata/reads.fastq
-min_length_no_tags	-m 600 --no-tags testdata/reads.fastq
-directory	testdata/barcode01 testdata/reads.fastq
-no_errors	-e 0 testdata/reads.fastq
+builtin	testdata/reads.fastq
+min_length_no_tags	-r off -m 600 --no-tags testdata/reads.fastq
+directory	-r off testdata/barcode01 testdata/reads.fastq
+no_errors	-r off -e 0 testdata/reads.fastq
 exhaustive	--exhaustive-search -r testdata/ref-ha.fasta testdata/reads.fastq
-run_directory	testdata/fastq_pass
-adapters	testdata/adapters.fastq
-no_adapters	--adapters none testdata/adapters.fastq
-illumina	-p illumina testdata/reads.fastq
+run_directory	-r off testdata/fastq_pass
+adapters	-r off testdata/adapters.fastq
+no_adapters	-r off --adapters none testdata/adapters.fastq
+illumina	-r off -p illumina testdata/reads.fastq

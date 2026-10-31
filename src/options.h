@@ -44,7 +44,10 @@ typedef struct {
   long window;
   /* --platform: illumina (false: nanopore) */
   bool illumina;
-  const char *references;     /* NULL: none */
+  /* the user's references file (-r <file>); NULL and references_off false:
+     the built-in set (the default, see builtin-references.h) */
+  const char *references;
+  bool references_off;        /* -r off: no references (primer-only) */
   size_t probe_len;
   double probe_error_rate;
   long terminal_window;
