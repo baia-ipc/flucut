@@ -17,7 +17,9 @@ Requires Playwright with Chromium (as the manual figures).
 
 ## Images (`img/`)
 
-- `banner.png`: the wide logo (`docs/logo/flucut-banner.png`).
+- `hero.jpg`: the title illustration of the manual
+  (`docs/manual/figures/title.jpg`); `wordmark.png`: the flucut wordmark,
+  cropped from `docs/logo/flucut-banner.png`.
 - `terminal_flucut.png`, `read_layout.png`: from the manual figures.
 - `coverage.png`: the coverage section of the report of a real Nanopore
   run (SRA `SRR36760543`, segments PB1 and HA, complete H5N1 references

@@ -33,16 +33,22 @@ code,.mono{font-family:'JetBrains Mono',monospace;font-size:8pt}
 code{background:var(--light);border-radius:1mm;padding:0.2mm 1mm}
 
 /* page 1: hero */
-.hero{background:#fff;padding:9mm 12mm 1mm;display:flex;align-items:center}
-.hero img{width:100%;display:block}
-.head{padding:3mm 14mm 0}
-.head h1{font-size:21pt;line-height:1.12;font-weight:800;color:var(--navy);
+.hero{height:104mm;position:relative;background:#fff;overflow:hidden}
+.hero .bg{position:absolute;right:0;top:0;width:100%;display:block}
+.hero .veil{position:absolute;inset:0;background:linear-gradient(90deg,
+#fff 0%,#fff 28%,rgba(255,255,255,.72) 44%,rgba(255,255,255,0) 66%)}
+.hero .fade{position:absolute;left:0;right:0;bottom:0;height:16mm;
+background:linear-gradient(0deg,#fff,rgba(255,255,255,0))}
+.hero .text{position:absolute;left:14mm;top:14mm;width:116mm}
+.hero .logo{height:16mm;display:block;margin:0 0 6mm -1mm}
+.hero .kicker{margin-bottom:2mm}
+.hero h1{font-size:21pt;line-height:1.12;font-weight:800;color:var(--navy);
 margin:0 0 3mm;letter-spacing:-0.015em}
-.head h1 span{color:var(--blue)}
-.head .lead{font-size:10.3pt;color:var(--ink);font-weight:400}
+.hero h1 span{color:var(--blue)}
+.hero .lead{font-size:10.2pt;color:var(--ink);font-weight:400;width:108mm}
 
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:3.5mm;
-margin:5mm 14mm 6mm}
+margin:6mm 14mm 6mm}
 .stat{background:var(--light);border-radius:3mm;padding:3.5mm 4mm 3mm}
 .stat .v{font-size:18pt;font-weight:800;color:var(--blue);line-height:1}
 .stat:nth-child(2) .v{color:var(--teal)}
@@ -116,17 +122,21 @@ font-family:'JetBrains Mono',monospace;font-size:7.6pt;line-height:1.55}
 
 <!-- ======================= page 1 ======================= -->
 <section class="page">
-  <div class="hero"><img src="img/banner.png" alt="flucut"></div>
-
-  <div class="head">
-    <div class="kicker">Influenza A amplicon QC, before IRMA</div>
-    <h1>Primers off, the internal-priming<br>
-      <span>artefact caught.</span></h1>
-    <p class="lead">flucut removes the universal RT-PCR primers
-    (Uni12/Uni13) from influenza&nbsp;A reads and, with references, finds
-    and measures <b>internal priming</b> &mdash; the hidden artefact that
-    writes wrong bases into the consensus (the HA I348K lysine). One
-    command before IRMA, no configuration, on Nanopore and Illumina.</p>
+  <div class="hero">
+    <img class="bg" src="img/hero.jpg" alt="">
+    <div class="veil"></div>
+    <div class="fade"></div>
+    <div class="text">
+      <img class="logo" src="img/wordmark.png" alt="flucut">
+      <div class="kicker">Influenza A amplicon QC, before IRMA</div>
+      <h1>Primers off, the internal-priming<br>
+        <span>artefact caught.</span></h1>
+      <p class="lead">flucut removes the universal RT-PCR primers
+      (Uni12/Uni13) from influenza&nbsp;A reads and, with references, finds
+      and measures <b>internal priming</b> &mdash; the hidden artefact that
+      writes wrong bases into the consensus (the HA I348K lysine). One
+      command before IRMA, no configuration, on Nanopore and Illumina.</p>
+    </div>
   </div>
 
   <div class="stats">
