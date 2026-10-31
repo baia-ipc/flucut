@@ -158,9 +158,14 @@ measured retention; validation with IRMA at 2x/12x/20x is pending.)
 
 - **Detection and reporting of internal priming:** with references,
   flucut classifies each read end as terminal or internally primed,
-  reports the sites, their reads and the segments, and warns about
-  amplicons shorter than their reference. The others trim silently, so a
-  user cannot see that the artefact was present or how strong it was.
+  reports the sites, their reads and the segments, draws the coverage of
+  each segment by read origin, and warns about amplicons shorter than
+  their reference. The others trim silently, so a user cannot see that
+  the artefact was present or how strong it was. This needs
+  **complete-segment references, with the UTRs** (not coding sequences);
+  flucut warns when the references look like coding sequences. On three
+  real Nanopore runs it measured 12-46% of the HA 5' ends as internally
+  primed, at the I348K site (`RESULTS.md`).
 - **Complete segment ends with references (the default when `-r` is
   given):** keep the conserved 12/13-base termini at the ends
   confidently classified as terminal, while removing the whole primer at
@@ -194,10 +199,12 @@ the zlib build; with libdeflate it is now 1.6 s / 4 threads.
 ## Caveats
 
 - Most numbers are from simulated reads; the real-data numbers so far are
-  8 public Illumina runs and (in progress) 3 Nanopore runs of H5N1, all
-  Uni12/Uni13 amplicons. No run with heavy internal priming (a high
-  primed:genuine ratio) has been found yet, so the flip points above are
-  derived, not yet observed to change a real consensus.
+  8 public Illumina runs and 3 Nanopore runs of H5N1, all Uni12/Uni13
+  amplicons (`RESULTS.md`). The flip points above are derived from the
+  measured read retention, not yet observed to change a real consensus:
+  on the heaviest real run so far (SRR36760520, 46% of the HA 5' ends
+  internally primed) every primer-aware tool still calls the correct
+  codon, well below flucut's ~99.6% flip point.
 - The read-level advantages matter for the consensus only at low coverage
   or high internal priming, and for minor-variant frequencies; at
   ordinary coverage and priming the consensus is a tie with the other

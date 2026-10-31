@@ -1,5 +1,57 @@
 # Results
 
+## 2026-10-31: three real Nanopore runs, internal priming detected
+
+Three public Nanopore runs of H5N1, amplified with the universal
+primers: SRA `SRR36760543`, `SRR36760506`, `SRR36760520` (47,990,
+62,780 and 77,520 reads). flucut (commit of this date) with `-r` against
+complete-segment H5N1 references.
+
+**The references must be complete segments, with the UTRs.** A read is
+located in a segment by the sequence just after its 5' primer, which in a
+full-length (terminal) read is the 5' UTR. The per-isolate records of
+these runs (and most influenza GenBank records) are coding sequences
+(they start at the ATG, end at a stop codon), without the UTRs: against
+them the 5' probe of a terminal read maps nowhere, so only the internally
+primed reads (whose probe falls inside the ORF) are located. On
+`SRR36760543` that is the difference between classifying 10% of the reads
+and 86% of them:
+
+| references | 5' terminal | 5' internal | not located |
+|---|---|---|---|
+| CDS only (`isolate.fasta`) | 47 | 4,659 | 40,361 |
+| complete segments (with UTRs) | 33,668 | 4,603 | 6,796 |
+
+flucut now warns when the references look like coding sequences. The
+references used here are the eight segments of one H5N1 isolate deposited
+with its UTRs (`QB222556`-`QB222563`, fetched with
+`scripts/fetch_references.py`).
+
+**Internal priming, by run** (the 5' origin of the reads, with the
+complete-segment references):
+
+| run | reads | 5' terminal | 5' internal | not located | internal share |
+|---|---|---|---|---|---|
+| SRR36760543 | 47,816 | 33,668 | 4,603 | 6,796 | 12.0% |
+| SRR36760506 | 62,623 | 49,814 | 7,373 | 1,661 | 12.9% |
+| SRR36760520 | 77,329 | 26,687 | 22,512 | 17,871 | 45.8% |
+
+(internal share = internal / (terminal + internal)). The internal
+priming is concentrated in the HA, at nt 1070-1094 of the segment (the
+Uni12-like site, the I348K codon), the same site in all three runs; the
+other segments show only a few percent. `SRR36760520` is a heavily
+primed run (46% of the HA 5' ends internal).
+
+**The consensus** (IRMA FLU-minion; `consensus.tsv`): in every run the
+untrimmed reads give the HA artefact codon AAA (Lys), and flucut's
+trimmed reads give the correct ATA (Ile) -- as do cutadapt and BBDuk at
+these rates. The reads from amplicons started upstream of the site read
+ATA (`codons.tsv`); the AAA comes from the primer at the internal site.
+So on the consensus the primer-aware tools agree; flucut's addition is to
+**detect and quantify** the internal priming (above) and show it per
+segment (the coverage plot, `docs/manual/figures/report_coverage.png`,
+is `SRR36760543`), which the others do not.
+
 ## 2026-10-30: a real run (Illumina, SRA SRR34913296)
 
 What was run: `benchmark/run-real-illumina.sh` (flucut at commit
