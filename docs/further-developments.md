@@ -46,12 +46,12 @@ support the trimming; they are not the purpose of the program.
   primer bases left in about 210 of 6400 read ends; the consensus is not
   affected in the benchmark). Not done: few reads.
 - **Live dashboard**: done. While a run is in progress the HTML report is
-  a dashboard (one screen, no scrolling, reloaded every 30 seconds): the
-  reads at each step, a per-barcode summary, the internal priming and its
-  sites, the complete amplicons and the coverage by read origin; the
-  final report at the end is the full scrolling one. Still possible: a
-  test on a replay of a real run (Lumipore's `tests/fake_minknow`), and
-  per-barcode bars rather than a table.
+  a dashboard, reloaded every 30 seconds, with a tab for each barcode
+  (its own coverage and sites, not pooled with the other samples) and an
+  overview tab; the final report at the end is the full scrolling one.
+  Still possible: a test on a replay of a real run (Lumipore's
+  `tests/fake_minknow`), and an active-tab highlight (the tabs use the URL
+  fragment, so styling the current one needs `:target` on the links).
 - **Report, next**: the remnants (primer bases left), the read lengths
   before and after the trimming, the primers found whole or partial,
   per segment; a mark of the internal sites in the length histograms.
