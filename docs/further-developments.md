@@ -10,9 +10,10 @@ support the trimming; they are not the purpose of the program.
 
 ## Next
 
-- **Real runs, next**: the other 7 SRA runs whose GenBank HA consensus
-  has the I348K codon (benchmark/RESULTS.md), with
-  `run-real-illumina.sh` generalised; a real Nanopore run.
+- **Real runs, next**: three real H5N1 Nanopore runs and one Illumina run
+  are done (`benchmark/RESULTS.md`); still to do are the other 7 Illumina
+  SRA runs whose GenBank HA consensus has the I348K codon, with
+  `run-real-illumina.sh` generalised.
 - **Paired Illumina reads**: R1 and R2 are trimmed as two inputs; a
   read too short is dropped from one file only (IRMA accepted it on
   SRR34913296); keep the pairs in sync (an empty read instead).
@@ -72,8 +73,8 @@ support the trimming; they are not the purpose of the program.
 - The tools of `benchmark/TOOLS.md`, each in its best documented
   configuration; **Barbell** is the reference to match or beat, and its
   `--use-extended` mode has to be included.
-- Real data: one or two public Nanopore runs amplified with the
-  universal primers.
+- Real data: public runs amplified with the universal primers (done: three
+  H5N1 Nanopore runs and one Illumina run, `benchmark/RESULTS.md`).
 - The measures which matter for adoption: primer and adapter bases left
   in the reads, template bases wrongly removed, reads lost, and the
   effect on the IRMA consensus at the segment ends. Speed and memory are
@@ -81,10 +82,15 @@ support the trimming; they are not the purpose of the program.
 
 ## Trimming and detection
 
-- **Is it only HA?** Run the classification on real data against the
-  references of all eight segments and report the internal sites found
-  per segment and per primer (Uni12 and Uni13); extend the defaults if
-  sites appear outside HA. Not yet measured.
+- **Is it only HA?** Measured on real data: three H5N1 Nanopore runs and
+  one Illumina run (`benchmark/RESULTS.md`) were classified against the
+  references of all eight segments. The internal priming is concentrated
+  in the HA, at the Uni12-like site (nt 1070-1094, the I348K codon), the
+  same site in all three Nanopore runs; the other segments show only a few
+  percent. So on this material it is essentially HA, and the simulation
+  (`benchmark/simulate.py`, HA-only internal site) matches. Still possible:
+  a per-segment, per-primer (Uni12 and Uni13) table to back the claim with
+  numbers rather than prose, and other subtypes (so far only H5N1).
 - **Choice of the references for a run**: done. A built-in set of complete
   segments of several subtypes (H1N1, H3N2, H5N1, H7N9, H9N2) is the
   default, downloaded on first use and cached; each barcode is classified
