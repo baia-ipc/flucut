@@ -815,6 +815,21 @@ static void write_dashboard(html_writer_t *w, const report_t *r) {
     html_close(w);
   }
   html_close(w);
+  /* highlight the current tab: which panel is shown is decided by the URL
+     fragment (:target), so the tab link cannot be :target itself; a link is
+     marked active when its panel is the targeted one (:has), the overview
+     when no barcode panel is targeted (the default and #ov) */
+  html_open(w, "style");
+  html_raw(w, "body:not(:has(.tabpanel.bc:target)) .tabs a[href=\"#ov\"]"
+              "{background:var(--primary);color:#fff}");
+  for (size_t i = 0; i < r->n_sections; i++) {
+    char rule[96];
+    snprintf(rule, sizeof(rule),
+             "body:has(#s%zu:target) .tabs a[href=\"#s%zu\"]"
+             "{background:var(--primary);color:#fff}", i, i);
+    html_raw(w, rule);
+  }
+  html_close(w);
   /* the overview: the throughput of the whole run (which does not depend on
      the sample) and the per-barcode summary; no pooled coverage or sites */
   html_open(w, "section");
