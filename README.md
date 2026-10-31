@@ -43,7 +43,7 @@ exactly or with one mismatch), so the trimming has to be done before it.
   orientations, whole or partial (a read can begin inside a primer),
   with errors (the defaults are those of Nanopore reads);
 - removes, by position and not by difference, every primer-derived base
-  (the default): this removes the internal priming artefact as well, as
+  (the default): this removes internal artefacts as well, as
   the primer bases of an internally primed read are at its end, like
   those of any other read. The consensus then lacks the 12 and 13 bases
   of the conserved termini, which would have been the primer's sequence,

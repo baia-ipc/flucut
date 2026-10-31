@@ -167,9 +167,8 @@ Then, for all reads and for each group:
       references): every segment is covered by full-length amplicons
       (green), and the HA (segment 4) shows the internal-priming step
       at the site (the red line) with the internally primed reads (amber,
-      blue) rising far above the terminal baseline — the internal-priming
-      artefact (:doc:`internal_priming`). PB1 shows a smaller internal
-      step.
+      blue) rising far above the terminal baseline — internal artefacts
+      (:doc:`internal_priming`). PB1 shows a smaller internal step.
 
 The JSON summary
 ----------------
