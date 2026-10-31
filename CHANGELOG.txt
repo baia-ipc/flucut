@@ -186,3 +186,14 @@
   at internal or unclassified ends ("cut when unsure", so the artefact
   never reaches the consensus and complete segment ends are obtained in
   one step)
+- coverage by read origin, in the HTML report (with references): for each
+  segment, the reconstructed coverage along its length, stacked by the
+  origin of the reads (terminal or internal, by strand) and, at the
+  bottom, the reads whose 5' origin is unknown; the segments in segment
+  order, the largest internal site marked. Internal priming shows as a
+  step up in the coverage. When only the 3' end of a read maps, its 5'
+  origin is inferred from the mapped 3' position and the read length
+- a warning when the references look like coding sequences without the
+  UTRs (they start at a start codon and end at a stop codon): the
+  full-length reads then cannot be located, as their probe is the 5' UTR,
+  absent from a CDS reference; complete segment references are required

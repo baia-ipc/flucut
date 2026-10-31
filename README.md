@@ -56,7 +56,9 @@ exactly or with one mismatch), so the trimming has to be done before it.
   in them, and a read which starts at an interior position of a segment
   (internally primed) loses its whole primer, the others only the tail;
 - with the references, in either mode, measures internal priming: which
-  segments, which sites, what share of the reads;
+  segments, which sites, what share of the reads (the references must be
+  complete segments, with the UTRs, not coding sequences; flucut warns
+  otherwise);
 - a primer is accepted as the primer of an end only near that end of
   the read: a match deeper inside is not the primer which started the
   amplicon, and trimming there would remove template. Those matches are
@@ -158,8 +160,11 @@ Outputs:
   plots, light and dark themes): the run parameters and, for all reads
   and for each group, the reads at each step, the primers found at each
   end, with references the internal priming sites with their reads, the
-  complete amplicons shorter than 90% of their reference and the
-  histograms of the lengths.
+  complete amplicons shorter than 90% of their reference, the histograms
+  of the lengths and, per segment, the coverage by read origin (a
+  stacked profile along each segment, terminal and internal reads by
+  strand, where internal priming shows as a step up — no other primer
+  trimmer shows it).
 - `flucut_summary.json`: the same content for programs, in a versioned
   format (`docs/json_summary.md`).
 

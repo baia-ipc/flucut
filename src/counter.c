@@ -17,8 +17,19 @@ struct counter_t {
      position (end * length + position) */
   const fasta_t *refs;
   size_t **sites;
+  /* reconstructed coverage: for each reference, NULL or an array of
+     2 * COVER_N_CATEGORIES * (seq_len + 1) counts; the start counts
+     (side 0) and the end counts (side 1, the position after the span) of
+     each category, prefix-summed by counter_coverage() */
+  size_t **cover;
   lengths_t *lengths;
 };
+
+/* the index in cover[r] of the start (side 0) or end (side 1) count of
+   category <cat> at position <pos>, for a reference of length <len> */
+#define COVER_SLOTS(len) (COVER_N_CATEGORIES * ((len) + 1))
+#define COVER_IDX(side, cat, pos, len) \
+  ((side) * COVER_SLOTS(len) + (cat) * ((len) + 1) + (pos))
 
 size_t counter_n_length_groups(const fasta_t *references) {
   return references == NULL ? 1 : references->n_records + 1;
@@ -33,8 +44,10 @@ counter_t* counter_new(const scheme_t *scheme, const fasta_t *references) {
   for (size_t e = 0; e < COUNTER_N_ENDS; e++)
     XCALLOC(self->variants[e], self->n_variants[e] + 1, sizeof(size_t));
   self->refs = references;
-  if (references != NULL)
+  if (references != NULL) {
     XCALLOC(self->sites, references->n_records + 1, sizeof(size_t *));
+    XCALLOC(self->cover, references->n_records + 1, sizeof(size_t *));
+  }
   self->lengths = lengths_new(counter_n_length_groups(references));
   return self;
 }
@@ -45,9 +58,12 @@ void counter_delete(counter_t *self) {
   for (size_t e = 0; e < COUNTER_N_ENDS; e++)
     free(self->variants[e]);
   if (self->refs != NULL)
-    for (size_t r = 0; r < self->refs->n_records; r++)
+    for (size_t r = 0; r < self->refs->n_records; r++) {
       free(self->sites[r]);
+      free(self->cover[r]);
+    }
   free(self->sites);
+  free(self->cover);
   lengths_delete(self->lengths);
   free(self);
 }
@@ -58,10 +74,14 @@ void counter_clear(counter_t *self) {
   for (size_t e = 0; e < COUNTER_N_ENDS; e++)
     memset(self->variants[e], 0, sizeof(size_t) * self->n_variants[e]);
   if (self->refs != NULL)
-    for (size_t r = 0; r < self->refs->n_records; r++)
+    for (size_t r = 0; r < self->refs->n_records; r++) {
       if (self->sites[r] != NULL)
         memset(self->sites[r], 0, sizeof(size_t) * COUNTER_N_ENDS *
                self->refs->records[r].seq_len);
+      if (self->cover[r] != NULL)
+        memset(self->cover[r], 0, sizeof(size_t) * 2 *
+               COVER_SLOTS(self->refs->records[r].seq_len));
+    }
   lengths_clear(self->lengths);
 }
 
@@ -72,6 +92,14 @@ static size_t* ref_sites(counter_t *self, size_t r) {
     XCALLOC(self->sites[r], COUNTER_N_ENDS * self->refs->records[r].seq_len,
             sizeof(size_t));
   return self->sites[r];
+}
+
+/* the coverage counts of the reference <r> (allocated at its first read) */
+static size_t* ref_cover(counter_t *self, size_t r) {
+  if (self->cover[r] == NULL)
+    XCALLOC(self->cover[r], 2 * COVER_SLOTS(self->refs->records[r].seq_len),
+            sizeof(size_t));
+  return self->cover[r];
 }
 
 void counter_merge(counter_t *self, const counter_t *other) {
@@ -107,6 +135,15 @@ void counter_merge(counter_t *self, const counter_t *other) {
       size_t n = COUNTER_N_ENDS * self->refs->records[r].seq_len;
       for (size_t i = 0; i < n; i++)
         dest[i] += other->sites[r][i];
+    }
+  if (self->refs != NULL)
+    for (size_t r = 0; r < self->refs->n_records; r++) {
+      if (other->cover[r] == NULL)
+        continue;
+      size_t *dest = ref_cover(self, r);
+      size_t n = 2 * COVER_SLOTS(self->refs->records[r].seq_len);
+      for (size_t i = 0; i < n; i++)
+        dest[i] += other->cover[r][i];
     }
   lengths_add_all(self->lengths, other->lengths);
 }
@@ -178,6 +215,30 @@ void counter_save(const counter_t *self, FILE *file) {
           fprintf(file, "site %zu %zu %zu %zu\n", r, i / len, i % len,
                   self->sites[r][i]);
     }
+  if (self->refs != NULL)
+    for (size_t r = 0; r < self->refs->n_records; r++) {
+      if (self->cover[r] == NULL)
+        continue;
+      size_t len = self->refs->records[r].seq_len;
+      for (size_t side = 0; side < 2; side++)
+        for (size_t cat = 0; cat < COVER_N_CATEGORIES; cat++) {
+          /* one line per reference, side and category, with the nonzero
+             position:count pairs */
+          bool any = false;
+          for (size_t pos = 0; pos <= len; pos++) {
+            size_t v = self->cover[r][COVER_IDX(side, cat, pos, len)];
+            if (v == 0)
+              continue;
+            if (!any) {
+              fprintf(file, "cover %zu %zu %zu", r, side, cat);
+              any = true;
+            }
+            fprintf(file, " %zu:%zu", pos, v);
+          }
+          if (any)
+            fputc('\n', file);
+        }
+    }
   for (size_t g = 0; g < lengths_n_groups(self->lengths); g++)
     for (size_t b = 0; b < LENGTHS_N_BINS; b++) {
       size_t n = lengths_count(self->lengths, g, b);
@@ -227,6 +288,23 @@ static bool load_line(counter_t *self, char *line, bool *ended) {
     ref_sites(self, a)[b * self->refs->records[a].seq_len + c] += d;
     return true;
   }
+  if (sscanf(line, "cover %zu %zu %zu%n", &a, &b, &c, &n) == 3) {
+    if (self->refs == NULL || a >= self->refs->n_records || b >= 2 ||
+        c >= COVER_N_CATEGORIES)
+      return false;
+    size_t len = self->refs->records[a].seq_len;
+    size_t *cov = ref_cover(self, a);
+    rest = line + n;
+    size_t pos, cnt;
+    int m;
+    while (sscanf(rest, " %zu:%zu%n", &pos, &cnt, &m) == 2) {
+      if (pos > len)
+        return false;
+      cov[COVER_IDX(b, c, pos, len)] += cnt;
+      rest += m;
+    }
+    return true;
+  }
   if (sscanf(line, "length %zu %zu %zu", &a, &b, &c) == 3) {
     if (a >= lengths_n_groups(self->lengths) || b >= LENGTHS_N_BINS)
       return false;
@@ -251,6 +329,94 @@ bool counter_load(counter_t *self, FILE *file) {
     ok = load_line(self, line, &ended);
   free(line);
   return ok && ended;
+}
+
+/* add the span of a read on its reference to the coverage, by category
+   (COVER_*): the span is [start, start + template length) on the plus
+   strand, anchored at whichever end mapped; the category is the origin of
+   the 5' (left) end and, if internal, the strand */
+/* the reference whose length is nearest to <span> (a complete amplicon's
+   template length), -1 if none is within COVER_LENGTH_TOLERANCE or the
+   two nearest are too close in length to tell apart (e.g. PB2 and PB1) */
+#define COVER_LENGTH_TOLERANCE 80
+static long segment_by_length(const counter_t *self, long span) {
+  long best = -1, best_d = COVER_LENGTH_TOLERANCE + 1, second_d = best_d;
+  for (size_t i = 0; i < self->refs->n_records; i++) {
+    long d = (long)self->refs->records[i].seq_len - span;
+    if (d < 0)
+      d = -d;
+    if (d < best_d) {
+      second_d = best_d;
+      best_d = d;
+      best = (long)i;
+    } else if (d < second_d) {
+      second_d = d;
+    }
+  }
+  if (best_d > COVER_LENGTH_TOLERANCE ||
+      second_d - best_d < COVER_LENGTH_TOLERANCE)
+    return -1;   /* none close enough, or ambiguous */
+  return best;
+}
+
+static void count_cover(counter_t *self, const amplicon_t *a) {
+  if (self->refs == NULL)
+    return;
+  const amplicon_end_t *l = &a->left, *r = &a->right;
+  long span = (long)amplicon_kept_length(a);
+  long ref, from, to;
+  size_t cat;
+  bool minus = a->strand == STRAND_MINUS;
+  if (l->found && l->ref.mapped) {
+    ref = (long)l->ref.ref_index;
+    from = l->ref.ref_start;
+    to = r->found && r->ref.mapped &&
+         r->ref.ref_index == l->ref.ref_index ?
+         r->ref.ref_start : from + span;
+    cat = l->origin == ORIGIN_INTERNAL ?
+        (minus ? COVER_INTERNAL_MINUS : COVER_INTERNAL_PLUS) :
+        (minus ? COVER_TERMINAL_MINUS : COVER_TERMINAL_PLUS);
+  } else if (r->found && r->ref.mapped) {
+    /* only the 3' end mapped: the read is placed by it and its length
+       (from = to - span, the inferred position of its 5' end). With no
+       5' primer it is a fragment of unknown origin (grey); with a 5'
+       primer whose probe did not map (a noisy read start), the 5' origin
+       is inferred from where the 5' end falls: within a window of the
+       segment terminus is a full-length (terminal) amplicon, deeper is
+       internal priming. The window grows with the span to allow for the
+       indels of a long read */
+    ref = (long)r->ref.ref_index;
+    to = r->ref.ref_start;
+    from = to - span;
+    if (!l->found) {
+      cat = COVER_NO_PRIMER;
+    } else {
+      long window = 60 + span / 20;
+      cat = from <= window ?
+          (minus ? COVER_TERMINAL_MINUS : COVER_TERMINAL_PLUS) :
+          (minus ? COVER_INTERNAL_MINUS : COVER_INTERNAL_PLUS);
+    }
+  } else if (l->found && r->found && span > 0 &&
+             (ref = segment_by_length(self, span)) >= 0) {
+    /* a complete amplicon whose probe did not map (e.g. a noisy read
+       start): placed over the whole segment of its length, as terminal */
+    from = 0;
+    to = (long)self->refs->records[ref].seq_len;
+    cat = minus ? COVER_TERMINAL_MINUS : COVER_TERMINAL_PLUS;
+  } else {
+    return;   /* not located and not placeable by length */
+  }
+  if (from > to) {
+    long t = from; from = to; to = t;
+  }
+  long len = (long)self->refs->records[ref].seq_len;
+  if (from < 0) from = 0;
+  if (to > len) to = len;
+  if (from >= to)
+    return;
+  size_t *c = ref_cover(self, (size_t)ref);
+  c[COVER_IDX(0, cat, (size_t)from, (size_t)len)]++;
+  c[COVER_IDX(1, cat, (size_t)to, (size_t)len)]++;
 }
 
 /* the length of the template of a complete amplicon, in its group (see
@@ -292,6 +458,7 @@ void counter_add_read(counter_t *self, const amplicon_t *a, size_t len) {
     s->adapter_end++;
   count_end(self, &a->left, COUNTER_LEFT);
   count_end(self, &a->right, COUNTER_RIGHT);
+  count_cover(self, a);
   count_length(self, a);
 }
 
@@ -328,6 +495,34 @@ const size_t* counter_sites(const counter_t *self, size_t ref, size_t end) {
   if (self->sites[ref] == NULL)
     return NULL;
   return self->sites[ref] + end * self->refs->records[ref].seq_len;
+}
+
+bool counter_has_coverage(const counter_t *self, size_t ref) {
+  assert(self != NULL);
+  assert(self->refs != NULL && ref < self->refs->n_records);
+  return self->cover[ref] != NULL;
+}
+
+size_t counter_coverage(const counter_t *self, size_t ref, size_t cat,
+    size_t *out) {
+  assert(self != NULL);
+  assert(cat < COVER_N_CATEGORIES);
+  assert(out != NULL);
+  assert(self->refs != NULL && ref < self->refs->n_records);
+  size_t len = self->refs->records[ref].seq_len;
+  memset(out, 0, sizeof(size_t) * len);
+  if (self->cover[ref] == NULL)
+    return 0;
+  const size_t *c = self->cover[ref];
+  size_t running = 0, max = 0;
+  for (size_t p = 0; p < len; p++) {
+    running += c[COVER_IDX(0, cat, p, len)];
+    running -= c[COVER_IDX(1, cat, p, len)];
+    out[p] = running;
+    if (running > max)
+      max = running;
+  }
+  return max;
 }
 
 const lengths_t* counter_lengths(const counter_t *self) {
@@ -392,6 +587,15 @@ void counter_test(void) {
   test_eq_size(s[6], 0);
   test_eq_size(counter_sites(c, 1, COUNTER_RIGHT)[7], 0);
   test_assert(counter_sites(c, 0, COUNTER_LEFT) == NULL);
+  /* coverage: the read is internal on the plus strand of reference 1,
+     its span [7, 7 + 100) clamped to the reference length (20) */
+  size_t cov[32];
+  test_eq_size(counter_coverage(c, 1, COVER_INTERNAL_PLUS, cov), 1);
+  test_eq_size(cov[7], 1);
+  test_eq_size(cov[19], 1);
+  test_eq_size(cov[6], 0);
+  test_eq_size(counter_coverage(c, 1, COVER_TERMINAL_PLUS, cov), 0);
+  test_eq_size(counter_coverage(c, 0, COVER_INTERNAL_PLUS, cov), 0);
   /* the length of the template (100), in the group of reference 1; the
      dimer has none */
   test_eq_size(lengths_count(counter_lengths(c), 1, 10), 1);
@@ -417,6 +621,8 @@ void counter_test(void) {
   test_eq_size(counter_primer(loaded, COUNTER_LEFT, 1), 8);
   test_eq_size(counter_sites(loaded, 1, COUNTER_LEFT)[7], 8);
   test_eq_size(lengths_count(counter_lengths(loaded), 1, 10), 4);
+  test_eq_size(counter_coverage(loaded, 1, COVER_INTERNAL_PLUS, cov), 4);
+  test_eq_size(cov[7], 4);
   /* not a file of counts, or incomplete */
   rewind(f);
   fputs("something else\n", f);

@@ -48,3 +48,16 @@
 
       benchmark/make-genome.sh genome
       python3 -I benchmark/simulate.py genome/genome.fasta sim
+
+- `report_coverage.png`: the coverage-by-read-origin section, from a real
+  Nanopore run (it is more telling than the simulated reads, whose
+  amplicons are nearly all full length). The run is SRA `SRR36760543`
+  (an H5N1 isolate); the references are complete H5N1 segments **with the
+  UTRs** (`coverage_refs.fasta`, the eight segments of one isolate,
+  accessions `QB222556`-`QB222563`, fetched from NCBI), as the coverage
+  needs the 5' UTR to place the terminal reads (CDS-only references
+  cannot, see the manual). From a directory with the run's reads:
+
+      flucut -q -o cov -r coverage_refs.fasta SRR36760543.fastq.gz
+      node screenshot.js cov/flucut_report.html . \
+        report_coverage="+Coverage by read origin"

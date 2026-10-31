@@ -12,6 +12,7 @@
 #include "html-template.h"
 #include "html-writer.h"
 #include "segments.h"
+#include "strbuf.h"
 
 #include "report-logo-data.inc"
 
@@ -298,6 +299,192 @@ static void write_lengths(html_writer_t *w, const report_t *r,
   html_close(w);
 }
 
+/* the colors and labels of the coverage categories (COVER_*): the
+   internally primed reads stand out (amber, blue), the full-length ones
+   are green, the reads whose 5' origin is unknown are grey */
+static const char *const cover_color[COVER_N_CATEGORIES] = {
+  "#0b9e73", "#7fc7a9", "#e8a013", "#2e7fe0", "#9e9e9e", "#cccccc"};
+static const char *const cover_label[COVER_N_CATEGORIES] = {
+  "terminal +", "terminal \xe2\x88\x92", "internal +", "internal \xe2\x88\x92",
+  "no 5' primer", "5' probe not located"};
+
+/* the order in which the categories are stacked, from the bottom: the
+   reads of unknown 5' origin (grey) at the bottom; then the internally
+   primed reads (amber, blue), which sit on the flat grey base as a
+   straight band whose step at the site is the artefact; then the
+   full-length terminal reads (green) on top */
+static const int cover_order[COVER_N_CATEGORIES] = {
+  COVER_UNMAPPED, COVER_NO_PRIMER, COVER_INTERNAL_PLUS, COVER_INTERNAL_MINUS,
+  COVER_TERMINAL_PLUS, COVER_TERMINAL_MINUS};
+
+/* a stacked-area coverage plot of one reference, by read category:
+   x the position on the reference, y the number of located reads covering
+   it, stacked by category (see counter_coverage()); the largest internal
+   priming site is marked */
+static void coverage_plot(html_writer_t *w, const counter_t *c, size_t ref,
+    size_t len, const char *label) {
+  enum { ML = 46, MR = 10, MT = 10, PH = 150, PW = 760 };
+  size_t inner = PW - ML - MR;
+  size_t nc = len < inner ? len : inner;
+  if (nc < 2)
+    return;
+  size_t *cov;
+  XMALLOC(cov, sizeof(size_t) * COVER_N_CATEGORIES * len);
+  size_t ymax = 0;
+  for (size_t k = 0; k < COVER_N_CATEGORIES; k++)
+    counter_coverage(c, ref, k, cov + k * len);
+  for (size_t p = 0; p < len; p++) {
+    size_t sum = 0;
+    for (size_t k = 0; k < COVER_N_CATEGORIES; k++)
+      sum += cov[k * len + p];
+    if (sum > ymax)
+      ymax = sum;
+  }
+  if (ymax == 0) {
+    free(cov);
+    note(w, "No located reads.");
+    return;
+  }
+  double *base;
+  XCALLOC(base, nc, sizeof(double));
+  html_open(w, "svg");
+  html_attr(w, "viewBox", "0 0 %d %d", PW, MT + PH + 20);
+  html_attr(w, "width", "100%%");
+  html_attr(w, "style", "max-width:%dpx;height:auto", PW);
+  html_attr(w, "role", "img");
+  /* the axes */
+  html_elem(w, "line");
+  html_attr(w, "x1", "%d", ML); html_attr(w, "y1", "%d", MT);
+  html_attr(w, "x2", "%d", ML); html_attr(w, "y2", "%d", MT + PH);
+  html_attr(w, "stroke", "currentColor"); html_attr(w, "opacity", "0.4");
+  html_elem(w, "line");
+  html_attr(w, "x1", "%d", ML); html_attr(w, "y1", "%d", MT + PH);
+  html_attr(w, "x2", "%zu", ML + inner); html_attr(w, "y2", "%d", MT + PH);
+  html_attr(w, "stroke", "currentColor"); html_attr(w, "opacity", "0.4");
+  /* the stacked areas */
+  strbuf_t pts;
+  strbuf_init(&pts);
+  for (size_t ki = 0; ki < COVER_N_CATEGORIES; ki++) {
+    size_t k = (size_t)cover_order[ki];
+    const size_t *v = cov + k * len;
+    strbuf_clear(&pts);
+    char buf[32];
+    for (size_t i = 0; i < nc; i++) {
+      size_t p = (size_t)((double)i * (len - 1) / (nc - 1));
+      double x = ML + (double)i * inner / (nc - 1);
+      double y = MT + PH - PH * (base[i] + v[p]) / ymax;
+      int n = snprintf(buf, sizeof(buf), "%s%.1f,%.1f", i ? " " : "", x, y);
+      strbuf_append(&pts, buf, (size_t)n);
+    }
+    for (size_t ii = nc; ii-- > 0;) {
+      double x = ML + (double)ii * inner / (nc - 1);
+      double y = MT + PH - PH * base[ii] / ymax;
+      int n = snprintf(buf, sizeof(buf), " %.1f,%.1f", x, y);
+      strbuf_append(&pts, buf, (size_t)n);
+    }
+    html_elem(w, "polygon");
+    html_attr(w, "points", "%.*s", (int)pts.len, pts.s);
+    html_attr(w, "fill", "%s", cover_color[k]);
+    for (size_t i = 0; i < nc; i++) {
+      size_t p = (size_t)((double)i * (len - 1) / (nc - 1));
+      base[i] += v[p];
+    }
+  }
+  strbuf_free(&pts);
+  /* the largest internal priming site of the reference */
+  const size_t *il = counter_sites(c, ref, COUNTER_LEFT);
+  const size_t *ir = counter_sites(c, ref, COUNTER_RIGHT);
+  size_t best = 0, bestp = 0;
+  for (size_t p = 0; p < len; p++) {
+    size_t v = (il ? il[p] : 0) + (ir ? ir[p] : 0);
+    if (v > best) { best = v; bestp = p; }
+  }
+  if (best > 0) {
+    double x = ML + (double)bestp * inner / (len > 1 ? len - 1 : 1);
+    html_elem(w, "line");
+    html_attr(w, "x1", "%.1f", x); html_attr(w, "y1", "%d", MT);
+    html_attr(w, "x2", "%.1f", x); html_attr(w, "y2", "%d", MT + PH);
+    html_attr(w, "stroke", "#d7263d"); html_attr(w, "stroke-width", "1");
+  }
+  /* the labels */
+  html_open(w, "text");
+  html_attr(w, "x", "%d", ML - 4); html_attr(w, "y", "%d", MT + 4);
+  html_attr(w, "text-anchor", "end"); html_attr(w, "font-size", "10");
+  html_attr(w, "fill", "currentColor");
+  html_inline(w); html_textf(w, "%zu", ymax); html_close(w);
+  html_open(w, "text");
+  html_attr(w, "x", "%zu", ML + inner); html_attr(w, "y", "%d", MT + PH + 14);
+  html_attr(w, "text-anchor", "end"); html_attr(w, "font-size", "10");
+  html_attr(w, "fill", "currentColor");
+  html_inline(w); html_textf(w, "%zu", len); html_close(w);
+  html_close(w);   /* svg */
+  (void)label;
+  free(base);
+  free(cov);
+}
+
+/* the coverage plots of the references, in a grid, with a legend (see
+   coverage_plot()); only the references with located reads */
+static void write_coverage(html_writer_t *w, const report_t *r,
+    const counter_t *c) {
+  if (r->references == NULL)
+    return;
+  size_t shown = 0;
+  for (size_t g = 0; g < r->references->n_records; g++)
+    if (counter_has_coverage(c, g))
+      shown++;
+  if (shown == 0) {
+    note(w, "No reads located in the references.");
+    return;
+  }
+  open_class(w, "div", "coverlegend");
+  for (size_t k = 0; k < COVER_N_CATEGORIES; k++) {
+    html_open(w, "span");
+    html_open(w, "i");
+    html_attr(w, "style", "background:%s", cover_color[k]);
+    html_close(w);
+    html_text(w, cover_label[k]);
+    html_close(w);
+  }
+  html_close(w);
+  /* the references in order of segment number (1-8), those without a
+     recognized number last, keeping the file order among ties */
+  size_t n = r->references->n_records;
+  size_t *order;
+  XMALLOC(order, sizeof(size_t) * n);
+  for (size_t i = 0; i < n; i++)
+    order[i] = i;
+  for (size_t i = 1; i < n; i++) {   /* a stable insertion sort */
+    size_t gi = order[i];
+    int si = segments_of_description(r->references->records[gi].description);
+    if (si == 0) si = 999;
+    size_t j = i;
+    while (j > 0) {
+      int sj = segments_of_description(
+          r->references->records[order[j - 1]].description);
+      if (sj == 0) sj = 999;
+      if (sj <= si)
+        break;
+      order[j] = order[j - 1];
+      j--;
+    }
+    order[j] = gi;
+  }
+  for (size_t i = 0; i < n; i++) {
+    size_t g = order[i];
+    if (!counter_has_coverage(c, g))
+      continue;
+    const fasta_record_t *ref = r->references->records + g;
+    char label[REPORT_LABEL_SIZE];
+    segments_label(ref->name, ref->description, label, sizeof(label));
+    open_class(w, "div", "coverplot");
+    html_tag_text(w, "b", label);
+    coverage_plot(w, c, g, ref->seq_len, label);
+    html_close(w);
+  }
+  free(order);
+}
+
 static void write_section(html_writer_t *w, const report_t *r,
     const counter_t *c) {
   const counter_reads_t *s = counter_reads(c);
@@ -319,6 +506,10 @@ static void write_section(html_writer_t *w, const report_t *r,
     note(w, "No complete amplicons.");
   else
     write_lengths(w, r, c);
+  if (r->references != NULL) {
+    html_tag_text(w, "h3", "Coverage by read origin");
+    write_coverage(w, r, c);
+  }
 }
 
 /* the groups: reads, written, with both primers (and the internal ends);
