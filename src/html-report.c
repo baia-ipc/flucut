@@ -309,13 +309,17 @@ static const char *const cover_label[COVER_N_CATEGORIES] = {
   "no 5' primer", "5' probe not located"};
 
 /* the order in which the categories are stacked, from the bottom: the
-   reads of unknown 5' origin (grey) at the bottom; then the internally
-   primed reads (amber, blue), which sit on the flat grey base as a
-   straight band whose step at the site is the artefact; then the
-   full-length terminal reads (green) on top */
+   flat categories first, so that the bands stay horizontal. A stacked
+   band is horizontal only when everything below it is flat; the terminal
+   reads and the reads of unknown origin cover the whole segment evenly
+   (flat), while the internally primed reads are absent before their site
+   and present after it (a step). So the grey (unknown) and the green
+   (terminal) are at the bottom as flat bands, and the internally primed
+   reads (amber, blue) are on top, where their step up at the site is the
+   artefact and the bands below stay horizontal */
 static const int cover_order[COVER_N_CATEGORIES] = {
-  COVER_UNMAPPED, COVER_NO_PRIMER, COVER_INTERNAL_PLUS, COVER_INTERNAL_MINUS,
-  COVER_TERMINAL_PLUS, COVER_TERMINAL_MINUS};
+  COVER_UNMAPPED, COVER_NO_PRIMER, COVER_TERMINAL_PLUS, COVER_TERMINAL_MINUS,
+  COVER_INTERNAL_PLUS, COVER_INTERNAL_MINUS};
 
 /* a stacked-area coverage plot of one reference, by read category:
    x the position on the reference, y the number of located reads covering
