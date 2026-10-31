@@ -763,5 +763,5 @@ amended consensus, and errors:
 
 ### Not yet measured
 
-The other tools of `TOOLS.md`, other shares of internal priming, other error rates,
-and real data.
+The other tools of `TOOLS.md`, other shares of internal priming, and other error
+rates. (Real data is measured: the three Nanopore runs and the Illumina run above.)
