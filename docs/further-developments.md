@@ -45,13 +45,13 @@ support the trimming; they are not the purpose of the program.
   cut the ends without a primer found at the segment terminus (1864
   primer bases left in about 210 of 6400 read ends; the consensus is not
   affected in the benchmark). Not done: few reads.
-- **Live mode, next**: the dashboard of Lumipore (a report which fits
-  the screen without scrolling while the run is in progress; today the
-  report itself reloads every 30 seconds); a test on a replay of a real
-  run (Lumipore's `tests/fake_minknow`).
-  The report model (`report.h`: refresh, running, dashboard, the
-  settings decided automatically) and the worker threads are ready for
-  it; the dashboard itself is still to be written.
+- **Live dashboard**: done. While a run is in progress the HTML report is
+  a dashboard (one screen, no scrolling, reloaded every 30 seconds): the
+  reads at each step, a per-barcode summary, the internal priming and its
+  sites, the complete amplicons and the coverage by read origin; the
+  final report at the end is the full scrolling one. Still possible: a
+  test on a replay of a real run (Lumipore's `tests/fake_minknow`), and
+  per-barcode bars rather than a table.
 - **Report, next**: the remnants (primer bases left), the read lengths
   before and after the trimming, the primers found whole or partial,
   per segment; a mark of the internal sites in the length histograms.

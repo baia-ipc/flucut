@@ -45,6 +45,8 @@ static const char *const lengths_note_tmpl =
 
 /* height of the logo (pixels; the images are twice as large) */
 #define REPORT_LOGO_HEIGHT 75
+/* the logo in the top bar of the dashboard is smaller */
+#define DASHBOARD_LOGO_HEIGHT 40
 
 /* --- markup helpers (as in Lumipore) --- */
 
@@ -656,6 +658,96 @@ static void write_report(html_writer_t *w, const report_t *r) {
                 "(https://github.com/baia-ipc/flucut).");
 }
 
+/* --- dashboard (live mode): the same content on one screen --- */
+
+/* the state and the parameters of the run, in the top bar of the
+   dashboard (compact, one line each) */
+static void write_dashboard_bar(html_writer_t *w, const report_t *r) {
+  if (r->running) {
+    open_class(w, "p", "running");
+    html_text(w, "Run in progress: updated after each input file.");
+    html_close(w);
+  } else {
+    html_open(w, "p");
+    html_tag_text(w, "b", "End of the run.");
+    html_close(w);
+  }
+  html_open(w, "p");
+  html_textf(w, "scheme %s \xc2\xb7 %s", r->scheme->name,
+             r->options->policy == TRIM_PRIMER ? "primer mode" :
+             "terminus mode (conserved ends kept)");
+  if (r->references != NULL)
+    html_textf(w, " \xc2\xb7 %zu references", r->references->n_records);
+  html_textf(w, " \xc2\xb7 flucut %s", r->version);
+  html_close(w);
+  const report_setting_t *e = r->max_errors;
+  if (e != NULL && e->pending) {
+    html_open(w, "p");
+    html_text(w, "errors in a primer: automatic, at the first input file");
+    html_close(w);
+  } else if (e != NULL && e->automatic) {
+    html_open(w, "p");
+    html_textf(w, "errors in a primer: automatic, error rate %.1f%% in the "
+               "first %s reads", 100 * e->measured,
+               html_num(e->n_reads).s);
+    html_close(w);
+  }
+}
+
+static void write_dashboard(html_writer_t *w, const report_t *r) {
+  const html_logo_t logo = {report_logo, report_logo_dark, "flucut",
+                            DASHBOARD_LOGO_HEIGHT};
+  html_dashboard_start(w, "flucut dashboard", &logo, "dashboard",
+                       r->refresh);
+  write_dashboard_bar(w, r);
+  html_dashboard_bar_end(w);
+  const counter_t *c = r->total;
+  const counter_reads_t *s = counter_reads(c);
+  open_class(w, "div", "tiles");
+  write_tiles(w, r, s);
+  html_close(w);
+  bool refs = r->references != NULL;
+  bool multi = r->n_sections > 1;
+  open_class(w, "div", "dgrid");
+  html_panel_start(w, "Reads at each step", NULL);
+  if (s->reads_in > 0)
+    write_steps(w, s);
+  else
+    note(w, "No reads yet.");
+  html_panel_end(w);
+  /* with several barcode directories, a per-barcode summary; otherwise the
+     primers found */
+  if (multi) {
+    html_panel_start(w, "Barcodes", NULL);
+    write_groups_table(w, r);
+    html_panel_end(w);
+  } else {
+    html_panel_start(w, "Primers found", NULL);
+    write_primers(w, r, c);
+    html_panel_end(w);
+  }
+  if (refs) {
+    html_panel_start(w, "Internal priming", NULL);
+    write_sites(w, r, c);
+    html_panel_end(w);
+  }
+  html_panel_start(w, "Complete amplicons", NULL);
+  if (s->n_ends[2] > 0)
+    write_lengths(w, r, c);
+  else
+    note(w, "None yet.");
+  html_panel_end(w);
+  /* the coverage spans two columns (its plots are wide): with the four
+     panels above it fills the grid in two rows */
+  if (refs) {
+    html_panel_start(w, "Coverage by read origin", "wide");
+    write_coverage(w, r, c);
+    html_panel_end(w);
+  }
+  html_close(w);   /* dgrid */
+  html_page_end(w, NULL);
+}
+
 void html_report_write(const char *path, const report_t *report,
     Logger *logger) {
   assert(path != NULL);
@@ -664,7 +756,10 @@ void html_report_write(const char *path, const report_t *report,
   FILE *f = xfopen(path, REPORT_TMP_SFX, "w", "HTML report", logger);
   html_writer_t w;
   html_writer_init(&w, f);
-  write_report(&w, report);
+  if (report->dashboard)
+    write_dashboard(&w, report);
+  else
+    write_report(&w, report);
   xfclose(&f, logger);
   xfrename(path, REPORT_TMP_SFX, path, NULL, logger);
 }
