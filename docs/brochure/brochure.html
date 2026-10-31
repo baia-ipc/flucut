@@ -129,12 +129,13 @@ font-family:'JetBrains Mono',monospace;font-size:7.6pt;line-height:1.55}
     <div class="text">
       <img class="logo" src="img/wordmark.png" alt="flucut">
       <div class="kicker">Influenza A amplicon QC, before IRMA</div>
-      <h1>Primers off, the internal-priming<br>
-        <span>artefact caught.</span></h1>
+      <h1>Primers off,<br>
+        <span>internal artefacts caught.</span></h1>
       <p class="lead">flucut removes the universal RT-PCR primers
       (Uni12/Uni13) from influenza&nbsp;A reads and, with references, finds
-      and measures <b>internal priming</b> &mdash; the hidden artefact that
-      writes primer-derived bases into the consensus. One command before
+      and measures <b>internal priming</b> &mdash; the hidden internal
+      artefacts that write primer-derived bases into the consensus. One
+      command before
       IRMA, no configuration, on Nanopore and Illumina.</p>
     </div>
   </div>
@@ -168,7 +169,7 @@ font-family:'JetBrains Mono',monospace;font-size:7.6pt;line-height:1.55}
           segment: at the terminus it is a real amplicon, deeper inside it
           is internally primed</li>
         <li>an internal or unsure end loses its <b>whole</b> primer (cut
-          when unsure), so the artefact never reaches the consensus</li>
+          when unsure), so internal artefacts never reach the consensus</li>
         <li>Nanopore adapters (native, rapid, ligation) removed at broken
           ends; one IRMA-ready FASTQ per sample</li>
       </ul>
@@ -223,8 +224,8 @@ font-family:'JetBrains Mono',monospace;font-size:7.6pt;line-height:1.55}
     <div class="cap"><b>Coverage by read origin</b> (SRA SRR36760543,
       complete H5N1 segment references). Green: full-length amplicons, a
       flat baseline. Amber + blue: internally primed reads, by strand,
-      beginning at the red site line. HA steps up sharply at the artefact;
-      PB1 shows a smaller internal site.</div>
+      beginning at the red site line. HA steps up sharply at its internal
+      site; PB1 shows a smaller one.</div>
   </div>
 
   <table class="feat">
@@ -274,7 +275,7 @@ font-family:'JetBrains Mono',monospace;font-size:7.6pt;line-height:1.55}
     the measured read retention (<code>benchmark/COMPARISON.md</code>).
     &Dagger; cutadapt reaches it only by also discarding ~27% of the
     genuine full-length reads. Barbell removes barcodes, not the internal
-    Uni primer, so it cannot correct the artefact.</div>
+    Uni primer, so it cannot correct internal artefacts.</div>
 
   <div class="live">
     <div>
