@@ -694,41 +694,57 @@ static void write_dashboard_bar(html_writer_t *w, const report_t *r) {
   }
 }
 
-static void write_dashboard(html_writer_t *w, const report_t *r) {
-  const html_logo_t logo = {report_logo, report_logo_dark, "flucut",
-                            DASHBOARD_LOGO_HEIGHT};
-  html_dashboard_start(w, "flucut dashboard", &logo, "dashboard",
-                       r->refresh);
-  write_dashboard_bar(w, r);
-  html_dashboard_bar_end(w);
-  const counter_t *c = r->total;
+/* a bar per barcode, its reads (of the run total) */
+static void write_barcode_reads_bars(html_writer_t *w, const report_t *r) {
+  size_t n = r->n_sections;
+  const char **labels;
+  size_t *values;
+  const char **classes;
+  XMALLOC(labels, sizeof(char *) * n);
+  XMALLOC(values, sizeof(size_t) * n);
+  XMALLOC(classes, sizeof(char *) * n);
+  size_t total = 0;
+  for (size_t i = 0; i < n; i++) {
+    labels[i] = r->sections[i].name;
+    values[i] = r->sections[i].counts != NULL ?
+                counter_reads(r->sections[i].counts)->reads_in : 0;
+    classes[i] = "s";
+    total += values[i];
+  }
+  html_hbars(w, n, (const char *const *)labels, values,
+             (const char *const *)classes, total, 0);
+  free(labels);
+  free(values);
+  free(classes);
+}
+
+/* the panels of one sample (a barcode, or all the reads of a run of a
+   single sample): the reads at each step, the internal priming (or, without
+   references, the primers), the complete amplicons, and, across the whole
+   width, the coverage of every segment by read origin. Each barcode is a
+   different sample, so these are never pooled across barcodes */
+static void write_dash_section(html_writer_t *w, const report_t *r,
+    const counter_t *c) {
   const counter_reads_t *s = counter_reads(c);
+  bool refs = r->references != NULL;
   open_class(w, "div", "tiles");
   write_tiles(w, r, s);
   html_close(w);
-  bool refs = r->references != NULL;
-  bool multi = r->n_sections > 1;
+  if (s->reads_in == 0) {
+    note(w, "No reads yet.");
+    return;
+  }
   open_class(w, "div", "dgrid");
   html_panel_start(w, "Reads at each step", NULL);
-  if (s->reads_in > 0)
-    write_steps(w, s);
-  else
-    note(w, "No reads yet.");
+  write_steps(w, s);
   html_panel_end(w);
-  /* with several barcode directories, a per-barcode summary; otherwise the
-     primers found */
-  if (multi) {
-    html_panel_start(w, "Barcodes", NULL);
-    write_groups_table(w, r);
+  if (refs) {
+    html_panel_start(w, "Internal priming", NULL);
+    write_sites(w, r, c);
     html_panel_end(w);
   } else {
     html_panel_start(w, "Primers found", NULL);
     write_primers(w, r, c);
-    html_panel_end(w);
-  }
-  if (refs) {
-    html_panel_start(w, "Internal priming", NULL);
-    write_sites(w, r, c);
     html_panel_end(w);
   }
   html_panel_start(w, "Complete amplicons", NULL);
@@ -737,14 +753,81 @@ static void write_dashboard(html_writer_t *w, const report_t *r) {
   else
     note(w, "None yet.");
   html_panel_end(w);
-  /* the coverage spans two columns (its plots are wide): with the four
-     panels above it fills the grid in two rows */
   if (refs) {
-    html_panel_start(w, "Coverage by read origin", "wide");
+    html_panel_start(w, "Coverage by read origin", "full");
     write_coverage(w, r, c);
     html_panel_end(w);
   }
   html_close(w);   /* dgrid */
+}
+
+static void write_dashboard(html_writer_t *w, const report_t *r) {
+  const html_logo_t logo = {report_logo, report_logo_dark, "flucut",
+                            DASHBOARD_LOGO_HEIGHT};
+  html_dashboard_start(w, "flucut dashboard", &logo, "dashboard",
+                       r->refresh);
+  write_dashboard_bar(w, r);
+  html_dashboard_bar_end(w);
+  html_template(w, style_tmpl);
+  if (r->n_sections <= 1) {
+    write_dash_section(w, r, r->total);
+    html_page_end(w, NULL);
+    return;
+  }
+  /* several barcode directories: each is a different sample, shown in its
+     own tab (its own coverage and sites, not pooled with the others), with
+     an overview tab of the run as a whole. The tabs are selected through
+     the URL fragment, so the chosen one survives the automatic reload */
+  open_class(w, "div", "tabs");
+  html_open(w, "a");
+  html_attr(w, "href", "#ov");
+  html_text(w, "All reads");
+  html_close(w);
+  for (size_t i = 0; i < r->n_sections; i++) {
+    html_open(w, "a");
+    html_attr(w, "href", "#s%zu", i);
+    html_text(w, r->sections[i].name);
+    html_close(w);
+  }
+  html_close(w);
+  /* the overview: the throughput of the whole run (which does not depend on
+     the sample) and the per-barcode summary; no pooled coverage or sites */
+  html_open(w, "section");
+  html_attr(w, "id", "ov");
+  html_attr(w, "class", "tabpanel");
+  const counter_reads_t *s = counter_reads(r->total);
+  open_class(w, "div", "tiles");
+  write_tiles(w, r, s);
+  html_close(w);
+  open_class(w, "div", "dgrid");
+  html_panel_start(w, "Reads per barcode", NULL);
+  if (s->reads_in > 0)
+    write_barcode_reads_bars(w, r);
+  else
+    note(w, "No reads yet.");
+  html_panel_end(w);
+  html_panel_start(w, "Reads at each step (all barcodes)", "wide");
+  if (s->reads_in > 0)
+    write_steps(w, s);
+  else
+    note(w, "No reads yet.");
+  html_panel_end(w);
+  html_panel_start(w, "Barcodes", "full");
+  write_groups_table(w, r);
+  html_panel_end(w);
+  html_close(w);   /* dgrid */
+  html_close(w);   /* section#ov */
+  for (size_t i = 0; i < r->n_sections; i++) {
+    const report_section_t *g = r->sections + i;
+    html_open(w, "section");
+    html_attr(w, "id", "s%zu", i);
+    html_attr(w, "class", "tabpanel bc");
+    if (g->counts == NULL)
+      note(w, "Not processed yet.");
+    else
+      write_dash_section(w, r, g->counts);
+    html_close(w);
+  }
   html_page_end(w, NULL);
 }
 

@@ -45,18 +45,25 @@ After each file, ``summary.tsv``, ``lengths.tsv``, the JSON summary and
 ``flucut_report.html`` are written again (each to a temporary file, then
 renamed, so that a reader never sees an incomplete one).
 
-While the run is in progress, ``flucut_report.html`` is a **dashboard**:
-a single screen, without scrolling, that reloads itself every 30 seconds
-(the JSON summary has ``"running": true``). It shows, as the run builds
-up, the reads at each step, a per-barcode summary (one row per barcode
-directory), the internal priming and its sites, the complete amplicons,
-and the coverage of the segments by read origin.
+While the run is in progress, ``flucut_report.html`` is a **dashboard**
+that reloads itself every 30 seconds (the JSON summary has
+``"running": true``). As each barcode directory is a different sample, the
+dashboard does not pool them: it has a tab for each barcode, with that
+sample's own reads at each step, internal priming and its sites, complete
+amplicons and coverage of every segment by read origin, and an **overview
+tab** for the run as a whole (the throughput, which does not depend on the
+sample, and a per-barcode summary: reads, written, with both primers, and
+internally primed ends). The chosen tab is kept in the page address, so it
+survives the automatic reload. With a single sample there are no tabs, just
+its panels. A run of many samples does not fit one screen; the per-sample
+tab then scrolls.
 
 .. figure:: figures/dashboard.*
    :width: 100%
 
-   The dashboard of a live run of two barcodes (the reads of two real
-   H5N1 Nanopore runs, against complete segment references).
+   The overview tab of a live run of three barcodes (reads of three real
+   H5N1 Nanopore runs, against complete segment references); each barcode
+   has its own tab with its coverage and sites.
 
 At the end, the final version is written as the **full report**
 (:doc:`reports`), scrolling, with a section for each barcode; the counts

@@ -198,7 +198,10 @@
   full-length reads then cannot be located, as their probe is the 5' UTR,
   absent from a CDS reference; complete segment references are required
 - live mode: a dashboard. While a run is in progress the HTML report is a
-  dashboard (one screen, no scrolling, reloaded every 30 seconds): the
-  reads at each step, a per-barcode summary, the internal priming and its
-  sites, the complete amplicons and the coverage by read origin; the final
-  report, at the end of the run, is the full scrolling report
+  dashboard, reloaded every 30 seconds. As each barcode is a different
+  sample, it is not pooled: a tab for each barcode (its own reads at each
+  step, internal priming and sites, complete amplicons and coverage of
+  every segment by read origin) and an overview tab for the run as a whole
+  (throughput and a per-barcode summary); the chosen tab is kept in the
+  page address, so it survives the reload. The final report, at the end of
+  the run, is the full scrolling report

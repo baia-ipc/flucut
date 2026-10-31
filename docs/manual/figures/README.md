@@ -62,16 +62,14 @@
       node screenshot.js cov/flucut_report.html . \
         report_coverage="+Coverage by read origin"
 
-- `dashboard.png`: the live-mode dashboard, from a live run of two
-  barcode directories (the reads of two real Nanopore runs, `SRR36760543`
-  and `SRR36760506`, split into `barcode01` and `barcode02`), against the
-  complete-segment references (`coverage_refs.fasta`). Start a live run,
-  drop a file into each barcode directory, and screenshot at a wide
-  viewport while it is running:
+- `dashboard.png`: the live-mode dashboard (its overview tab), from a
+  live run of three barcode directories (the reads of three real Nanopore
+  runs, `SRR36760543`, `SRR36760506` and `SRR36760520`, as `barcode01`,
+  `barcode02`, `barcode03`), against the complete-segment references
+  (`coverage_refs.fasta`). Start a live run, drop a file into each barcode
+  directory, and screenshot at a wide viewport while it is running (the
+  overview; a barcode tab is at the URL fragment `#s0`, `#s1`, ...):
 
       flucut --live --min-age 0 -r coverage_refs.fasta -o out in &
-      # ... in/barcode01/*.fastq.gz, in/barcode02/*.fastq.gz appear ...
+      # ... in/barcode01/*.fastq.gz, in/barcode02/*.fastq.gz, ... appear ...
       node dashboard-shot.js out/flucut_report.html dashboard.png
-
-  (`dashboard-shot.js`: Playwright, a 1680x945 viewport, a full-page
-  screenshot.)
