@@ -46,8 +46,12 @@ After each file, ``summary.tsv``, ``lengths.tsv``, the JSON summary and
 renamed, so that a reader never sees an incomplete one).
 
 While the run is in progress, ``flucut_report.html`` is a **dashboard**
-that reloads itself every 30 seconds (the JSON summary has
-``"running": true``). As each barcode directory is a different sample, the
+that reloads itself in the browser (the JSON summary has
+``"running": true``). The reload interval adapts to the run: it is halved
+when a scan has processed a new file and doubled when a scan finds none,
+between 1 and 30 seconds, so the page refreshes quickly while reads are
+coming in and rarely once the run is quiet. As each barcode directory is a
+different sample, the
 dashboard does not pool them: it has a tab for each barcode, with that
 sample's own reads at each step, internal priming and its sites, complete
 amplicons and coverage of every segment by read origin, and an **overview

@@ -195,7 +195,15 @@ typedef struct {
   long min_age;            /* minimum age of the files of the scan */
   size_t n_incomplete;     /* files incomplete at the end of the run */
   time_t last_new;         /* when the last file was processed */
+  long refresh;            /* reload interval of the HTML (seconds), see
+                              LIVE_REFRESH_MIN/MAX */
 } live_t;
+
+/* the HTML reloads itself faster while the run produces data and slower
+   while it is quiet: on a scan that processed a file the interval is
+   halved, on a quiet scan it is doubled, between these bounds (seconds) */
+#define LIVE_REFRESH_MIN 1
+#define LIVE_REFRESH_MAX RUN_REPORT_REFRESH
 
 /* the state of the group <name>, created (and, with --resume, loaded) if
    new */
@@ -261,6 +269,7 @@ static bool run_ended(const options_t *opts) {
 /* write the tables and reports of the groups; <running>: before the end
    of the mode */
 static void write_results(const live_t *w, bool running) {
+  run_report_set_refresh(w->report, w->refresh);
   results_group_t *results;
   XMALLOC(results, sizeof(results_group_t) * (w->n_groups + 1));
   counter_t *total = counter_new(w->scheme, w->refs);
@@ -438,14 +447,34 @@ void live_run(const options_t *opts, trimmer_config_t *config,
       .logger = logger, .workers = NULL, .groups = NULL, .n_groups = 0,
       .file_counts = counter_new(scheme, references), .ended = false,
       .min_age = opts->live_min_age, .n_incomplete = 0,
-      .last_new = time(NULL)};
+      .last_new = time(NULL), .refresh = LIVE_REFRESH_MAX};
   /* the reports of a run in progress, before the first file */
   write_results(&w, true);
   double interval = opts->live_timeout > 0 &&
                     opts->live_timeout < opts->live_scan_interval ?
                     (double)opts->live_timeout : opts->live_scan_interval;
-  while (!live_stop && scan(&w))
+  while (!live_stop) {
+    time_t before = w.last_new;
+    bool cont = scan(&w);
+    /* adapt the reload interval: faster when the scan processed a file,
+       slower when it did not (the HTML reloaded at the current interval
+       picks up the new value) */
+    bool changed = difftime(w.last_new, before) != 0.0;
+    long prev = w.refresh;
+    if (changed)
+      w.refresh = w.refresh > LIVE_REFRESH_MIN ?
+                  (w.refresh + 1) / 2 : LIVE_REFRESH_MIN;
+    else if (w.refresh < LIVE_REFRESH_MAX)
+      w.refresh = w.refresh * 2 < LIVE_REFRESH_MAX ?
+                  w.refresh * 2 : LIVE_REFRESH_MAX;
+    /* write the new interval into the HTML (and, when quiet, do it only
+       while the interval is still changing, not once it has settled) */
+    if (changed || w.refresh != prev)
+      write_results(&w, true);
+    if (!cont)
+      break;
     live_sleep(interval);
+  }
   log_end(&w);
   counter_delete(w.file_counts);
   write_results(&w, false);

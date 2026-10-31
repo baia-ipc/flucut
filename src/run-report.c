@@ -16,6 +16,9 @@ struct run_report_t {
   const fasta_t *references;
   const report_setting_t *max_errors;
   char *command_line, *html_path, *json_path;
+  /* the reload interval of the HTML while a run is in progress (live
+     mode); adapted by the caller (run_report_set_refresh) */
+  long refresh;
 };
 
 run_report_t* run_report_new(const options_t *opts, const char *version,
@@ -34,6 +37,7 @@ run_report_t* run_report_new(const options_t *opts, const char *version,
   xmakedirs(opts->outdir, logger);
   self->html_path = path_join(opts->outdir, RUN_REPORT_HTML_FILE);
   self->json_path = path_join(opts->outdir, RUN_REPORT_JSON_FILE);
+  self->refresh = RUN_REPORT_REFRESH;
   return self;
 }
 
@@ -41,6 +45,11 @@ void run_report_set_max_errors(run_report_t *self,
     const report_setting_t *setting) {
   assert(self != NULL);
   self->max_errors = setting;
+}
+
+void run_report_set_refresh(run_report_t *self, long refresh) {
+  assert(self != NULL);
+  self->refresh = refresh;
 }
 
 void run_report_write(const run_report_t *self,
@@ -55,7 +64,7 @@ void run_report_write(const run_report_t *self,
     /* while a run is in progress (live mode) the HTML is a dashboard, one
        screen that fits without scrolling; the final report, at the end, is
        the full scrolling report */
-    .refresh = running ? RUN_REPORT_REFRESH : 0, .running = running,
+    .refresh = running ? self->refresh : 0, .running = running,
     .dashboard = running};
   html_report_write(self->html_path, &r, logger);
   json_report_write(self->json_path, &r, logger);
