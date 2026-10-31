@@ -58,7 +58,8 @@ amplicons and coverage of every segment by read origin, and an **overview
 tab** for the run as a whole (the throughput, which does not depend on the
 sample, and a per-barcode summary: reads, written, with both primers, and
 internally primed ends). The chosen tab is kept in the page address, so it
-survives the automatic reload. With a single sample there are no tabs, just
+survives the automatic reload, and is highlighted in the tab bar. With a
+single sample there are no tabs, just
 its panels. A run of many samples does not fit one screen; the per-sample
 tab then scrolls.
 

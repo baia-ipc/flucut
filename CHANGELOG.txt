@@ -203,8 +203,9 @@
   step, internal priming and sites, complete amplicons and coverage of
   every segment by read origin) and an overview tab for the run as a whole
   (throughput and a per-barcode summary); the chosen tab is kept in the
-  page address, so it survives the reload. The final report, at the end of
-  the run, is the full scrolling report
+  page address, so it survives the reload, and is highlighted in the tab
+  bar. The final report, at the end of the run, is the full scrolling
+  report
 - live mode: the reload interval of the dashboard adapts to the run,
   halved when a scan processed a file and doubled when none was found,
   between 1 and 30 seconds (fast while reads come in, rare when quiet)
