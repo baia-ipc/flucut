@@ -12,16 +12,15 @@ The artefact
    (``make_diagrams.py``).
 
 The untailed Uni12 primer is twelve bases long, with a degenerate base.
-A sequence similar enough to it occurs inside the HA segment of the H5N1
-viruses of Cambodia: after the codons of the motif GLFGAIAG, the bases
-``AGCTATAGCAGG`` differ from the primer ``AGCRAAAGCAGG`` at two
-positions. The primer can anneal there and start an amplicon in the
-middle of the segment. Its reads begin with the bases of the primer: the
-R falls on the third base of an alanine codon (silent), but the A
-replaces the T of the isoleucine codon ATA, which becomes the lysine
-codon AAA. If enough reads carry it, the consensus shows I348K, a
-variant which looks real and is not. All the 30 Cambodian H5N1 HA
-sequences of GenBank checked for the benchmark have this site.
+A sequence similar enough to it can occur inside a segment: the primer
+anneals there and starts an amplicon in the middle of the segment. The
+reads of such an amplicon begin with the bases of the primer where the
+template has others, so at that position the reads carry the primer's
+sequence, not the segment's. If enough reads are primed at the same
+site, the consensus shows the primer's base there: a variant which looks
+real and is not. Such sites recur from run to run in a given set of
+sequences, so the false variant is reproducible, which makes it easy to
+mistake for a true one.
 
 What flucut does about it
 -------------------------
