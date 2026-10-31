@@ -48,7 +48,7 @@ barcode02	all	1000	1
   "version": "0.1",
   "updated": "DATE",
   "running": false,
-  "command": "bin/flucut -o OUTDIR testdata/fastq_pass",
+  "command": "bin/flucut -o OUTDIR -r off testdata/fastq_pass",
   "scheme": {
     "name": "uni12-mbt13",
     "left": ["uni12r"],

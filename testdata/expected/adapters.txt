@@ -33,7 +33,7 @@ adapters	all	1700	6
   "version": "0.1",
   "updated": "DATE",
   "running": false,
-  "command": "bin/flucut -o OUTDIR testdata/adapters.fastq",
+  "command": "bin/flucut -o OUTDIR -r off testdata/adapters.fastq",
   "scheme": {
     "name": "uni12-mbt13",
     "left": ["uni12r"],

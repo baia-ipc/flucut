@@ -15,6 +15,8 @@
 
 set -euo pipefail
 export LC_ALL=C
+# the built-in reference set is a local file in the tests (no download)
+export FLUCUT_BUILTIN_REFERENCES=testdata/ref-ha.fasta
 FLUCUT=$1
 PREFIX=${2:-}
 SRC=testdata/fastq_pass

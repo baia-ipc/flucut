@@ -20,6 +20,7 @@
 #include "alloc.h"
 #include "auto-settings.h"
 #include "banner.h"
+#include "builtin-references.h"
 #include "counter.h"
 #include "fasta.h"
 #include "file.h"
@@ -181,12 +182,21 @@ int main(int argc, char *argv[]) {
     banner_print(stderr);
   scheme_t *scheme = scheme_new_builtin(opts.scheme, logger);
   log_scheme(scheme, logger);
-  fasta_t *refs = opts.references == NULL ? NULL :
-                  fasta_read(opts.references, logger);
+  /* the references: -r off none; -r <file> the user's; the default a
+     built-in flu A set, downloaded on first use (builtin-references.h) */
+  const char *ref_path = opts.references_off ? NULL :
+      opts.references != NULL ? opts.references :
+      builtin_references_path(logger);
+  fasta_t *refs = ref_path == NULL ? NULL : fasta_read(ref_path, logger);
+  /* the reports show the actual path used (the built-in cache, or the
+     user's file) */
+  opts.references = ref_path;
+  if (refs == NULL)
+    opts.policy = TRIM_PRIMER;   /* no references: every primer removed */
   reference_index_t *index = NULL;
   if (refs != NULL) {
     lprintf(logger, LOG_INFO, "%zu reference sequences read from %s\n",
-            refs->n_records, opts.references);
+            refs->n_records, ref_path);
     if (references_look_cds_only(refs))
       lprintf(logger, LOG_WARN,
           "the references look like coding sequences without the UTRs "

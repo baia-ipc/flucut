@@ -61,8 +61,9 @@ enum {
   "                          classified as terminal or internally primed,\n" \
   "                          the conserved termini are then kept at the\n" \
   "                          terminal ends (complete segment ends) and the\n" \
-  "                          whole primer removed elsewhere; without -r,\n" \
-  "                          every primer-derived base is removed\n" \
+  "                          whole primer removed elsewhere. Default: a\n" \
+  "                          built-in flu A set, downloaded on first use.\n" \
+  "                          -r off: no references (every primer removed)\n" \
   "   -e, --max-errors <x>   errors allowed in a primer: a number of\n" \
   "                          bases, below 1 a fraction of its length, or\n" \
   "                          auto: " XSTR(AUTO_MAX_ERRORS_LOW) ", or " \
@@ -170,6 +171,7 @@ void options_parse(options_t *self, int argc, char *argv[],
   self->max_errors = OPTIONS_DEFAULT_MAX_ERRORS;
   self->window = AMPLICON_DEFAULT_WINDOW;
   self->references = NULL;
+  self->references_off = false;
   self->probe_len = REFERENCE_DEFAULT_PROBE_LEN;
   self->probe_error_rate = REFERENCE_DEFAULT_MAX_ERROR_RATE;
   self->terminal_window = REFERENCE_DEFAULT_TERMINAL_WINDOW;
@@ -229,7 +231,13 @@ void options_parse(options_t *self, int argc, char *argv[],
         self->scheme = optarg;
         break;
       case 'r':
-        self->references = optarg;
+        if (strcmp(optarg, "off") == 0) {
+          self->references = NULL;
+          self->references_off = true;
+        } else {
+          self->references = optarg;
+          self->references_off = false;
+        }
         break;
       case 'e':
         if (strcmp(optarg, "auto") == 0) {
@@ -347,7 +355,7 @@ void options_parse(options_t *self, int argc, char *argv[],
      conserved termini are kept at the ends known to be terminal
      (see amplicon.h); without them, every primer-derived base is
      removed (no end can be classified, so none can be spared) */
-  self->policy = self->references != NULL ? TRIM_TERMINUS : TRIM_PRIMER;
+  self->policy = self->references_off ? TRIM_PRIMER : TRIM_TERMINUS;
   /* the settings of the platform, unless given */
   if (self->illumina && !window_given)
     self->window = OPTIONS_ILLUMINA_WINDOW;

@@ -47,6 +47,8 @@ typedef struct {
   size_t n_done, done_cap;
   khash_t(strsize) *done_set;   /* file sizes (-1: unknown/warned) */
   counter_t *counts;
+  int subtype;                  /* detected subtype (-2: not detected yet,
+                                   -1: none/all), see process_file */
 } live_group_t;
 
 static bool is_done(const live_group_t *st, const char *path) {
@@ -221,6 +223,7 @@ static live_group_t* get_group(live_t *w, const char *name) {
   st->done_cap = 0;
   st->done_set = kh_init(strsize);
   st->counts = counter_new(w->scheme, w->refs);
+  st->subtype = -2;   /* detected from its first file (see process_file) */
   if (opts->resume)
     load_state(opts, st, w->logger);
   if (st->n_done == 0)
@@ -325,9 +328,17 @@ static void process_file(live_t *w, live_group_t *st, const char *path,
     long size) {
   const options_t *opts = w->opts;
   counter_clear(w->file_counts);
+  worker_t *workers = get_workers(w);
+  /* each barcode is a different sample: classify it against its own subtype
+     only (detected from its first file; the workers are shared, so the
+     restriction is set for each file by its group) */
+  if (st->subtype == -2)
+    st->subtype = auto_settings_detect_subtype(w->config, path, w->logger);
+  for (size_t t = 0; t < opts->threads; t++)
+    worker_restrict_subtype(workers + t, st->subtype);
   FILE *out = xfopen(st->output, NULL, st->n_done > 0 ? "ab" : "wb",
                      "trimmed reads", w->logger);
-  worker_process_file(get_workers(w), opts->threads, path, out, st->output,
+  worker_process_file(workers, opts->threads, path, out, st->output,
                       w->file_counts, w->logger);
   xfclose(&out, w->logger);
   counter_merge(st->counts, w->file_counts);
