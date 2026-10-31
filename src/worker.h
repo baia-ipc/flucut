@@ -53,6 +53,10 @@ void worker_init(worker_t *w, const trimmer_config_t *config,
     int compress_level);
 
 /* Free the memory of a worker */
+/* Classify the reads only against the references of the subtype <subtype>
+   (-1: all); set before processing a group (see reference_set_restrict) */
+void worker_restrict_subtype(worker_t *w, int subtype);
+
 void worker_free(worker_t *w);
 
 /*

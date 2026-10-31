@@ -1,6 +1,7 @@
 /* (c) 2026 Giorgio Gonnella */
 
 #include <assert.h>
+#include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,13 +18,84 @@
 struct reference_index_t {
   const fasta_t *fasta;
   kmer_index_t *kmers;
+  /* the subtype of each reference (an id into <subtype_names>, -1 if its
+     description has none), parsed from the FASTA description (e.g. the
+     "(H5N1)" of an influenza record): the references of different subtypes
+     can be told apart, so that a read is classified against the subtype it
+     belongs to (see reference_set_restrict) */
+  int *subtype;
+  char **subtype_names;
+  size_t n_subtypes;
 };
+
+/* the subtype in a FASTA description: the H<n>N<n> inside parentheses
+   (e.g. "...(A/.../2024(H5N1)) segment 4..."), uppercased, or NULL */
+static char* parse_subtype(const char *desc) {
+  if (desc == NULL)
+    return NULL;
+  for (const char *p = desc; (p = strchr(p, 'H')) != NULL; p++) {
+    const char *q = p + 1;
+    if (!isdigit((unsigned char)*q))
+      continue;
+    while (isdigit((unsigned char)*q))
+      q++;
+    if (*q != 'N')
+      continue;
+    const char *r = q + 1;
+    if (!isdigit((unsigned char)*r))
+      continue;
+    while (isdigit((unsigned char)*r))
+      r++;
+    size_t n = (size_t)(r - p);
+    char *s;
+    XMALLOC(s, n + 1);
+    for (size_t i = 0; i < n; i++)
+      s[i] = (char)toupper((unsigned char)p[i]);
+    s[n] = '\0';
+    return s;
+  }
+  return NULL;
+}
+
+/* fill self->subtype (an id per record) and self->subtype_names */
+static void index_subtypes(reference_index_t *self) {
+  size_t n = self->fasta->n_records;
+  XMALLOC(self->subtype, sizeof(int) * (n > 0 ? n : 1));
+  self->subtype_names = NULL;
+  self->n_subtypes = 0;
+  size_t cap = 0;
+  for (size_t i = 0; i < n; i++) {
+    char *name = parse_subtype(self->fasta->records[i].description);
+    if (name == NULL) {
+      self->subtype[i] = -1;
+      continue;
+    }
+    int id = -1;
+    for (size_t j = 0; j < self->n_subtypes; j++)
+      if (strcmp(self->subtype_names[j], name) == 0) {
+        id = (int)j;
+        break;
+      }
+    if (id < 0) {
+      if (self->n_subtypes == cap) {
+        cap = cap == 0 ? 8 : cap * 2;
+        XREALLOC(self->subtype_names, sizeof(char *) * cap);
+      }
+      self->subtype_names[self->n_subtypes] = name;
+      id = (int)self->n_subtypes++;
+    } else {
+      free(name);
+    }
+    self->subtype[i] = id;
+  }
+}
 
 reference_index_t* reference_index_new(const fasta_t *fasta) {
   assert(fasta != NULL);
   reference_index_t *self;
   XMALLOC(self, sizeof(reference_index_t));
   self->fasta = fasta;
+  index_subtypes(self);
   const char **seqs;
   size_t *lens;
   size_t n = fasta->n_records;
@@ -47,7 +119,26 @@ void reference_index_delete(reference_index_t *self) {
   if (self == NULL)
     return;
   kmer_index_delete(self->kmers);
+  for (size_t i = 0; i < self->n_subtypes; i++)
+    free(self->subtype_names[i]);
+  free(self->subtype_names);
+  free(self->subtype);
   free(self);
+}
+
+int reference_index_subtype(const reference_index_t *self, size_t ref) {
+  return self->subtype[ref];
+}
+
+size_t reference_index_n_subtypes(const reference_index_t *self) {
+  return self->n_subtypes;
+}
+
+const char* reference_index_subtype_name(const reference_index_t *self,
+    int subtype) {
+  if (subtype < 0 || (size_t)subtype >= self->n_subtypes)
+    return NULL;
+  return self->subtype_names[subtype];
 }
 
 struct reference_set_t {
@@ -57,6 +148,9 @@ struct reference_set_t {
   double max_error_rate;
   bool exhaustive;
   bool seeds_only;
+  /* if >= 0, only the references of this subtype are considered (see
+     reference_set_restrict); -1: all */
+  int restrict_subtype;
   /* the reverse complement of the probe (probe_len + 1 bytes) */
   char *rc;
   /* the candidate diagonals (a buffer of hits_size bytes) */
@@ -77,6 +171,7 @@ reference_set_t* reference_set_new(const reference_index_t *index,
   self->max_error_rate = max_error_rate;
   self->exhaustive = false;
   self->seeds_only = false;
+  self->restrict_subtype = -1;
   XMALLOC(self->rc, probe_len + 1);
   self->hits = NULL;
   self->hits_size = 0;
@@ -89,6 +184,16 @@ void reference_set_set_seeds_only(reference_set_t *self, bool seeds_only) {
 
 void reference_set_set_exhaustive(reference_set_t *self, bool exhaustive) {
   self->exhaustive = exhaustive;
+}
+
+void reference_set_restrict(reference_set_t *self, int subtype) {
+  self->restrict_subtype = subtype;
+}
+
+/* whether the reference <ref> is considered, given the subtype restriction */
+static bool subtype_allowed(const reference_set_t *self, size_t ref) {
+  return self->restrict_subtype < 0 ||
+         self->index->subtype[ref] == self->restrict_subtype;
 }
 
 void reference_set_delete(reference_set_t *self) {
@@ -176,6 +281,13 @@ static void seeded_search(reference_set_t *self, const char *query,
                                   &self->hits_size);
   for (size_t i = 0; i < n;) {
     uint32_t ref = self->hits[i].seq;
+    if (!subtype_allowed(self, ref)) {
+      size_t j = i + 1;
+      while (j < n && self->hits[j].seq == ref)
+        j++;
+      i = j;
+      continue;
+    }
     long first = self->hits[i].diagonal;
     long last = first;
     size_t j = i + 1;
@@ -216,6 +328,8 @@ void reference_set_locate(reference_set_t *self, const char *probe,
       return;
   }
   for (size_t i = 0; i < self->fasta->n_records; i++) {
+    if (!subtype_allowed(self, i))
+      continue;
     long to = (long)self->fasta->records[i].seq_len - 1;
     long k = hit->mapped ? hit->n_errors : max_errors;
     align_window(self, probe, len, i, 0, to, false, k, hit);

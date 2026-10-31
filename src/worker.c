@@ -37,6 +37,10 @@ void worker_init(worker_t *w, const trimmer_config_t *config,
   strbuf_init(&w->gz);
 }
 
+void worker_restrict_subtype(worker_t *w, int subtype) {
+  trimmer_restrict_subtype(w->trimmer, subtype);
+}
+
 void worker_free(worker_t *w) {
   trimmer_delete(w->trimmer);
   libdeflate_free_compressor(w->compressor);

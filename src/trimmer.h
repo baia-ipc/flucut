@@ -85,6 +85,10 @@ void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
     size_t to, strbuf_t *out, counter_t *counts);
 
 /* Delete (NULL is accepted) */
+/* Classify the reads only against the references of the subtype <subtype>
+   (-1: all); see amplicon_analyzer_restrict_subtype */
+void trimmer_restrict_subtype(trimmer_t *self, int subtype);
+
 void trimmer_delete(trimmer_t *self);
 
 /* Unit tests */
