@@ -48,13 +48,17 @@ exactly or with one mismatch), so the trimming has to be done before it.
   those of any other read. The consensus then lacks the 12 and 13 bases
   of the conserved termini, which would have been the primer's sequence,
   not measured sequence;
-- optionally keeps the conserved termini, for complete ends: because
+- keeps the conserved termini, for complete ends (the default): because
   flucut knows which primers were used, it knows where inside a primer
-  the tail ends and the terminus begins. This mode requires the
-  references of the segments (`scripts/fetch_references.py` downloads
-  them from NCBI): the bases after the primer of each read are located
-  in them, and a read which starts at an interior position of a segment
-  (internally primed) loses its whole primer, the others only the tail;
+  the tail ends and the terminus begins. This mode uses references of the
+  segments: the bases after the primer of each read are located in them,
+  and a read which starts at an interior position of a segment (internally
+  primed) loses its whole primer, the others only the tail. By default the
+  references are a **built-in flu A set** (complete segments of several
+  subtypes), downloaded from NCBI on first use and cached; `-r <file>`
+  uses your own instead, and `-r off` turns references off (every
+  primer-derived base removed). With references of several subtypes, each
+  barcode is classified against the subtype its reads belong to;
 - with the references, in either mode, measures internal priming: which
   segments, which sites, what share of the reads (the references must be
   complete segments, with the UTRs, not coding sequences; flucut warns

@@ -29,14 +29,19 @@ Options
    ``mbt`` or ``uni``.
 
 ``-r, --references <file>``
-   A FASTA file of segment references: each read end is classified as
-   terminal or internally primed (:doc:`internal_priming`), and the
-   trimming mode follows from this. **With** ``-r`` the conserved
-   termini are kept at the ends confidently classified as terminal
-   (complete segment ends) and the whole primer is removed elsewhere
-   (an internal or an unclassified end is cut when unsure). **Without**
-   ``-r`` every primer-derived base is removed. There is no separate
-   option to choose the mode (:doc:`how_it_works`).
+   The references against which each read end is classified as terminal or
+   internally primed (:doc:`internal_priming`); the trimming mode follows
+   from this. The conserved termini are kept at the ends confidently
+   classified as terminal (complete segment ends) and the whole primer is
+   removed elsewhere (an internal or an unclassified end is cut when
+   unsure). There is no separate option to choose the mode
+   (:doc:`how_it_works`). Three forms:
+
+   * **default** (no ``-r``): the built-in reference set (complete
+     segments of several influenza A subtypes), downloaded on first use
+     (:doc:`internal_priming`);
+   * ``-r <file>``: that FASTA file of segment references;
+   * ``-r off``: no references, every primer-derived base removed.
    The messages and reports name a reference with its segment when its
    description (the header after the name) says it: ``segment <n>``
    (as in the NCBI records), or a gene or protein name (e.g. ``HA``,
