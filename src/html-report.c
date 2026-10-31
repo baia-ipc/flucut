@@ -491,12 +491,36 @@ static void write_coverage(html_writer_t *w, const report_t *r,
   free(order);
 }
 
+/* a compact line of basic run statistics (platform, bases and mean read
+   lengths, minus strand), below the tiles; the data are collected anyway */
+static void write_stats(html_writer_t *w, const report_t *r,
+    const counter_reads_t *s) {
+  open_class(w, "p", "stats");
+  html_textf(w, "Platform: %s. ",
+             r->options->illumina ? "Illumina (short reads)" :
+             "Nanopore (long reads)");
+  html_textf(w, "Input: %s reads, %s bases",
+             html_num(s->reads_in).s, html_num(s->bases_in).s);
+  if (s->reads_in > 0)
+    html_textf(w, ", mean %s bp",
+               html_num(s->bases_in / s->reads_in).s);
+  html_textf(w, ". Written: %s reads, %s bases",
+             html_num(s->reads_out).s, html_num(s->bases_out).s);
+  if (s->reads_out > 0)
+    html_textf(w, ", mean %s bp",
+               html_num(s->bases_out / s->reads_out).s);
+  html_textf(w, ". Minus strand: %s (%.1f%%).",
+             html_num(s->minus).s, html_percent(s->minus, s->reads_in));
+  html_close(w);
+}
+
 static void write_section(html_writer_t *w, const report_t *r,
     const counter_t *c) {
   const counter_reads_t *s = counter_reads(c);
   open_class(w, "div", "tiles");
   write_tiles(w, r, s);
   html_close(w);
+  write_stats(w, r, s);
   if (s->reads_in == 0) {
     note(w, "No reads.");
     return;
@@ -673,7 +697,8 @@ static void write_dashboard_bar(html_writer_t *w, const report_t *r) {
     html_close(w);
   }
   html_open(w, "p");
-  html_textf(w, "scheme %s \xc2\xb7 %s", r->scheme->name,
+  html_textf(w, "%s \xc2\xb7 scheme %s \xc2\xb7 %s",
+             r->options->illumina ? "Illumina" : "Nanopore", r->scheme->name,
              r->options->policy == TRIM_PRIMER ? "primer mode" :
              "terminus mode (conserved ends kept)");
   if (r->references != NULL)
@@ -730,6 +755,7 @@ static void write_dash_section(html_writer_t *w, const report_t *r,
   open_class(w, "div", "tiles");
   write_tiles(w, r, s);
   html_close(w);
+  write_stats(w, r, s);
   if (s->reads_in == 0) {
     note(w, "No reads yet.");
     return;
@@ -738,13 +764,12 @@ static void write_dash_section(html_writer_t *w, const report_t *r,
   html_panel_start(w, "Reads at each step", NULL);
   write_steps(w, s);
   html_panel_end(w);
+  html_panel_start(w, "Primers found", NULL);
+  write_primers(w, r, c);
+  html_panel_end(w);
   if (refs) {
     html_panel_start(w, "Internal priming", NULL);
     write_sites(w, r, c);
-    html_panel_end(w);
-  } else {
-    html_panel_start(w, "Primers found", NULL);
-    write_primers(w, r, c);
     html_panel_end(w);
   }
   html_panel_start(w, "Complete amplicons", NULL);
@@ -799,6 +824,7 @@ static void write_dashboard(html_writer_t *w, const report_t *r) {
   open_class(w, "div", "tiles");
   write_tiles(w, r, s);
   html_close(w);
+  write_stats(w, r, s);
   open_class(w, "div", "dgrid");
   html_panel_start(w, "Reads per barcode", NULL);
   if (s->reads_in > 0)

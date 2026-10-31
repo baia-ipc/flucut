@@ -208,3 +208,7 @@
 - live mode: the reload interval of the dashboard adapts to the run,
   halved when a scan processed a file and doubled when none was found,
   between 1 and 30 seconds (fast while reads come in, rare when quiet)
+- report and dashboard: the platform (Nanopore or Illumina) is stated
+  clearly, and a line of basic run statistics (reads and bases in and out,
+  mean read lengths, minus strand) is shown below the tiles; the dashboard
+  per-sample panels also show the primers found, as the report does
