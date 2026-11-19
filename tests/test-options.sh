@@ -71,6 +71,14 @@ expect 1 --report-segment XX -r "$refs" "$reads"
 expect 1 --report-segment HA -r off "$reads"
 expect 0 --report-segment HA -r "$refs" "$reads"
 expect 0 --report-segment 6 -r "$refs" "$reads"
+# the segment of the classification: as above; the report shows the same
+# segment
+expect 1 --segment 0 -r "$refs" "$reads"
+expect 1 --segment XX -r "$refs" "$reads"
+expect 1 --segment HA -r off "$reads"
+expect 1 --segment HA --report-segment NA -r "$refs" "$reads"
+expect 0 --segment HA -r "$refs" "$reads"
+expect 0 --segment 4 --report-segment HA -r "$refs" "$reads"
 expect 1 --no-such-option "$reads"
 # inputs: missing, not a file of reads, two with the same output
 expect 1 testdata/no-such-file.fastq

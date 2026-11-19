@@ -158,6 +158,13 @@ void reference_set_set_exhaustive(reference_set_t *self, bool exhaustive);
    regions are conserved, their coding regions diverge) */
 void reference_set_restrict(reference_set_t *self, int subtype);
 
+/* Consider only the references of the segment <segment> (1 to 8, from
+   their FASTA descriptions, see segments.h); 0 (the default) considers
+   all. For runs of one segment only (e.g. an HA amplicon): the probes
+   are not compared to the other segments, which is faster and leaves no
+   chance matches in them. It combines with reference_set_restrict() */
+void reference_set_restrict_segment(reference_set_t *self, int segment);
+
 /* Search the probes by their k-mers only, without the exhaustive search
    of the probes they do not locate (see above) */
 void reference_set_set_seeds_only(reference_set_t *self, bool seeds_only);

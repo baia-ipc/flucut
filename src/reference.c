@@ -13,6 +13,7 @@
 #include "primer-search.h"
 #include "primers.h"
 #include "reference.h"
+#include "segments.h"
 #include "test.h"
 
 struct reference_index_t {
@@ -26,6 +27,9 @@ struct reference_index_t {
   int *subtype;
   char **subtype_names;
   size_t n_subtypes;
+  /* the segment of each reference (1 to 8, 0 if its description names
+     none, see segments.h), for reference_set_restrict_segment() */
+  int *segment;
 };
 
 /* the subtype in a FASTA description: the H<n>N<n> inside parentheses
@@ -99,6 +103,10 @@ reference_index_t* reference_index_new(const fasta_t *fasta) {
   const char **seqs;
   size_t *lens;
   size_t n = fasta->n_records;
+  XMALLOC(self->segment, sizeof(int) * (n > 0 ? n : 1));
+  for (size_t i = 0; i < n; i++)
+    self->segment[i] = fasta->records[i].description == NULL ? 0 :
+        segments_of_description(fasta->records[i].description);
   XMALLOC(seqs, sizeof(char *) * (n > 0 ? n : 1));
   XMALLOC(lens, sizeof(size_t) * (n > 0 ? n : 1));
   for (size_t i = 0; i < n; i++) {
@@ -123,6 +131,7 @@ void reference_index_delete(reference_index_t *self) {
     free(self->subtype_names[i]);
   free(self->subtype_names);
   free(self->subtype);
+  free(self->segment);
   free(self);
 }
 
@@ -151,6 +160,9 @@ struct reference_set_t {
   /* if >= 0, only the references of this subtype are considered (see
      reference_set_restrict); -1: all */
   int restrict_subtype;
+  /* if > 0, only the references of this segment are considered (see
+     reference_set_restrict_segment); 0: all */
+  int restrict_segment;
   /* the reverse complement of the probe (probe_len + 1 bytes) */
   char *rc;
   /* the candidate diagonals (a buffer of hits_size bytes) */
@@ -172,6 +184,7 @@ reference_set_t* reference_set_new(const reference_index_t *index,
   self->exhaustive = false;
   self->seeds_only = false;
   self->restrict_subtype = -1;
+  self->restrict_segment = 0;
   XMALLOC(self->rc, probe_len + 1);
   self->hits = NULL;
   self->hits_size = 0;
@@ -190,10 +203,18 @@ void reference_set_restrict(reference_set_t *self, int subtype) {
   self->restrict_subtype = subtype;
 }
 
-/* whether the reference <ref> is considered, given the subtype restriction */
-static bool subtype_allowed(const reference_set_t *self, size_t ref) {
-  return self->restrict_subtype < 0 ||
-         self->index->subtype[ref] == self->restrict_subtype;
+void reference_set_restrict_segment(reference_set_t *self, int segment) {
+  assert(segment >= 0 && segment <= SEGMENTS_N);
+  self->restrict_segment = segment;
+}
+
+/* whether the reference <ref> is considered, given the restrictions to a
+   subtype and to a segment */
+static bool ref_allowed(const reference_set_t *self, size_t ref) {
+  return (self->restrict_subtype < 0 ||
+          self->index->subtype[ref] == self->restrict_subtype) &&
+         (self->restrict_segment == 0 ||
+          self->index->segment[ref] == self->restrict_segment);
 }
 
 void reference_set_delete(reference_set_t *self) {
@@ -281,7 +302,7 @@ static void seeded_search(reference_set_t *self, const char *query,
                                   &self->hits_size);
   for (size_t i = 0; i < n;) {
     uint32_t ref = self->hits[i].seq;
-    if (!subtype_allowed(self, ref)) {
+    if (!ref_allowed(self, ref)) {
       size_t j = i + 1;
       while (j < n && self->hits[j].seq == ref)
         j++;
@@ -332,7 +353,7 @@ static void locate(reference_set_t *self, const char *probe,
       return;
   }
   for (size_t i = 0; i < self->fasta->n_records; i++) {
-    if (!subtype_allowed(self, i))
+    if (!ref_allowed(self, i))
       continue;
     long to = (long)self->fasta->records[i].seq_len - 1;
     long k = hit->mapped ? hit->n_errors : max_errors;
@@ -544,6 +565,32 @@ void reference_test(void) {
   test_assert(hit.mapped);
   test_eq_long(hit.ref_start, 500);
   reference_set_set_seeds_only(rs, false);
+  reference_set_delete(rs);
+  reference_index_delete(ix);
+
+  /* the references of one segment only: a probe of another segment is
+     not located, by the k-mers or exhaustively */
+  char ha[] = "segment 4 (HA)", na[] = "segment 6 (NA)";
+  fa->records[0].description = ha;
+  fa->records[1].description = na;
+  ix = reference_index_new(fa);
+  rs = reference_set_new(ix, PROBE, 0.2);
+  take_probe(ref1, 500, PROBE, false, probe);
+  reference_set_restrict_segment(rs, 4);
+  reference_set_locate(rs, probe, PROBE, &hit);
+  test_assert(!hit.mapped);
+  reference_set_set_exhaustive(rs, true);
+  reference_set_locate(rs, probe, PROBE, &hit);
+  test_assert(!hit.mapped);
+  reference_set_set_exhaustive(rs, false);
+  reference_set_restrict_segment(rs, 6);
+  reference_set_locate(rs, probe, PROBE, &hit);
+  test_assert(hit.mapped);
+  test_eq_size(hit.ref_index, 1);
+  test_eq_long(hit.ref_start, 500);
+  reference_set_restrict_segment(rs, 0);
+  reference_set_locate(rs, probe, PROBE, &hit);
+  test_assert(hit.mapped);
   reference_set_delete(rs);
   reference_index_delete(ix);
   free(fa->records);

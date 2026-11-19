@@ -2,6 +2,8 @@
 <!-- report: the options of the trimming, rows of the table of the run, -->
 <!-- after the errors in a primer; probe: the options of the -->
 <!-- classification against the references (NULL: no references); -->
+<!-- segment: the segment whose references alone were used for the -->
+<!-- classification (NULL: all segments); -->
 <!-- report_segment: the segment to which the per-reference parts are -->
 <!-- limited (NULL: all segments) -->
 <tr><td>platform</td><td class="seq">{{platform}}</td></tr>
@@ -10,6 +12,9 @@
 {{#probe}}
 <tr><td>probe</td><td class="seq">{{probe}} bases, errors {{probe_errors}}, terminal window {{terminal_window}} bases{{search}}</td></tr>
 {{/probe}}
+{{#segment}}
+<tr><td>classification</td><td class="seq">against the references of {{segment}} only</td></tr>
+{{/segment}}
 {{#report_segment}}
 <tr><td>segment shown</td><td class="seq">{{report_segment}} only: internal priming sites, complete amplicons, coverage</td></tr>
 {{/report_segment}}
