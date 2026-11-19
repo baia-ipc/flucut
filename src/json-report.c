@@ -225,6 +225,16 @@ static void write_section(json_writer_t *w, const report_t *r,
   write_lengths(w, r, c);
 }
 
+/* a member whose value is a segment (1 to 8), or null if 0 (all) */
+static void segment_member(json_writer_t *w, const char *name,
+    int segment) {
+  member(w, name);
+  if (segment == 0)
+    fputs("null", w->f);
+  else
+    fprintf(w->f, "%d", segment);
+}
+
 /* the parameters of the run */
 static void write_parameters(json_writer_t *w, const report_t *r) {
   FILE *f = w->f;
@@ -302,6 +312,8 @@ static void write_parameters(json_writer_t *w, const report_t *r) {
   count_member(w, "terminal_window", (size_t)o->terminal_window);
   member(w, "exhaustive_search");
   fputs(o->exhaustive_search ? "true" : "false", f);
+  segment_member(w, "segment", o->segment);
+  segment_member(w, "report_segment", o->report_segment);
   member(w, "tags");
   fputs(o->tags ? "true" : "false", f);
   member(w, "split");

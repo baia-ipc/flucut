@@ -14,7 +14,16 @@ termini: it starts with 11 of the 12 bases of the Uni12 terminus
 (`GCAAAAGCAGG`) and ends after the coding sequence, without the Uni13
 terminus.
 
-The command was:
+`ref-ha-pa.fasta`: the same HA record and a record of another segment,
+NCBI `QB023392.1` (Influenza A virus A/Mallard/Primorie/117/1982 (H9N2),
+segment 3, PA, 2224 bases), for the cases which limit the classification
+or the report to one segment (`segment`, `segment_other`,
+`report_segment`); provenance in `ref-ha-pa.fasta.provenance.tsv`. The
+PA record was downloaded by its accession:
+
+    curl "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=QB023392.1&rettype=fasta&retmode=text"
+
+The command for the HA record was:
 
     python3 -I scripts/fetch_references.py --segment HA --subtype H5N1 \
         --max 1 --refseq-only --output ref-ha.fasta

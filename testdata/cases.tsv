@@ -15,3 +15,10 @@ adapters	-r off testdata/adapters.fastq
 no_adapters	-r off --adapters none testdata/adapters.fastq
 illumina	-r off -p illumina testdata/reads.fastq
 no_split	-r off --no-split testdata/reads.fastq
+# two references, HA and PA (segment 3); the reads are of the HA: with
+# --segment HA they are classified as with both references; with
+# --segment PA their ends are not located in the HA (two are placed in
+# the PA by chance); --report-segment changes only the HTML report
+segment	--segment HA -r testdata/ref-ha-pa.fasta testdata/reads.fastq
+segment_other	--segment PA -r testdata/ref-ha-pa.fasta testdata/reads.fastq
+report_segment	--report-segment PA -r testdata/ref-ha-pa.fasta testdata/reads.fastq

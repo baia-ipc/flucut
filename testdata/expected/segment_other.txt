@@ -1,0 +1,163 @@
+exit status: 0
+== messages ==
+SUCCESS | OUTDIR/reads.fastq.gz: 11 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
+WARNING | OUTDIR/reads.fastq.gz: PA segment: 1 of 1 complete amplicons shorter than the closest reference (QB023392.1, 2224 bases), most at 20-29 bases: internal priming or deletions
+SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_summary.json
+== reads.fastq.gz ==
+md5: da6927464a5754d2fd8eddfeb04891c7
+@full_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	tl:i:12	tr:i:23
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
+@full_minus simulated	fs:Z:-	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	tl:i:23	tr:i:12
+1703 TTATATACAAATGTT...TAGTTAAGTAATTCC
+@flanked_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	tl:i:27	tr:i:33
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
+@errors_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	tl:i:12	tr:i:24
+1702 GGAATTACTTAACTA...CAACATTTGTATATA
+@partial_left simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	tl:i:7	tr:i:23
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
+@internal12_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	tl:i:12	tr:i:23
+1003 AAGGCCCCTTGTCAA...AACATTTGTATATAA
+@internal12_minus simulated	fs:Z:-	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	tl:i:35	tr:i:12
+1003 TTATATACAAATGTT...TTGACAAGGGGCCTT
+@internal13_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	tl:i:12	tr:i:23
+900 GGAATTACTTAACTA...AATGTCAGACTGAAA
+@no_primer simulated	fs:Z:.	tl:i:0	tr:i:0
+300 AACAAACTCCACAGA...TTTTAGTTCCGCTAG
+@short_amplicon simulated	fs:Z:+	fl:Z:uni12r	ol:Z:internal	ml:Z:QB023392.1:1345:+	fr:Z:mbtuni-13	or:Z:internal	mr:Z:QB023392.1:1364:-	tl:i:12	tr:i:23
+20 GGAATTACTTAACTA...TACTTAACTAGCAAA
+@left_only simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	tl:i:12	tr:i:0
+500 GGAATTACTTAACTA...TACAGGAGTATGAGA
+== summary.tsv ==
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete
+reads	12	12635	11	12240	10	1	1	2	1	1	0	0	0	1	10	0	1	9	1
+== lengths.tsv ==
+output	group	length	reads
+reads	QB023392.1	20	1
+reads	not_located	900	1
+reads	not_located	1000	2
+reads	not_located	1700	5
+== flucut_summary.json ==
+{
+  "format": 1,
+  "program": "flucut",
+  "version": "0.1",
+  "updated": "DATE",
+  "running": false,
+  "command": "bin/flucut -o OUTDIR --segment PA -r testdata/ref-ha-pa.fasta testdata/reads.fastq",
+  "scheme": {
+    "name": "uni12-mbt13",
+    "left": ["uni12r"],
+    "right": ["mbtuni-13"]
+  },
+  "trim_policy": "terminus",
+  "references": {
+    "file": "testdata/ref-ha-pa.fasta",
+    "sequences": [
+      {"name": "NC_004908.1", "length": 1714, "segment": 4, "gene": "HA"},
+      {"name": "QB023392.1", "length": 2224, "segment": 3, "gene": "PA"}
+    ]
+  },
+  "settings": {
+    "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0084, "reads": 12, "file": "testdata/reads.fastq"},
+    "platform": "nanopore",
+    "window": 100,
+    "min_length": 1,
+    "probe_length": 32,
+    "probe_errors": 0.2,
+    "terminal_window": 60,
+    "exhaustive_search": false,
+    "segment": 3,
+    "report_segment": 3,
+    "tags": true,
+    "split": true,
+    "threads": 4,
+    "compress_level": 6
+  },
+  "length_bin": 10,
+  "length_max": 4000,
+  "short_fraction": 0.9,
+  "all": {
+    "reads": {
+      "in": 12,
+      "bases_in": 12635,
+      "written": 11,
+      "bases_written": 12240,
+      "both_primers": 10,
+      "one_primer": 1,
+      "no_primer": 1,
+      "dimers": 1,
+      "too_short": 1,
+      "minus_strand": 2,
+      "with_internal_match": 0,
+      "split": 0,
+      "adapter_start": 0,
+      "adapter_end": 0
+    },
+    "primers": {
+      "left": {"uni12r": 11},
+      "right": {"mbtuni-13": 10}
+    },
+    "ends": {
+      "left": {"terminal": 0, "internal": 1, "unknown": 10},
+      "right": {"terminal": 0, "internal": 1, "unknown": 9}
+    },
+    "internal_sites": [
+      {"reference": "QB023392.1", "end": "left", "position": 1345, "from": 1345, "to": 1345, "reads": 1},
+      {"reference": "QB023392.1", "end": "right", "position": 1364, "from": 1364, "to": 1364, "reads": 1}
+    ],
+    "short_complete": 1,
+    "complete_amplicons": [
+      {"group": "QB023392.1", "reference_length": 2224, "amplicons": 1, "main_length": 20, "short": 1, "short_main_length": 20, "histogram": [0, 0, 1]},
+      {"group": "not_located", "reference_length": null, "amplicons": 8, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]}
+    ]
+  },
+  "groups": [
+    {
+      "name": "reads",
+      "files": 1,
+      "processed": true,
+      "reads": {
+        "in": 12,
+        "bases_in": 12635,
+        "written": 11,
+        "bases_written": 12240,
+        "both_primers": 10,
+        "one_primer": 1,
+        "no_primer": 1,
+        "dimers": 1,
+        "too_short": 1,
+        "minus_strand": 2,
+        "with_internal_match": 0,
+        "split": 0,
+        "adapter_start": 0,
+        "adapter_end": 0
+      },
+      "primers": {
+        "left": {"uni12r": 11},
+        "right": {"mbtuni-13": 10}
+      },
+      "ends": {
+        "left": {"terminal": 0, "internal": 1, "unknown": 10},
+        "right": {"terminal": 0, "internal": 1, "unknown": 9}
+      },
+      "internal_sites": [
+        {"reference": "QB023392.1", "end": "left", "position": 1345, "from": 1345, "to": 1345, "reads": 1},
+        {"reference": "QB023392.1", "end": "right", "position": 1364, "from": 1364, "to": 1364, "reads": 1}
+      ],
+      "short_complete": 1,
+      "complete_amplicons": [
+        {"group": "QB023392.1", "reference_length": 2224, "amplicons": 1, "main_length": 20, "short": 1, "short_main_length": 20, "histogram": [0, 0, 1]},
+        {"group": "not_located", "reference_length": null, "amplicons": 8, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]}
+      ]
+    }
+  ]
+}
+== flucut_report.html ==
+</html>
+<h2>All reads</h2>
+<h3>Reads at each step</h3>
+<h3>Primers found</h3>
+<h3>Internal priming</h3>
+<h3>Complete amplicons</h3>
+<h3>Lengths of the complete amplicons</h3>
+<h3>Coverage by read origin</h3>

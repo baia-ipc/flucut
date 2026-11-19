@@ -36,6 +36,8 @@ Settings:
 | `window` | integer | `-w`: a primer must lie within this many bases of its end of the read |
 | `min_length` | integer | `-m`: shorter reads after the trimming are not written |
 | `probe_length`, `probe_errors`, `terminal_window`, `exhaustive_search` | integer, number, integer, boolean | the options of the classification against the references (used only with `-r`) |
+| `segment` | integer or null | `--segment`: the segment (1-8) whose references alone were used for the classification; `null`: all segments |
+| `report_segment` | integer or null | `--report-segment` (or `--segment`): the segment (1-8) shown in the per-reference parts of the HTML report; `null`: all. The JSON summary itself always describes all the references |
 | `tags` | boolean | the tags are appended to the titles of the reads (`false`: `--no-tags`) |
 | `split` | boolean | the reads which contain several amplicons are split (`false`: `--no-split`) |
 | `threads` | integer | `-j` |

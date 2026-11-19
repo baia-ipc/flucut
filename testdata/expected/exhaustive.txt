@@ -65,6 +65,8 @@ reads	NC_004908.1	1700	5
     "probe_errors": 0.2,
     "terminal_window": 60,
     "exhaustive_search": true,
+    "segment": null,
+    "report_segment": null,
     "tags": true,
     "split": true,
     "threads": 4,
