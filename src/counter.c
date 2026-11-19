@@ -331,10 +331,6 @@ bool counter_load(counter_t *self, FILE *file) {
   return ok && ended;
 }
 
-/* add the span of a read on its reference to the coverage, by category
-   (COVER_*): the span is [start, start + template length) on the plus
-   strand, anchored at whichever end mapped; the category is the origin of
-   the 5' (left) end and, if internal, the strand */
 /* the reference whose length is nearest to <span> (a complete amplicon's
    template length), -1 if none is within COVER_LENGTH_TOLERANCE or the
    two nearest are too close in length to tell apart (e.g. PB2 and PB1) */
@@ -359,6 +355,35 @@ static long segment_by_length(const counter_t *self, long span) {
   return best;
 }
 
+/* add the interval [from, to) of the reference <ref>, clamped to it, to
+   the coverage of the category <cat> */
+static void add_span(counter_t *self, size_t ref, size_t cat, long from,
+    long to) {
+  long len = (long)self->refs->records[ref].seq_len;
+  if (from < 0) from = 0;
+  if (to > len) to = len;
+  if (from >= to)
+    return;
+  size_t *c = ref_cover(self, ref);
+  c[COVER_IDX(0, cat, (size_t)from, (size_t)len)]++;
+  c[COVER_IDX(1, cat, (size_t)to, (size_t)len)]++;
+}
+
+/* whether a template of <span> bases whose ends mapped <dist> bases apart
+   has an internal deletion: it is shorter than the distance by more than
+   COVER_MIN_DELETION and a tenth of the distance (the allowance for the
+   indels of a long read) */
+#define COVER_MIN_DELETION 100
+static bool has_deletion(long span, long dist) {
+  return dist - span > COVER_MIN_DELETION + dist / 10;
+}
+
+/* add the span of a read on its reference to the coverage, by category
+   (COVER_*): the span is [start, start + template length) on the plus
+   strand, anchored at whichever end mapped; the category is the origin of
+   the 5' (left) end and, if internal, the strand. A read with both ends
+   mapped much farther apart than its template length has an internal
+   deletion (COVER_DELETION): only its two flanks are added */
 static void count_cover(counter_t *self, const amplicon_t *a) {
   if (self->refs == NULL)
     return;
@@ -366,13 +391,13 @@ static void count_cover(counter_t *self, const amplicon_t *a) {
   long span = (long)amplicon_kept_length(a);
   long ref, from, to;
   size_t cat;
-  bool minus = a->strand == STRAND_MINUS;
+  bool minus = a->strand == STRAND_MINUS, both = false;
   if (l->found && l->ref.mapped) {
     ref = (long)l->ref.ref_index;
     from = l->ref.ref_start;
-    to = r->found && r->ref.mapped &&
-         r->ref.ref_index == l->ref.ref_index ?
-         r->ref.ref_start : from + span;
+    both = r->found && r->ref.mapped &&
+           r->ref.ref_index == l->ref.ref_index;
+    to = both ? r->ref.ref_start : from + span;
     cat = l->origin == ORIGIN_INTERNAL ?
         (minus ? COVER_INTERNAL_MINUS : COVER_INTERNAL_PLUS) :
         (minus ? COVER_TERMINAL_MINUS : COVER_TERMINAL_PLUS);
@@ -409,14 +434,13 @@ static void count_cover(counter_t *self, const amplicon_t *a) {
   if (from > to) {
     long t = from; from = to; to = t;
   }
-  long len = (long)self->refs->records[ref].seq_len;
-  if (from < 0) from = 0;
-  if (to > len) to = len;
-  if (from >= to)
+  if (both && has_deletion(span, to - from)) {
+    /* the junction is not known: half of the template on each side */
+    add_span(self, (size_t)ref, COVER_DELETION, from, from + span / 2);
+    add_span(self, (size_t)ref, COVER_DELETION, to - (span - span / 2), to);
     return;
-  size_t *c = ref_cover(self, (size_t)ref);
-  c[COVER_IDX(0, cat, (size_t)from, (size_t)len)]++;
-  c[COVER_IDX(1, cat, (size_t)to, (size_t)len)]++;
+  }
+  add_span(self, (size_t)ref, cat, from, to);
 }
 
 /* the length of the template of a complete amplicon, in its group (see
@@ -551,6 +575,38 @@ static amplicon_t test_amplicon(long from, long to, long site) {
   return a;
 }
 
+/* the coverage of reads with both ends mapped on a reference of 2000
+   bases: one spanning it all, one with an internal deletion */
+static void test_deletion_coverage(const scheme_t *sc) {
+  static char seq[2001];
+  memset(seq, 'A', 2000);
+  fasta_record_t rec = {"r", "", seq, 2000};
+  fasta_t refs = {&rec, 1};
+  counter_t *c = counter_new(sc, &refs);
+  amplicon_t a = test_amplicon(30, 2029, 0);
+  a.left.origin = ORIGIN_TERMINAL;
+  a.left.ref.ref_index = a.right.ref.ref_index = 0;
+  a.right.ref.mapped = true;
+  a.right.ref.ref_start = 2000;
+  counter_add_read(c, &a, 2100);   /* 2000 bases over 2000: complete */
+  a.keep_to = 429;
+  counter_add_read(c, &a, 500);    /* 400 bases over 2000: a deletion */
+  size_t *cov;
+  XMALLOC(cov, sizeof(size_t) * 2000);
+  test_eq_size(counter_coverage(c, 0, COVER_TERMINAL_PLUS, cov), 1);
+  test_eq_size(cov[1000], 1);
+  test_eq_size(counter_coverage(c, 0, COVER_DELETION, cov), 1);
+  test_eq_size(cov[0], 1);
+  test_eq_size(cov[199], 1);
+  test_eq_size(cov[200], 0);
+  test_eq_size(cov[1000], 0);
+  test_eq_size(cov[1799], 0);
+  test_eq_size(cov[1800], 1);
+  test_eq_size(cov[1999], 1);
+  free(cov);
+  counter_delete(c);
+}
+
 void counter_test(void) {
   Logger *logger = new_logger(stderr, LOG_ERROR);
   scheme_t *sc = scheme_new_builtin("mbt", logger);
@@ -635,6 +691,7 @@ void counter_test(void) {
   test_assert(!counter_load(loaded, f));
   fclose(f);
   counter_delete(loaded);
+  test_deletion_coverage(sc);
   counter_clear(sum);
   test_eq_size(counter_reads(sum)->reads_in, 0);
   test_eq_size(counter_sites(sum, 1, COUNTER_LEFT)[7], 0);

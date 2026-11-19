@@ -43,6 +43,9 @@ enum { COVER_TERMINAL_PLUS,   /* started at a segment end, plus strand */
        COVER_NO_PRIMER,       /* no primer at the 5' end (placed by the
                                  other end and the length) */
        COVER_UNMAPPED,        /* a 5' primer, but its probe not located */
+       COVER_DELETION,        /* both ends mapped, much farther apart than
+                                 the template length: an internal deletion
+                                 (e.g. a defective interfering genome) */
        COVER_N_CATEGORIES };
 
 /* the counts of the reads at each step */
@@ -125,7 +128,9 @@ const size_t* counter_sites(const counter_t *self, size_t ref, size_t end);
    reference, and the greatest value is returned (0 and <out> zeroed if
    none). <out> must have room for the reference length. This is an
    overview from the classification, not a base-by-base mapping: it
-   ignores indels and the reads whose ends were not located.
+   ignores indels and the reads whose ends were not located. A read with
+   an internal deletion (COVER_DELETION) covers only its two flanks, half
+   of the template at each mapped end, as the junction is not known.
 */
 size_t counter_coverage(const counter_t *self, size_t ref, size_t cat,
     size_t *out);

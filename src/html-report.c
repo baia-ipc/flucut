@@ -303,12 +303,14 @@ static void write_lengths(html_writer_t *w, const report_t *r,
 
 /* the colors and labels of the coverage categories (COVER_*): the
    internally primed reads stand out (amber, blue), the full-length ones
-   are green, the reads whose 5' origin is unknown are grey */
+   are green, the reads whose 5' origin is unknown are grey, the reads
+   with an internal deletion are purple */
 static const char *const cover_color[COVER_N_CATEGORIES] = {
-  "#0b9e73", "#7fc7a9", "#e8a013", "#2e7fe0", "#9e9e9e", "#cccccc"};
+  "#0b9e73", "#7fc7a9", "#e8a013", "#2e7fe0", "#9e9e9e", "#cccccc",
+  "#8e44ad"};
 static const char *const cover_label[COVER_N_CATEGORIES] = {
   "terminal +", "terminal \xe2\x88\x92", "internal +", "internal \xe2\x88\x92",
-  "no 5' primer", "5' probe not located"};
+  "no 5' primer", "5' probe not located", "internal deletion"};
 
 /* the order in which the categories are stacked, from the bottom: the
    flat categories first, so that the bands stay horizontal. A stacked
@@ -318,10 +320,11 @@ static const char *const cover_label[COVER_N_CATEGORIES] = {
    and present after it (a step). So the grey (unknown) and the green
    (terminal) are at the bottom as flat bands, and the internally primed
    reads (amber, blue) are on top, where their step up at the site is the
-   artefact and the bands below stay horizontal */
+   artefact and the bands below stay horizontal; the reads with an internal
+   deletion (purple), present only near the two ends, are above them all */
 static const int cover_order[COVER_N_CATEGORIES] = {
   COVER_UNMAPPED, COVER_NO_PRIMER, COVER_TERMINAL_PLUS, COVER_TERMINAL_MINUS,
-  COVER_INTERNAL_PLUS, COVER_INTERNAL_MINUS};
+  COVER_INTERNAL_PLUS, COVER_INTERNAL_MINUS, COVER_DELETION};
 
 /* a stacked-area coverage plot of one reference, by read category:
    x the position on the reference, y the number of located reads covering

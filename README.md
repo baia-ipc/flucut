@@ -168,7 +168,9 @@ Outputs:
   of the lengths and, per segment, the coverage by read origin (a
   stacked profile along each segment, terminal and internal reads by
   strand, where internal priming shows as a step up — no other primer
-  trimmer shows it).
+  trimmer shows it; reads with a large internal deletion, such as
+  defective interfering genomes, are a separate band covering only the
+  two segment ends).
 - `flucut_summary.json`: the same content for programs, in a versioned
   format (`docs/json_summary.md`).
 
