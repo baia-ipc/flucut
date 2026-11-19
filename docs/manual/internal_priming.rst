@@ -116,6 +116,13 @@ subtype's segment) and the coding regions diverge (so a read with a noisy
 start finds spurious interior matches); using one subtype avoids
 scattering the reads and inflating the internal priming.
 
+For a run of one segment alone (e.g. an HA amplicon), ``--segment``
+does the same for the segments: the read ends are classified against
+the references of that segment only (``--segment HA``), which is faster
+and places no read end in another segment by a chance match. On reads
+of the whole genome it must not be used, as the ends of the other
+segments are then not located (:doc:`cli_reference`).
+
 ``-r <file>`` uses your own references instead of the built-in set (e.g.
 the exact segments of the run's isolate), and ``-r off`` turns references
 off. ``scripts/fetch_references.py`` downloads segment references from

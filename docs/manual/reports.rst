@@ -34,6 +34,8 @@ With ``--report-segment`` (e.g. ``--report-segment HA``) the parts of
 the report which list the references (the internal priming sites, the
 complete amplicons and the coverage) show one segment only; the counts
 of all reads (tiles, steps, primers, read ends by origin) are unchanged
+With ``--segment``, which also limits the classification to the
+references of one segment, the report shows that segment
 (:doc:`cli_reference`).
 
 **The run parameters.**
@@ -206,7 +208,9 @@ report, in a documented format (version 1, described in
 * ``format``, ``program``, ``version``, ``updated``: the format
   version, the program and the time of writing;
 * ``command``, ``scheme``, ``trim_policy``, ``references``,
-  ``settings``: the parameters of the run;
+  ``settings``: the parameters of the run (among them ``segment`` and
+  ``report_segment``, the segment of ``--segment`` and of
+  ``--report-segment``, ``null`` for all segments);
 * ``all``: the statistics of all reads, and ``groups``: those of each
   group, with ``reads`` (the reads at each step), ``primers``,
   ``ends`` and ``internal_sites`` (with references), ``short_complete``
