@@ -48,10 +48,16 @@ of all reads (tiles, steps, primers, read ends by origin) are unchanged
       parameters.
 
 **Groups.**
-   With several groups of input files (:doc:`output`), a table of the
-   groups, with their reads, the reads written, those with both primers
-   and, with references, the internally primed read ends; the names of
-   the groups link to their sections.
+   With several groups of input files (:doc:`output`), e.g. the barcode
+   directories of a run, each group is a different sample and has its own
+   section. The report starts with the throughput of the whole run (the
+   tiles and the basic statistics) and a table of the groups, with their
+   reads, the reads written, those with both primers and, with
+   references, the internally primed read ends. Nothing else is pooled
+   across groups: coverage, internal priming sites and amplicon lengths
+   are shown for each group only. A column at the left of the page, which
+   stays in view while the page scrolls, lists the groups: their names
+   there, and in the table, link to their sections.
 
    .. figure:: figures/report_groups.*
       :width: 80%
@@ -59,7 +65,7 @@ of all reads (tiles, steps, primers, read ends by origin) are unchanged
       The groups of the test data ``testdata/fastq_pass`` (two barcode
       directories), without references.
 
-Then, for all reads and for each group:
+Then, for each group (or for all reads, if there is only one):
 
 **Reads at each step.**
    The reads read, those with the primers of both ends, of one end or

@@ -164,9 +164,10 @@ Outputs:
   most of them are; without references, it lists the peaks of the
   lengths.
 - `flucut_report.html`: the HTML report, self-contained (inline SVG
-  plots, light and dark themes): the run parameters and, for all reads
-  and for each group, the reads at each step, the primers found at each
-  end, with references the internal priming sites with their reads, the
+  plots, light and dark themes): the run parameters and, for each group
+  of input files (for all reads, if there is only one), the reads at
+  each step, the primers found at each end, with references the
+  internal priming sites with their reads, the
   complete amplicons shorter than 90% of their reference, the histograms
   of the lengths and, per segment, the coverage by read origin (a
   stacked profile along each segment, terminal and internal reads by

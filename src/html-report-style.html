@@ -24,6 +24,24 @@
   .coverplot b { font-size: 0.9em; }
   .coverplot svg { display: block; }
   .stats { font-size: 0.9em; margin: 2px 0 12px; }
+  /* report of several groups: the links to the groups (nav.groupnav) in */
+  /* a column at the left, which stays in view while the sections */
+  /* (div.groups) scroll; on narrow screens, a row of links above them */
+  main:has(.withnav) { max-width: 1180px; }
+  .withnav { display: flex; align-items: flex-start; gap: 24px; }
+  .groups { flex: 1; min-width: 0; }
+  .groupnav { position: sticky; top: 12px; flex: 0 0 150px;
+    max-height: calc(100vh - 24px); overflow-y: auto; margin-top: 1.6em;
+    display: flex; flex-direction: column; gap: 2px; font-size: 0.9em; }
+  .groupnav a { padding: 3px 10px; border-radius: 6px;
+    text-decoration: none; overflow-wrap: anywhere; }
+  .groupnav a:first-child { font-weight: 600; }
+  .groupnav a:hover { background: var(--primary); color: #fff; }
+  @media (max-width: 800px) {
+    .withnav { display: block; }
+    .groupnav { position: static; max-height: none; flex-direction: row;
+      flex-wrap: wrap; }
+  }
   /* dashboard (live mode): each barcode is a different sample, shown in */
   /* its own tab; the per-sample content (all segments) may be taller */
   /* than one screen, so the page scrolls */

@@ -113,11 +113,12 @@ flucut_report.html, flucut_summary.json
 ---------------------------------------
 
 The reports of the run, always written, at its end: the run
-parameters and, for all reads and for each group, the reads at each
-step, the primers found at each end, the internal priming sites (with
-references) and the complete amplicons, with the histograms of their
-lengths (:doc:`reports`). Each is written to a temporary file (suffix
-``.tmp``) and then renamed.
+parameters and, for each group (for all reads if there is only one,
+and always in the JSON summary), the reads at each step, the primers
+found at each end, the internal priming sites (with references) and
+the complete amplicons, with the histograms of their lengths
+(:doc:`reports`). Each is written to a temporary file (suffix ``.tmp``)
+and then renamed.
 
 Messages
 --------
