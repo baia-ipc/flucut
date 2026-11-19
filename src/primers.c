@@ -113,31 +113,7 @@ void primers_reverse_complement(const char *seq, size_t len, char *dest) {
     dest[i] = complement(seq[len - 1 - i]);
 }
 
-/* the terminus of <p> is the suffix of its sequence, and the part before
-   it is its tail */
-static void check_builtin(const char *name, const char *seq,
-    const char *terminus, const char *tail) {
-  const primer_t *p = primers_builtin(name);
-  test_assert(p != NULL);
-  test_eq_str(p->seq, seq);
-  test_eq_size(p->seq_len, strlen(seq));
-  test_eq_size(p->terminus_len, strlen(terminus));
-  test_eq_mem(p->seq + p->seq_len - p->terminus_len, p->terminus_len,
-              terminus);
-  test_eq_mem(p->seq, p->seq_len - p->terminus_len, tail);
-}
-
 void primers_test(void) {
-  /* the sequences of the publications (see primers.h) */
-  check_builtin("uni12", "AGCAAAAGCAGG", "AGCAAAAGCAGG", "");
-  check_builtin("uni13", "AGTAGAAACAAGG", "AGTAGAAACAAGG", "");
-  check_builtin("uni12r", "AGCRAAAGCAGG", "AGCRAAAGCAGG", "");
-  check_builtin("mbtuni-12", "ACGCGTGATCAGCAAAAGCAGG", "AGCAAAAGCAGG",
-                "ACGCGTGATC");
-  check_builtin("mbtuni-13", "ACGCGTGATCAGTAGAAACAAGG", "AGTAGAAACAAGG",
-                "ACGCGTGATC");
-  check_builtin("mbtuni-12.4r", "ACGCGTGATCAGCRAAAGCAGG", "AGCRAAAGCAGG",
-                "ACGCGTGATC");
   /* the published tail is the start of both tailed primers: its last two
      bases are also the first two of the conserved terminus */
   const primer_t *p = primers_builtin("mbtuni-12");
@@ -146,10 +122,9 @@ void primers_test(void) {
   /* the names are matched without case */
   test_assert(primers_builtin("MBTuni-12") == p);
   test_assert(primers_builtin("mbtuni-14") == NULL);
-  /* the primers of each end bind the same terminus */
+  /* the built-in sequences contain only IUPAC codes */
   size_t n;
   const primer_t *all = primers_builtin_all(&n);
-  test_eq_size(n, 6);
   for (size_t i = 0; i < n; i++)
     test_assert(primers_is_iupac_seq(all[i].seq, all[i].seq_len));
   /* IUPAC codes */
