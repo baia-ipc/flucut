@@ -172,6 +172,34 @@ Outputs:
 - `flucut_summary.json`: the same content for programs, in a versioned
   format (`docs/json_summary.md`).
 
+## With IRMA
+
+flucut trims the primers; IRMA assembles the segments. IRMA does not trim
+the universal primers (it matches a single adapter, exactly or with one
+mismatch), so without flucut the primer-derived bases, including those of
+the internally primed reads, are written into the consensus as false
+variants (e.g. the HA artefact at the Uni12-like site). Run flucut first,
+then IRMA on the trimmed reads, one sample at a time.
+
+Nanopore (the `FLU-minion` module of IRMA):
+
+```
+flucut -o trimmed /data/run1/fastq_pass
+for fq in trimmed/*.fastq.gz; do
+  sample=$(basename "$fq" .fastq.gz)
+  IRMA FLU-minion "$fq" "irma/$sample"
+done
+```
+
+`flucut` writes one trimmed `trimmed/<barcode>.fastq.gz` per sample (plus
+the tables and the report); IRMA reads one of them at a time and writes
+the per-segment consensus to `irma/<barcode>/` (`A_HA_*.fasta`,
+`A_NA_*.fasta`, ...). IRMA accepts the tags flucut appends to the read
+titles (same consensus with and without them; `--no-tags` removes them).
+
+Illumina: trim with `flucut -p illumina` and assemble with the paired
+`FLU` module of IRMA instead of `FLU-minion`.
+
 ## Live mode
 
 `flucut --live -o out /data/run1/fastq_pass` follows a MinKNOW run while
