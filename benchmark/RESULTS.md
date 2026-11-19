@@ -20,8 +20,8 @@ together on one machine.
 
 Three public Nanopore runs of H5N1, amplified with the universal
 primers: SRA `SRR36760543`, `SRR36760506`, `SRR36760520` (47,990,
-62,780 and 77,520 reads). flucut (commit of this date) with `-r` against
-complete-segment H5N1 references.
+62,780 and 77,520 reads). flucut with `-r` against complete-segment H5N1
+references.
 
 **The references must be complete segments, with the UTRs.** A read is
 located in a segment by the sequence just after its 5' primer, which in a
@@ -79,9 +79,9 @@ minute on a laptop.
 
 ## 2026-10-30: a real run (Illumina, SRA SRR34913296)
 
-What was run: `benchmark/run-real-illumina.sh` (flucut at commit
-d96d333 with `-p illumina`, IRMA 1.4.0 FLU, minimap2 2.29 and samtools
-1.21 of IRMA), downloaded on 2026-10-30.
+What was run: `benchmark/run-real-illumina.sh` (flucut with
+`-p illumina`, IRMA 1.4.0 FLU, minimap2 2.29 and samtools 1.21 of IRMA),
+downloaded on 2026-10-30.
 
 The run was chosen from a scan of the 29997 H5N1 HA records of GenBank
 (query `"Influenza A virus"[Organism] AND H5N1 AND (segment 4 OR
@@ -132,8 +132,8 @@ reads here; IRMA accepted the files).
 What was run: the flucut commands of `benchmark/run-speed.sh` (timed by
 `benchmark/measure.py`: wall time, CPU time, peak resident memory) on
 the reads of the section below (32000 reads, 43 MB gzipped), with flucut
-at commit 1b01d71 (output compressed with libdeflate 1.26, level 6, the
-default) and, for comparison, at commit 2ca6a8b (zlib, level 6); three
+(output compressed with libdeflate 1.26, level 6, the default) and, for
+comparison, with flucut compressing with zlib (level 6); three
 runs of each, the median of each column; the same machine (4 cores,
 otherwise idle). The other tools were not run again. The trimmed reads
 (decompressed) are the same as with zlib, for `-j 1` and `-j 4`.
@@ -168,7 +168,7 @@ longer. With 4 threads the times vary more between runs (in the three
 runs of level 6, from 1.34 to 1.74 s wall, from 4.03 to 5.34 CPU s).
 ## 2026-10-30: the inward extension of the primer alignment
 
-What was run: flucut at commit 2ca6a8b, as it is and without the
+What was run: flucut, as it is and without the
 extension of the primer alignment inward at equal cost (the loop after
 the choice of the end in `primer_search_end()`, removed for this test
 only), scored with `score_reads.py` (template removed, primer kept,
@@ -192,7 +192,7 @@ What was run: `benchmark/run-speed.sh` (the commands of
 all the processes, peak resident memory of the largest process) on the
 reads of the IRMA checks repeated 10 times (32000 reads, 53 million
 bases, 43 MB gzipped), with 4 threads where the tool has an option for
-it; flucut at commit 7d62623; a machine with 4 cores, otherwise idle.
+it; a machine with 4 cores, otherwise idle.
 Barbell on the barcoded reads (`simnb`) repeated 10 times, with flucut,
 cutadapt and dorado on them as well.
 
@@ -230,8 +230,8 @@ the same gzipped input; Barbell writes uncompressed FASTQ.
 What was run: `benchmark/simulate.py` with `--error-rate` 0.01, 0.02,
 0.04, 0.08 and 0.12 (the mean of the error rate drawn for each read;
 the genome of the IRMA checks, seed 1, 400 reads per segment, without
-barcodes; 0.04 gives the reads of the other sections), then flucut at
-commit a60fc0e with `-e` from 0.1 to 0.35 (`-j 4`), scored with
+barcodes; 0.04 gives the reads of the other sections), then flucut
+with `-e` from 0.1 to 0.35 (`-j 4`), scored with
 `score_reads.py`. With Uni12 (12 bases), 0.1 and 0.15 allow 1 error, 0.2
 2, 0.25 and 0.3 3, 0.35 4; with mbtuni-13 (23 bases), 2, 3, 4, 5, 6, 8.
 
@@ -286,7 +286,7 @@ every rate. The consensus was not assembled for these runs.
 
 ## 2026-10-30: flucut with the adapter search
 
-What was run: flucut at commit b14fb1d (adapters searched at the read
+What was run: flucut (adapters searched at the read
 ends without a primer, `--adapters nb,rbk,lsk`, the default), `-j 1`,
 on the reads of the sections below, scored with `score_reads.py`; on the
 barcoded reads, IRMA 1.4.0 FLU-minion with and without the elongation,
@@ -323,7 +323,7 @@ without the search.
 
 ## 2026-10-30: flucut, one alignment for the primers at the read ends
 
-What was run: flucut at commit 2f95a40 (the search of a primer with
+What was run: flucut (the search of a primer with
 missing outer bases in one alignment instead of one per shorter form),
 `-j 1`, on the reads of the next two sections, scored with
 `score_reads.py`. IRMA was not run again.
@@ -424,8 +424,8 @@ What this shows, on these reads:
 ## 2026-10-30: all the tools (simulated reads, without barcodes)
 
 What was run: `benchmark/run-tools.sh` (the commands of each tool are
-in the script) on the 3200 simulated reads of the IRMA checks; flucut
-at commit e19500c, cutadapt 5.2, IRMA-core 0.11.0 (trimmer), BBTools
+in the script) on the 3200 simulated reads of the IRMA checks; flucut,
+cutadapt 5.2, IRMA-core 0.11.0 (trimmer), BBTools
 40.05 (BBDuk), Porechop_ABI 0.5.1 (commit 0bc9f17), dorado 2.1.2,
 samtools 1.21 and minimap2 2.29 (those of IRMA), IRMA 1.4.0
 (FLU-minion); the programs are given to the script in environment
@@ -501,7 +501,7 @@ What this shows, on these reads:
 What was run: `benchmark/run-coverage.sh` with the genome of
 `make-genome.sh`: 10, 20 and 40 reads per segment, seeds 1 to 3 (other
 parameters as in `simulate.py`), the tools of `run-tools.sh` with the
-same commands (flucut at commit e19500c), IRMA 1.4.0 FLU-minion. The
+same commands, IRMA 1.4.0 FLU-minion. The
 consensus compared is the majority consensus (`A_<gene>.fasta`,
 `compare_consensus.py --plain`): the amended consensus of FLU-minion is
 all N at these coverages, as it replaces with N the bases supported by
@@ -535,7 +535,7 @@ The change: at a read end, a primer is also searched without up to half
 of its bases on the outer side (with one error less than its length
 allows), and the outermost match near the end is the primer of that end
 (before: the match with the fewest errors). Same reads and scoring as
-below; flucut before (207c434) and after the change, default options:
+below; flucut before and after the change, default options:
 
 | flucut | written | template removed | primer kept | flank kept | internal site kept |
 |---|---|---|---|---|---|
@@ -553,7 +553,7 @@ to 1.3 s (one thread).
 ## 2026-10-30: tools compared (simulated reads)
 
 What was run: `benchmark/run-tools.sh` on the 3200 simulated reads of
-the IRMA checks (`work/sim`), flucut at commit 207c434 (default
+the IRMA checks (`work/sim`), flucut (default
 options), cutadapt 5.2, IRMA-core 0.11.0 (trimmer), IRMA 1.4.0
 (FLU-minion, as it is and with `SKIP_E=0`). The commands are in the
 script:
@@ -645,7 +645,7 @@ as applying to kits). Barbell 0.3.3, commit 057a902.
 ## 2026-10-30: read-level scores of flucut (simulated reads)
 
 `benchmark/score_reads.py` on the reads of the IRMA checks (3200 reads;
-`work/sim`), flucut at commit 1efa7dd, default options, and with
+`work/sim`), flucut, default options, and with
 `--trim terminus -r` the genome. Bases by their true origin (see
 `score_reads.py`):
 
@@ -703,8 +703,7 @@ genome of `make-genome.sh` (downloaded 2026-10-30), with the defaults of
 `simulate.py` (seed 1, 400 reads per segment, 3200 reads, 239 of them
 started at the internal site of HA).
 
-Versions: flucut at commit 2a2bed3 (with the benchmark scripts of this
-commit; the program is unchanged); IRMA 1.4.0 (commit 1311c81),
+Versions: IRMA 1.4.0 (commit 1311c81),
 IRMA-core 0.11.0, IRMA-viz 0.2.2, LABEL 0.7.2; module FLU-minion.
 
 Runs: `raw` (untrimmed), `flucut` (default trimming), `notags` (the same
