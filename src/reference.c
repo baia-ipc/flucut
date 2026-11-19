@@ -305,8 +305,12 @@ static void seeded_search(reference_set_t *self, const char *query,
   }
 }
 
-void reference_set_locate(reference_set_t *self, const char *probe,
-    size_t probe_len, reference_hit_t *hit) {
+/* locate a probe (see reference_set_locate()); <exhaustive>: without the
+   index; <seeds_only>: without the exhaustive search of a probe which the
+   index does not locate */
+static void locate(reference_set_t *self, const char *probe,
+    size_t probe_len, bool exhaustive, bool seeds_only,
+    reference_hit_t *hit) {
   assert(probe != NULL);
   assert(hit != NULL);
   memset(hit, 0, sizeof(reference_hit_t));
@@ -319,12 +323,12 @@ void reference_set_locate(reference_set_t *self, const char *probe,
   primers_reverse_complement(probe, len, self->rc);
   self->rc[len] = '\0';
   long max_errors = (long)((double)len * self->max_error_rate);
-  if (!self->exhaustive) {
+  if (!exhaustive) {
     seeded_search(self, probe, len, false, max_errors, hit);
     seeded_search(self, self->rc, len, true, max_errors, hit);
     // nothing found from the k-mers (e.g. an error in each of them):
     // the exhaustive search follows, unless seeds only
-    if (hit->mapped || self->seeds_only)
+    if (hit->mapped || seeds_only)
       return;
   }
   for (size_t i = 0; i < self->fasta->n_records; i++) {
@@ -336,6 +340,16 @@ void reference_set_locate(reference_set_t *self, const char *probe,
     k = hit->mapped ? hit->n_errors : max_errors;
     align_window(self, self->rc, len, i, 0, to, true, k, hit);
   }
+}
+
+void reference_set_locate(reference_set_t *self, const char *probe,
+    size_t probe_len, reference_hit_t *hit) {
+  locate(self, probe, probe_len, self->exhaustive, self->seeds_only, hit);
+}
+
+void reference_set_locate_seeded(reference_set_t *self, const char *probe,
+    size_t probe_len, reference_hit_t *hit) {
+  locate(self, probe, probe_len, false, true, hit);
 }
 
 bool reference_hit_is_terminal(const reference_hit_t *hit,
@@ -512,6 +526,13 @@ void reference_test(void) {
   test_assert(hit.mapped);
   test_eq_long(hit.ref_start, 500);
   test_eq_long(hit.n_errors, 3);
+  /* by the k-mers alone it is not found, whatever the settings */
+  reference_set_locate_seeded(rs, probe, PROBE, &hit);
+  test_assert(!hit.mapped);
+  reference_set_set_exhaustive(rs, true);
+  reference_set_locate_seeded(rs, probe, PROBE, &hit);
+  test_assert(!hit.mapped);
+  reference_set_set_exhaustive(rs, false);
   /* with the seeds only, it is not found */
   reference_set_set_seeds_only(rs, true);
   reference_set_locate(rs, probe, PROBE, &hit);

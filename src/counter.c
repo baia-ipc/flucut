@@ -378,6 +378,14 @@ static bool has_deletion(long span, long dist) {
   return dist - span > COVER_MIN_DELETION + dist / 10;
 }
 
+/* the distance of the 5' end of the amplicon of a placed read from the
+   terminus of the reference at which it would start; <minus>: the read
+   is the minus strand of its amplicon (the amplicon then runs along the
+   reference in the direction opposite to that of the read) */
+static long placed_start_distance(const placement_t *p, bool minus) {
+  return p->reverse != minus ? p->ref_len - p->to : p->from;
+}
+
 /* add the span of a read on its reference to the coverage, by category
    (COVER_*): the span is [start, start + template length) on the plus
    strand, anchored at whichever end mapped; the category is the origin of
@@ -397,13 +405,24 @@ static void count_cover(counter_t *self, const amplicon_t *a) {
     from = l->ref.ref_start;
     both = r->found && r->ref.mapped &&
            r->ref.ref_index == l->ref.ref_index;
-    to = both ? r->ref.ref_start : from + span;
+    if (both) {
+      to = r->ref.ref_start;
+    } else if (l->ref.reverse) {
+      /* the amplicon is on the minus strand of the reference: it runs
+         from its 5' end towards the start of the reference */
+      to = from + 1;
+      from = to - span;
+    } else {
+      to = from + span;
+    }
     cat = l->origin == ORIGIN_INTERNAL ?
         (minus ? COVER_INTERNAL_MINUS : COVER_INTERNAL_PLUS) :
         (minus ? COVER_TERMINAL_MINUS : COVER_TERMINAL_PLUS);
   } else if (r->found && r->ref.mapped) {
-    /* only the 3' end mapped: the read is placed by it and its length
-       (from = to - span, the inferred position of its 5' end). With no
+    /* only the 3' end mapped: the read is placed by it and its length,
+       towards the start of the reference from the 3' end or, for an
+       amplicon on the minus strand of the reference (the probe of its 3'
+       end maps forward), towards the end of the reference. With no
        5' primer it is a fragment of unknown origin (grey); with a 5'
        primer whose probe did not map (a noisy read start), the 5' origin
        is inferred from where the 5' end falls: within a window of the
@@ -411,16 +430,33 @@ static void count_cover(counter_t *self, const amplicon_t *a) {
        internal priming. The window grows with the span to allow for the
        indels of a long read */
     ref = (long)r->ref.ref_index;
-    to = r->ref.ref_start;
-    from = to - span;
+    if (r->ref.reverse) {
+      to = r->ref.ref_start;
+      from = to - span;
+    } else {
+      from = r->ref.ref_start;
+      to = from + span;
+    }
     if (!l->found) {
       cat = COVER_NO_PRIMER;
     } else {
       long window = 60 + span / 20;
-      cat = from <= window ?
+      long start = r->ref.reverse ? from : r->ref.ref_len - to;
+      cat = start <= window ?
           (minus ? COVER_TERMINAL_MINUS : COVER_TERMINAL_PLUS) :
           (minus ? COVER_INTERNAL_MINUS : COVER_INTERNAL_PLUS);
     }
+  } else if (a->placement.found) {
+    /* no end mapped: the read was placed by a probe from inside it (see
+       placement.h); its 5' origin as above */
+    const placement_t *p = &a->placement;
+    ref = (long)p->ref_index;
+    from = p->from;
+    to = p->to;
+    cat = !l->found ? COVER_NO_PRIMER :
+        placed_start_distance(p, minus) <= 60 + span / 20 ?
+        (minus ? COVER_TERMINAL_MINUS : COVER_TERMINAL_PLUS) :
+        (minus ? COVER_INTERNAL_MINUS : COVER_INTERNAL_PLUS);
   } else if (l->found && r->found && span > 0 &&
              (ref = segment_by_length(self, span)) >= 0) {
     /* a complete amplicon whose probe did not map (e.g. a noisy read
@@ -607,6 +643,97 @@ static void test_deletion_coverage(const scheme_t *sc) {
   counter_delete(c);
 }
 
+/* the coverage of reads of which no end mapped, placed by a probe from
+   inside them, on a reference of 2000 bases */
+static void test_placed_coverage(const scheme_t *sc) {
+  static char seq[2001];
+  memset(seq, 'A', 2000);
+  fasta_record_t rec = {"r", "", seq, 2000};
+  fasta_t refs = {&rec, 1};
+  counter_t *c = counter_new(sc, &refs);
+  /* no primer: a fragment of unknown origin */
+  amplicon_t a;
+  memset(&a, 0, sizeof(a));
+  a.strand = STRAND_NONE;
+  a.keep_to = 299;
+  a.placement = (placement_t){.found = true, .ref_index = 0,
+                              .ref_len = 2000, .from = 500, .to = 800};
+  counter_add_read(c, &a, 300);
+  /* a 5' primer whose probe did not map: internal if the amplicon starts
+     inside the reference, terminal at its end (here the end from which
+     an amplicon on the minus strand of the reference starts) */
+  a.strand = STRAND_PLUS;
+  a.left.found = true;
+  counter_add_read(c, &a, 300);
+  a.placement.reverse = true;
+  a.placement.from = 1690;
+  a.placement.to = 1990;
+  counter_add_read(c, &a, 300);
+  size_t *cov;
+  XMALLOC(cov, sizeof(size_t) * 2000);
+  test_eq_size(counter_coverage(c, 0, COVER_NO_PRIMER, cov), 1);
+  test_eq_size(cov[499], 0);
+  test_eq_size(cov[500], 1);
+  test_eq_size(cov[799], 1);
+  test_eq_size(cov[800], 0);
+  test_eq_size(counter_coverage(c, 0, COVER_INTERNAL_PLUS, cov), 1);
+  test_eq_size(cov[500], 1);
+  test_eq_size(counter_coverage(c, 0, COVER_TERMINAL_PLUS, cov), 1);
+  test_eq_size(cov[1689], 0);
+  test_eq_size(cov[1690], 1);
+  test_eq_size(cov[1989], 1);
+  free(cov);
+  counter_delete(c);
+}
+
+/* the coverage of reads with one end mapped, on a reference of 2000
+   bases: the span runs from the mapped end in the direction of the
+   amplicon on the reference */
+static void test_one_end_coverage(const scheme_t *sc) {
+  static char seq[2001];
+  memset(seq, 'A', 2000);
+  fasta_record_t rec = {"r", "", seq, 2000};
+  fasta_t refs = {&rec, 1};
+  counter_t *c = counter_new(sc, &refs);
+  size_t *cov;
+  XMALLOC(cov, sizeof(size_t) * 2000);
+  /* the left end, internal at 1000: forward, then on the minus strand */
+  amplicon_t a = test_amplicon(30, 329, 1000);
+  a.left.ref.ref_index = 0;
+  a.left.ref.ref_len = 2000;
+  counter_add_read(c, &a, 400);
+  test_eq_size(counter_coverage(c, 0, COVER_INTERNAL_PLUS, cov), 1);
+  test_eq_size(cov[999], 0);
+  test_eq_size(cov[1000], 1);
+  test_eq_size(cov[1299], 1);
+  test_eq_size(cov[1300], 0);
+  counter_clear(c);
+  a.left.ref.reverse = true;
+  counter_add_read(c, &a, 400);
+  test_eq_size(counter_coverage(c, 0, COVER_INTERNAL_PLUS, cov), 1);
+  test_eq_size(cov[700], 0);
+  test_eq_size(cov[701], 1);
+  test_eq_size(cov[1000], 1);
+  test_eq_size(cov[1001], 0);
+  counter_clear(c);
+  /* the right end only, its probe forward at 100: an amplicon on the
+     minus strand, which ends at 100 and started 300 bases further, far
+     from the end of the reference (internal) */
+  a.left.ref.mapped = false;
+  a.right.ref.mapped = true;
+  a.right.ref.ref_index = 0;
+  a.right.ref.ref_len = 2000;
+  a.right.ref.ref_start = 100;
+  counter_add_read(c, &a, 400);
+  test_eq_size(counter_coverage(c, 0, COVER_INTERNAL_PLUS, cov), 1);
+  test_eq_size(cov[99], 0);
+  test_eq_size(cov[100], 1);
+  test_eq_size(cov[399], 1);
+  test_eq_size(cov[400], 0);
+  free(cov);
+  counter_delete(c);
+}
+
 void counter_test(void) {
   Logger *logger = new_logger(stderr, LOG_ERROR);
   scheme_t *sc = scheme_new_builtin("mbt", logger);
@@ -692,6 +819,8 @@ void counter_test(void) {
   fclose(f);
   counter_delete(loaded);
   test_deletion_coverage(sc);
+  test_placed_coverage(sc);
+  test_one_end_coverage(sc);
   counter_clear(sum);
   test_eq_size(counter_reads(sum)->reads_in, 0);
   test_eq_size(counter_sites(sum, 1, COUNTER_LEFT)[7], 0);

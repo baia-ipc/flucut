@@ -119,6 +119,15 @@
    usual window of the new end would otherwise be taken for it. The
    result of the second analysis is taken if it finds at least as many
    primers as the first.
+
+   Placement
+   ---------
+
+   With references, a read of which no end was located (no primer at
+   either end, or primers whose probes did not map) is placed on the
+   references by a probe from inside its kept part (see placement.h).
+   The placement is approximate and does not change the trimming: it is
+   reported, so that the read is counted in the coverage of its segment.
 */
 
 #ifndef AMPLICON_H
@@ -127,6 +136,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "adapters.h"
+#include "placement.h"
 #include "primer-search.h"
 #include "reference.h"
 #include "scheme.h"
@@ -203,6 +213,9 @@ typedef struct {
   /* the adapters found at the start and at the end of the ORIGINAL read
      (searched only at an end without a primer, see "Adapters" above) */
   adapter_hit_t adapter_start, adapter_end;
+  /* where the kept part of the ORIGINAL read lies on the references, if
+     no end was located (see "Placement" above) */
+  placement_t placement;
 } amplicon_t;
 
 typedef struct amplicon_analyzer_t amplicon_analyzer_t;

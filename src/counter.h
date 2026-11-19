@@ -35,13 +35,15 @@ enum { COUNTER_LEFT, COUNTER_RIGHT, COUNTER_N_ENDS };
 
 /* the categories of a read for the coverage plot (counter_coverage()):
    where its amplicon started, and for an internally primed one, on which
-   strand; a read is counted only if an end mapped to a reference */
+   strand; a read is counted if an end mapped to a reference, or if it
+   was placed by a probe from inside it (placement.h) */
 enum { COVER_TERMINAL_PLUS,   /* started at a segment end, plus strand */
        COVER_TERMINAL_MINUS,  /* started at a segment end, minus strand */
        COVER_INTERNAL_PLUS,   /* internally primed, plus strand */
        COVER_INTERNAL_MINUS,  /* internally primed, minus strand */
        COVER_NO_PRIMER,       /* no primer at the 5' end (placed by the
-                                 other end and the length) */
+                                 other end and the length, or by a probe
+                                 from inside the read) */
        COVER_UNMAPPED,        /* a 5' primer, but its probe not located */
        COVER_DELETION,        /* both ends mapped, much farther apart than
                                  the template length: an internal deletion
@@ -128,7 +130,9 @@ const size_t* counter_sites(const counter_t *self, size_t ref, size_t end);
    reference, and the greatest value is returned (0 and <out> zeroed if
    none). <out> must have room for the reference length. This is an
    overview from the classification, not a base-by-base mapping: it
-   ignores indels and the reads whose ends were not located. A read with
+   ignores indels. A read of which no end was located is placed by a
+   probe from inside it (placement.h), and is left out only if that
+   fails too. A read with
    an internal deletion (COVER_DELETION) covers only its two flanks, half
    of the template at each mapped end, as the junction is not known.
 */

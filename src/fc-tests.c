@@ -24,6 +24,7 @@
 #include "file.h"
 #include "input-groups.h"
 #include "logger.h"
+#include "placement.h"
 #include "primer-search.h"
 #include "primers.h"
 #include "reference.h"
@@ -85,6 +86,8 @@ static test_group_t test_groups[] = {
   {'a', "the analysis and trimming of a read", amplicon_test, false},
   {'F', "reading of FASTA files", run_fasta_test, false},
   {'r', "the location of the reads in the references", reference_test,
+   false},
+  {'P', "the placement of a read on the references", placement_test,
    false},
   {'t', "the trimming of a batch of reads", trimmer_test, false},
   {'l', "the lengths of the complete amplicons", lengths_test, false},

@@ -147,20 +147,34 @@ Then, for each group (or for all reads, if there is only one):
    * **internal +** and **internal -**: internally primed, on the plus
      or the minus strand;
    * **no 5' primer** and **5' probe not located** (grey, at the
-     bottom): reads placed by their 3' end and their length. A read with
-     no 5' primer is a fragment of unknown origin; the few remaining here
-     are the reads whose 5' probe could not be located at all.
+     bottom): reads without a located 5' end. A read with no 5' primer
+     is a fragment of unknown origin (a broken molecule, or a fragment
+     of an Illumina library), placed by its 3' end and its length or,
+     without a located 3' end, by its own sequence (see below).
 
    When only the 3' end of a read maps, its 5' origin is inferred from
    where its 5' end falls (the mapped 3' position less the read length):
    within the segment terminus it is counted as terminal, deeper as
    internal.
 
+   A read of which neither end is located (no primer at all, or primers
+   whose probes do not map) is still counted: a probe from the middle of
+   its kept part is looked up in the k-mer index of the references, and
+   the read covers the span around it given by its length. If the probe
+   is not found, one at a quarter and one at three quarters of the read
+   are tried. Only the probe is aligned, not the read, so the span is
+   approximate (it ignores the indels of the rest of the read), but the
+   depth is close to that of a read mapping: without this the reads
+   without primers, most of an Illumina library, would be missing from
+   the plot. The trimming does not depend on it. A read is left out only
+   if no probe is found (a read which is not influenza, or one with an
+   error in every k-mer of its probes).
+
    Internal priming shows as a step up in the coloured (amber, blue)
    bands at the site, marked with the red line of the largest site of
    the reference. This is an overview built from flucut's classification,
-   not a base-by-base mapping: it ignores indels and the reads whose
-   ends were not located. No other primer trimmer shows it.
+   not a base-by-base mapping: it ignores indels. No other primer
+   trimmer shows it.
 
    .. note::
       The coverage can only be reconstructed when the references are

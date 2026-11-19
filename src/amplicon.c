@@ -527,15 +527,14 @@ static void shift_positions(amplicon_t *a, long from, long to, size_t len) {
     }
 }
 
-const amplicon_t* amplicon_analyzer_run(amplicon_analyzer_t *self,
-    const char *seq, size_t len) {
-  assert(self != NULL);
-  assert(seq != NULL);
-  amplicon_t *out = &self->result;
+/* the analysis of a read, with the adapters (see amplicon.h), into
+   <out> */
+static void analyze_with_adapters(amplicon_analyzer_t *self,
+    const char *seq, size_t len, amplicon_t *out) {
   analyze(self, seq, len, self->window, self->window, out);
   out->adapter_start.found = out->adapter_end.found = false;
   if (self->adapters == NULL)
-    return out;
+    return;
   /* the adapters, at the ends of the read without a primer */
   bool primer_start = out->strand == STRAND_MINUS ? out->right.found :
                       out->left.found;
@@ -547,7 +546,7 @@ const amplicon_t* amplicon_analyzer_run(amplicon_analyzer_t *self,
   if (!primer_end)
     adapters_search_end(self->adapters, seq, len, &a_end);
   if (!a_start.found && !a_end.found)
-    return out;
+    return;
   long from = a_start.found ? a_start.end + 1 : 0;
   long to = a_end.found ? a_end.start - 1 : (long)len - 1;
   if (to < from) {
@@ -574,6 +573,28 @@ const amplicon_t* amplicon_analyzer_run(amplicon_analyzer_t *self,
   }
   out->adapter_start = a_start;
   out->adapter_end = a_end;
+}
+
+/* place on the references the kept part of a read of which no end was
+   located (see "Placement" in amplicon.h) */
+static void place(amplicon_analyzer_t *self, const char *seq,
+    amplicon_t *a) {
+  a->placement.found = false;
+  if (self->refs == NULL || (a->left.found && a->left.ref.mapped) ||
+      (a->right.found && a->right.ref.mapped))
+    return;
+  size_t kept = amplicon_kept_length(a);
+  if (kept > 0)
+    placement_locate(self->refs, seq + a->keep_from, kept, &a->placement);
+}
+
+const amplicon_t* amplicon_analyzer_run(amplicon_analyzer_t *self,
+    const char *seq, size_t len) {
+  assert(self != NULL);
+  assert(seq != NULL);
+  amplicon_t *out = &self->result;
+  analyze_with_adapters(self, seq, len, out);
+  place(self, seq, out);
   return out;
 }
 

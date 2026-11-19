@@ -179,6 +179,16 @@ void reference_set_locate(reference_set_t *self, const char *probe,
     size_t probe_len, reference_hit_t *hit);
 
 /*
+   As reference_set_locate(), but always by the k-mers of the probe alone,
+   whatever the settings of the searcher: a probe which shares no exact
+   k-mer with a reference is not located. The cost does not depend on the
+   number of references; for the probes whose location is only wanted if
+   it is cheap (see placement.h).
+*/
+void reference_set_locate_seeded(reference_set_t *self, const char *probe,
+    size_t probe_len, reference_hit_t *hit);
+
+/*
    Whether the mapped probe <hit> is at a terminus of the segment (a
    normal amplicon) rather than at an interior position (internal
    priming): within <terminal_window> bases of the start of the segment
