@@ -16,8 +16,8 @@ struct run_report_t {
   const fasta_t *references;
   const report_setting_t *max_errors;
   char *command_line, *html_path, *json_path;
-  /* the reload interval of the HTML while a run is in progress (live
-     mode); adapted by the caller (run_report_set_refresh) */
+  /* the reload interval of the HTML while a run is in progress; adapted
+     by the live mode (run_report_set_refresh) */
   long refresh;
 };
 
@@ -61,7 +61,7 @@ void run_report_write(const run_report_t *self,
     .options = self->opts, .scheme = self->scheme,
     .references = self->references, .sections = sections,
     .n_sections = n, .total = total, .max_errors = self->max_errors,
-    /* while a run is in progress (live mode) the HTML is a dashboard, one
+    /* while a run is in progress the HTML is a dashboard, one
        screen that fits without scrolling; the final report, at the end, is
        the full scrolling report */
     .refresh = running ? self->refresh : 0, .running = running,

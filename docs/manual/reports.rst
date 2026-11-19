@@ -11,7 +11,15 @@ writes two reports to the output directory:
   (pipelines, dashboards).
 
 Both are written at the end of the run, to a temporary file which is
-then renamed, so that a partial report is never read. The report and
+then renamed, so that a partial report is never read. A run with several
+samples (several input files or directories, or the barcode directories
+of a run) can be followed while it is in progress: the tables and the
+reports are also written before the first sample and after each one.
+Until the end, ``flucut_report.html`` is then the dashboard of the
+:doc:`live mode <live>`, which reloads itself in the browser every 30
+seconds and shows the samples still to be processed as "not processed
+yet" (the JSON summary has ``"running": true``, and ``summary.tsv`` and
+``lengths.tsv`` only the samples already processed). The report and
 the summary, their templates and plots come from Lumipore, with the
 content of flucut.
 

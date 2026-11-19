@@ -4,8 +4,9 @@
    The results of a run: the summary table (summary.tsv: the counts of
    each output), the lengths of the complete amplicons (lengths.tsv) with
    their check (see lengths.h), the messages of the counts, and the
-   reports (run-report.h). Written at the end of a run, and in the live
-   mode after each file (then without the messages).
+   reports (run-report.h). Written at the end of a run, and while it is
+   in progress (then without the messages): after each group of input
+   files, in the live mode after each file.
 */
 
 #ifndef RESULTS_H
@@ -25,7 +26,7 @@
 typedef struct {
   const char *name;
   const char *output;        /* the path of the output file */
-  const counter_t *counts;
+  const counter_t *counts;   /* NULL: not processed yet */
   size_t n_files;
 } results_group_t;
 

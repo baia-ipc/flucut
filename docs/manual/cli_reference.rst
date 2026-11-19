@@ -215,8 +215,10 @@ options are errors (exit status 1), reported with the usage.
 The messages go to the standard error; in a terminal they are colored by
 their kind:
 
-- ``SUCCESS`` (green): the reads written for each output, and the
-  reports at the end;
+- ``SUCCESS`` (green): the start of the trimming of each sample (e.g.
+  ``Trimming run1/barcode01.fastq.gz (1 of 3)...``, or ``Trimming
+  barcode01, 12 files (1 of 3)...`` for a directory), and, at the end,
+  the reads written for each output and the reports;
 - ``WARNING`` (magenta): something to look at, e.g. complete amplicons
   shorter than the closest reference (below 90% of its length: internal
   priming or deletions; with ``-r``), named by their segment when the
@@ -225,10 +227,12 @@ their kind:
   files of reads ignored beside the barcode directories;
 - ``ERROR`` (red): the program stops;
 - with ``-v``, also ``PARAM`` (blue: the values of the options),
-  ``PHASE`` (bright yellow: the steps, e.g. the trimming of each file)
+  ``PHASE`` (bright yellow: the steps, e.g. the trimming of each file
+  of a directory)
   and ``INFO`` (yellow: the scheme and its primers, the input groups,
   the references read, the internally primed ends, the lengths of the
   amplicons without references, the tables written).
 
-Without ``-v``, a run thus prints one green line for each output, a
-warning if any, and a green line for the reports.
+Without ``-v``, a run thus prints a green line when the trimming of each
+sample starts and, at the end, one for each output, the warnings if any,
+and a green line for the reports.

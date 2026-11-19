@@ -184,6 +184,12 @@ Outputs:
 - `flucut_summary.json`: the same content for programs, in a versioned
   format (`docs/json_summary.md`).
 
+A run with several samples can be followed while it is in progress: the
+tables and the reports are also written after each sample, and until
+the end `flucut_report.html` is a dashboard which reloads itself in the
+browser (as in the live mode, below). The messages show which sample is
+being trimmed (`Trimming run1/barcode01.fastq.gz (1 of 3)...`).
+
 ## With IRMA
 
 flucut trims the primers; IRMA assembles the segments. IRMA does not trim

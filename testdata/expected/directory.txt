@@ -1,5 +1,7 @@
 exit status: 0
 == messages ==
+SUCCESS | Trimming barcode01, 2 files (1 of 2)...
+SUCCESS | Trimming testdata/reads.fastq (2 of 2)...
 SUCCESS | OUTDIR/barcode01.fastq.gz: 11 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
 SUCCESS | OUTDIR/reads.fastq.gz: 11 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
 SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_summary.json

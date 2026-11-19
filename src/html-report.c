@@ -732,6 +732,12 @@ static void write_groups(html_writer_t *w, const report_t *r) {
   html_close(w);   /* div.withnav */
 }
 
+/* what a run in progress updates the report after: each input file in
+   the live mode, otherwise each group of input files */
+static const char* progress_unit(const report_t *r) {
+  return r->options->live ? "input file" : "group of input files";
+}
+
 static void write_report(html_writer_t *w, const report_t *r) {
   const html_logo_t logo = {report_logo, report_logo_dark, "flucut",
                             REPORT_LOGO_HEIGHT};
@@ -741,8 +747,8 @@ static void write_report(html_writer_t *w, const report_t *r) {
   html_template(w, style_tmpl);
   if (r->running) {
     open_class(w, "p", "running");
-    html_textf(w, "Run in progress: the report is updated after each input "
-               "file%s.", r->refresh > 0 ?
+    html_textf(w, "Run in progress: the report is updated after each %s%s.",
+               progress_unit(r), r->refresh > 0 ?
                " and this page is reloaded automatically" : "");
     html_close(w);
   }
@@ -763,7 +769,8 @@ static void write_report(html_writer_t *w, const report_t *r) {
 static void write_dashboard_bar(html_writer_t *w, const report_t *r) {
   if (r->running) {
     open_class(w, "p", "running");
-    html_text(w, "Run in progress: updated after each input file.");
+    html_textf(w, "Run in progress: updated after each %s.",
+               progress_unit(r));
     html_close(w);
   } else {
     html_open(w, "p");

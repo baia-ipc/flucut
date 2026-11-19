@@ -150,6 +150,9 @@ void results_write(const char *outdir, const results_group_t *groups,
   Logger *log = running ? NULL : logger;
   for (size_t i = 0; i < n; i++) {
     const results_group_t *g = groups + i;
+    /* (a group not processed yet is only in the reports) */
+    if (g->counts == NULL)
+      continue;
     const counter_reads_t *stats = counter_reads(g->counts);
     if (!running)
       results_log_counts(g->output, stats, refs != NULL, logger);

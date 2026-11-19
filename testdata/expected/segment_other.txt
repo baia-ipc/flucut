@@ -1,5 +1,6 @@
 exit status: 0
 == messages ==
+SUCCESS | Trimming testdata/reads.fastq...
 SUCCESS | OUTDIR/reads.fastq.gz: 11 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
 WARNING | OUTDIR/reads.fastq.gz: PA segment: 1 of 1 complete amplicons shorter than the closest reference (QB023392.1, 2224 bases), most at 20-29 bases: internal priming or deletions
 SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_summary.json

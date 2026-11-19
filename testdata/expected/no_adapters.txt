@@ -1,5 +1,6 @@
 exit status: 0
 == messages ==
+SUCCESS | Trimming testdata/adapters.fastq...
 SUCCESS | OUTDIR/adapters.fastq.gz: 8 of 8 reads written (6 with both primers, 2 with one, 0 with none; 0 too short, of which 0 dimers)
 SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_summary.json
 == adapters.fastq.gz ==

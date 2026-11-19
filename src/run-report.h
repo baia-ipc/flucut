@@ -3,8 +3,8 @@
 /*
    The reports of a run (from Lumipore): the context of the HTML report
    and of the JSON summary (command line, options, scheme, references),
-   and their writing, at the end of the run (or, in a run in progress,
-   after each input file).
+   and their writing, at the end of the run and while it is in progress
+   (after each group of input files; in the live mode, after each file).
 */
 
 #ifndef RUN_REPORT_H

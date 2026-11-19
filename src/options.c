@@ -438,6 +438,9 @@ void options_parse(options_t *self, int argc, char *argv[],
   self->n_inputs = (size_t)(argc - optind);
   self->show_banner = !quiet && logfile == stderr &&
                       isatty(fileno(stderr));
+  /* (a log file is written line by line, so that a run can be followed) */
+  if (logfile != stderr)
+    setvbuf(logfile, NULL, _IOLBF, 0);
   INIT_LOGGER(*logger);
   PARSE_LOG("Inputs: %zu\n", self->n_inputs);
   PARSE_LOG("Output directory: %s\n", self->outdir);

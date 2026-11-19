@@ -8,7 +8,8 @@
    directory of files of reads, or each barcode directory of a MinKNOW
    fastq_pass directory) gives one gzipped FASTQ file in the output
    directory, and a line of the summary table (summary.tsv); the
-   reports (HTML and JSON) are written at the end. The files are trimmed
+   reports (HTML and JSON) are written at the end, and, with several
+   groups, also after each of them. The files are trimmed
    by worker threads (worker.h), whose output does not depend on their
    number. With --live, the files are processed as they are written
    (live.h).
@@ -117,7 +118,42 @@ static void log_groups(const input_group_t *groups, size_t n_groups,
             groups[i].n_files, groups[i].n_files == 1 ? "" : "s");
 }
 
-/* trim the files of the input groups (not the live mode) */
+/* trim the files of the group <g> (the <i>-th of <n_groups>) to <path>,
+   adding the counts to <counts> */
+static void trim_group(const options_t *opts, const trimmer_config_t *config,
+    worker_t *workers, const input_group_t *g, size_t i, size_t n_groups,
+    const char *path, counter_t *counts, Logger *logger) {
+  /* (one line per group; the files of a group of several: verbose) */
+  char of[64] = "";
+  if (n_groups > 1)
+    snprintf(of, sizeof(of), " (%zu of %zu)", i + 1, n_groups);
+  if (g->n_files == 1)
+    lprintf(logger, LOG_SUCCESS, "Trimming %s%s...\n", g->files[0], of);
+  else
+    lprintf(logger, LOG_SUCCESS, "Trimming %s, %zu files%s...\n", g->name,
+            g->n_files, of);
+  FILE *out = xfopen(path, NULL, "wb", "trimmed reads", logger);
+  /* each barcode is a different sample: classify it only against its own
+     subtype (detected from its first file), so the references of the
+     other subtypes do not match it spuriously */
+  if (g->n_files > 0) {
+    int sub = auto_settings_detect_subtype(config, g->files[0], logger);
+    for (size_t t = 0; t < opts->threads; t++)
+      worker_restrict_subtype(workers + t, sub);
+  }
+  for (size_t j = 0; j < g->n_files; j++) {
+    if (g->n_files > 1)
+      lprintf(logger, LOG_PHASE, "Trimming %s...\n", g->files[j]);
+    worker_process_file(workers, opts->threads, g->files[j], out, path,
+                        counts, logger);
+  }
+  xfclose(&out, logger);
+}
+
+/* trim the files of the input groups (not the live mode); with several
+   groups, the tables and reports are also written before the first group
+   and after each one (the HTML as a dashboard, see run-report.h), so
+   that a long run can be followed */
 static void trim_groups(const options_t *opts, trimmer_config_t *config,
     auto_settings_t *autos, const scheme_t *scheme, const fasta_t *refs,
     run_report_t *report, Logger *logger) {
@@ -134,39 +170,28 @@ static void trim_groups(const options_t *opts, trimmer_config_t *config,
   XMALLOC(workers, sizeof(worker_t) * opts->threads);
   for (size_t t = 0; t < opts->threads; t++)
     worker_init(workers + t, config, opts->compress_level);
-  /* the counts of each group, and of all reads */
-  counter_t **group_counts;
-  XMALLOC(group_counts, sizeof(counter_t *) * (n_groups + 1));
+  /* the counts of each group (NULL: not processed yet), and of all reads */
   counter_t *total = counter_new(scheme, refs);
   results_group_t *results;
   XMALLOC(results, sizeof(results_group_t) * (n_groups + 1));
+  for (size_t i = 0; i < n_groups; i++)
+    results[i] = (results_group_t){groups[i].name, paths[i], NULL,
+                                   groups[i].n_files};
   for (size_t i = 0; i < n_groups; i++) {
-    const input_group_t *g = groups + i;
-    counter_t *counts = group_counts[i] = counter_new(scheme, refs);
-    FILE *out = xfopen(paths[i], NULL, "wb", "trimmed reads", logger);
-    /* each barcode is a different sample: classify it only against its own
-       subtype (detected from its first file), so the references of the
-       other subtypes do not match it spuriously */
-    if (g->n_files > 0) {
-      int sub = auto_settings_detect_subtype(config, g->files[0], logger);
-      for (size_t t = 0; t < opts->threads; t++)
-        worker_restrict_subtype(workers + t, sub);
-    }
-    for (size_t j = 0; j < g->n_files; j++) {
-      lprintf(logger, LOG_PHASE, "Trimming %s...\n", g->files[j]);
-      worker_process_file(workers, opts->threads, g->files[j], out,
-                          paths[i], counts, logger);
-    }
-    xfclose(&out, logger);
+    if (n_groups > 1)
+      results_write(opts->outdir, results, n_groups, total, refs, report,
+                    true, logger);
+    counter_t *counts = counter_new(scheme, refs);
+    trim_group(opts, config, workers, groups + i, i, n_groups, paths[i],
+               counts, logger);
     counter_merge(total, counts);
-    results[i] = (results_group_t){g->name, paths[i], counts, g->n_files};
+    results[i].counts = counts;
   }
   results_write(opts->outdir, results, n_groups, total, refs, report,
                 false, logger);
-  free(results);
   for (size_t i = 0; i < n_groups; i++)
-    counter_delete(group_counts[i]);
-  free(group_counts);
+    counter_delete((counter_t *)results[i].counts);
+  free(results);
   counter_delete(total);
   for (size_t t = 0; t < opts->threads; t++)
     worker_free(workers + t);
