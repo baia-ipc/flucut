@@ -31,9 +31,9 @@ md5: d414dd0f7059b9fea43446440e728f66
 @left_only simulated	fs:Z:+	fl:Z:uni12r	tl:i:12	tr:i:0
 500 GGAATTACTTAACTA...TACAGGAGTATGAGA
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete
-barcode01	6	9748	6	9517	6	0	0	1	0	0	0	NA	NA	NA	NA	NA	NA	NA
-barcode02	6	2887	5	2723	4	1	1	1	1	1	0	NA	NA	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete
+barcode01	6	9748	6	9517	6	0	0	1	0	0	0	0	NA	NA	NA	NA	NA	NA	NA
+barcode02	6	2887	5	2723	4	1	1	1	1	1	0	0	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 barcode01	all	1000	1
@@ -66,6 +66,7 @@ barcode02	all	1000	1
     "terminal_window": 60,
     "exhaustive_search": false,
     "tags": true,
+    "split": true,
     "threads": 4,
     "compress_level": 6
   },
@@ -85,6 +86,7 @@ barcode02	all	1000	1
       "too_short": 1,
       "minus_strand": 2,
       "with_internal_match": 0,
+      "split": 0,
       "adapter_start": 0,
       "adapter_end": 0
     },
@@ -116,6 +118,7 @@ barcode02	all	1000	1
         "too_short": 0,
         "minus_strand": 1,
         "with_internal_match": 0,
+        "split": 0,
         "adapter_start": 0,
         "adapter_end": 0
       },
@@ -146,6 +149,7 @@ barcode02	all	1000	1
         "too_short": 1,
         "minus_strand": 1,
         "with_internal_match": 0,
+        "split": 0,
         "adapter_start": 0,
         "adapter_end": 0
       },

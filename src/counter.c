@@ -118,6 +118,7 @@ void counter_merge(counter_t *self, const counter_t *other) {
     s->n_ends[i] += o->n_ends[i];
   s->minus += o->minus;
   s->with_internal += o->with_internal;
+  s->split += o->split;
   s->adapter_start += o->adapter_start;
   s->adapter_end += o->adapter_end;
   for (size_t e = 0; e < COUNTER_N_ENDS; e++) {
@@ -169,15 +170,16 @@ static void count_end(counter_t *self, const amplicon_end_t *end,
 }
 
 /* the counts of counter_reads_t, in the order of the files of counts:
-   10 single counts, n_ends, origin */
-#define N_READ_COUNTS (10 + 3 + COUNTER_N_ENDS * 3)
+   11 single counts, n_ends, origin */
+#define N_SINGLE_COUNTS 11
+#define N_READ_COUNTS (N_SINGLE_COUNTS + 3 + COUNTER_N_ENDS * 3)
 
 static void read_counts(counter_reads_t *r, size_t *out[N_READ_COUNTS]) {
-  size_t *single[10] = {&r->reads_in, &r->bases_in, &r->reads_out,
-      &r->bases_out, &r->too_short, &r->dimers, &r->minus,
-      &r->with_internal, &r->adapter_start, &r->adapter_end};
+  size_t *single[N_SINGLE_COUNTS] = {&r->reads_in, &r->bases_in,
+      &r->reads_out, &r->bases_out, &r->too_short, &r->dimers, &r->minus,
+      &r->with_internal, &r->split, &r->adapter_start, &r->adapter_end};
   size_t n = 0;
-  for (size_t i = 0; i < 10; i++)
+  for (size_t i = 0; i < N_SINGLE_COUNTS; i++)
     out[n++] = single[i];
   for (size_t i = 0; i < 3; i++)
     out[n++] = r->n_ends + i;
@@ -187,7 +189,7 @@ static void read_counts(counter_reads_t *r, size_t *out[N_READ_COUNTS]) {
   assert(n == N_READ_COUNTS);
 }
 
-#define COUNTS_HEADER "flucut-counts 1"
+#define COUNTS_HEADER "flucut-counts 2"
 
 void counter_save(const counter_t *self, FILE *file) {
   assert(self != NULL);
@@ -520,6 +522,18 @@ void counter_add_read(counter_t *self, const amplicon_t *a, size_t len) {
   count_end(self, &a->right, COUNTER_RIGHT);
   count_cover(self, a);
   count_length(self, a);
+}
+
+void counter_add_split(counter_t *self, size_t n_parts, size_t len,
+    size_t parts_len) {
+  assert(self != NULL);
+  assert(n_parts > 1);
+  assert(parts_len <= len);
+  counter_reads_t *s = &self->reads;
+  assert(s->reads_in >= n_parts);
+  s->split++;
+  s->reads_in -= n_parts - 1;
+  s->bases_in += len - parts_len;
 }
 
 void counter_add_written(counter_t *self, size_t len) {

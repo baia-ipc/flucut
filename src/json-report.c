@@ -90,6 +90,7 @@ static void write_reads(json_writer_t *w, const counter_reads_t *s) {
   count_member(w, "too_short", s->too_short);
   count_member(w, "minus_strand", s->minus);
   count_member(w, "with_internal_match", s->with_internal);
+  count_member(w, "split", s->split);
   count_member(w, "adapter_start", s->adapter_start);
   count_member(w, "adapter_end", s->adapter_end);
   close_block(w, '}', false);
@@ -303,6 +304,8 @@ static void write_parameters(json_writer_t *w, const report_t *r) {
   fputs(o->exhaustive_search ? "true" : "false", f);
   member(w, "tags");
   fputs(o->tags ? "true" : "false", f);
+  member(w, "split");
+  fputs(o->split ? "true" : "false", f);
   count_member(w, "threads", o->threads);
   count_member(w, "compress_level", (size_t)o->compress_level);
   close_block(w, '}', false);

@@ -100,9 +100,16 @@
    whole primer is removed at every end.
 
    The matches found between the two end primers are reported as
-   internal matches: they are the sites at which the primer can anneal,
-   and the junctions of chimeras and of reads containing several
-   amplicons. They are counted, not trimmed.
+   internal matches: they are the sites at which the primer can anneal.
+   They are counted, not trimmed. The reads which contain several
+   amplicons are split before the analysis (see chimera.h), so that the
+   primers at their junctions are at the ends of the parts analyzed.
+
+   A primer of the same end of the scheme can be found at both ends of a
+   read, at one of them reverse-complemented: two amplicons joined
+   without a primer between them, each read from its primer towards the
+   junction. Only one of the two primers belongs to the layout found;
+   the other is removed whole, with what lies outside it.
 
    Adapters
    --------

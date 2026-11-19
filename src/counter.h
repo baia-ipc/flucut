@@ -65,6 +65,10 @@ typedef struct {
   size_t minus;
   /* reads with primer matches inside them */
   size_t with_internal;
+  /* reads split into several amplicons (chimera.h); each part is then
+     counted as a read in all the counts but <reads_in> and <bases_in>,
+     which are those of the input */
+  size_t split;
   /* reads with an adapter removed at their start, at their end (see
      amplicon.h) */
   size_t adapter_start, adapter_end;
@@ -72,6 +76,13 @@ typedef struct {
      (end_origin_t); all unknown without references */
   size_t origin[COUNTER_N_ENDS][3];
 } counter_reads_t;
+
+/* The reads analyzed: those of the input, each part of a split read
+   counted as one (the reads to which the counts other than <reads_in>
+   and <bases_in> refer) */
+static inline size_t counter_reads_analyzed(const counter_reads_t *s) {
+  return s->n_ends[0] + s->n_ends[1] + s->n_ends[2];
+}
 
 typedef struct counter_t counter_t;
 
@@ -95,6 +106,15 @@ void counter_merge(counter_t *self, const counter_t *other);
    counter_add_too_short())
 */
 void counter_add_read(counter_t *self, const amplicon_t *a, size_t len);
+
+/*
+   Count a read of length <len> split into <n_parts> parts (chimera.h),
+   of <parts_len> bases together, each of which was counted by
+   counter_add_read(): the reads and the bases of the input are counted
+   once
+*/
+void counter_add_split(counter_t *self, size_t n_parts, size_t len,
+    size_t parts_len);
 
 /* Count a read written, with <len> bases */
 void counter_add_written(counter_t *self, size_t len);

@@ -28,8 +28,8 @@ md5: 5d9414155e2e4a73604074b4729942ac
 @left_only simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	tl:i:0	tr:i:0
 512 AGCAAAAGCAGGGGA...TACAGGAGTATGAGA
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete
-reads	12	12635	11	12423	10	1	1	2	1	1	0	8	2	1	7	2	1	4
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete
+reads	12	12635	11	12423	10	1	1	2	1	1	0	0	8	2	1	7	2	1	4
 == lengths.tsv ==
 output	group	length	reads
 reads	NC_004908.1	20	1
@@ -66,6 +66,7 @@ reads	NC_004908.1	1700	5
     "terminal_window": 60,
     "exhaustive_search": true,
     "tags": true,
+    "split": true,
     "threads": 4,
     "compress_level": 6
   },
@@ -85,6 +86,7 @@ reads	NC_004908.1	1700	5
       "too_short": 1,
       "minus_strand": 2,
       "with_internal_match": 0,
+      "split": 0,
       "adapter_start": 0,
       "adapter_end": 0
     },
@@ -123,6 +125,7 @@ reads	NC_004908.1	1700	5
         "too_short": 1,
         "minus_strand": 2,
         "with_internal_match": 0,
+        "split": 0,
         "adapter_start": 0,
         "adapter_end": 0
       },

@@ -52,11 +52,20 @@ tag      meaning
          ``<reference>:<position>:<strand>`` (1-based position on the
          plus strand)
 ``mr``   the same for the right end
+``sp``   ``<k>/<n>``: the record is part ``k`` of the ``n`` parts of a
+         read which contained several amplicons (see below)
 ======== ============================================================
 
 The left and right ends are those of the amplicon: for a read of the
 minus strand, the left end is at the end of the read. IRMA accepts the
 tags (:doc:`irma`).
+
+A read which contains several amplicons, joined end to end, is split at
+their junctions (:doc:`internal_priming`), and each part is written as a
+record of its own. The name of the read (the first word of the title) is
+followed by ``_1``, ``_2``, ... so that the names stay unique, and the
+tags, ``tl`` and ``tr`` included, describe the part. ``--no-split`` writes
+one record for each read.
 
 summary.tsv
 -----------
@@ -93,6 +102,10 @@ One line for each input, tab-separated, with a header:
      - reads not written: empty or shorter than ``-m`` (dimers included)
    * - ``with_internal_match``
      - reads with primer matches inside them
+   * - ``split``
+     - reads split into several amplicons; ``reads_in`` and ``bases_in``
+       count the reads of the input, all the other columns count each
+       part as a read
    * - ``left_terminal``, ``left_internal``, ``left_unknown``, ``right_terminal``, ``right_internal``, ``right_unknown``
      - with ``-r``: the left and right ends found, by origin; ``NA`` without references
    * - ``short_complete``

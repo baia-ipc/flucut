@@ -114,6 +114,9 @@ The main options (`flucut -h` lists all of them, with their defaults):
   k-mers, so that the time hardly depends on their number
   (`--exhaustive-search` aligns each read end to every reference, to
   check the index);
+- `--segment <s>`: for runs of one segment alone (e.g. `--segment HA`):
+  classify the read ends against the references of that segment only
+  (faster, no chance matches in the other segments);
 - `--report-segment <s>`: show only one segment in the HTML report, by
   number or gene (e.g. `--report-segment HA`); the trimming does not
   change;
@@ -141,12 +144,15 @@ Outputs:
   tags are appended to each title: `fs` (strand of the amplicon: `+`,
   `-`, or `.` if no primer was found), `fl`/`fr` (the primer found at the
   left/right end), `tl`/`tr` (bases removed at the start/end of the
-  read), `ni` (primer matches inside the read); with references also
+  read), `ni` (primer matches inside the read), `sp` (part `k/n` of a
+  read which was split, see below); with references also
   `ol`/`or` (origin of the end: terminal, internal or unknown) and
   `ml`/`mr` (where the bases after the primer mapped:
   reference:position:strand). IRMA accepts the tags (same consensus
   with and without them, see `benchmark/RESULTS.md`); `--no-tags` writes
-  the titles unchanged.
+  the titles unchanged. A read which contains several amplicons joined
+  end to end is split, and each part is written as its own record, named
+  `<read>_1`, `<read>_2`, ...; `--no-split` turns this off.
 - `summary.tsv`: one line per output, with the reads and bases read and
   written, the reads by number of primers found, those on the minus
   strand, the dimers, the reads too short, the reads with internal

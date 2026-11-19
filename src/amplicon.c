@@ -444,6 +444,33 @@ static long total_errors(const amplicon_t *a) {
          (a->right.found ? a->right.hit.n_errors : 0);
 }
 
+/*
+   A read can have a primer of the same end of the scheme at both of its
+   ends, one of them reverse-complemented: two amplicons joined without
+   a primer between them (see chimera.h), each read from its primer
+   towards the junction. Only one of the two is an end of the layout
+   found; the other, an end of the layout <other> of the opposite
+   orientation, is removed whole with what lies outside it, as it is
+   primer sequence all the same: <from> and <to>, the part of the read
+   of length <len> to keep in the orientation of <a>, are limited
+   accordingly.
+*/
+static void cut_facing_primer(const amplicon_t *a, const amplicon_t *other,
+    size_t len, long *from, long *to) {
+  long n = (long)len;
+  if (!a->right.found && other->left.found) {
+    /* (the positions of <other> are mirrored) */
+    long start = n - 1 - other->left.hit.end;
+    if ((!a->left.found || start > a->left.hit.end) && start - 1 < *to)
+      *to = start - 1;
+  }
+  if (!a->left.found && other->right.found) {
+    long end = n - 1 - other->right.hit.start;
+    if ((!a->right.found || end < a->right.hit.start) && end + 1 > *from)
+      *from = end + 1;
+  }
+}
+
 /* the analysis of a read, without the adapters (see
    amplicon_analyzer_run()), into <out>; <start_window>, <end_window>: the
    windows at the start and at the end of the read */
@@ -484,6 +511,8 @@ static void analyze(amplicon_analyzer_t *self, const char *seq, size_t len,
                 (use_minus ? STRAND_MINUS : STRAND_PLUS);
   long from, to;
   compute_keep(out, self->policy, len, &from, &to);
+  if (minus_searched && to >= from)
+    cut_facing_primer(out, use_minus ? &plus : &minus, len, &from, &to);
   /* the positions of the original read: for a read of the minus strand,
      the kept part is mirrored back (the read is not reverse-complemented,
      see amplicon.h) */
@@ -829,6 +858,17 @@ void amplicon_test(void) {
      primer is still removed */
   snprintf(read, sizeof(read), "%s%s%s", p12 + 11, body, rc13);
   check_keep(a, read, STRAND_PLUS, 2, body);
+  /* the left primer at both ends, at the end of the read
+     reverse-complemented (two amplicons joined without a primer between
+     them): both are removed (with the untailed Uni12 primer: the tailed
+     ones share their tail, see analyze()) */
+  scheme_t *untailed = scheme_new_builtin(SCHEME_DEFAULT, logger);
+  amplicon_analyzer_t *u = amplicon_analyzer_new(untailed, 0.2,
+      TRIM_PRIMER, AMPLICON_DEFAULT_WINDOW);
+  snprintf(read, sizeof(read), "AGCAAAAGCAGG%sCCTGCTTTTGCT", body);
+  check_keep(u, read, STRAND_PLUS, 1, body);
+  amplicon_analyzer_delete(u);
+  scheme_delete(untailed);
   /* a read without the right primer: only the left end is trimmed */
   snprintf(read, sizeof(read), "%s%s", p12, body);
   check_keep(a, read, STRAND_PLUS, 1, body);

@@ -175,19 +175,22 @@ static void trim_groups(const options_t *opts, trimmer_config_t *config,
   input_groups_delete(groups, n_groups);
 }
 
-/* warn if the report is limited to a segment (--report-segment) which no
-   reference is recognised as (see segments.h) */
-static void check_report_segment(const options_t *opts, const fasta_t *refs,
+/* warn if the classification (--segment) or the report
+   (--report-segment) are limited to a segment which no reference is
+   recognised as (see segments.h) */
+static void check_segment(const options_t *opts, const fasta_t *refs,
     Logger *logger) {
   if (opts->report_segment == 0 || refs == NULL)
     return;
   for (size_t i = 0; i < refs->n_records; i++)
     if (report_shows_reference(refs, opts->report_segment, i))
       return;
-  lprintf(logger, LOG_WARN, "--report-segment: no reference is recognised "
-          "as segment %d (%s) from its description; the per-reference "
-          "parts of the report will be empty\n", opts->report_segment,
-          segments_gene(opts->report_segment));
+  lprintf(logger, LOG_WARN, "%s: no reference is recognised as segment %d "
+          "(%s) from its description; %s\n",
+          opts->segment != 0 ? "--segment" : "--report-segment",
+          opts->report_segment, segments_gene(opts->report_segment),
+          opts->segment != 0 ? "no read end will be located" :
+          "the per-reference parts of the report will be empty");
 }
 
 int main(int argc, char *argv[]) {
@@ -223,7 +226,7 @@ int main(int argc, char *argv[]) {
           "(scripts/fetch_references.py).\n");
     index = reference_index_new(refs);
   }
-  check_report_segment(&opts, refs, logger);
+  check_segment(&opts, refs, logger);
   auto_settings_t autos;
   auto_settings_init(&autos, &opts);
   trimmer_config_t config = {.scheme = scheme,
@@ -231,11 +234,12 @@ int main(int argc, char *argv[]) {
       .window = opts.window, .references = refs, .index = index,
       .exhaustive = opts.exhaustive_search,
       .seeds_only = opts.illumina && !opts.exhaustive_search,
+      .segment = opts.segment,
       .probe_len = opts.probe_len,
       .probe_error_rate = opts.probe_error_rate,
       .terminal_window = opts.terminal_window,
       .adapters = opts.adapters, .min_length = opts.min_length,
-      .tags = opts.tags};
+      .tags = opts.tags, .split = opts.split};
   run_report_t *report = run_report_new(&opts, VERSION, scheme, refs, argc,
                                         argv, logger);
   run_report_set_max_errors(report, &autos.max_errors);

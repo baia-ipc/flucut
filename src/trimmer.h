@@ -23,6 +23,8 @@
      tl:i:<n>       bases removed at the start of the read
      tr:i:<n>       bases removed at the end of the read
      ni:i:<n>       primer matches inside the read (if any)
+     sp:Z:<k>/<n>   the record is the part <k> of the <n> parts of a read
+                    which contained several amplicons (see below)
 
    With references, for each end found:
 
@@ -33,6 +35,16 @@
 
    Reads shorter than the minimum length after the trimming are not
    written (primer dimers, with nothing left, always).
+
+   Reads with several amplicons
+   ----------------------------
+
+   A read which contains several amplicons is split at their junctions
+   (chimera.h), unless disabled: each part is analyzed, trimmed, counted
+   and written as a read of its own. The records of the parts have the
+   name of the read followed by _<k> (the first word of the title), so
+   that the names are still unique, and the tags (tl and tr included)
+   are those of the part.
 */
 
 #ifndef TRIMMER_H
@@ -61,6 +73,7 @@ typedef struct {
   const reference_index_t *index;
   bool exhaustive;            /* see reference_set_set_exhaustive() */
   bool seeds_only;            /* see reference_set_set_seeds_only() */
+  int segment;                /* see reference_set_restrict_segment() */
   size_t probe_len;
   double probe_error_rate;
   long terminal_window;
@@ -68,6 +81,7 @@ typedef struct {
                                  "none": none) */
   size_t min_length;          /* shorter reads are not written */
   bool tags;                  /* append the tags to the titles */
+  bool split;                 /* split the reads with several amplicons */
 } trimmer_config_t;
 
 typedef struct trimmer_t trimmer_t;

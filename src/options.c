@@ -25,6 +25,7 @@ enum {
   OPT_PROBE_ERRORS,
   OPT_TERMINAL_WINDOW,
   OPT_NO_TAGS,
+  OPT_NO_SPLIT,
   OPT_EXHAUSTIVE,
   OPT_ADAPTERS,
   OPT_LIVE,
@@ -35,6 +36,7 @@ enum {
   OPT_COMPRESS_LEVEL,
   OPT_PLATFORM,
   OPT_REPORT_SEGMENT,
+  OPT_SEGMENT,
 };
 
 #define PURPOSE "Remove the primers of the influenza A multisegment " \
@@ -95,6 +97,8 @@ enum {
   " (default: " XSTR(WORKER_DEFAULT_COMPRESS_LEVEL) "; higher: smaller, " \
   "slower)\n" \
   "   --no-tags              do not append the tags to the read titles\n" \
+  "   --no-split             do not split the reads which contain\n" \
+  "                          several amplicons\n" \
   "   --adapters <kits>      the Nanopore adapters searched at the read\n" \
   "                          ends without a primer: a comma-separated\n" \
   "                          list of " ADAPTERS_KITS ", or none\n" \
@@ -134,6 +138,14 @@ enum {
   "   --exhaustive-search    align each probe to the whole of every\n" \
   "                          reference, without the k-mer index (slower;\n" \
   "                          for checking the index)\n" \
+  "   --segment <s>          classify the read ends against the references\n" \
+  "                          of one segment only, given by its number\n" \
+  "                          (1-8) or gene (e.g. HA), for runs of that\n" \
+  "                          segment alone: faster, and no chance matches\n" \
+  "                          in the other segments; the reads of other\n" \
+  "                          segments are then not located (every primer\n" \
+  "                          base removed); the report shows that segment\n" \
+  "                          (default: all segments)\n" \
   "   --report-segment <s>   show in the HTML report only the references\n" \
   "                          of one segment, given by its number (1-8) or\n" \
   "                          gene (e.g. HA): its internal priming sites,\n" \
@@ -185,8 +197,10 @@ void options_parse(options_t *self, int argc, char *argv[],
   self->terminal_window = REFERENCE_DEFAULT_TERMINAL_WINDOW;
   self->exhaustive_search = false;
   self->report_segment = 0;
+  self->segment = 0;
   self->min_length = OPTIONS_DEFAULT_MIN_LENGTH;
   self->tags = true;
+  self->split = true;
   self->adapters = ADAPTERS_DEFAULT;
   self->illumina = false;
   bool window_given = false, adapters_given = false;
@@ -210,6 +224,7 @@ void options_parse(options_t *self, int argc, char *argv[],
     {"threads", required_argument, NULL, 'j'},
     {"compress-level", required_argument, NULL, OPT_COMPRESS_LEVEL},
     {"no-tags", no_argument, NULL, OPT_NO_TAGS},
+    {"no-split", no_argument, NULL, OPT_NO_SPLIT},
     {"adapters", required_argument, NULL, OPT_ADAPTERS},
     {"live", no_argument, NULL, OPT_LIVE},
     {"timeout", required_argument, NULL, OPT_TIMEOUT},
@@ -221,6 +236,7 @@ void options_parse(options_t *self, int argc, char *argv[],
     {"terminal-window", required_argument, NULL, OPT_TERMINAL_WINDOW},
     {"exhaustive-search", no_argument, NULL, OPT_EXHAUSTIVE},
     {"report-segment", required_argument, NULL, OPT_REPORT_SEGMENT},
+    {"segment", required_argument, NULL, OPT_SEGMENT},
     COMMON_LONGOPTS
     LONGOPTS_END
   };
@@ -294,6 +310,9 @@ void options_parse(options_t *self, int argc, char *argv[],
       case OPT_NO_TAGS:
         self->tags = false;
         break;
+      case OPT_NO_SPLIT:
+        self->split = false;
+        break;
       case OPT_LIVE:
         self->live = true;
         break;
@@ -332,6 +351,12 @@ void options_parse(options_t *self, int argc, char *argv[],
         break;
       case OPT_EXHAUSTIVE:
         self->exhaustive_search = true;
+        break;
+      case OPT_SEGMENT:
+        self->segment = segments_parse(optarg);
+        if (self->segment == 0)
+          PARSE_ERR("Option '--segment': a segment number (1-%d) or gene "
+                    "(e.g. HA) expected ('%s' found)", SEGMENTS_N, optarg);
         break;
       case OPT_REPORT_SEGMENT:
         self->report_segment = segments_parse(optarg);
@@ -376,6 +401,17 @@ void options_parse(options_t *self, int argc, char *argv[],
   if (self->report_segment != 0 && self->references_off)
     PARSE_ERR("Option '--report-segment': the references are required "
               "(not -r off)");
+  if (self->segment != 0 && self->references_off)
+    PARSE_ERR("Option '--segment': the references are required (not -r "
+              "off)");
+  /* the report of a run classified against one segment shows that
+     segment (the others have no located reads) */
+  if (self->segment != 0 && self->report_segment != 0 &&
+      self->report_segment != self->segment)
+    PARSE_ERR("Option '--report-segment': with --segment, the same "
+              "segment is expected (or leave it out)");
+  if (self->segment != 0)
+    self->report_segment = self->segment;
   /* the settings of the platform, unless given */
   if (self->illumina && !window_given)
     self->window = OPTIONS_ILLUMINA_WINDOW;
@@ -425,6 +461,9 @@ void options_parse(options_t *self, int argc, char *argv[],
               self->live_min_age, self->live_scan_interval,
               self->resume ? ", resume" : "");
   }
+  if (self->segment != 0)
+    PARSE_LOG("Classification: against segment %d (%s) only\n",
+              self->segment, segments_gene(self->segment));
   if (self->report_segment != 0)
     PARSE_LOG("Report: segment %d (%s) only\n", self->report_segment,
               segments_gene(self->report_segment));

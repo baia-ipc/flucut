@@ -14,3 +14,4 @@ run_directory	-r off testdata/fastq_pass
 adapters	-r off testdata/adapters.fastq
 no_adapters	-r off --adapters none testdata/adapters.fastq
 illumina	-r off -p illumina testdata/reads.fastq
+no_split	-r off --no-split testdata/reads.fastq

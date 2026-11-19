@@ -35,6 +35,38 @@ In the benchmark (:doc:`performance`), the untrimmed simulated reads give
 AAA at the site in the IRMA consensus, and the reads trimmed by flucut
 give ATA, the truth.
 
+Reads with several amplicons
+----------------------------
+
+Some reads hold two or more amplicons, joined end to end: molecules
+ligated to each other in the library preparation, or sequenced one after
+the other without the read being split. The primer of an inner amplicon
+is then inside the read, not at its end. If that amplicon was internally
+primed, its primer bases would stay in the read and reach the consensus:
+in a sample with few complete HA amplicons, such reads alone can be
+enough to give AAA at the site.
+
+flucut therefore splits these reads at their junctions, and trims each
+part as a read of its own (:doc:`output`). A junction is accepted in two
+cases:
+
+- the end of an amplicon followed, within 100 bases, by the start of
+  another: e.g. the reverse complement of Uni13, the adapters and
+  barcodes, then Uni12. This needs no reference;
+- with references, a single primer inside the read at which the read
+  stops following the segment: the bases on one side of it are located
+  in a reference, and those on the other side are not found next to
+  them.
+
+A read of a complete amplicon which runs through a primer-like site of
+its segment is not cut: the segment continues on both sides of the site.
+A primer of the same end found at both ends of a read (two amplicons
+joined without a primer between them) is removed at both ends.
+
+``summary.tsv`` reports the reads split (``split``); ``--no-split`` turns
+the splitting off. Without references (``-r off``) only the first kind
+of junction is found.
+
 Classification against references
 ---------------------------------
 

@@ -6,6 +6,7 @@
 #include <string.h>
 #include "alloc.h"
 #include "amplicon.h"
+#include "chimera.h"
 #include "counter.h"
 #include "fasta.h"
 #include "fastq-reader.h"
@@ -22,6 +23,7 @@
 struct trimmer_t {
   const trimmer_config_t *config;
   amplicon_analyzer_t *analyzer;
+  chimera_finder_t *chimera;  /* NULL: the reads are not split */
   reference_set_t *refs;
   adapters_t *adapters;
   strbuf_t title;
@@ -35,6 +37,9 @@ trimmer_t* trimmer_new(const trimmer_config_t *config) {
   self->config = config;
   self->analyzer = amplicon_analyzer_new(config->scheme, config->max_errors,
                                          config->policy, config->window);
+  self->chimera = config->split ?
+      chimera_finder_new(config->scheme, config->max_errors,
+                         config->window) : NULL;
   self->refs = NULL;
   if (config->references != NULL) {
     assert(config->index != NULL);
@@ -42,8 +47,11 @@ trimmer_t* trimmer_new(const trimmer_config_t *config) {
                                    config->probe_error_rate);
     reference_set_set_exhaustive(self->refs, config->exhaustive);
     reference_set_set_seeds_only(self->refs, config->seeds_only);
+    reference_set_restrict_segment(self->refs, config->segment);
     amplicon_analyzer_use_references(self->analyzer, self->refs,
                                      config->terminal_window);
+    if (self->chimera != NULL)
+      chimera_finder_use_references(self->chimera, self->refs);
   }
   self->adapters = NULL;
   if (config->adapters != NULL) {
@@ -62,6 +70,7 @@ void trimmer_delete(trimmer_t *self) {
   if (self == NULL)
     return;
   amplicon_analyzer_delete(self->analyzer);
+  chimera_finder_delete(self->chimera);
   reference_set_delete(self->refs);
   adapters_delete(self->adapters);
   strbuf_free(&self->title);
@@ -97,12 +106,31 @@ static void append_end_tags(trimmer_t *self, const amplicon_end_t *end,
   strbuf_append_char(t, end->ref.reverse ? '-' : '+');
 }
 
-/* the title of the record written for a read: its title, then the tags */
+/* append the title of a read to <t>, its name (the first word)
+   followed by _<part> */
+static void append_part_title(strbuf_t *t, const char *title,
+    size_t title_len, size_t part) {
+  size_t name_len = 0;
+  while (name_len < title_len && title[name_len] != ' ' &&
+         title[name_len] != '\t')
+    name_len++;
+  strbuf_append(t, title, name_len);
+  strbuf_append_char(t, '_');
+  strbuf_append_long(t, (long)part);
+  strbuf_append(t, title + name_len, title_len - name_len);
+}
+
+/* the title of the record written for a read, or for the part <part>
+   (from 1) of the <n_parts> parts of a split read, of length <len>: its
+   title, then the tags */
 static void make_title(trimmer_t *self, const char *title, size_t title_len,
-    const amplicon_t *a, size_t len) {
+    const amplicon_t *a, size_t len, size_t part, size_t n_parts) {
   strbuf_t *t = &self->title;
   strbuf_clear(t);
-  strbuf_append(t, title, title_len);
+  if (n_parts > 1)
+    append_part_title(t, title, title_len, part);
+  else
+    strbuf_append(t, title, title_len);
   if (!self->config->tags)
     return;
   const char *strand = a->strand == STRAND_PLUS ? "+" :
@@ -122,6 +150,35 @@ static void make_title(trimmer_t *self, const char *title, size_t title_len,
     const char *kit = adapters_kit_name(a->adapter_end.kit);
     sam_tag_append_string(t, "a3", kit, strlen(kit));
   }
+  if (n_parts > 1) {
+    sam_tag_start(t, "sp", 'Z');
+    strbuf_append_long(t, (long)part);
+    strbuf_append_char(t, '/');
+    strbuf_append_long(t, (long)n_parts);
+  }
+}
+
+/* analyze, count and write the bases <from> to <to> of the read <rec>
+   of <batch>, the part <part> (from 1) of <n_parts> */
+static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
+    const fastq_record_t *rec, long from, long to, size_t part,
+    size_t n_parts, strbuf_t *out, counter_t *counts) {
+  const char *data = batch->data.s;
+  const char *seq = data + rec->seq_from + from;
+  size_t len = (size_t)(to - from + 1);
+  const amplicon_t *a = amplicon_analyzer_run(self->analyzer, seq, len);
+  counter_add_read(counts, a, len);
+  size_t kept = amplicon_kept_length(a);
+  if (kept == 0 || kept < self->config->min_length) {
+    counter_add_too_short(counts);
+    return;
+  }
+  make_title(self, data + rec->title_from, rec->title_len, a, len, part,
+             n_parts);
+  fastq_writer_record(out, self->title.s, self->title.len,
+                      seq + a->keep_from,
+                      data + rec->qual_from + from + a->keep_from, kept);
+  counter_add_written(counts, kept);
 }
 
 void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
@@ -130,21 +187,23 @@ void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
   const char *data = batch->data.s;
   for (size_t i = from; i < to; i++) {
     const fastq_record_t *rec = batch->records + i;
-    const char *seq = data + rec->seq_from;
-    const amplicon_t *a = amplicon_analyzer_run(self->analyzer, seq,
-                                                rec->seq_len);
-    counter_add_read(counts, a, rec->seq_len);
-    size_t kept = amplicon_kept_length(a);
-    if (kept == 0 || kept < self->config->min_length) {
-      counter_add_too_short(counts);
+    chimera_part_t parts[CHIMERA_MAX_PARTS];
+    size_t n_parts = self->chimera == NULL ? 0 :
+        chimera_finder_run(self->chimera, data + rec->seq_from,
+                           rec->seq_len, parts);
+    if (n_parts < 2) {
+      /* (an empty read is analyzed as well, and counted) */
+      trim_part(self, batch, rec, 0, (long)rec->seq_len - 1, 1, 1, out,
+                counts);
       continue;
     }
-    make_title(self, data + rec->title_from, rec->title_len, a,
-               rec->seq_len);
-    fastq_writer_record(out, self->title.s, self->title.len,
-                        seq + a->keep_from,
-                        data + rec->qual_from + a->keep_from, kept);
-    counter_add_written(counts, kept);
+    size_t parts_len = 0;
+    for (size_t p = 0; p < n_parts; p++) {
+      trim_part(self, batch, rec, parts[p].from, parts[p].to, p + 1,
+                n_parts, out, counts);
+      parts_len += (size_t)(parts[p].to - parts[p].from + 1);
+    }
+    counter_add_split(counts, n_parts, rec->seq_len, parts_len);
   }
 }
 
@@ -205,6 +264,30 @@ void trimmer_test(void) {
   test_eq_size(lengths_count(counter_lengths(counts), 0,
                              strlen(body) / LENGTHS_BIN), 1);
 
+  /* two amplicons in a read: one record for each, the name followed
+     by the number of the part */
+  config.split = true;
+  trimmer_t *split = trimmer_new(&config);
+  snprintf(read, sizeof(read), "%s%s%s%s%s%s", uni12, body, rc13, "ACGT",
+           uni12, body);
+  one_record(&batch, "r1b x=1", read);
+  strbuf_clear(&out);
+  trimmer_run(split, &batch, 0, 1, &out, counts);
+  snprintf(expected, sizeof(expected),
+           "@r1b_1 x=1\tfs:Z:+\tfl:Z:uni12r\tfr:Z:mbtuni-13\ttl:i:12"
+           "\ttr:i:13\tsp:Z:1/2\n%s\n+\n", body);
+  test_eq_mem(out.s, strlen(expected), expected);
+  test_assert(strstr(out.s, "\n@r1b_2 x=1\tfs:Z:+\tfl:Z:uni12r\ttl:i:12"
+                            "\ttr:i:0\tsp:Z:2/2\n") != NULL);
+  test_eq_size(stats->reads_in, 2);
+  test_eq_size(stats->reads_out, 3);
+  test_eq_size(stats->split, 1);
+  /* (the bases of the input: those between the parts included) */
+  test_eq_size(stats->bases_in, strlen(uni12) + strlen(body) +
+               strlen(rc13) + strlen(read));
+  trimmer_delete(split);
+  config.split = false;
+
   /* a primer dimer is not written */
   snprintf(read, sizeof(read), "%s%s", uni12, rc13);
   one_record(&batch, "r2", read);
@@ -213,7 +296,7 @@ void trimmer_test(void) {
   test_eq_size(out.len, 0);
   test_eq_size(stats->dimers, 1);
   test_eq_size(stats->too_short, 1);
-  test_eq_size(stats->reads_in, 2);
+  test_eq_size(stats->reads_in, 3);
   trimmer_delete(tr);
 
   /* without tags, and with a minimum length */

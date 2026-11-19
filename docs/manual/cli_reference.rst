@@ -103,6 +103,11 @@ Options
 ``--no-tags``
    Do not append the tags to the read titles.
 
+``--no-split``
+   Do not split the reads which contain several amplicons
+   (:doc:`internal_priming`): one record is written for each read, and
+   the primers at the junctions inside it are left in place.
+
 Classification against the references
 -------------------------------------
 
@@ -123,6 +128,25 @@ These options are used with ``--references``.
 ``--exhaustive-search``
    Align each probe to the whole of every reference, without the k-mer
    index (slower; for checking the index).
+
+``--segment <s>``
+   Classify the read ends against the references of one segment only,
+   given by its number (``1`` to ``8``) or its gene (e.g. ``HA``, in any
+   case). For runs which contain one segment alone, e.g. an HA
+   amplicon::
+
+      flucut --segment HA -o trimmed fastq_pass
+
+   The probes are not compared to the other segments: this is faster,
+   and no read end is placed in another segment by a chance match. The
+   report then shows that segment only (as with ``--report-segment``).
+
+   Do not use it on reads of the whole genome: the read ends of the
+   other segments are then not located, so that every primer base is
+   removed from them (their conserved termini are not kept) and they
+   are counted as not located in all outputs. The segment of a
+   reference is taken from its FASTA description (:doc:`reports`).
+   Default: all segments.
 
 ``--report-segment <s>``
    Show in the HTML report only the references of one segment, given by

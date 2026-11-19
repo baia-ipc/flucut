@@ -21,8 +21,8 @@ md5: a9bf9de8759e673bea45ba921a320ae8
 @errors_plus_lsk simulated, with adapters	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:39	tr:i:69
 1702 GGAATTACTTAACTA...CAACATTTGTATATA
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete
-adapters	8	14566	8	13718	6	2	0	2	0	0	0	NA	NA	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete
+adapters	8	14566	8	13718	6	2	0	2	0	0	0	0	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 adapters	all	1700	6
@@ -51,6 +51,7 @@ adapters	all	1700	6
     "terminal_window": 60,
     "exhaustive_search": false,
     "tags": true,
+    "split": true,
     "threads": 4,
     "compress_level": 6
   },
@@ -70,6 +71,7 @@ adapters	all	1700	6
       "too_short": 0,
       "minus_strand": 2,
       "with_internal_match": 0,
+      "split": 0,
       "adapter_start": 0,
       "adapter_end": 0
     },
@@ -101,6 +103,7 @@ adapters	all	1700	6
         "too_short": 0,
         "minus_strand": 2,
         "with_internal_match": 0,
+        "split": 0,
         "adapter_start": 0,
         "adapter_end": 0
       },

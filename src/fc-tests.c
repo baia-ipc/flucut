@@ -18,6 +18,7 @@
 #include "adaptor-search.h"
 #include "amplicon.h"
 #include "auto-settings.h"
+#include "chimera.h"
 #include "counter.h"
 #include "fasta.h"
 #include "lengths.h"
@@ -89,6 +90,8 @@ static test_group_t test_groups[] = {
    false},
   {'P', "the placement of a read on the references", placement_test,
    false},
+  {'C', "the splitting of the reads with several amplicons",
+   chimera_test, false},
   {'t', "the trimming of a batch of reads", trimmer_test, false},
   {'l', "the lengths of the complete amplicons", lengths_test, false},
   {'n', "the counts of the reads", counter_test, false},

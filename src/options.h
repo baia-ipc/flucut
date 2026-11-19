@@ -52,11 +52,17 @@ typedef struct {
   double probe_error_rate;
   long terminal_window;
   bool exhaustive_search;     /* without the k-mer index (slower) */
+  /* --segment: the segment (1 to 8) whose references alone are used for
+     the classification (0: all); it is then also the segment of the
+     report */
+  int segment;
   /* --report-segment: the segment (1 to 8, see segments.h) to which the
      per-reference parts of the HTML report are limited (0: all) */
   int report_segment;
   size_t min_length;
   bool tags;
+  bool split;                 /* split the reads with several amplicons
+                                 (chimera.h) */
   const char *adapters;       /* see adapters.h */
   size_t threads;
   int compress_level;         /* of the outputs (gzip) */

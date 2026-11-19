@@ -133,9 +133,10 @@ static void td_count(html_writer_t *w, size_t n, size_t total) {
 static void write_tiles(html_writer_t *w, const report_t *r,
     const counter_reads_t *s) {
   tile(w, "reads", "%s", html_num(s->reads_in).s);
-  tile(w, "written", "%.1f%%", html_percent(s->reads_out, s->reads_in));
+  tile(w, "written", "%.1f%%",
+       html_percent(s->reads_out, counter_reads_analyzed(s)));
   tile(w, "with both primers", "%.1f%%",
-       html_percent(s->n_ends[2], s->reads_in));
+       html_percent(s->n_ends[2], counter_reads_analyzed(s)));
   if (r->references != NULL)
     tile(w, "internally primed ends", "%s",
          html_num(s->origin[COUNTER_LEFT][ORIGIN_INTERNAL] +
@@ -146,25 +147,27 @@ static void write_tiles(html_writer_t *w, const report_t *r,
 
 /* the reads at each step */
 static void write_steps(html_writer_t *w, const counter_reads_t *s) {
-  const char *labels[] = {"all reads", "both primers", "one primer",
+  /* (from the second line on, each part of a split read is a read) */
+  const char *labels[] = {"all reads", "split into several amplicons",
+                          "both primers", "one primer",
                           "no primer", "primer dimers",
                           "too short (not written)", "written",
                           "minus strand", "adapter at the start",
                           "adapter at the end"};
-  size_t values[] = {s->reads_in, s->n_ends[2], s->n_ends[1], s->n_ends[0],
-                     s->dimers, s->too_short, s->reads_out, s->minus,
-                     s->adapter_start, s->adapter_end};
-  const char *classes[] = {"p", "s", "s", "p", "p", "p", "s", "p", "p",
-                           "p"};
+  size_t values[] = {s->reads_in, s->split, s->n_ends[2], s->n_ends[1],
+                     s->n_ends[0], s->dimers, s->too_short, s->reads_out,
+                     s->minus, s->adapter_start, s->adapter_end};
+  const char *classes[] = {"p", "p", "s", "s", "p", "p", "p", "s", "p",
+                           "p", "p"};
   html_hbars(w, sizeof(values) / sizeof(values[0]), labels, values,
-             classes, s->reads_in, 0);
+             classes, counter_reads_analyzed(s), 0);
   html_template(w, steps_note_tmpl);
 }
 
 /* the primers found at each end, by primer of the scheme */
 static void write_primers(html_writer_t *w, const report_t *r,
     const counter_t *c) {
-  size_t total = counter_reads(c)->reads_in;
+  size_t total = counter_reads_analyzed(counter_reads(c));
   html_open(w, "table");
   header_row(w, "end", "primer", "reads", "% of the reads", NULL);
   for (size_t e = 0; e < COUNTER_N_ENDS; e++) {
@@ -228,7 +231,7 @@ static void write_sites(html_writer_t *w, const report_t *r,
       td_none(w);
     else
       td(w, "%zu-%zu", x->from, x->to);
-    td_count(w, x->reads, s->reads_in);
+    td_count(w, x->reads, counter_reads_analyzed(s));
     html_close(w);
   }
   html_close(w);
@@ -536,7 +539,8 @@ static void write_stats(html_writer_t *w, const report_t *r,
     html_textf(w, ", mean %s bp",
                html_num(s->bases_out / s->reads_out).s);
   html_textf(w, ". Minus strand: %s (%.1f%%).",
-             html_num(s->minus).s, html_percent(s->minus, s->reads_in));
+             html_num(s->minus).s,
+             html_percent(s->minus, counter_reads_analyzed(s)));
   html_close(w);
 }
 
@@ -597,8 +601,9 @@ static void write_groups_table(html_writer_t *w, const report_t *r) {
     } else {
       const counter_reads_t *s = counter_reads(g->counts);
       td(w, "%s", html_num(s->reads_in).s);
-      td(w, "%.1f%%", html_percent(s->reads_out, s->reads_in));
-      td(w, "%.1f%%", html_percent(s->n_ends[2], s->reads_in));
+      td(w, "%.1f%%", html_percent(s->reads_out, counter_reads_analyzed(s)));
+      td(w, "%.1f%%",
+         html_percent(s->n_ends[2], counter_reads_analyzed(s)));
       if (r->references != NULL)
         td(w, "%s", html_num(s->origin[COUNTER_LEFT][ORIGIN_INTERNAL] +
                              s->origin[COUNTER_RIGHT][ORIGIN_INTERNAL]).s);
@@ -669,6 +674,7 @@ static void write_parameters(html_writer_t *w, const report_t *r) {
                 "probe_errors", probe_errors,
                 "terminal_window", terminal_window,
                 "search", o->exhaustive_search ? ", exhaustive search" : "",
+                "segment", o->segment != 0 ? segment : NULL,
                 "report_segment", o->report_segment != 0 ? segment : NULL,
                 "threads", threads);
   html_close(w);
