@@ -82,6 +82,22 @@ report_site_t* report_sites(const fasta_t *refs, const counter_t *c,
   return sites;
 }
 
+bool report_shows_reference(const fasta_t *refs, int segment, size_t ref) {
+  if (segment == 0 || refs == NULL)
+    return true;
+  return ref < refs->n_records &&
+         segments_of_description(refs->records[ref].description) == segment;
+}
+
+size_t report_select_sites(const fasta_t *refs, int segment,
+    report_site_t *sites, size_t n) {
+  size_t kept = 0;
+  for (size_t i = 0; i < n; i++)
+    if (report_shows_reference(refs, segment, sites[i].ref))
+      sites[kept++] = sites[i];
+  return kept;
+}
+
 void report_lengths(const fasta_t *refs, const counter_t *c, size_t group,
     report_lengths_t *out) {
   assert(c != NULL);
@@ -162,6 +178,22 @@ void report_test(void) {
   test_eq_size(s[1].pos, 101);
   test_eq_size(s[2].reads, 2);
   test_eq_size(s[2].pos, 301);
+  /* a report of one segment: its references and their sites only */
+  fasta_record_t named[2] = {{"r0", "segment 4 (HA)", seq, 1000},
+                             {"r1", "NA gene", seq, 1000}};
+  fasta_t named_refs = {named, 2};
+  test_assert(report_shows_reference(&named_refs, 0, 1));
+  test_assert(report_shows_reference(&named_refs, 0, 2));
+  test_assert(report_shows_reference(&named_refs, 4, 0));
+  test_assert(!report_shows_reference(&named_refs, 4, 1));
+  test_assert(!report_shows_reference(&named_refs, 4, 2));
+  test_assert(!report_shows_reference(&refs, 4, 0));
+  test_assert(report_shows_reference(NULL, 4, 0));
+  test_eq_size(report_select_sites(&named_refs, 0, s, n), 3);
+  test_eq_size(report_select_sites(&named_refs, 6, s, n), 2);
+  test_eq_size(s[0].reads, 9);
+  test_eq_size(s[1].reads, 2);
+  test_eq_size(report_select_sites(&named_refs, 4, s, 2), 0);
   free(s);
   /* the complete amplicons: none */
   report_lengths_t l;

@@ -32,6 +32,7 @@
 #include "results.h"
 #include "run-report.h"
 #include "scheme.h"
+#include "segments.h"
 #include "trimmer.h"
 #include "worker.h"
 
@@ -174,6 +175,21 @@ static void trim_groups(const options_t *opts, trimmer_config_t *config,
   input_groups_delete(groups, n_groups);
 }
 
+/* warn if the report is limited to a segment (--report-segment) which no
+   reference is recognised as (see segments.h) */
+static void check_report_segment(const options_t *opts, const fasta_t *refs,
+    Logger *logger) {
+  if (opts->report_segment == 0 || refs == NULL)
+    return;
+  for (size_t i = 0; i < refs->n_records; i++)
+    if (report_shows_reference(refs, opts->report_segment, i))
+      return;
+  lprintf(logger, LOG_WARN, "--report-segment: no reference is recognised "
+          "as segment %d (%s) from its description; the per-reference "
+          "parts of the report will be empty\n", opts->report_segment,
+          segments_gene(opts->report_segment));
+}
+
 int main(int argc, char *argv[]) {
   options_t opts;
   Logger *logger;
@@ -207,6 +223,7 @@ int main(int argc, char *argv[]) {
           "(scripts/fetch_references.py).\n");
     index = reference_index_new(refs);
   }
+  check_report_segment(&opts, refs, logger);
   auto_settings_t autos;
   auto_settings_init(&autos, &opts);
   trimmer_config_t config = {.scheme = scheme,

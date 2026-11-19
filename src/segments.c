@@ -90,6 +90,20 @@ const char *segments_gene(int segment) {
   return genes[segment - 1];
 }
 
+int segments_parse(const char *s) {
+  assert(s != NULL);
+  if (s[0] >= '1' && s[0] <= '0' + SEGMENTS_N && s[1] == '\0')
+    return s[0] - '0';
+  for (size_t i = 0; i < N_GENE_WORDS; i++)
+    if (gene_words[i].segment > 0 && strcasecmp(s, gene_words[i].word) == 0)
+      return gene_words[i].segment;
+  return 0;
+}
+
+void segments_name(int segment, char *buf, size_t size) {
+  snprintf(buf, size, "segment %d (%s)", segment, segments_gene(segment));
+}
+
 void segments_label(const char *name, const char *description, char *buf,
     size_t size) {
   int s = description == NULL ? 0 : segments_of_description(description);
@@ -123,4 +137,16 @@ void segments_test(void) {
   test_eq_str(buf, "segment 4 (HA), NC_004908.1");
   segments_label("ref1", "", buf, sizeof(buf));
   test_eq_str(buf, "ref1");
+  test_eq_int(segments_parse("4"), 4);
+  test_eq_int(segments_parse("HA"), 4);
+  test_eq_int(segments_parse("ha"), 4);
+  test_eq_int(segments_parse("Neuraminidase"), 6);
+  test_eq_int(segments_parse("MP"), 7);
+  test_eq_int(segments_parse("9"), 0);
+  test_eq_int(segments_parse("0"), 0);
+  test_eq_int(segments_parse("44"), 0);
+  test_eq_int(segments_parse("non"), 0);
+  test_eq_int(segments_parse(""), 0);
+  segments_name(4, buf, sizeof(buf));
+  test_eq_str(buf, "segment 4 (HA)");
 }

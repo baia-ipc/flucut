@@ -15,6 +15,7 @@
 #include "worker.h"
 #include "reference.h"
 #include "scheme.h"
+#include "segments.h"
 
 #define OPTIONS_DEFAULT_THREADS 4
 
@@ -33,6 +34,7 @@ enum {
   OPT_RESUME,
   OPT_COMPRESS_LEVEL,
   OPT_PLATFORM,
+  OPT_REPORT_SEGMENT,
 };
 
 #define PURPOSE "Remove the primers of the influenza A multisegment " \
@@ -132,6 +134,12 @@ enum {
   "   --exhaustive-search    align each probe to the whole of every\n" \
   "                          reference, without the k-mer index (slower;\n" \
   "                          for checking the index)\n" \
+  "   --report-segment <s>   show in the HTML report only the references\n" \
+  "                          of one segment, given by its number (1-8) or\n" \
+  "                          gene (e.g. HA): its internal priming sites,\n" \
+  "                          complete amplicons and coverage; the\n" \
+  "                          trimming and the other outputs do not change\n" \
+  "                          (default: all segments)\n" \
   "\n" \
   COMMON_OPTS_HELP
 
@@ -176,6 +184,7 @@ void options_parse(options_t *self, int argc, char *argv[],
   self->probe_error_rate = REFERENCE_DEFAULT_MAX_ERROR_RATE;
   self->terminal_window = REFERENCE_DEFAULT_TERMINAL_WINDOW;
   self->exhaustive_search = false;
+  self->report_segment = 0;
   self->min_length = OPTIONS_DEFAULT_MIN_LENGTH;
   self->tags = true;
   self->adapters = ADAPTERS_DEFAULT;
@@ -211,6 +220,7 @@ void options_parse(options_t *self, int argc, char *argv[],
     {"probe-errors", required_argument, NULL, OPT_PROBE_ERRORS},
     {"terminal-window", required_argument, NULL, OPT_TERMINAL_WINDOW},
     {"exhaustive-search", no_argument, NULL, OPT_EXHAUSTIVE},
+    {"report-segment", required_argument, NULL, OPT_REPORT_SEGMENT},
     COMMON_LONGOPTS
     LONGOPTS_END
   };
@@ -323,6 +333,13 @@ void options_parse(options_t *self, int argc, char *argv[],
       case OPT_EXHAUSTIVE:
         self->exhaustive_search = true;
         break;
+      case OPT_REPORT_SEGMENT:
+        self->report_segment = segments_parse(optarg);
+        if (self->report_segment == 0)
+          PARSE_ERR("Option '--report-segment': a segment number (1-%d) "
+                    "or gene (e.g. HA) expected ('%s' found)", SEGMENTS_N,
+                    optarg);
+        break;
       case OPT_PROBE_LEN:
         {
           long v;
@@ -356,6 +373,9 @@ void options_parse(options_t *self, int argc, char *argv[],
      (see amplicon.h); without them, every primer-derived base is
      removed (no end can be classified, so none can be spared) */
   self->policy = self->references_off ? TRIM_PRIMER : TRIM_TERMINUS;
+  if (self->report_segment != 0 && self->references_off)
+    PARSE_ERR("Option '--report-segment': the references are required "
+              "(not -r off)");
   /* the settings of the platform, unless given */
   if (self->illumina && !window_given)
     self->window = OPTIONS_ILLUMINA_WINDOW;
@@ -405,6 +425,9 @@ void options_parse(options_t *self, int argc, char *argv[],
               self->live_min_age, self->live_scan_interval,
               self->resume ? ", resume" : "");
   }
+  if (self->report_segment != 0)
+    PARSE_LOG("Report: segment %d (%s) only\n", self->report_segment,
+              segments_gene(self->report_segment));
   PARSE_LOG("Threads: %zu\n", self->threads);
   PARSE_LOG("Compression level: %d\n", self->compress_level);
 }

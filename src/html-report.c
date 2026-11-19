@@ -101,6 +101,13 @@ static void td_none(html_writer_t *w) {
   html_close(w);
 }
 
+/* whether the per-reference parts show the group <g> of the lengths (a
+   reference, or the amplicons not located): see --report-segment */
+static bool shows(const report_t *r, size_t g) {
+  return report_shows_reference(r->references, r->options->report_segment,
+                                g);
+}
+
 /* a tile with the value formatted as by printf */
 static void tile(html_writer_t *w, const char *label, const char *fmt, ...)
   __attribute__((format(printf, 3, 4)));
@@ -196,8 +203,12 @@ static void write_sites(html_writer_t *w, const report_t *r,
   html_close(w);
   size_t n;
   report_site_t *sites = report_sites(r->references, c, &n);
+  n = report_select_sites(r->references, r->options->report_segment, sites,
+                          n);
   if (n == 0) {
-    note(w, "No read end was classified as internally primed.");
+    note(w, "No read end was classified as internally primed%s.",
+         r->options->report_segment != 0 ? " in the segment shown" : "");
+    free(sites);
     return;
   }
   size_t shown = n < HTML_REPORT_MAX_SITES ? n : HTML_REPORT_MAX_SITES;
@@ -245,6 +256,17 @@ static void write_lengths(html_writer_t *w, const report_t *r,
     const counter_t *c) {
   const lengths_t *l = counter_lengths(c);
   size_t n_groups = lengths_n_groups(l);
+  size_t n_shown = 0;
+  for (size_t g = 0; g < n_groups; g++) {
+    report_lengths_t x;
+    report_lengths(r->references, c, g, &x);
+    if (x.summary.total > 0 && shows(r, g))
+      n_shown++;
+  }
+  if (n_shown == 0) {
+    note(w, "No complete amplicons of the segment shown.");
+    return;
+  }
   html_open(w, "table");
   header_row(w, r->references != NULL ? "reference" : "group",
              "length", "complete amplicons", "most at", "short",
@@ -252,7 +274,7 @@ static void write_lengths(html_writer_t *w, const report_t *r,
   for (size_t g = 0; g < n_groups; g++) {
     report_lengths_t x;
     report_lengths(r->references, c, g, &x);
-    if (x.summary.total == 0)
+    if (x.summary.total == 0 || !shows(r, g))
       continue;
     open_row(w);
     td(w, "%s", x.label);
@@ -287,7 +309,7 @@ static void write_lengths(html_writer_t *w, const report_t *r,
   for (size_t g = 0; g < n_groups; g++) {
     report_lengths_t x;
     report_lengths(r->references, c, g, &x);
-    if (x.summary.total == 0)
+    if (x.summary.total == 0 || !shows(r, g))
       continue;
     for (size_t b = 0; b < LENGTHS_N_BINS; b++)
       hist[b] = lengths_count(l, g, b);
@@ -440,10 +462,11 @@ static void write_coverage(html_writer_t *w, const report_t *r,
     return;
   size_t shown = 0;
   for (size_t g = 0; g < r->references->n_records; g++)
-    if (counter_has_coverage(c, g))
+    if (counter_has_coverage(c, g) && shows(r, g))
       shown++;
   if (shown == 0) {
-    note(w, "No reads located in the references.");
+    note(w, "No reads located in the references%s.",
+         r->options->report_segment != 0 ? " of the segment shown" : "");
     return;
   }
   open_class(w, "div", "coverlegend");
@@ -481,7 +504,7 @@ static void write_coverage(html_writer_t *w, const report_t *r,
   }
   for (size_t i = 0; i < n; i++) {
     size_t g = order[i];
-    if (!counter_has_coverage(c, g))
+    if (!counter_has_coverage(c, g) || !shows(r, g))
       continue;
     const fasta_record_t *ref = r->references->records + g;
     char label[REPORT_LABEL_SIZE];
@@ -616,7 +639,9 @@ static void write_max_errors(html_writer_t *w, const report_t *r) {
 static void write_parameters(html_writer_t *w, const report_t *r) {
   const options_t *o = r->options;
   char n_refs[32], window[32], min_length[32], probe[32], probe_errors[32],
-       terminal_window[32], threads[32];
+       terminal_window[32], threads[32], segment[32];
+  if (o->report_segment != 0)
+    segments_name(o->report_segment, segment, sizeof(segment));
   snprintf(n_refs, sizeof(n_refs), "%zu", r->references == NULL ? 0 :
            r->references->n_records);
   snprintf(window, sizeof(window), "%ld", o->window);
@@ -643,6 +668,7 @@ static void write_parameters(html_writer_t *w, const report_t *r) {
                 "probe_errors", probe_errors,
                 "terminal_window", terminal_window,
                 "search", o->exhaustive_search ? ", exhaustive search" : "",
+                "report_segment", o->report_segment != 0 ? segment : NULL,
                 "threads", threads);
   html_close(w);
 }
@@ -706,6 +732,11 @@ static void write_dashboard_bar(html_writer_t *w, const report_t *r) {
              "terminus mode (conserved ends kept)");
   if (r->references != NULL)
     html_textf(w, " \xc2\xb7 %zu references", r->references->n_records);
+  if (r->options->report_segment != 0) {
+    char segment[32];
+    segments_name(r->options->report_segment, segment, sizeof(segment));
+    html_textf(w, " \xc2\xb7 %s only", segment);
+  }
   html_textf(w, " \xc2\xb7 flucut %s", r->version);
   html_close(w);
   const report_setting_t *e = r->max_errors;

@@ -124,6 +124,22 @@ These options are used with ``--references``.
    Align each probe to the whole of every reference, without the k-mer
    index (slower; for checking the index).
 
+``--report-segment <s>``
+   Show in the HTML report only the references of one segment, given by
+   its number (``1`` to ``8``) or its gene (e.g. ``HA``, in any case):
+   the internal priming sites, the complete amplicons and the coverage
+   are those of that segment only. For example, to look at the HA
+   alone::
+
+      flucut --report-segment HA -o trimmed fastq_pass
+
+   Only the report changes: the reads are classified against all the
+   references and trimmed as without the option, and the tables and the
+   JSON summary still describe all the references. The segment of a
+   reference is taken from its FASTA description (:doc:`reports`); a
+   reference whose description names no segment is not shown. Default:
+   all segments.
+
 Live mode
 ---------
 

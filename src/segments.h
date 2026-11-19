@@ -31,6 +31,15 @@ int segments_of_description(const char *description);
 /* The gene of segment <segment> (1 to 8), e.g. "HA" for 4 */
 const char *segments_gene(int segment);
 
+/* The segment (1 to 8) given by the user as <s>: its number ("4") or a
+   name of its gene or protein, in any case ("HA", "ha", "hemagglutinin");
+   0 if <s> is neither */
+int segments_parse(const char *s);
+
+/* Write to <buf> (of size <size>) the name of segment <segment> (1 to
+   8), e.g. "segment 4 (HA)" */
+void segments_name(int segment, char *buf, size_t size);
+
 /*
    Write to <buf> (of size <size>) the label of a reference: "segment 4
    (HA), <name>" if its <description> names a segment, else <name>

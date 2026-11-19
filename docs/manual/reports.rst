@@ -30,6 +30,12 @@ internally primed, :doc:`performance`), trimmed with the references
 more telling. See ``docs/manual/figures/README.md`` for how they were
 made.
 
+With ``--report-segment`` (e.g. ``--report-segment HA``) the parts of
+the report which list the references (the internal priming sites, the
+complete amplicons and the coverage) show one segment only; the counts
+of all reads (tiles, steps, primers, read ends by origin) are unchanged
+(:doc:`cli_reference`).
+
 **The run parameters.**
    At the right of the logo: the version of flucut, the command line,
    the primer scheme, the trimming policy, the references and the

@@ -64,6 +64,13 @@ expect 1 --compress-level x "$reads"
 expect 1 --probe-len 10 -r "$refs" "$reads"
 expect 1 --probe-errors 1 -r "$refs" "$reads"
 expect 1 --terminal-window -5 -r "$refs" "$reads"
+# the segment shown in the report: a number (1-8) or a gene; it needs
+# the references
+expect 1 --report-segment 9 -r "$refs" "$reads"
+expect 1 --report-segment XX -r "$refs" "$reads"
+expect 1 --report-segment HA -r off "$reads"
+expect 0 --report-segment HA -r "$refs" "$reads"
+expect 0 --report-segment 6 -r "$refs" "$reads"
 expect 1 --no-such-option "$reads"
 # inputs: missing, not a file of reads, two with the same output
 expect 1 testdata/no-such-file.fastq

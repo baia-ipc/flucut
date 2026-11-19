@@ -89,6 +89,21 @@ typedef struct {
 report_site_t* report_sites(const fasta_t *refs, const counter_t *c,
     size_t *n);
 
+/*
+   Whether the per-reference parts of the HTML report show the group
+   <ref> of the lengths (a reference of <refs>, or the amplicons not
+   located, if <ref> is the number of references), when the report is
+   limited to the segment <segment> (--report-segment; 0: all segments):
+   only the references whose description names that segment (see
+   segments.h)
+*/
+bool report_shows_reference(const fasta_t *refs, int segment, size_t ref);
+
+/* Keep, of the <n> <sites>, those of the references shown (see
+   report_shows_reference()), in their order; returns their number */
+size_t report_select_sites(const fasta_t *refs, int segment,
+    report_site_t *sites, size_t n);
+
 /* the size of the label of a reference (see segments_label()) */
 #define REPORT_LABEL_SIZE 256
 

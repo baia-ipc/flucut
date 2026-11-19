@@ -114,6 +114,9 @@ The main options (`flucut -h` lists all of them, with their defaults):
   k-mers, so that the time hardly depends on their number
   (`--exhaustive-search` aligns each read end to every reference, to
   check the index);
+- `--report-segment <s>`: show only one segment in the HTML report, by
+  number or gene (e.g. `--report-segment HA`); the trimming does not
+  change;
 - `-e`: errors allowed in a primer (a fraction of its length, a number
   of bases, or `auto`, the default: 0.2, or 0.3 if the primers of the
   first 1000 reads have at least 4% errors);
