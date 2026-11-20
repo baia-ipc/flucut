@@ -25,8 +25,11 @@
 #include "lengths.h"
 #include "file.h"
 #include "input-groups.h"
+#include "junction.h"
 #include "logger.h"
 #include "placement.h"
+#include "read-cover.h"
+#include "read-outputs.h"
 #include "primer-search.h"
 #include "primers.h"
 #include "reference.h"
@@ -41,6 +44,7 @@ static const char *tmpdir = NULL;
 
 static void run_fasta_test(void) { fasta_test(tmpdir); }
 static void run_input_groups_test(void) { input_groups_test(tmpdir); }
+static void run_read_outputs_test(void) { read_outputs_test(tmpdir); }
 
 /* a new directory for the temporary files, in $TMPDIR or /tmp (so that
    several runs do not use the same files); <path>: its path */
@@ -91,6 +95,10 @@ static test_group_t test_groups[] = {
    false},
   {'P', "the placement of a read on the references", placement_test,
    false},
+  {'J', "the junction of a read with an internal deletion",
+   junction_test, false},
+  {'V', "the category of a read, from where it lies on its reference",
+   read_cover_test, false},
   {'C', "the splitting of the reads with several amplicons",
    chimera_test, false},
   {'t', "the trimming of a batch of reads", trimmer_test, false},
@@ -98,6 +106,7 @@ static test_group_t test_groups[] = {
   {'n', "the counts of the reads", counter_test, false},
   {'R', "the content of the reports", report_test, false},
   {'g', "the groups of input files", run_input_groups_test, false},
+  {'o', "the output files of a group", run_read_outputs_test, false},
   {'S', "the recognition of the segments", segments_test, false},
   {'A', "the search of the adapters", adapters_test, false},
   {'u', "the automatic settings", auto_settings_test, false},

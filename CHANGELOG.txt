@@ -224,3 +224,20 @@
   so the references of the other subtypes do not scatter the reads or
   inflate the internal priming; the reference subtype is parsed from the
   FASTA description (e.g. "(H5N1)")
+- the category of each read (with references): full template, internal
+  priming, internal deletion or other, as in the coverage plot of the
+  report; written as the tag ct, and, with --by-category, used to write
+  the reads of each input to four files (<name>.full.fastq.gz,
+  <name>.internal.fastq.gz, <name>.deletion.fastq.gz,
+  <name>.other.fastq.gz) instead of one; the reads written by category
+  are in summary.tsv (out_full, out_internal, out_deletion, out_other)
+  and in the JSON summary (written_by_category); an output without
+  reads is now an empty gzip file, not a file of 0 bytes
+- a complete amplicon whose ends were not located is placed on the
+  segment of its length when the length is within 80 bases of that of a
+  reference (it was placed only within 1 base); references of the same
+  segment (e.g. of several subtypes) no longer make the length
+  ambiguous, and the restrictions to a subtype and to a segment
+  (--segment) hold
+- flucut-posthoc takes the category of a read from its ct tag, if
+  present

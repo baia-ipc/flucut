@@ -148,19 +148,38 @@ Outputs:
   left/right end), `tl`/`tr` (bases removed at the start/end of the
   read), `ni` (primer matches inside the read), `sp` (part `k/n` of a
   read which was split, see below); with references also
-  `ol`/`or` (origin of the end: terminal, internal or unknown) and
+  `ol`/`or` (origin of the end: terminal, internal or unknown),
   `ml`/`mr` (where the bases after the primer mapped:
-  reference:position:strand). IRMA accepts the tags (same consensus
+  reference:position:strand) and `ct` (the category of the read: `full`,
+  `internal`, `deletion` or `other`, see below). IRMA accepts the tags (same consensus
   with and without them, see `benchmark/RESULTS.md`); `--no-tags` writes
   the titles unchanged. A read which contains several amplicons joined
   end to end is split, and each part is written as its own record, named
   `<read>_1`, `<read>_2`, ...; `--no-split` turns this off.
+- with `--by-category`, four files per sample instead of
+  `<name>.fastq.gz`, one for each category of reads (the colours of the
+  coverage plot of the report):
+
+  | file | reads |
+  |---|---|
+  | `<name>.full.fastq.gz` | full templates: the amplicon started at a segment end |
+  | `<name>.internal.fastq.gz` | internal priming: it started inside the segment |
+  | `<name>.deletion.fastq.gz` | internal deletions: the two ends of a segment joined |
+  | `<name>.other.fastq.gz` | no 5' primer, or not located on the references |
+
+  ```
+  flucut --by-category -o trimmed barcode01/
+  ```
+
+  The four files together hold the same reads as `<name>.fastq.gz`
+  would. The category needs the references (not `-r off`).
 - `summary.tsv`: one line per output, with the reads and bases read and
   written, the reads by number of primers found, those on the minus
   strand, the dimers, the reads too short, the reads with internal
   primer matches, and, with references, the left and right ends by
-  origin and the complete amplicons shorter than 90% of their reference
-  (`short_complete`; `NA` without references).
+  origin, the complete amplicons shorter than 90% of their reference
+  (`short_complete`) and the reads written by category (`out_full`,
+  `out_internal`, `out_deletion`, `out_other`); `NA` without references.
 - `lengths.tsv`: the lengths of the complete amplicons (the template
   between the two primers), in bins of 10 bases: output, group (the
   reference to which the read end mapped, `not_located`, or `all`

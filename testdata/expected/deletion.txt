@@ -1,0 +1,138 @@
+exit status: 0
+== messages ==
+SUCCESS | Trimming testdata/deletion.fastq...
+SUCCESS | OUTDIR/deletion.fastq.gz: 2 of 2 reads written (2 with both primers, 0 with one, 0 with none; 0 too short, of which 0 dimers)
+WARNING | OUTDIR/deletion.fastq.gz: HA segment: 2 of 2 complete amplicons shorter than the closest reference (NC_004908.1, 1714 bases), most at 550-559 bases: internal priming or deletions
+SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_summary.json
+== deletion.fastq.gz ==
+md5: 564ba1743111c4573e6709803a319d3f
+@deletion_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:deletion	tl:i:0	tr:i:10
+575 AGCAAAAGCAGGGGA...AACCTTGTTTCTACT
+@deletion_minus simulated	fs:Z:-	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:deletion	tl:i:10	tr:i:0
+575 AGTAGAAACAAGGTT...TCCCCTGCTTTTGCT
+== summary.tsv ==
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other
+deletion	2	1170	2	1150	2	0	0	1	0	0	0	0	2	0	0	2	0	0	2	0	0	2	0
+== lengths.tsv ==
+output	group	length	reads
+deletion	NC_004908.1	550	2
+== flucut_summary.json ==
+{
+  "format": 1,
+  "program": "flucut",
+  "version": "0.1",
+  "updated": "DATE",
+  "running": false,
+  "command": "bin/flucut -o OUTDIR -r testdata/ref-ha.fasta testdata/deletion.fastq",
+  "scheme": {
+    "name": "uni12-mbt13",
+    "left": ["uni12r"],
+    "right": ["mbtuni-13"]
+  },
+  "trim_policy": "terminus",
+  "references": {
+    "file": "testdata/ref-ha.fasta",
+    "sequences": [
+      {"name": "NC_004908.1", "length": 1714, "segment": 4, "gene": "HA"}
+    ]
+  },
+  "settings": {
+    "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0000, "reads": 2, "file": "testdata/deletion.fastq"},
+    "platform": "nanopore",
+    "window": 100,
+    "min_length": 1,
+    "probe_length": 32,
+    "probe_errors": 0.2,
+    "terminal_window": 60,
+    "exhaustive_search": false,
+    "segment": null,
+    "report_segment": null,
+    "tags": true,
+    "split": true,
+    "by_category": false,
+    "threads": 4,
+    "compress_level": 6
+  },
+  "length_bin": 10,
+  "length_max": 4000,
+  "short_fraction": 0.9,
+  "all": {
+    "reads": {
+      "in": 2,
+      "bases_in": 1170,
+      "written": 2,
+      "bases_written": 1150,
+      "both_primers": 2,
+      "one_primer": 0,
+      "no_primer": 0,
+      "dimers": 0,
+      "too_short": 0,
+      "minus_strand": 1,
+      "with_internal_match": 0,
+      "split": 0,
+      "adapter_start": 0,
+      "adapter_end": 0
+    },
+    "written_by_category": {"full": 0, "internal": 0, "deletion": 2, "other": 0},
+    "primers": {
+      "left": {"uni12r": 2},
+      "right": {"mbtuni-13": 2}
+    },
+    "ends": {
+      "left": {"terminal": 2, "internal": 0, "unknown": 0},
+      "right": {"terminal": 2, "internal": 0, "unknown": 0}
+    },
+    "internal_sites": [],
+    "short_complete": 2,
+    "complete_amplicons": [
+      {"group": "NC_004908.1", "reference_length": 1714, "amplicons": 2, "main_length": 550, "short": 2, "short_main_length": 550, "histogram": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]}
+    ]
+  },
+  "groups": [
+    {
+      "name": "deletion",
+      "files": 1,
+      "processed": true,
+      "reads": {
+        "in": 2,
+        "bases_in": 1170,
+        "written": 2,
+        "bases_written": 1150,
+        "both_primers": 2,
+        "one_primer": 0,
+        "no_primer": 0,
+        "dimers": 0,
+        "too_short": 0,
+        "minus_strand": 1,
+        "with_internal_match": 0,
+        "split": 0,
+        "adapter_start": 0,
+        "adapter_end": 0
+      },
+      "written_by_category": {"full": 0, "internal": 0, "deletion": 2, "other": 0},
+      "primers": {
+        "left": {"uni12r": 2},
+        "right": {"mbtuni-13": 2}
+      },
+      "ends": {
+        "left": {"terminal": 2, "internal": 0, "unknown": 0},
+        "right": {"terminal": 2, "internal": 0, "unknown": 0}
+      },
+      "internal_sites": [],
+      "short_complete": 2,
+      "complete_amplicons": [
+        {"group": "NC_004908.1", "reference_length": 1714, "amplicons": 2, "main_length": 550, "short": 2, "short_main_length": 550, "histogram": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]}
+      ]
+    }
+  ]
+}
+== flucut_report.html ==
+</html>
+<h2>All reads</h2>
+<h3>Sample: subtype and segments</h3>
+<h3>Reads at each step</h3>
+<h3>Primers found</h3>
+<h3>Internal priming</h3>
+<h3>Complete amplicons</h3>
+<h3>Lengths of the complete amplicons</h3>
+<h3>Coverage by read origin</h3>

@@ -112,6 +112,8 @@ void counter_merge(counter_t *self, const counter_t *other) {
   s->bases_in += o->bases_in;
   s->reads_out += o->reads_out;
   s->bases_out += o->bases_out;
+  for (size_t k = 0; k < READ_N_CATEGORIES; k++)
+    s->written[k] += o->written[k];
   s->too_short += o->too_short;
   s->dimers += o->dimers;
   for (size_t i = 0; i < 3; i++)
@@ -170,9 +172,10 @@ static void count_end(counter_t *self, const amplicon_end_t *end,
 }
 
 /* the counts of counter_reads_t, in the order of the files of counts:
-   11 single counts, n_ends, origin */
+   11 single counts, n_ends, origin, written */
 #define N_SINGLE_COUNTS 11
-#define N_READ_COUNTS (N_SINGLE_COUNTS + 3 + COUNTER_N_ENDS * 3)
+#define N_READ_COUNTS (N_SINGLE_COUNTS + 3 + COUNTER_N_ENDS * 3 + \
+                       READ_N_CATEGORIES)
 
 static void read_counts(counter_reads_t *r, size_t *out[N_READ_COUNTS]) {
   size_t *single[N_SINGLE_COUNTS] = {&r->reads_in, &r->bases_in,
@@ -186,10 +189,12 @@ static void read_counts(counter_reads_t *r, size_t *out[N_READ_COUNTS]) {
   for (size_t e = 0; e < COUNTER_N_ENDS; e++)
     for (size_t i = 0; i < 3; i++)
       out[n++] = r->origin[e] + i;
+  for (size_t k = 0; k < READ_N_CATEGORIES; k++)
+    out[n++] = r->written + k;
   assert(n == N_READ_COUNTS);
 }
 
-#define COUNTS_HEADER "flucut-counts 2"
+#define COUNTS_HEADER "flucut-counts 3"
 
 void counter_save(const counter_t *self, FILE *file) {
   assert(self != NULL);
@@ -333,30 +338,6 @@ bool counter_load(counter_t *self, FILE *file) {
   return ok && ended;
 }
 
-/* the reference whose length is nearest to <span> (a complete amplicon's
-   template length), -1 if none is within COVER_LENGTH_TOLERANCE or the
-   two nearest are too close in length to tell apart (e.g. PB2 and PB1) */
-#define COVER_LENGTH_TOLERANCE 80
-static long segment_by_length(const counter_t *self, long span) {
-  long best = -1, best_d = COVER_LENGTH_TOLERANCE + 1, second_d = best_d;
-  for (size_t i = 0; i < self->refs->n_records; i++) {
-    long d = (long)self->refs->records[i].seq_len - span;
-    if (d < 0)
-      d = -d;
-    if (d < best_d) {
-      second_d = best_d;
-      best_d = d;
-      best = (long)i;
-    } else if (d < second_d) {
-      second_d = d;
-    }
-  }
-  if (best_d > COVER_LENGTH_TOLERANCE ||
-      second_d - best_d < COVER_LENGTH_TOLERANCE)
-    return -1;   /* none close enough, or ambiguous */
-  return best;
-}
-
 /* add the interval [from, to) of the reference <ref>, clamped to it, to
    the coverage of the category <cat> */
 static void add_span(counter_t *self, size_t ref, size_t cat, long from,
@@ -371,114 +352,19 @@ static void add_span(counter_t *self, size_t ref, size_t cat, long from,
   c[COVER_IDX(1, cat, (size_t)to, (size_t)len)]++;
 }
 
-/* whether a template of <span> bases whose ends mapped <dist> bases apart
-   has an internal deletion: it is shorter than the distance by more than
-   COVER_MIN_DELETION and a tenth of the distance (the allowance for the
-   indels of a long read) */
-#define COVER_MIN_DELETION 100
-static bool has_deletion(long span, long dist) {
-  return dist - span > COVER_MIN_DELETION + dist / 10;
-}
-
-/* the distance of the 5' end of the amplicon of a placed read from the
-   terminus of the reference at which it would start; <minus>: the read
-   is the minus strand of its amplicon (the amplicon then runs along the
-   reference in the direction opposite to that of the read) */
-static long placed_start_distance(const placement_t *p, bool minus) {
-  return p->reverse != minus ? p->ref_len - p->to : p->from;
-}
-
-/* add the span of a read on its reference to the coverage, by category
-   (COVER_*): the span is [start, start + template length) on the plus
-   strand, anchored at whichever end mapped; the category is the origin of
-   the 5' (left) end and, if internal, the strand. A read with both ends
-   mapped much farther apart than its template length has an internal
-   deletion (COVER_DELETION): only its two flanks are added */
-static void count_cover(counter_t *self, const amplicon_t *a) {
-  if (self->refs == NULL)
+/* add the span of a located read to the coverage, by its class (see
+   read-cover.h); of a read with an internal deletion, only the two
+   flanks */
+static void count_cover(counter_t *self, const read_cover_t *cover) {
+  if (!cover->located)
     return;
-  const amplicon_end_t *l = &a->left, *r = &a->right;
-  long span = (long)amplicon_kept_length(a);
-  long ref, from, to;
-  size_t cat;
-  bool minus = a->strand == STRAND_MINUS, both = false;
-  if (l->found && l->ref.mapped) {
-    ref = (long)l->ref.ref_index;
-    from = l->ref.ref_start;
-    both = r->found && r->ref.mapped &&
-           r->ref.ref_index == l->ref.ref_index;
-    if (both) {
-      to = r->ref.ref_start;
-    } else if (l->ref.reverse) {
-      /* the amplicon is on the minus strand of the reference: it runs
-         from its 5' end towards the start of the reference */
-      to = from + 1;
-      from = to - span;
-    } else {
-      to = from + span;
-    }
-    cat = l->origin == ORIGIN_INTERNAL ?
-        (minus ? COVER_INTERNAL_MINUS : COVER_INTERNAL_PLUS) :
-        (minus ? COVER_TERMINAL_MINUS : COVER_TERMINAL_PLUS);
-  } else if (r->found && r->ref.mapped) {
-    /* only the 3' end mapped: the read is placed by it and its length,
-       towards the start of the reference from the 3' end or, for an
-       amplicon on the minus strand of the reference (the probe of its 3'
-       end maps forward), towards the end of the reference. With no
-       5' primer it is a fragment of unknown origin (grey); with a 5'
-       primer whose probe did not map (a noisy read start), the 5' origin
-       is inferred from where the 5' end falls: within a window of the
-       segment terminus is a full-length (terminal) amplicon, deeper is
-       internal priming. The window grows with the span to allow for the
-       indels of a long read */
-    ref = (long)r->ref.ref_index;
-    if (r->ref.reverse) {
-      to = r->ref.ref_start;
-      from = to - span;
-    } else {
-      from = r->ref.ref_start;
-      to = from + span;
-    }
-    if (!l->found) {
-      cat = COVER_NO_PRIMER;
-    } else {
-      long window = 60 + span / 20;
-      long start = r->ref.reverse ? from : r->ref.ref_len - to;
-      cat = start <= window ?
-          (minus ? COVER_TERMINAL_MINUS : COVER_TERMINAL_PLUS) :
-          (minus ? COVER_INTERNAL_MINUS : COVER_INTERNAL_PLUS);
-    }
-  } else if (a->placement.found) {
-    /* no end mapped: the read was placed by a probe from inside it (see
-       placement.h); its 5' origin as above */
-    const placement_t *p = &a->placement;
-    ref = (long)p->ref_index;
-    from = p->from;
-    to = p->to;
-    cat = !l->found ? COVER_NO_PRIMER :
-        placed_start_distance(p, minus) <= 60 + span / 20 ?
-        (minus ? COVER_TERMINAL_MINUS : COVER_TERMINAL_PLUS) :
-        (minus ? COVER_INTERNAL_MINUS : COVER_INTERNAL_PLUS);
-  } else if (l->found && r->found && span > 0 &&
-             (ref = segment_by_length(self, span)) >= 0) {
-    /* a complete amplicon whose probe did not map (e.g. a noisy read
-       start): placed over the whole segment of its length, as terminal */
-    from = 0;
-    to = (long)self->refs->records[ref].seq_len;
-    cat = minus ? COVER_TERMINAL_MINUS : COVER_TERMINAL_PLUS;
-  } else {
-    return;   /* not located and not placeable by length */
-  }
-  if (from > to) {
-    long t = from; from = to; to = t;
-  }
-  if (both && has_deletion(span, to - from)) {
-    /* the junction is not known: half of the template on each side */
-    add_span(self, (size_t)ref, COVER_DELETION, from, from + span / 2);
-    add_span(self, (size_t)ref, COVER_DELETION, to - (span - span / 2), to);
+  if (cover->cover == COVER_DELETION) {
+    add_span(self, cover->ref, COVER_DELETION, cover->from, cover->left_to);
+    add_span(self, cover->ref, COVER_DELETION, cover->right_from,
+             cover->to);
     return;
   }
-  add_span(self, (size_t)ref, cat, from, to);
+  add_span(self, cover->ref, cover->cover, cover->from, cover->to);
 }
 
 /* the length of the template of a complete amplicon, in its group (see
@@ -500,9 +386,11 @@ static void count_length(counter_t *self, const amplicon_t *a) {
   lengths_add(self->lengths, group, (size_t)len);
 }
 
-void counter_add_read(counter_t *self, const amplicon_t *a, size_t len) {
+void counter_add_located_read(counter_t *self, const amplicon_t *a,
+    size_t len, const read_cover_t *cover) {
   assert(self != NULL);
   assert(a != NULL);
+  assert(cover != NULL);
   counter_reads_t *s = &self->reads;
   s->reads_in++;
   s->bases_in += len;
@@ -520,8 +408,15 @@ void counter_add_read(counter_t *self, const amplicon_t *a, size_t len) {
     s->adapter_end++;
   count_end(self, &a->left, COUNTER_LEFT);
   count_end(self, &a->right, COUNTER_RIGHT);
-  count_cover(self, a);
+  count_cover(self, cover);
   count_length(self, a);
+}
+
+void counter_add_read(counter_t *self, const amplicon_t *a, size_t len) {
+  assert(self != NULL);
+  read_cover_t cover;
+  read_cover_locate(self->refs, NULL, a, &cover);
+  counter_add_located_read(self, a, len, &cover);
 }
 
 void counter_add_split(counter_t *self, size_t n_parts, size_t len,
@@ -536,7 +431,9 @@ void counter_add_split(counter_t *self, size_t n_parts, size_t len,
   s->bases_in += len - parts_len;
 }
 
-void counter_add_written(counter_t *self, size_t len) {
+void counter_add_written(counter_t *self, size_t len, size_t category) {
+  assert(category < READ_N_CATEGORIES);
+  self->reads.written[category]++;
   self->reads.reads_out++;
   self->reads.bases_out += len;
 }
@@ -637,7 +534,7 @@ static void test_deletion_coverage(const scheme_t *sc) {
   a.left.origin = ORIGIN_TERMINAL;
   a.left.ref.ref_index = a.right.ref.ref_index = 0;
   a.right.ref.mapped = true;
-  a.right.ref.ref_start = 2000;
+  a.right.ref.ref_start = 1999;    /* the last base of the template */
   counter_add_read(c, &a, 2100);   /* 2000 bases over 2000: complete */
   a.keep_to = 429;
   counter_add_read(c, &a, 500);    /* 400 bases over 2000: a deletion */
@@ -645,6 +542,7 @@ static void test_deletion_coverage(const scheme_t *sc) {
   XMALLOC(cov, sizeof(size_t) * 2000);
   test_eq_size(counter_coverage(c, 0, COVER_TERMINAL_PLUS, cov), 1);
   test_eq_size(cov[1000], 1);
+  test_eq_size(cov[1999], 1);
   test_eq_size(counter_coverage(c, 0, COVER_DELETION, cov), 1);
   test_eq_size(cov[0], 1);
   test_eq_size(cov[199], 1);
@@ -653,6 +551,16 @@ static void test_deletion_coverage(const scheme_t *sc) {
   test_eq_size(cov[1799], 0);
   test_eq_size(cov[1800], 1);
   test_eq_size(cov[1999], 1);
+  /* with its junction located: each flank up to the junction */
+  a.junction = (junction_t){.found = true, .left_to = 100,
+                            .right_from = 1700};
+  counter_add_read(c, &a, 500);
+  test_eq_size(counter_coverage(c, 0, COVER_DELETION, cov), 2);
+  test_eq_size(cov[99], 2);
+  test_eq_size(cov[100], 1);
+  test_eq_size(cov[1699], 0);
+  test_eq_size(cov[1700], 1);
+  test_eq_size(cov[1800], 2);
   free(cov);
   counter_delete(c);
 }
@@ -762,7 +670,7 @@ void counter_test(void) {
   test_assert(counter_sites(c, 1, COUNTER_LEFT) == NULL);
   amplicon_t a = test_amplicon(30, 129, 7);
   counter_add_read(c, &a, 200);
-  counter_add_written(c, 100);
+  counter_add_written(c, 100, READ_CATEGORY_INTERNAL);
   a = test_amplicon(30, 29, 7);
   counter_add_read(c, &a, 60);
   counter_add_too_short(c);
@@ -770,6 +678,8 @@ void counter_test(void) {
   test_eq_size(r->reads_in, 2);
   test_eq_size(r->bases_in, 260);
   test_eq_size(r->reads_out, 1);
+  test_eq_size(r->written[READ_CATEGORY_INTERNAL], 1);
+  test_eq_size(r->written[READ_CATEGORY_FULL], 0);
   test_eq_size(r->n_ends[2], 2);
   test_eq_size(r->dimers, 1);
   test_eq_size(r->too_short, 1);
@@ -813,6 +723,7 @@ void counter_test(void) {
   rewind(f);
   test_assert(counter_load(loaded, f));
   test_eq_size(counter_reads(loaded)->reads_in, 8);
+  test_eq_size(counter_reads(loaded)->written[READ_CATEGORY_INTERNAL], 4);
   test_eq_size(counter_reads(loaded)->origin[COUNTER_LEFT][ORIGIN_INTERNAL],
                8);
   test_eq_size(counter_primer(loaded, COUNTER_LEFT, 1), 8);

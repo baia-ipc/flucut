@@ -12,8 +12,7 @@
 /* state shared by the threads */
 struct worker_job_t {
   reads_reader_t *reader;
-  FILE *out;
-  const char *out_path;
+  read_outputs_t *out;
   pthread_mutex_t input_mutex, output_mutex;
   pthread_cond_t output_cond;
   size_t next_batch, next_to_write;
@@ -33,8 +32,11 @@ void worker_init(worker_t *w, const trimmer_config_t *config,
     fatal_printf("Initialization of the gzip compression failed\n");
   w->counts = counter_new(config->scheme, config->references);
   fastq_batch_init(&w->batch);
-  strbuf_init(&w->text);
-  strbuf_init(&w->gz);
+  w->n_outputs = trimmer_n_outputs(config);
+  for (size_t k = 0; k < TRIMMER_MAX_OUTPUTS; k++) {
+    strbuf_init(w->text + k);
+    strbuf_init(w->gz + k);
+  }
 }
 
 void worker_restrict_references(worker_t *w, const bool *allowed) {
@@ -46,8 +48,10 @@ void worker_free(worker_t *w) {
   libdeflate_free_compressor(w->compressor);
   counter_delete(w->counts);
   fastq_batch_free(&w->batch);
-  strbuf_free(&w->text);
-  strbuf_free(&w->gz);
+  for (size_t k = 0; k < TRIMMER_MAX_OUTPUTS; k++) {
+    strbuf_free(w->text + k);
+    strbuf_free(w->gz + k);
+  }
 }
 
 /*
@@ -81,16 +85,21 @@ static void *worker_run(void *data) {
     pthread_mutex_unlock(&job->input_mutex);
     if (n == 0)
       break;
-    strbuf_clear(&w->text);
-    strbuf_clear(&w->gz);
-    trimmer_run(w->trimmer, &w->batch, 0, n, &w->text, w->counts);
-    if (w->text.len > 0)
-      worker_compress(w->compressor, w->text.s, w->text.len, &w->gz);
+    for (size_t k = 0; k < w->n_outputs; k++) {
+      strbuf_clear(w->text + k);
+      strbuf_clear(w->gz + k);
+    }
+    trimmer_run(w->trimmer, &w->batch, 0, n, w->text, w->counts);
+    for (size_t k = 0; k < w->n_outputs; k++)
+      if (w->text[k].len > 0)
+        worker_compress(w->compressor, w->text[k].s, w->text[k].len,
+                        w->gz + k);
     pthread_mutex_lock(&job->output_mutex);
     while (job->next_to_write != batch_num)
       pthread_cond_wait(&job->output_cond, &job->output_mutex);
-    LCHECK(fwrite(w->gz.s, 1, w->gz.len, job->out) == w->gz.len,
-           job->logger, "%s: write error\n", job->out_path);
+    for (size_t k = 0; k < w->n_outputs; k++)
+      read_outputs_write(job->out, k, w->gz[k].s, w->gz[k].len,
+                         job->logger);
     job->next_to_write++;
     pthread_cond_broadcast(&job->output_cond);
     pthread_mutex_unlock(&job->output_mutex);
@@ -99,15 +108,16 @@ static void *worker_run(void *data) {
 }
 
 void worker_process_file(worker_t *workers, size_t n_workers,
-    const char *reads_file, FILE *out, const char *out_path,
-    counter_t *counts, Logger *logger) {
+    const char *reads_file, read_outputs_t *out, counter_t *counts,
+    Logger *logger) {
   assert(workers != NULL);
   assert(n_workers > 0);
+  assert(out != NULL);
+  assert(out->n == workers[0].n_outputs);
   assert(counts != NULL);
   worker_job_t job;
   job.reader = reads_reader_new(reads_file, logger);
   job.out = out;
-  job.out_path = out_path;
   job.next_batch = 0;
   job.next_to_write = 0;
   job.logger = logger;

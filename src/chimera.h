@@ -40,7 +40,9 @@
      through it: the bases on the amplicon side of the match are located
      in the references, and those on its other side are not located next
      to them (on the same reference and strand, at the distance they
-     have in the read, give or take CHIMERA_CONTINUITY_TOLERANCE), nor
+     have in the read, give or take CHIMERA_CONTINUITY_TOLERANCE, or
+     farther apart in the same order: a read with an internal deletion,
+     whose junction can resemble a primer, is one template), nor
      are the bases further away (CHIMERA_OUTER_PROBES probes are tried,
      the tolerance growing with the distance): a segment can differ
      from the references next to a site. The read is cut on the outer

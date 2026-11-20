@@ -180,6 +180,10 @@ void reference_set_restrict(reference_set_t *self, const bool *allowed);
    chance matches in them. It combines with reference_set_restrict() */
 void reference_set_restrict_segment(reference_set_t *self, int segment);
 
+/* Whether the reference <ref> is considered, given the restrictions to
+   some references and to a segment */
+bool reference_set_allows(const reference_set_t *self, size_t ref);
+
 /* Search the probes by their k-mers only, without the exhaustive search
    of the probes they do not locate (see above) */
 void reference_set_set_seeds_only(reference_set_t *self, bool seeds_only);
@@ -211,6 +215,19 @@ void reference_set_locate_seeded(reference_set_t *self, const char *probe,
     size_t probe_len, reference_hit_t *hit);
 
 /*
+   As reference_set_locate(), in the reference <ref_index> alone and on
+   one strand: the plus strand, or (<reverse>) the minus strand. The
+   probe is aligned to the whole reference, without the index: for a
+   probe whose reference is known, e.g. from the other end of its read,
+   which is thus located whenever it is there, also where the k-mers of
+   a sample which differs from the reference do not find it. Among
+   equally good matches, the one nearest to the terminus is chosen.
+*/
+void reference_set_locate_in(reference_set_t *self, const char *probe,
+    size_t probe_len, size_t ref_index, bool reverse,
+    reference_hit_t *hit);
+
+/*
    Whether the mapped probe <hit> is at a terminus of the segment (a
    normal amplicon) rather than at an interior position (internal
    priming): within <terminal_window> bases of the start of the segment
@@ -225,6 +242,9 @@ size_t reference_set_size(const reference_set_t *self);
 
 /* The probe length of the set */
 size_t reference_set_probe_len(const reference_set_t *self);
+
+/* The sequences of the references */
+const fasta_t* reference_set_fasta(const reference_set_t *self);
 
 /* Delete (NULL is accepted) */
 void reference_set_delete(reference_set_t *self);

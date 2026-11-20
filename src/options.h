@@ -63,6 +63,8 @@ typedef struct {
   bool tags;
   bool split;                 /* split the reads with several amplicons
                                  (chimera.h) */
+  bool by_category;           /* an output file for each category of
+                                 reads (read-outputs.h) */
   const char *adapters;       /* see adapters.h */
   size_t threads;
   int compress_level;         /* of the outputs (gzip) */

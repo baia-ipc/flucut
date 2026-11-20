@@ -20,7 +20,8 @@ static void summary_header(FILE *f) {
         "both_ends\tone_end\tno_end\tminus_strand\tdimers\ttoo_short\t"
         "with_internal_match\tsplit\tleft_terminal\tleft_internal\t"
         "left_unknown\tright_terminal\tright_internal\tright_unknown\t"
-        "short_complete\n", f);
+        "short_complete\tout_full\tout_internal\tout_deletion\t"
+        "out_other\n", f);
 }
 
 static void summary_line(FILE *f, const char *name,
@@ -41,9 +42,17 @@ static void summary_line(FILE *f, const char *name,
         fputs("\tNA", f);
     }
   if (refs)
-    fprintf(f, "\t%zu\n", short_complete);
+    fprintf(f, "\t%zu", short_complete);
   else
-    fputs("\tNA\n", f);
+    fputs("\tNA", f);
+  /* (the categories too) */
+  for (size_t k = 0; k < READ_N_CATEGORIES; k++) {
+    if (refs)
+      fprintf(f, "\t%zu", s->written[k]);
+    else
+      fputs("\tNA", f);
+  }
+  fputc('\n', f);
 }
 
 /* log the counts of an output */

@@ -22,3 +22,7 @@ no_split	-r off --no-split testdata/reads.fastq
 segment	--segment HA -r testdata/ref-ha-pa.fasta testdata/reads.fastq
 segment_other	--segment PA -r testdata/ref-ha-pa.fasta testdata/reads.fastq
 report_segment	--report-segment PA -r testdata/ref-ha-pa.fasta testdata/reads.fastq
+# reads with an internal deletion (the tag ct); the reads written to a
+# file for each category, for each input
+deletion	-r testdata/ref-ha.fasta testdata/deletion.fastq
+by_category	--by-category -r testdata/ref-ha.fasta testdata/reads.fastq testdata/deletion.fastq

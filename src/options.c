@@ -26,6 +26,7 @@ enum {
   OPT_TERMINAL_WINDOW,
   OPT_NO_TAGS,
   OPT_NO_SPLIT,
+  OPT_BY_CATEGORY,
   OPT_EXHAUSTIVE,
   OPT_ADAPTERS,
   OPT_LIVE,
@@ -98,6 +99,14 @@ enum {
   "   --no-tags              do not append the tags to the read titles\n" \
   "   --no-split             do not split the reads which contain\n" \
   "                          several amplicons\n" \
+  "   --by-category          write the reads of each input to four files,\n" \
+  "                          by category (the tag ct), instead of one:\n" \
+  "                          <name>.full.fastq.gz (full templates),\n" \
+  "                          <name>.internal.fastq.gz (internal priming),\n" \
+  "                          <name>.deletion.fastq.gz (internal\n" \
+  "                          deletions) and <name>.other.fastq.gz (no 5'\n" \
+  "                          primer, or not located); needs the\n" \
+  "                          references\n" \
   "   --adapters <kits>      the Nanopore adapters searched at the read\n" \
   "                          ends without a primer: a comma-separated\n" \
   "                          list of " ADAPTERS_KITS ", or none\n" \
@@ -232,6 +241,7 @@ void options_parse(options_t *self, int argc, char *argv[],
   self->live_min_age = OPTIONS_DEFAULT_MIN_AGE;
   self->live_scan_interval = OPTIONS_DEFAULT_SCAN_INTERVAL;
   self->resume = false;
+  self->by_category = false;
   bool timeout_given = false, min_age_given = false,
        scan_interval_given = false;
   self->threads = OPTIONS_DEFAULT_THREADS;
@@ -248,6 +258,7 @@ void options_parse(options_t *self, int argc, char *argv[],
     {"compress-level", required_argument, NULL, OPT_COMPRESS_LEVEL},
     {"no-tags", no_argument, NULL, OPT_NO_TAGS},
     {"no-split", no_argument, NULL, OPT_NO_SPLIT},
+    {"by-category", no_argument, NULL, OPT_BY_CATEGORY},
     {"adapters", required_argument, NULL, OPT_ADAPTERS},
     {"live", no_argument, NULL, OPT_LIVE},
     {"timeout", required_argument, NULL, OPT_TIMEOUT},
@@ -368,6 +379,9 @@ void options_parse(options_t *self, int argc, char *argv[],
       case OPT_RESUME:
         self->resume = true;
         break;
+      case OPT_BY_CATEGORY:
+        self->by_category = true;
+        break;
       case OPT_ADAPTERS:
         if (!adapters_valid(optarg))
           PARSE_ERR("Option '--adapters': a comma-separated list of "
@@ -432,6 +446,9 @@ void options_parse(options_t *self, int argc, char *argv[],
   if (self->segment != 0 && self->references_off)
     PARSE_ERR("Option '--segment': the references are required (not -r "
               "off)");
+  if (self->by_category && self->references_off)
+    PARSE_ERR("Option '--by-category': the references are required (not "
+              "-r off)");
   /* the report of a run classified against one segment shows that
      segment (the others have no located reads) */
   if (self->segment != 0 && self->report_segment != 0 &&
@@ -488,6 +505,8 @@ void options_parse(options_t *self, int argc, char *argv[],
   PARSE_LOG("Platform: %s\n", self->illumina ? "illumina" : "nanopore");
   PARSE_LOG("Window: %ld\n", self->window);
   PARSE_LOG("Minimum length: %zu\n", self->min_length);
+  PARSE_LOG("Outputs: %s\n", self->by_category ?
+            "a file for each category of reads" : "a file for each input");
   PARSE_LOG("Adapters: %s\n", self->adapters);
   if (self->live) {
     PARSE_LOG("Live mode: timeout %ld s (0: none), minimum age %ld s, "

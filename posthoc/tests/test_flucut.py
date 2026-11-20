@@ -42,6 +42,27 @@ def test_read_without_located_end():
     assert predicted_spans(part, LENGTHS)[0] == "not_located"
 
 
+def test_category_tag_is_used_when_present():
+    # no end located: the category is known only from the tag
+    part = parse_part("300\tfs:Z:-\tfl:Z:u\tol:Z:unknown\tct:Z:internal")
+    assert predicted_spans(part, LENGTHS) == ("internal-", None, [])
+    part = parse_part("300\tfs:Z:.\tct:Z:other")
+    assert predicted_spans(part, LENGTHS) == ("not_located", None, [])
+    # an end located: the span from its position, the category from the tag
+    part = parse_part("575\tfs:Z:+\tfl:Z:u\tol:Z:terminal\tml:Z:ref:13:+"
+                      "\tct:Z:full")
+    assert predicted_spans(part, LENGTHS) == ("terminal+", "ref",
+                                              [(12, 587)])
+    part = parse_part("300\tfs:Z:+\tml:Z:ref:13:+\tct:Z:other")
+    assert predicted_spans(part, LENGTHS) == ("no_primer", "ref",
+                                              [(12, 312)])
+    part = parse_part("300\tfs:Z:-\tfl:Z:u\tol:Z:terminal\tml:Z:ref:1:+"
+                      "\tfr:Z:v\tor:Z:terminal\tmr:Z:ref:600:-"
+                      "\tct:Z:deletion")
+    assert predicted_spans(part, LENGTHS) == (
+        "deletion", "ref", [(0, 150), (450, 600)])
+
+
 def test_agreement_of_a_read(reference, params):
     flank = random_seq(30, 30)
     read = flank + reference.seq + flank

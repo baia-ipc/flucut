@@ -9,7 +9,9 @@
    the number of threads. The batches have WORKER_BATCH_SIZE reads, each
    compressed (with libdeflate) as a gzip member of its own; the
    concatenation of the members is a valid gzip file, also when a file is
-   appended to (live mode).
+   appended to (live mode). With an output file for each category of
+   reads (read-outputs.h), the reads of a batch are compressed apart for
+   each file: the order of the reads of each file is that of the input.
 */
 
 #ifndef WORKER_H
@@ -21,6 +23,7 @@
 #include "fastq-reader.h"
 #include "libdeflate.h"
 #include "logger.h"
+#include "read-outputs.h"
 #include "strbuf.h"
 #include "trimmer.h"
 
@@ -42,7 +45,10 @@ typedef struct {
   struct libdeflate_compressor *compressor;
   counter_t *counts;
   fastq_batch_t batch;
-  strbuf_t text, gz;
+  /* the trimmed reads of a batch and their compression, for each
+     output (see trimmer_n_outputs()) */
+  size_t n_outputs;
+  strbuf_t text[TRIMMER_MAX_OUTPUTS], gz[TRIMMER_MAX_OUTPUTS];
 } worker_t;
 
 /* Initialize a worker, with a trimmer for <config> (which must exist as
@@ -52,21 +58,21 @@ typedef struct {
 void worker_init(worker_t *w, const trimmer_config_t *config,
     int compress_level);
 
-/* Free the memory of a worker */
 /* Classify the reads only against the references <allowed> (NULL: all);
    set before processing a group (see reference_set_restrict) */
 void worker_restrict_references(worker_t *w, const bool *allowed);
 
+/* Free the memory of a worker */
 void worker_free(worker_t *w);
 
 /*
    Trim the reads of <reads_file> with the <n_workers> <workers> (in
-   threads, if more than one); the trimmed reads are appended to <out>
-   (gzipped FASTQ, path <out_path>, for the messages), and the counts are
-   added to <counts>
+   threads, if more than one); the trimmed reads are appended to the open
+   files of <out> (gzipped FASTQ; as many as the outputs of the trimmers
+   of the workers), and the counts are added to <counts>
 */
 void worker_process_file(worker_t *workers, size_t n_workers,
-    const char *reads_file, FILE *out, const char *out_path,
-    counter_t *counts, Logger *logger);
+    const char *reads_file, read_outputs_t *out, counter_t *counts,
+    Logger *logger);
 
 #endif

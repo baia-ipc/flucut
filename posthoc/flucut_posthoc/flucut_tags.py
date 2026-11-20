@@ -2,9 +2,10 @@
 
 flucut appends tags to the titles of the reads it writes: the primers
 found (`fl`, `fr`), the origin of each end (`ol`, `or`), where the bases
-after a primer mapped (`ml`, `mr`), the bases removed (`tl`, `tr`) and
-the part of a split read (`sp`). They are its predictions for each read;
-here they are compared with what the mapping of the same read shows.
+after a primer mapped (`ml`, `mr`), the category of the read (`ct`), the
+bases removed (`tl`, `tr`) and the part of a split read (`sp`). They are
+its predictions for each read; here they are compared with what the
+mapping of the same read shows.
 """
 
 from collections import Counter
@@ -16,6 +17,9 @@ from .seqio import fastq_records, read_name
 FLUCUT_CATEGORIES = ["terminal+", "terminal-", "internal+", "internal-",
                      "no_primer", "unmapped_probe", "deletion"]
 ENDS = (("left", "12", "fl", "ol", "ml"), ("right", "13", "fr", "or", "mr"))
+# the categories of the coverage plot (without the strand) of the values
+# of the `ct` tag which name one
+CT_CATEGORIES = {"full": "terminal", "internal": "internal"}
 
 
 def load_flucut_reads(path: str, by_record: bool = False
@@ -72,9 +76,30 @@ def parse_part(text: str, lift: dict | None = None) -> dict:
 def predicted_spans(part: dict, ref_lengths: dict[str, int]
                     ) -> tuple[str, str | None, list[tuple[int, int]]]:
     """The category and the span on its reference which flucut gives a
-    read in its coverage plot, from the tags (as counter.c does): the
-    category, the reference and the intervals. A read which flucut placed
-    by a probe from inside it has no tag for that: "not_located"."""
+    read in its coverage plot: the category, the reference and the
+    intervals. The span is worked out from the positions of the ends
+    (`ml`, `mr`), as flucut does. The category is the one flucut wrote
+    in the `ct` tag, with the strand; for reads without that tag it is
+    worked out from the other tags too. A read which flucut placed in
+    another way (by a probe from inside it, or by its length) has no
+    tag for its position: it has no span, and without `ct` it is
+    "not_located"."""
+    category, ref, spans = _spans_from_tags(part, ref_lengths)
+    said = part.get("ct")
+    if said is None:
+        return category, ref, spans
+    if said in CT_CATEGORIES:
+        strand = "-" if part.get("fs") == "-" else "+"
+        return CT_CATEGORIES[said] + strand, ref, spans
+    if said == "deletion":
+        return "deletion", ref, spans
+    return ("no_primer" if spans else "not_located"), ref, spans
+
+
+def _spans_from_tags(part: dict, ref_lengths: dict[str, int]
+                     ) -> tuple[str, str | None, list[tuple[int, int]]]:
+    """The category and the span of a read from the tags of its ends
+    (as read-cover.c does for a read with a located end)."""
     span = part["len"]
     minus = part.get("fs") == "-"
     strand = "-" if minus else "+"

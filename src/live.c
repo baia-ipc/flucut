@@ -17,6 +17,7 @@
 #include "file.h"
 #include "input-groups.h"
 #include "live.h"
+#include "read-outputs.h"
 #include "reads-reader.h"
 #include "report.h"
 #include "results.h"
@@ -42,7 +43,7 @@ static void live_signal(int sig) {
 /* state of a group in the live mode */
 typedef struct {
   char *name;
-  char *output;            /* the path of its output */
+  read_outputs_t *output;  /* its output files */
   char **done;             /* the files processed, in processing order */
   size_t n_done, done_cap;
   khash_t(strsize) *done_set;   /* file sizes (-1: unknown/warned) */
@@ -173,7 +174,7 @@ static void remove_file(const char *path, Logger *logger) {
    from the beginning, as the output is then appended to) */
 static void clear_group(const options_t *opts, const live_group_t *st,
     Logger *logger) {
-  remove_file(st->output, logger);
+  read_outputs_remove(st->output, logger);
   const char *sfx[] = {LIVE_FILES_SFX, LIVE_COUNTS_SFX};
   for (size_t i = 0; i < 2; i++) {
     char *path = state_path(opts->outdir, st->name, sfx[i]);
@@ -219,7 +220,7 @@ static live_group_t* get_group(live_t *w, const char *name) {
   XREALLOC(w->groups, sizeof(live_group_t) * (w->n_groups + 1));
   live_group_t *st = w->groups + w->n_groups++;
   st->name = xstrdup(name);
-  st->output = input_group_output_path(opts->outdir, name);
+  st->output = read_outputs_new(opts->outdir, name, opts->by_category);
   st->done = NULL;
   st->n_done = 0;
   st->done_cap = 0;
@@ -281,7 +282,7 @@ static void write_results(const live_t *w, bool running) {
   counter_t *total = counter_new(w->scheme, w->refs);
   for (size_t i = 0; i < w->n_groups; i++) {
     const live_group_t *st = w->groups + i;
-    results[i] = (results_group_t){st->name, st->output, st->counts,
+    results[i] = (results_group_t){st->name, st->output->label, st->counts,
                                    st->n_done};
     counter_merge(total, st->counts);
   }
@@ -343,11 +344,10 @@ static void process_file(live_t *w, live_group_t *st, const char *path,
   }
   for (size_t t = 0; t < opts->threads; t++)
     worker_restrict_references(workers + t, st->allowed);
-  FILE *out = xfopen(st->output, NULL, st->n_done > 0 ? "ab" : "wb",
-                     "trimmed reads", w->logger);
-  worker_process_file(workers, opts->threads, path, out, st->output,
+  read_outputs_open(st->output, st->n_done > 0, w->logger);
+  worker_process_file(workers, opts->threads, path, st->output,
                       w->file_counts, w->logger);
-  xfclose(&out, w->logger);
+  read_outputs_close(st->output, w->logger);
   counter_merge(st->counts, w->file_counts);
   add_done(st, path, size);
   save_state(opts, st, w->logger);
@@ -427,7 +427,7 @@ static void delete_groups(live_group_t *groups, size_t n_groups) {
     free(groups[i].done);
     kh_destroy(strsize, groups[i].done_set);
     counter_delete(groups[i].counts);
-    free(groups[i].output);
+    read_outputs_delete(groups[i].output);
     free(groups[i].allowed);
     free(groups[i].name);
   }

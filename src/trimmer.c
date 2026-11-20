@@ -13,6 +13,7 @@
 #include "fastq-writer.h"
 #include "lengths.h"
 #include "logger.h"
+#include "read-cover.h"
 #include "reference.h"
 #include "sam-tags.h"
 #include "scheme.h"
@@ -122,9 +123,10 @@ static void append_part_title(strbuf_t *t, const char *title,
 
 /* the title of the record written for a read, or for the part <part>
    (from 1) of the <n_parts> parts of a split read, of length <len>: its
-   title, then the tags */
+   title, then the tags; <category>: of the read (READ_CATEGORY_*) */
 static void make_title(trimmer_t *self, const char *title, size_t title_len,
-    const amplicon_t *a, size_t len, size_t part, size_t n_parts) {
+    const amplicon_t *a, size_t category, size_t len, size_t part,
+    size_t n_parts) {
   strbuf_t *t = &self->title;
   strbuf_clear(t);
   if (n_parts > 1)
@@ -138,6 +140,10 @@ static void make_title(trimmer_t *self, const char *title, size_t title_len,
   sam_tag_append_string(t, "fs", strand, 1);
   append_end_tags(self, &a->left, 'l', self->config->scheme->left);
   append_end_tags(self, &a->right, 'r', self->config->scheme->right);
+  if (self->refs != NULL) {
+    const char *name = read_category_name(category);
+    sam_tag_append_string(t, "ct", name, strlen(name));
+  }
   sam_tag_append_int(t, "tl", a->keep_from);
   sam_tag_append_int(t, "tr", (long)len - 1 - a->keep_to);
   if (a->n_internal > 0)
@@ -159,7 +165,9 @@ static void make_title(trimmer_t *self, const char *title, size_t title_len,
 }
 
 /* analyze, count and write the bases <from> to <to> of the read <rec>
-   of <batch>, the part <part> (from 1) of <n_parts> */
+   of <batch>, the part <part> (from 1) of <n_parts>; the record is
+   appended to the buffer of <out> of its category, or to the only one
+   (see trimmer_n_outputs()) */
 static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
     const fastq_record_t *rec, long from, long to, size_t part,
     size_t n_parts, strbuf_t *out, counter_t *counts) {
@@ -167,18 +175,23 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
   const char *seq = data + rec->seq_from + from;
   size_t len = (size_t)(to - from + 1);
   const amplicon_t *a = amplicon_analyzer_run(self->analyzer, seq, len);
-  counter_add_read(counts, a, len);
+  read_cover_t cover;
+  read_cover_locate(self->config->references, self->refs, a, &cover);
+  size_t category = read_cover_category(&cover);
+  counter_add_located_read(counts, a, len, &cover);
   size_t kept = amplicon_kept_length(a);
   if (kept == 0 || kept < self->config->min_length) {
     counter_add_too_short(counts);
     return;
   }
-  make_title(self, data + rec->title_from, rec->title_len, a, len, part,
-             n_parts);
+  make_title(self, data + rec->title_from, rec->title_len, a, category,
+             len, part, n_parts);
+  if (self->config->by_category)
+    out += category;
   fastq_writer_record(out, self->title.s, self->title.len,
                       seq + a->keep_from,
                       data + rec->qual_from + from + a->keep_from, kept);
-  counter_add_written(counts, kept);
+  counter_add_written(counts, kept, category);
 }
 
 void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
@@ -228,6 +241,73 @@ static void one_record(fastq_batch_t *batch, const char *title,
     strbuf_append_char(&batch->data, (char)('!' + (char)(i % 40)));
   r->qual_missing = false;
   batch->n_records = 1;
+}
+
+/* the category of the reads: the tag, and the records written apart by
+   category */
+static void test_categories(const scheme_t *sc) {
+  /* the interior of a segment (not similar to the primers) */
+  const char *interior =
+    "GCTAAAGACAATTACATAACATACACGTCAGCACGAAACTTGTTGGCCCAGTGTGAATCG"
+    "CTTAAGGGTTAAGTAAGTGTGATGCATACGCCTTTACTTGCTGTGTCCACCCCATCGGAC"
+    "TGGCATTTTTATTACACTCAGAAACAGAACTCGGGTAATTTTGACAGGTCACGCAGAGGC"
+    "GCGCCCTCCTGAAGTGCGTGGACACTCGCTATGAATCTCTGATTTACCCACTCTGCCAAA"
+    "CTCCAGCGCGGTCAGTTCCATCACCCTAAGTAACCGAATAATGCGTTCGCTCTATTGACT";
+  const char *uni12 = "AGCAAAAGCAGG";
+  const char *rc13 = "CCTTGTTTCTACTGATCACGCGT";
+  char segment[512], read[512];
+  snprintf(segment, sizeof(segment), "%s%sCCTTGTTTCTACT", uni12, interior);
+  fasta_record_t record = {.name = "seg", .description = "",
+                           .seq = segment, .seq_len = strlen(segment)};
+  fasta_t fa = {.records = &record, .n_records = 1};
+  reference_index_t *index = reference_index_new(&fa);
+  trimmer_config_t config = {.scheme = sc, .max_errors = 0.1,
+      .policy = TRIM_TERMINUS, .window = AMPLICON_DEFAULT_WINDOW,
+      .references = &fa, .index = index,
+      .probe_len = REFERENCE_DEFAULT_PROBE_LEN,
+      .probe_error_rate = REFERENCE_DEFAULT_MAX_ERROR_RATE,
+      .terminal_window = REFERENCE_DEFAULT_TERMINAL_WINDOW,
+      .min_length = 1, .tags = true};
+  test_eq_size(trimmer_n_outputs(&config), 1);
+  trimmer_t *tr = trimmer_new(&config);
+  fastq_batch_t batch;
+  fastq_batch_init(&batch);
+  strbuf_t out[TRIMMER_MAX_OUTPUTS];
+  for (size_t k = 0; k < TRIMMER_MAX_OUTPUTS; k++)
+    strbuf_init(out + k);
+  counter_t *counts = counter_new(sc, &fa);
+  /* a full template, then an internally primed one: both in the only
+     output, each with the tag of its category */
+  snprintf(read, sizeof(read), "%s%s%s", uni12, interior, rc13);
+  one_record(&batch, "whole", read);
+  trimmer_run(tr, &batch, 0, 1, out, counts);
+  snprintf(read, sizeof(read), "%s%s%s", uni12, interior + 150, rc13);
+  one_record(&batch, "inside", read);
+  trimmer_run(tr, &batch, 0, 1, out, counts);
+  strbuf_append_char(out, '\0');
+  test_assert(strstr(out[0].s, "\tct:Z:full\ttl:i:") != NULL);
+  test_assert(strstr(out[0].s, "\tct:Z:internal\ttl:i:") != NULL);
+  test_eq_size(out[1].len, 0);
+  trimmer_delete(tr);
+  /* written apart: each read in the output of its category */
+  config.by_category = true;
+  test_eq_size(trimmer_n_outputs(&config), READ_N_CATEGORIES);
+  tr = trimmer_new(&config);
+  strbuf_clear(out);
+  trimmer_run(tr, &batch, 0, 1, out, counts);
+  snprintf(read, sizeof(read), "%s%s%s", uni12, interior, rc13);
+  one_record(&batch, "whole", read);
+  trimmer_run(tr, &batch, 0, 1, out, counts);
+  test_eq_mem(out[READ_CATEGORY_FULL].s, 7, "@whole\t");
+  test_eq_mem(out[READ_CATEGORY_INTERNAL].s, 8, "@inside\t");
+  test_eq_size(out[READ_CATEGORY_DELETION].len, 0);
+  test_eq_size(out[READ_CATEGORY_OTHER].len, 0);
+  trimmer_delete(tr);
+  counter_delete(counts);
+  for (size_t k = 0; k < TRIMMER_MAX_OUTPUTS; k++)
+    strbuf_free(out + k);
+  fastq_batch_free(&batch);
+  reference_index_delete(index);
 }
 
 void trimmer_test(void) {
@@ -319,6 +399,7 @@ void trimmer_test(void) {
   counter_delete(counts);
   strbuf_free(&out);
   fastq_batch_free(&batch);
+  test_categories(sc);
   scheme_delete(sc);
   delete_logger(logger);
 }

@@ -52,6 +52,9 @@ tag      meaning
          ``<reference>:<position>:<strand>`` (1-based position on the
          plus strand)
 ``mr``   the same for the right end
+``ct``   with ``-r``: the category of the read: ``full``,
+         ``internal``, ``deletion`` or ``other`` (see
+         :ref:`reads-by-category`)
 ``sp``   ``<k>/<n>``: the record is part ``k`` of the ``n`` parts of a
          read which contained several amplicons (see below)
 ======== ============================================================
@@ -66,6 +69,53 @@ record of its own. The name of the read (the first word of the title) is
 followed by ``_1``, ``_2``, ... so that the names stay unique, and the
 tags, ``tl`` and ``tr`` included, describe the part. ``--no-split`` writes
 one record for each read.
+
+.. _reads-by-category:
+
+Reads by category
+-----------------
+
+With references, each read written belongs to one of four categories,
+given by its ``ct`` tag. They are the groups of the coverage plot of the
+HTML report (:doc:`reports`), which describes how the reads are told
+apart:
+
+============ ========================================== ================
+``ct``       reads                                      in the plot
+============ ========================================== ================
+``full``     full templates: the amplicon started at a  terminal +/-
+             segment end                                (green)
+``internal`` internal priming: the amplicon started     internal +/-
+             inside the segment                         (amber, blue)
+``deletion`` internal deletions: the two ends of a      internal
+             segment joined, e.g. defective             deletion
+             interfering genomes                        (purple)
+``other``    reads without a 5' primer (fragments of    grey, or not
+             unknown origin), and reads which could     shown
+             not be located on the references
+============ ========================================== ================
+
+The category describes where the amplicon started (its 5' end), on
+either strand; the strand is in the ``fs`` tag.
+
+``--by-category`` writes the reads of each input to four files, one for
+each category, instead of ``<name>.fastq.gz``::
+
+   flucut --by-category -o trimmed barcode01/
+
+   trimmed/barcode01.full.fastq.gz
+   trimmed/barcode01.internal.fastq.gz
+   trimmed/barcode01.deletion.fastq.gz
+   trimmed/barcode01.other.fastq.gz
+
+All four files are always written; one without reads is an empty gzip
+file. In each file the reads are in the order of the input, and together
+the four files contain the same reads as ``<name>.fastq.gz`` would. The
+parts of a split read are each written to the file of their own
+category. The tables and the reports have one part for each input, not
+for each file; the reads of each file are counted in the columns
+``out_full``, ``out_internal``, ``out_deletion`` and ``out_other`` of
+``summary.tsv``.
 
 summary.tsv
 -----------
@@ -110,6 +160,8 @@ One line for each input, tab-separated, with a header:
      - with ``-r``: the left and right ends found, by origin; ``NA`` without references
    * - ``short_complete``
      - with ``-r``: complete amplicons shorter than 90% of their reference; ``NA`` without references
+   * - ``out_full``, ``out_internal``, ``out_deletion``, ``out_other``
+     - with ``-r``: the reads written, by category (:ref:`reads-by-category`); their sum is ``reads_out``; ``NA`` without references
 
 lengths.tsv
 -----------

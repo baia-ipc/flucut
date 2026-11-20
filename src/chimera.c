@@ -185,7 +185,9 @@ static void locate(chimera_finder_t *self, const char *seq, size_t len,
    Whether the bases of <seq> from <a_from> to <a_to> - 1 and those from
    <b_from> to <b_to> - 1 (after the first ones) are located on the same
    reference and strand, at the distance they have in the read, give or
-   take <tolerance>; <b> is the location of the second ones.
+   take <tolerance>, or farther apart in the same order: the read then
+   lacks bases of the reference between them (an internal deletion, see
+   amplicon.h), and is one template all the same.
 */
 static bool is_continuous(chimera_finder_t *self, const char *seq,
     size_t len, long a_from, long a_to, long b_from, long b_to,
@@ -199,8 +201,7 @@ static bool is_continuous(chimera_finder_t *self, const char *seq,
   long in_read = b_from - (a_from < 0 ? 0 : a_from);
   long in_ref = b.reverse ? a.ref_start - b.ref_start :
                 b.ref_start - a.ref_start;
-  long diff = in_ref - in_read;
-  return diff <= tolerance && diff >= -tolerance;
+  return in_ref - in_read >= -tolerance;
 }
 
 /*

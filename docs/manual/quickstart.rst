@@ -58,7 +58,7 @@ as started inside the segment, at position 712, is tagged as such:
 
    @internal12_plus simulated  fs:Z:+  fl:Z:uni12r  ol:Z:internal
      ml:Z:NC_004908.1:712:+  fr:Z:mbtuni-13  or:Z:terminal
-     mr:Z:NC_004908.1:1714:-  tl:i:12  tr:i:23
+     mr:Z:NC_004908.1:1714:-  ct:Z:internal  tl:i:12  tr:i:10
 
 .. figure:: figures/terminal_flucut.*
    :width: 100%

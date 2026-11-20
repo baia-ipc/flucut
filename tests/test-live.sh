@@ -8,7 +8,8 @@
 # outputs and the tables must be the same as those of a normal run on the
 # final input. Then: --resume with a new file, restart without --resume,
 # interruption with SIGINT, end of the run (final summary of MinKNOW),
-# -e auto with no file at the start, a file created empty.
+# -e auto with no file at the start, a file created empty, a file for
+# each category of reads (--by-category).
 #
 # Usage: tests/test-live.sh <flucut command> [<prefix command>]
 #
@@ -195,3 +196,29 @@ wait $pid || fail "empty file: error: $(cat $TMP/empty.err)"
 grep -q '"in": 12,' $TMP/empty_out/flucut_summary.json || \
   fail "empty file: not all reads processed: $(cat $TMP/empty.err)"
 echo "[OK] live: file created empty"
+
+# 8. a file for each category of reads: appended to as the only output
+#    is (a run, then a resumed one with a new file), and written again
+#    from the beginning without --resume
+rm -rf $TMP/cat $TMP/cat_out $TMP/cat_dir
+mkdir -p $TMP/cat/barcode01
+cp testdata/reads.fastq $TMP/cat/barcode01/a.fastq
+$PREFIX $FLUCUT -o $TMP/cat_out --live --timeout 1s --min-age 0 \
+  --by-category $TMP/cat 2> $TMP/cat.err || \
+  fail "by category: error: $(cat $TMP/cat.err)"
+cp testdata/deletion.fastq $TMP/cat/barcode01/b.fastq
+$PREFIX $FLUCUT -o $TMP/cat_out --live --timeout 1s --min-age 0 \
+  --by-category --resume $TMP/cat 2> $TMP/cat.err || \
+  fail "by category: resume: error: $(cat $TMP/cat.err)"
+[ "$(n_processed $TMP/cat.err)" -eq 1 ] || \
+  fail "by category: not only the new file processed: $(cat $TMP/cat.err)"
+$FLUCUT -o $TMP/cat_dir --by-category $TMP/cat 2> /dev/null
+compare $TMP/cat_out $TMP/cat_dir
+[ "$(cd $TMP/cat_out && ls *.fastq.gz | tr '\n' ' ')" = \
+  "barcode01.deletion.fastq.gz barcode01.full.fastq.gz"\
+" barcode01.internal.fastq.gz barcode01.other.fastq.gz " ] || \
+  fail "by category: not the four files: $(ls $TMP/cat_out)"
+$PREFIX $FLUCUT -o $TMP/cat_out --live --timeout 1s --min-age 0 \
+  --by-category $TMP/cat 2> /dev/null
+compare $TMP/cat_out $TMP/cat_dir
+echo "[OK] live: a file for each category of reads"

@@ -40,6 +40,7 @@ Settings:
 | `report_segment` | integer or null | `--report-segment` (or `--segment`): the segment (1-8) shown in the per-reference parts of the HTML report; `null`: all. The JSON summary itself always describes all the references |
 | `tags` | boolean | the tags are appended to the titles of the reads (`false`: `--no-tags`) |
 | `split` | boolean | the reads which contain several amplicons are split (`false`: `--no-split`) |
+| `by_category` | boolean | `--by-category`: the reads of each input are written to four files, one for each category of reads (full templates, internal priming, internal deletions, other) |
 | `threads` | integer | `-j` |
 | `compress_level` | integer | `--compress-level`: the gzip compression level of the outputs |
 
@@ -49,6 +50,7 @@ Section (statistics of a set of reads):
 |---|---|---|
 | `reads` | object | `in`, `bases_in` (reads read and their bases), `written`, `bases_written`, `both_primers`, `one_primer`, `no_primer` (reads by number of ends at which a primer was found), `dimers` (both primers and nothing between them), `too_short` (not written: empty or shorter than `-m` after the trimming; dimers included), `minus_strand` (reads whose primers were found on their reverse complement), `with_internal_match` (reads with primer matches inside them), `split` (reads split into several amplicons: `in` and `bases_in` count the reads of the input, the other counts each part as a read), `adapter_start`, `adapter_end` (reads with a Nanopore adapter removed at their start, at their end: searched only at the ends without a primer, `--adapters`) |
 | `primers` | object | for each end (`left`, `right`): the reads in which each primer of the scheme was found at that end, by primer name |
+| `written_by_category` | object or null | with references: the reads written, by category (the `ct` tag): `full` (full templates), `internal` (internal priming), `deletion` (internal deletions), `other` (no 5' primer, or not located); their sum is `reads.written`; `null` without references |
 | `ends` | object or null | with references: for each end, the ends found by origin: `terminal`, `internal`, `unknown` (not located in the references); `null` without references |
 | `internal_sites` | array or null | with references: the internal priming sites, by decreasing number of reads (at most 1000): `reference`, `end` (`left` or `right`), `position` (1-based position on the plus strand of the reference of the first base after the primer, as in the `ml`/`mr` tags of the reads, where most read ends of the site mapped), `from`, `to` (the range of the positions of the site: positions at most 5 bases apart are one site), `reads`; `null` without references |
 | `short_complete` | integer or null | with references: the complete amplicons shorter than 90% of their reference (as in `summary.tsv`); `null` without references |

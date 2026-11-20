@@ -88,6 +88,9 @@ expect 1 --segment HA -r off "$reads"
 expect 1 --segment HA --report-segment NA -r "$refs" "$reads"
 expect 0 --segment HA -r "$refs" "$reads"
 expect 0 --segment 4 --report-segment HA -r "$refs" "$reads"
+# a file for each category of reads: it needs the references
+expect 1 --by-category -r off "$reads"
+expect 0 --by-category -r "$refs" "$reads"
 expect 1 --no-such-option "$reads"
 # inputs: missing, not a file of reads, two with the same output
 expect 1 testdata/no-such-file.fastq

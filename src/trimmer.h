@@ -33,6 +33,20 @@
      ml:Z:, mr:Z:   where its probe mapped: <reference>:<pos>:<strand>
                     (1-based position on the plus strand)
 
+   and for each read:
+
+     ct:Z:<name>    its category (see read-cover.h): full (a full
+                    template), internal (internal priming), deletion (an
+                    internal deletion) or other (no 5' primer, or not
+                    located)
+
+   Reads by category
+   -----------------
+
+   The records can be written apart by category (<by_category>, which
+   needs references), one output for each: the parts of a split read
+   are then written each to the output of its own category.
+
    Reads shorter than the minimum length after the trimming are not
    written (primer dimers, with nothing left, always).
 
@@ -56,6 +70,7 @@
 #include "counter.h"
 #include "fasta.h"
 #include "fastq-reader.h"
+#include "read-cover.h"
 #include "reference.h"
 #include "scheme.h"
 #include "strbuf.h"
@@ -82,7 +97,17 @@ typedef struct {
   size_t min_length;          /* shorter reads are not written */
   bool tags;                  /* append the tags to the titles */
   bool split;                 /* split the reads with several amplicons */
+  bool by_category;           /* an output for each category of reads */
 } trimmer_config_t;
+
+/* the greatest number of outputs of a trimmer */
+#define TRIMMER_MAX_OUTPUTS READ_N_CATEGORIES
+
+/* The number of outputs of a trimmer for <config>: one, or one for each
+   category of reads (in the order of READ_CATEGORY_*) */
+static inline size_t trimmer_n_outputs(const trimmer_config_t *config) {
+  return config->by_category ? READ_N_CATEGORIES : 1;
+}
 
 typedef struct trimmer_t trimmer_t;
 
@@ -92,17 +117,18 @@ trimmer_t* trimmer_new(const trimmer_config_t *config);
 
 /*
    Trim the records <from> to <to> - 1 of <batch>; the records kept are
-   appended to <out> (FASTQ), the reads are counted in <counts> (created
+   appended to <out> (FASTQ; an array of trimmer_n_outputs() buffers, by
+   category if more than one), the reads are counted in <counts> (created
    for the scheme and the references of the configuration)
 */
 void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
     size_t to, strbuf_t *out, counter_t *counts);
 
-/* Delete (NULL is accepted) */
 /* Classify the reads only against the references <allowed> (NULL: all);
    see amplicon_analyzer_restrict_references */
 void trimmer_restrict_references(trimmer_t *self, const bool *allowed);
 
+/* Delete (NULL is accepted) */
 void trimmer_delete(trimmer_t *self);
 
 /* Unit tests */

@@ -29,6 +29,7 @@
 #include "live.h"
 #include "logger.h"
 #include "options.h"
+#include "read-outputs.h"
 #include "reference.h"
 #include "results.h"
 #include "run-report.h"
@@ -74,26 +75,34 @@ static bool references_look_cds_only(const fasta_t *refs) {
 }
 
 
-/* the paths of the outputs of the groups; an input which would be
-   overwritten by an output is an error */
-static char** output_paths(const input_group_t *groups, size_t n_groups,
-    const char *outdir, Logger *logger) {
-  char **paths;
-  XMALLOC(paths, sizeof(char *) * (n_groups + 1));
+/* the outputs of the groups (see read-outputs.h); an input which would
+   be overwritten by an output, or an output file of two groups (e.g.
+   those by category of the group a and the output of a group a.full),
+   are errors */
+static read_outputs_t** group_outputs(const input_group_t *groups,
+    size_t n_groups, const options_t *opts, Logger *logger) {
+  read_outputs_t **outputs;
+  XMALLOC(outputs, sizeof(read_outputs_t *) * (n_groups + 1));
   for (size_t i = 0; i < n_groups; i++) {
-    paths[i] = input_group_output_path(outdir, groups[i].name);
+    outputs[i] = read_outputs_new(opts->outdir, groups[i].name,
+                                  opts->by_category);
     for (size_t j = 0; j < groups[i].n_files; j++)
-      LCHECK(strcmp(groups[i].files[j], paths[i]) != 0, logger,
+      LCHECK(!read_outputs_has_path(outputs[i], groups[i].files[j]), logger,
              "%s: the input would be overwritten by the output\n",
              groups[i].files[j]);
+    for (size_t j = 0; j < i; j++)
+      for (size_t k = 0; k < outputs[i]->n; k++)
+        LCHECK(!read_outputs_has_path(outputs[j], outputs[i]->paths[k]),
+               logger, "%s: the output file of two inputs (%s and %s)\n",
+               outputs[i]->paths[k], groups[j].name, groups[i].name);
   }
-  return paths;
+  return outputs;
 }
 
-static void delete_output_paths(char **paths, size_t n) {
+static void delete_group_outputs(read_outputs_t **outputs, size_t n) {
   for (size_t i = 0; i < n; i++)
-    free(paths[i]);
-  free(paths);
+    read_outputs_delete(outputs[i]);
+  free(outputs);
 }
 
 /* log the scheme (verbose) */
@@ -118,11 +127,11 @@ static void log_groups(const input_group_t *groups, size_t n_groups,
             groups[i].n_files, groups[i].n_files == 1 ? "" : "s");
 }
 
-/* trim the files of the group <g> (the <i>-th of <n_groups>) to <path>,
+/* trim the files of the group <g> (the <i>-th of <n_groups>) to <out>,
    adding the counts to <counts> */
 static void trim_group(const options_t *opts, const trimmer_config_t *config,
     worker_t *workers, const input_group_t *g, size_t i, size_t n_groups,
-    const char *path, counter_t *counts, Logger *logger) {
+    read_outputs_t *out, counter_t *counts, Logger *logger) {
   /* (one line per group; the files of a group of several: verbose) */
   char of[64] = "";
   if (n_groups > 1)
@@ -132,7 +141,7 @@ static void trim_group(const options_t *opts, const trimmer_config_t *config,
   else
     lprintf(logger, LOG_SUCCESS, "Trimming %s, %zu files%s...\n", g->name,
             g->n_files, of);
-  FILE *out = xfopen(path, NULL, "wb", "trimmed reads", logger);
+  read_outputs_open(out, false, logger);
   /* each barcode is a different sample: classify it only against the
      reference of each segment closest to it (chosen from its first
      file), so the other references of a segment, e.g. of other
@@ -147,10 +156,10 @@ static void trim_group(const options_t *opts, const trimmer_config_t *config,
   for (size_t j = 0; j < g->n_files; j++) {
     if (g->n_files > 1)
       lprintf(logger, LOG_PHASE, "Trimming %s...\n", g->files[j]);
-    worker_process_file(workers, opts->threads, g->files[j], out, path,
-                        counts, logger);
+    worker_process_file(workers, opts->threads, g->files[j], out, counts,
+                        logger);
   }
-  xfclose(&out, logger);
+  read_outputs_close(out, logger);
 }
 
 /* trim the files of the input groups (not the live mode); with several
@@ -163,7 +172,7 @@ static void trim_groups(const options_t *opts, trimmer_config_t *config,
   size_t n_groups;
   input_group_t *groups = input_groups_new(opts->inputs, opts->n_inputs,
                                            &n_groups, false, true, logger);
-  char **paths = output_paths(groups, n_groups, opts->outdir, logger);
+  read_outputs_t **outputs = group_outputs(groups, n_groups, opts, logger);
   log_groups(groups, n_groups, logger);
   /* -e auto: from the first file */
   for (size_t i = 0; i < n_groups && auto_settings_pending(autos); i++)
@@ -178,14 +187,14 @@ static void trim_groups(const options_t *opts, trimmer_config_t *config,
   results_group_t *results;
   XMALLOC(results, sizeof(results_group_t) * (n_groups + 1));
   for (size_t i = 0; i < n_groups; i++)
-    results[i] = (results_group_t){groups[i].name, paths[i], NULL,
+    results[i] = (results_group_t){groups[i].name, outputs[i]->label, NULL,
                                    groups[i].n_files};
   for (size_t i = 0; i < n_groups; i++) {
     if (n_groups > 1)
       results_write(opts->outdir, results, n_groups, total, refs, report,
                     true, logger);
     counter_t *counts = counter_new(scheme, refs);
-    trim_group(opts, config, workers, groups + i, i, n_groups, paths[i],
+    trim_group(opts, config, workers, groups + i, i, n_groups, outputs[i],
                counts, logger);
     counter_merge(total, counts);
     results[i].counts = counts;
@@ -199,7 +208,7 @@ static void trim_groups(const options_t *opts, trimmer_config_t *config,
   for (size_t t = 0; t < opts->threads; t++)
     worker_free(workers + t);
   free(workers);
-  delete_output_paths(paths, n_groups);
+  delete_group_outputs(outputs, n_groups);
   input_groups_delete(groups, n_groups);
 }
 
@@ -267,7 +276,8 @@ int main(int argc, char *argv[]) {
       .probe_error_rate = opts.probe_error_rate,
       .terminal_window = opts.terminal_window,
       .adapters = opts.adapters, .min_length = opts.min_length,
-      .tags = opts.tags, .split = opts.split};
+      .tags = opts.tags, .split = opts.split,
+      .by_category = opts.by_category};
   run_report_t *report = run_report_new(&opts, VERSION, scheme, refs, argc,
                                         argv, logger);
   run_report_set_max_errors(report, &autos.max_errors);

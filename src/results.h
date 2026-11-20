@@ -25,7 +25,9 @@
 /* a group of input files and its output */
 typedef struct {
   const char *name;
-  const char *output;        /* the path of the output file */
+  const char *output;        /* the path of the output file, or how its
+                                output files are named (see
+                                read-outputs.h) */
   const counter_t *counts;   /* NULL: not processed yet */
   size_t n_files;
 } results_group_t;

@@ -238,6 +238,11 @@ static bool ref_allowed(const reference_set_t *self, size_t ref) {
           self->index->segment[ref] == self->restrict_segment);
 }
 
+bool reference_set_allows(const reference_set_t *self, size_t ref) {
+  assert(self != NULL);
+  return ref_allowed(self, ref);
+}
+
 void reference_set_delete(reference_set_t *self) {
   if (self == NULL)
     return;
@@ -253,6 +258,10 @@ size_t reference_set_size(const reference_set_t *self) {
 
 size_t reference_set_probe_len(const reference_set_t *self) {
   return self->probe_len;
+}
+
+const fasta_t* reference_set_fasta(const reference_set_t *self) {
+  return self->fasta;
 }
 
 /* distance of a hit from the terminus from which the read would start */
@@ -400,6 +409,30 @@ void reference_set_locate(reference_set_t *self, const char *probe,
 void reference_set_locate_seeded(reference_set_t *self, const char *probe,
     size_t probe_len, reference_hit_t *hit) {
   locate(self, probe, probe_len, false, true, hit);
+}
+
+void reference_set_locate_in(reference_set_t *self, const char *probe,
+    size_t probe_len, size_t ref_index, bool reverse,
+    reference_hit_t *hit) {
+  assert(probe != NULL);
+  assert(hit != NULL);
+  assert(ref_index < self->fasta->n_records);
+  memset(hit, 0, sizeof(reference_hit_t));
+  hit->mapped = false;
+  hit->ref_start = -1;
+  hit->n_errors = -1;
+  size_t len = probe_len < self->probe_len ? probe_len : self->probe_len;
+  if (len < REFERENCE_MIN_PROBE_LEN)
+    return;
+  const char *query = probe;
+  if (reverse) {
+    primers_reverse_complement(probe, len, self->rc);
+    self->rc[len] = '\0';
+    query = self->rc;
+  }
+  align_window(self, query, len, ref_index, 0,
+               (long)self->fasta->records[ref_index].seq_len - 1, reverse,
+               (long)((double)len * self->max_error_rate), hit);
 }
 
 bool reference_hit_is_terminal(const reference_hit_t *hit,

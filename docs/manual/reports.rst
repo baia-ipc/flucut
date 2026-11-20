@@ -190,6 +190,14 @@ Then, for each group (or for all reads, if there is only one):
      of an Illumina library), placed by its 3' end and its length or,
      without a located 3' end, by its own sequence (see below).
 
+   * **internal deletion** (purple, at the top): reads whose two ends
+     map to the two ends of a segment, much farther apart than the read
+     is long, e.g. defective interfering genomes. Such a read covers
+     only its two flanks: the junction between them is located by
+     probes from inside the read, so the band steps down where the
+     deletions begin and up where they end. If the junction is not
+     found, half of the read is drawn at each end.
+
    When only the 3' end of a read maps, its 5' origin is inferred from
    where its 5' end falls (the mapped 3' position less the read length):
    within the segment terminus it is counted as terminal, deeper as
@@ -207,6 +215,16 @@ Then, for each group (or for all reads, if there is only one):
    the plot. The trimming does not depend on it. A read is left out only
    if no probe is found (a read which is not influenza, or one with an
    error in every k-mer of its probes).
+
+   The same groups, with the strands merged, are the categories of the
+   reads in the output: the ``ct`` tag, and the files written by
+   ``--by-category`` (:ref:`reads-by-category`).
+
+   A complete amplicon (both primers found) which could not be located
+   in any of these ways is drawn over the whole segment of its length,
+   as terminal, if the length tells which segment it is: within 80 bases
+   of the length of a reference, and not as close to a reference of
+   another segment (e.g. PB2 and PB1).
 
    Internal priming shows as a step up in the coloured (amber, blue)
    bands at the site, marked with the red line of the largest site of

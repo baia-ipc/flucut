@@ -57,7 +57,10 @@ alignment:
 6. **Coverage** (`pipeline.py`). The aligned intervals of each
    amplicon, by category.
 7. **Comparison** (`flucut_tags.py`, `flucut_report.py`, `irma.py`).
-   flucut's tags are compared with the amplicons of the same read; its
+   flucut's tags are compared with the amplicons of the same read. The
+   category flucut gave a read is its `ct` tag (with the strand, `fs`);
+   for reads written without that tag it is worked out from the tags of
+   the ends. Its
    positions and coverage plots, given on its own references, are
    transferred to the references used here by aligning the two.
    IRMA's depth is transferred from its consensus in the same way.
@@ -105,7 +108,9 @@ the simulation have more errors than R10 reads). Run it with
 - flucut's coverage is read from the plots of its HTML report, which
   draw at most 704 positions per segment. Without the report it is
   rebuilt from the read tags, which lack the junctions of deletions and
-  the reads flucut placed by a probe from inside them.
+  the position of the reads flucut placed by a probe from inside them
+  or by their length (their category is known, from the `ct` tag, but
+  they are not in the coverage).
 
 ## Code
 

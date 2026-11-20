@@ -135,6 +135,39 @@
    references by a probe from inside its kept part (see placement.h).
    The placement is approximate and does not change the trimming: it is
    reported, so that the read is counted in the coverage of its segment.
+
+   Ends located from inside
+   ------------------------
+
+   With references, an end of a read can be without a location: no
+   primer at it (a broken molecule), or a primer whose probe did not map
+   (the first bases after a primer are an untranslated region and the
+   start of the coding sequence, where a sample can differ much from a
+   reference). The span of such a read on the reference cannot be told
+   from its length: a read with an internal deletion is much shorter
+   than the distance between its ends. An end which was not located is
+   therefore located by a probe from further inside the read, read from
+   that end inwards; up to AMPLICON_INNER_PROBES probes are tried, each
+   one probe length further in. If the other end has a position, the
+   probe is searched in its reference, on the other strand (as the
+   probes of the two ends of an amplicon are), by aligning it to the
+   whole reference; otherwise by its k-mers, in all references. The position
+   of the end is that of the probe, moved out by its distance from the
+   end; it is approximate (it ignores the indels of the bases skipped).
+   It does not change the origin of the end nor the trimming: it is
+   reported, for the coverage (the span of the read, and whether it has
+   an internal deletion).
+
+   Internal deletions
+   ------------------
+
+   With references, a read whose two ends map to the same segment (an
+   end located from inside included), much farther apart than the
+   template between them is long, has an
+   internal deletion (e.g. a defective interfering genome). Its junction
+   is located by probes from inside the template (see junction.h). It
+   does not change the trimming: it is reported, so that each flank of
+   the read is counted where it lies in the coverage of its segment.
 */
 
 #ifndef AMPLICON_H
@@ -143,6 +176,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "adapters.h"
+#include "junction.h"
 #include "placement.h"
 #include "primer-search.h"
 #include "reference.h"
@@ -176,6 +210,10 @@ typedef enum {
    within this many bases of that end of the read */
 #define AMPLICON_DEFAULT_WINDOW 100
 
+/* the greatest number of probes tried to locate an end from inside the
+   read (see "Ends located from inside" above) */
+#define AMPLICON_INNER_PROBES 4
+
 /* the window of a primer next to an adapter (see "Adapters" above) */
 #define AMPLICON_ADAPTER_WINDOW 5
 
@@ -203,6 +241,10 @@ typedef struct {
   primer_hit_t hit;    /* positions in the analyzed orientation */
   end_origin_t origin;
   reference_hit_t ref; /* the location of the probe (if located) */
+  /* the position of the end from a probe further inside the read, if
+     the end itself was not located (see "Ends located from inside"
+     above); also for an end without a primer */
+  reference_hit_t inner;
 } amplicon_end_t;
 
 typedef struct {
@@ -223,7 +265,18 @@ typedef struct {
   /* where the kept part of the ORIGINAL read lies on the references, if
      no end was located (see "Placement" above) */
   placement_t placement;
+  /* the junction of a read with an internal deletion, if located (see
+     "Internal deletions" above) */
+  junction_t junction;
 } amplicon_t;
+
+/* The position of an end of <a> on the references: that of its probe,
+   or else that found from inside the read; NULL if neither */
+static inline const reference_hit_t* amplicon_end_position(
+    const amplicon_end_t *end) {
+  return end->found && end->ref.mapped ? &end->ref :
+         end->inner.mapped ? &end->inner : NULL;
+}
 
 typedef struct amplicon_analyzer_t amplicon_analyzer_t;
 

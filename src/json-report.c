@@ -96,6 +96,23 @@ static void write_reads(json_writer_t *w, const counter_reads_t *s) {
   close_block(w, '}', false);
 }
 
+/* the reads written, by category (null without references) */
+static void write_categories(json_writer_t *w, const report_t *r,
+    const counter_reads_t *s) {
+  member(w, "written_by_category");
+  if (r->references == NULL) {
+    fputs("null", w->f);
+    return;
+  }
+  fputc('{', w->f);
+  bool first = true;
+  for (size_t k = 0; k < READ_N_CATEGORIES; k++) {
+    sep(w->f, &first);
+    fprintf(w->f, "\"%s\": %zu", read_category_name(k), s->written[k]);
+  }
+  fputc('}', w->f);
+}
+
 /* the primers found at each end, by primer of the scheme */
 static void write_primers(json_writer_t *w, const report_t *r,
     const counter_t *c) {
@@ -220,6 +237,7 @@ static void write_lengths(json_writer_t *w, const report_t *r,
 static void write_section(json_writer_t *w, const report_t *r,
     const counter_t *c) {
   write_reads(w, counter_reads(c));
+  write_categories(w, r, counter_reads(c));
   write_primers(w, r, c);
   write_internal(w, r, c);
   write_lengths(w, r, c);
@@ -318,6 +336,8 @@ static void write_parameters(json_writer_t *w, const report_t *r) {
   fputs(o->tags ? "true" : "false", f);
   member(w, "split");
   fputs(o->split ? "true" : "false", f);
+  member(w, "by_category");
+  fputs(o->by_category ? "true" : "false", f);
   count_member(w, "threads", o->threads);
   count_member(w, "compress_level", (size_t)o->compress_level);
   close_block(w, '}', false);

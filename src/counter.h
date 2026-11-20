@@ -28,32 +28,19 @@
 #include "amplicon.h"
 #include "fasta.h"
 #include "lengths.h"
+#include "read-cover.h"
 #include "scheme.h"
 
 /* the ends of an amplicon */
 enum { COUNTER_LEFT, COUNTER_RIGHT, COUNTER_N_ENDS };
 
-/* the categories of a read for the coverage plot (counter_coverage()):
-   where its amplicon started, and for an internally primed one, on which
-   strand; a read is counted if an end mapped to a reference, or if it
-   was placed by a probe from inside it (placement.h) */
-enum { COVER_TERMINAL_PLUS,   /* started at a segment end, plus strand */
-       COVER_TERMINAL_MINUS,  /* started at a segment end, minus strand */
-       COVER_INTERNAL_PLUS,   /* internally primed, plus strand */
-       COVER_INTERNAL_MINUS,  /* internally primed, minus strand */
-       COVER_NO_PRIMER,       /* no primer at the 5' end (placed by the
-                                 other end and the length, or by a probe
-                                 from inside the read) */
-       COVER_UNMAPPED,        /* a 5' primer, but its probe not located */
-       COVER_DELETION,        /* both ends mapped, much farther apart than
-                                 the template length: an internal deletion
-                                 (e.g. a defective interfering genome) */
-       COVER_N_CATEGORIES };
-
 /* the counts of the reads at each step */
 typedef struct {
   size_t reads_in, bases_in;
   size_t reads_out, bases_out;
+  /* the reads written, by category (READ_CATEGORY_*, see read-cover.h);
+     without references all are READ_CATEGORY_OTHER */
+  size_t written[READ_N_CATEGORIES];
   /* reads not written, as shorter than the minimum length after the
      trimming (dimers included) */
   size_t too_short;
@@ -107,6 +94,11 @@ void counter_merge(counter_t *self, const counter_t *other);
 */
 void counter_add_read(counter_t *self, const amplicon_t *a, size_t len);
 
+/* The same, for a read already located on the references of the counter
+   (<cover>, see read_cover_locate()) */
+void counter_add_located_read(counter_t *self, const amplicon_t *a,
+    size_t len, const read_cover_t *cover);
+
 /*
    Count a read of length <len> split into <n_parts> parts (chimera.h),
    of <parts_len> bases together, each of which was counted by
@@ -116,8 +108,9 @@ void counter_add_read(counter_t *self, const amplicon_t *a, size_t len);
 void counter_add_split(counter_t *self, size_t n_parts, size_t len,
     size_t parts_len);
 
-/* Count a read written, with <len> bases */
-void counter_add_written(counter_t *self, size_t len);
+/* Count a read written, with <len> bases, of the category <category>
+   (READ_CATEGORY_*) */
+void counter_add_written(counter_t *self, size_t len, size_t category);
 
 /* Count a read not written, as too short */
 void counter_add_too_short(counter_t *self);
@@ -142,19 +135,12 @@ size_t counter_primer(const counter_t *self, size_t end, size_t variant);
 const size_t* counter_sites(const counter_t *self, size_t ref, size_t end);
 
 /*
-   The reconstructed coverage of the reference <ref> by the category
-   <cat> (COVER_*): the span of each located read on the reference is
-   [start, start + template length) (see amplicon.h: the mapped probe
-   positions and the kept length); <out> is filled with the number of
-   reads of that category covering each of the <seq_len> positions of the
-   reference, and the greatest value is returned (0 and <out> zeroed if
-   none). <out> must have room for the reference length. This is an
-   overview from the classification, not a base-by-base mapping: it
-   ignores indels. A read of which no end was located is placed by a
-   probe from inside it (placement.h), and is left out only if that
-   fails too. A read with
-   an internal deletion (COVER_DELETION) covers only its two flanks, half
-   of the template at each mapped end, as the junction is not known.
+   The reconstructed coverage of the reference <ref> by the class <cat>
+   (COVER_*) of the located reads, from their spans (see read-cover.h):
+   <out> is filled with the number of reads of that class covering each
+   of the <seq_len> positions of the reference, and the greatest value
+   is returned (0 and <out> zeroed if none). <out> must have room for
+   the reference length.
 */
 size_t counter_coverage(const counter_t *self, size_t ref, size_t cat,
     size_t *out);
