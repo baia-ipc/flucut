@@ -61,6 +61,18 @@ static char* parse_subtype(const char *desc) {
   return NULL;
 }
 
+bool reference_description_subtype(const char *description, char *buf,
+    size_t size) {
+  assert(buf != NULL && size > 0);
+  buf[0] = '\0';
+  char *name = parse_subtype(description);
+  if (name == NULL)
+    return false;
+  snprintf(buf, size, "%s", name);
+  free(name);
+  return true;
+}
+
 /* fill self->subtype (an id per record) and self->subtype_names */
 static void index_subtypes(reference_index_t *self) {
   size_t n = self->fasta->n_records;

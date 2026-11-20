@@ -135,6 +135,12 @@ size_t reference_index_n_subtypes(const reference_index_t *self);
 const char* reference_index_subtype_name(const reference_index_t *self,
     int subtype);
 
+/* The subtype named in the FASTA description <description> (the
+   H<n>N<n> in it, e.g. "H5N1"), into <buf> (of size <size>); false, and
+   <buf> empty, if it names none (or is NULL) */
+bool reference_description_subtype(const char *description, char *buf,
+    size_t size);
+
 /* The segment of the reference <ref> (1 to 8, 0 if its description names
    none, see segments.h) */
 int reference_index_segment(const reference_index_t *self, size_t ref);

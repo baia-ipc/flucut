@@ -156,6 +156,7 @@ reads	NC_004908.1	1700	5
 == flucut_report.html ==
 </html>
 <h2>All reads</h2>
+<h3>Sample: subtype and segments</h3>
 <h3>Reads at each step</h3>
 <h3>Primers found</h3>
 <h3>Internal priming</h3>

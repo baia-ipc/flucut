@@ -12,6 +12,7 @@
 #include "html-template.h"
 #include "html-writer.h"
 #include "numutils.h"
+#include "qc-summary.h"
 #include "segments.h"
 #include "strbuf.h"
 
@@ -521,6 +522,72 @@ static void write_coverage(html_writer_t *w, const report_t *r,
   free(order);
 }
 
+/* the value of a macro as a string */
+#define QC_STRING_(X) #X
+#define QC_STRING(X) QC_STRING_(X)
+
+/* the sample itself, from the reads located in the references: its
+   subtype, and a line for each segment (see qc-summary.h) */
+static void write_qc(html_writer_t *w, const report_t *r,
+    const counter_t *c) {
+  qc_summary_t qc;
+  qc_summary(r->references, c, &qc);
+  if (qc.n_found == 0) {
+    note(w, "No reads located in the references.");
+    return;
+  }
+  open_class(w, "p", "stats");
+  if (qc.subtype[0] != '\0') {
+    html_text(w, "Subtype: ");
+    html_tag_text(w, "b", qc.subtype);
+    html_text(w, " (from the references of HA and NA). ");
+  }
+  html_textf(w, "Segments found: %zu of %d.", qc.n_found, SEGMENTS_N);
+  if (qc.mixed)
+    html_text(w, " The segments are closest to references of different "
+              "subtypes (a reassortant, or genes which differ little "
+              "between subtypes).");
+  html_close(w);
+  html_open(w, "table");
+  header_row(w, "segment", "reference", "subtype", "mean depth", "covered",
+             "depth &ge; " QC_STRING(QC_MIN_DEPTH), "internally primed",
+             "internal deletion", "complete amplicons", "short", NULL);
+  for (int s = 1; s <= SEGMENTS_N; s++) {
+    if (r->options->report_segment != 0 && r->options->report_segment != s)
+      continue;
+    const qc_segment_t *q = qc.segments + s;
+    char name[32];
+    segments_name(s, name, sizeof(name));
+    open_row(w);
+    td(w, "%s", name);
+    if (!q->found) {
+      td(w, "not found");
+      for (size_t i = 0; i < 8; i++)
+        td_none(w);
+      html_close(w);
+      continue;
+    }
+    td(w, "%s", r->references->records[q->ref].name);
+    if (q->subtype[0] != '\0')
+      td(w, "%s", q->subtype);
+    else
+      td_none(w);
+    td(w, "%s", html_num((size_t)(q->mean_depth + 0.5)).s);
+    td(w, "%s", fraction_percent_text(q->covered).s);
+    td(w, "%s", fraction_percent_text(q->well_covered).s);
+    td(w, "%s", fraction_percent_text(q->internal).s);
+    td(w, "%s", fraction_percent_text(q->deletion).s);
+    td(w, "%s", html_num(q->complete).s);
+    td(w, "%s", percent_text(q->short_complete, q->complete).s);
+    html_close(w);
+  }
+  html_close(w);
+  note(w, "Depth and coverage are those of the reads as they are located "
+       "by flucut (see Coverage by read origin), not of a mapping. "
+       "Internally primed and internal deletion: share of the depth of the "
+       "segment. Short: complete amplicons shorter than their reference.");
+}
+
 /* a compact line of basic run statistics (platform, bases and mean read
    lengths, minus strand), below the tiles; the data are collected anyway */
 static void write_stats(html_writer_t *w, const report_t *r,
@@ -555,6 +622,10 @@ static void write_section(html_writer_t *w, const report_t *r,
   if (s->reads_in == 0) {
     note(w, "No reads.");
     return;
+  }
+  if (r->references != NULL) {
+    html_tag_text(w, "h3", "Sample: subtype and segments");
+    write_qc(w, r, c);
   }
   html_tag_text(w, "h3", "Reads at each step");
   write_steps(w, s);
@@ -851,6 +922,11 @@ static void write_dash_section(html_writer_t *w, const report_t *r,
     return;
   }
   open_class(w, "div", "dgrid");
+  if (refs) {
+    html_panel_start(w, "Sample: subtype and segments", "full");
+    write_qc(w, r, c);
+    html_panel_end(w);
+  }
   html_panel_start(w, "Reads at each step", NULL);
   write_steps(w, s);
   html_panel_end(w);

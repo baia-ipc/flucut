@@ -77,6 +77,30 @@ references of one segment, the report shows that segment
 
 Then, for each group (or for all reads, if there is only one):
 
+**Sample: subtype and segments.**
+   With references, what the located reads say about the sample itself,
+   whatever is done with the trimmed reads afterwards. A first line
+   gives the subtype (the H of the reference of its HA and the N of
+   that of its NA) and the number of segments found, and notes when the
+   segments are closest to references of different subtypes (a
+   reassortant, or genes which differ little between subtypes). Then
+   one line for each segment:
+
+   - the reference its reads were located in, and the subtype named in
+     its description;
+   - the mean depth, the share of its positions covered by at least one
+     read, and by at least 50 reads (what FLU-minion of IRMA needs to
+     support a base);
+   - the share of its depth that comes from internally primed reads,
+     and from reads with an internal deletion: depth which does not
+     represent the whole segment;
+   - its complete amplicons, and the share of them shorter than the
+     reference.
+
+   A segment without located reads is shown as not found. Depth and
+   coverage are those of the reads as flucut locates them (see Coverage
+   by read origin below), not of a mapping.
+
 **Reads at each step.**
    The reads read, those with the primers of both ends, of one end or
    of none, the primer dimers, the reads too short to be written, the
