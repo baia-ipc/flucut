@@ -1,0 +1,15 @@
+# Environment of flucut-posthoc:
+#   mamba env create -f environment.yml && conda activate flucut-posthoc
+name: flucut-posthoc
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python>=3.11
+  - minimap2>=2.26
+  - samtools>=1.17
+  - python-edlib
+  - numpy
+  - docopt
+  - loguru
+  - pytest

@@ -218,6 +218,16 @@ titles (same consensus with and without them; `--no-tags` removes them).
 Illumina: trim with `flucut -p illumina` and assemble with the paired
 `FLU` module of IRMA instead of `FLU-minion`.
 
+## Checking the predictions
+
+The report of flucut is built from probes, not from mappings. To see how
+close it is for a run, `posthoc/flucut-posthoc` maps every read to the
+segment references and measures the same things from the mappings (the
+origin of each amplicon end, the internal priming sites, the amplicon
+lengths, the coverage by read origin), next to what flucut predicted and
+to what IRMA assembled. It is a separate program, in Python; see
+`posthoc/README.md`.
+
 ## Live mode
 
 `flucut --live -o out /data/run1/fastq_pass` follows a MinKNOW run while

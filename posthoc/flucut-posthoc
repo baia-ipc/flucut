@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+"""
+Measure, from the mapping of every read, what flucut predicts for a sample.
+
+The reads are mapped base by base to complete segment references; the
+origin of each amplicon end, the internal priming sites, the amplicon
+lengths and the coverage by read origin are measured from the mappings
+and compared with the predictions of flucut and the results of IRMA.
+
+Usage:
+    flucut-posthoc [options] -o <outdir> <reads>...
+
+Arguments:
+    <reads>  FASTQ files of one sample (optionally gzipped): the reads
+             before flucut if available (their primers are the
+             evidence), else the reads written by flucut.
+
+Options:
+    -o --outdir <dir>        Output directory.
+    -i --irma <dir>          Output directory of an IRMA run of the
+                             sample; comma-separated for several (e.g.
+                             the runs before and after flucut).
+    -f --flucut-reads <fq>   Reads of the sample written by flucut, with
+                             its tags: compared read by read.
+    -s --flucut-summary <f>  flucut_summary.json of the flucut run.
+    -R --flucut-report <f>   flucut_report.html of the flucut run: its
+                             coverage plots are compared with the
+                             coverage measured.
+    -g --flucut-group <g>    Group of the sample in the flucut summary
+                             and report
+                             [default: the group named as the sample].
+    -r --references <fa>     Complete segment references
+                             [default: those cached by flucut].
+    -n --name <name>         Name of the sample
+                             [default: from the first reads file].
+    --error-rate <x>         Errors allowed in a primer, as a fraction
+                             of its length [default: 0.2].
+    --terminal-window <n>    An end within this many bases of a segment
+                             terminus is terminal [default: 10].
+    --min-deletion <n>       Smallest deletion reported as an internal
+                             deletion [default: 100].
+    -j --threads <n>         Threads [default: 8].
+    --minimap2 <path>        minimap2 program [default: minimap2].
+    --samtools <path>        samtools program [default: samtools].
+    -h --help                Show this help message and exit.
+    -V --version             Show the version and exit.
+    -v --verbose             Report the progress.
+    -q --quiet               Suppress log output.
+"""
+
+import os
+import shlex
+import shutil
+import sys
+
+from docopt import docopt
+from loguru import logger
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+
+from flucut_posthoc import __version__  # noqa: E402
+from flucut_posthoc.pipeline import Config, run  # noqa: E402
+from flucut_posthoc.references import FLUCUT_CACHE  # noqa: E402
+
+
+def set_logger(verbose: bool, quiet: bool) -> None:
+    logger.remove()
+    if quiet:
+        logger.add(lambda msg: None, level="DEBUG")
+    elif verbose:
+        logger.add(lambda msg: sys.stderr.write(msg), level="INFO")
+    else:
+        logger.add(lambda msg: sys.stderr.write(msg), level="WARNING")
+
+
+def sample_name(path: str) -> str:
+    name = os.path.basename(path)
+    for suffix in (".gz", ".fastq", ".fq"):
+        if name.endswith(suffix):
+            name = name[:-len(suffix)]
+    return name
+
+
+def flucut_posthoc(config: Config) -> None:
+    for program in (config.minimap2, config.samtools):
+        if shutil.which(program) is None:
+            sys.exit(f"flucut-posthoc: program not found: {program}")
+    for path in [*config.reads, *config.irma, config.references,
+                 config.flucut_reads, config.flucut_summary,
+                 config.flucut_report]:
+        if path and not os.path.exists(path):
+            sys.exit(f"flucut-posthoc: not found: {path}")
+    try:
+        run(config)
+    except (ValueError, RuntimeError) as error:
+        sys.exit(f"flucut-posthoc: {error}")
+
+
+if __name__ == "__main__":
+    args = docopt(__doc__, version=__version__)
+    set_logger(args["--verbose"], args["--quiet"])
+    references = args["--references"]
+    if references.startswith("those cached"):
+        references = FLUCUT_CACHE
+    name = args["--name"]
+    if name.startswith("from the first"):
+        name = sample_name(args["<reads>"][0])
+    group = args["--flucut-group"]
+    flucut_posthoc(Config(
+        reads=args["<reads>"], outdir=args["--outdir"], name=name,
+        references=references,
+        irma=[d for d in (args["--irma"] or "").split(",") if d],
+        flucut_reads=args["--flucut-reads"],
+        flucut_summary=args["--flucut-summary"],
+        flucut_report=args["--flucut-report"],
+        flucut_group=None if group.startswith("the group") else group,
+        threads=int(args["--threads"]),
+        minimap2=args["--minimap2"], samtools=args["--samtools"],
+        error_rate=float(args["--error-rate"]),
+        terminal_window=int(args["--terminal-window"]),
+        min_deletion=int(args["--min-deletion"]),
+        command=shlex.join(sys.argv)))
