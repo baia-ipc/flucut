@@ -171,7 +171,7 @@ grep -q '"max_errors": {"mode": "auto", "value": null' \
   $TMP/auto_out/flucut_summary.json || fail "auto: decided without a file"
 cp testdata/reads.fastq $TMP/auto/
 wait $pid || fail "auto: error: $(cat $TMP/auto.err)"
-grep -q 'errors in a primer: 0.2 of its length (-e auto)' $TMP/auto.err || \
+grep -q 'errors in a primer: 20% of its length (-e auto)' $TMP/auto.err || \
   fail "auto: not decided at the first file: $(cat $TMP/auto.err)"
 grep -q '"max_errors": {"mode": "auto", "value": 0.2, ' \
   $TMP/auto_out/flucut_summary.json || \

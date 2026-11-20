@@ -56,11 +56,13 @@ Options
    ``nb,rbk,lsk``.
 
 ``-e, --max-errors <x>``
-   The errors allowed in a primer: a whole number of bases, below 1 a
-   fraction of the length of the primer, or ``auto``: decided from the
-   error rate of the primer alignments in the first 1000 reads of the
-   first input file (with 0.2): 0.2 (2 errors in Uni12), or 0.3 (3
-   errors) if that rate is at least 4% (:doc:`how_it_works`). The value
+   The errors allowed in a primer: a percentage of the length of the
+   primer (``20%``; also as a fraction below 1, ``0.2``), a whole number
+   of bases (``3``), or ``auto``:
+   decided from the error rate of the primer alignments in the first
+   1000 reads of the first input file (searched with 20%): 20% (2 errors
+   in Uni12), or 30% (3 errors) if that rate is at least 4%
+   (:doc:`how_it_works`). The value
    decided and the rate measured are in the messages (``-v``) and in the
    reports. Default: ``auto``.
 
@@ -118,8 +120,9 @@ These options are used with ``--references``.
    references. At least 16. Default: 32.
 
 ``--probe-errors <x>``
-   The fraction of the probe allowed to be errors (0 to below 1).
-   Default: 0.2.
+   The errors allowed in a probe, as a percentage of its length
+   (``20%``, from 0% to below 100%) or as a fraction (``0.2``).
+   Default: 20%.
 
 ``--terminal-window <n>``
    A probe mapped within ``<n>`` bases of an end of a segment is

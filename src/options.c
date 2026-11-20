@@ -69,12 +69,11 @@ enum {
   "                          built-in flu A set, downloaded on first use.\n" \
   "                          -r off: no references (every primer removed)\n" \
   "   -e, --max-errors <x>   errors allowed in a primer: a number of\n" \
-  "                          bases, below 1 a fraction of its length, or\n" \
-  "                          auto: " XSTR(AUTO_MAX_ERRORS_LOW) ", or " \
-  XSTR(AUTO_MAX_ERRORS_HIGH) " if the primers of the\n" \
-  "                          first reads have at least " \
-  XSTR(AUTO_MAX_ERRORS_HIGH_RATE) " errors per\n" \
-  "                          base (default: auto)\n" \
+  "                          bases; a percentage of its length (20%%, or\n" \
+  "                          as a fraction below 1: 0.2); or auto: 20%%,\n" \
+  "                          or 30%% if the primers of the first reads\n" \
+  "                          have at least 4%% errors per base\n" \
+  "                          (default: auto)\n" \
   "   -p, --platform <p>     nanopore (default): whole amplicons, with\n" \
   "                          flanks and adapters before the primers;\n" \
   "                          illumina: fragments of the amplicons (e.g.\n" \
@@ -129,9 +128,9 @@ enum {
   "                          references (default: " \
   XSTR(REFERENCE_DEFAULT_PROBE_LEN) ", minimum: " \
   XSTR(REFERENCE_MIN_PROBE_LEN) ")\n" \
-  "   --probe-errors <x>     fraction of the probe allowed to be errors\n" \
-  "                          (default: " \
-  XSTR(REFERENCE_DEFAULT_MAX_ERROR_RATE) ")\n" \
+  "   --probe-errors <x>     errors allowed in a probe, as a percentage\n" \
+  "                          of its length (20%%) or a fraction (0.2)\n" \
+  "                          (default: 20%%)\n" \
   "   --terminal-window <n>  a probe within <n> bases of a segment end\n" \
   "                          is terminal (default: " \
   XSTR(REFERENCE_DEFAULT_TERMINAL_WINDOW) ")\n" \
@@ -173,6 +172,30 @@ static bool parse_double(const char *s, double *value) {
   errno = 0;
   *value = strtod(s, &end);
   return *s != '\0' && *end == '\0' && errno == 0 && isfinite(*value);
+}
+
+/* parse a percentage, a decimal number followed by '%' (the whole
+   string), into the fraction it stands for (20% is 0.2); false if
+   <s> does not end with '%', or the number is invalid, negative or 100
+   or more */
+static bool parse_percent(const char *s, double *value) {
+  char buf[32];
+  size_t len = strlen(s);
+  if (len < 2 || len > sizeof(buf) || s[len - 1] != '%')
+    return false;
+  memcpy(buf, s, len - 1);
+  buf[len - 1] = '\0';
+  double percent;
+  if (!parse_double(buf, &percent) || percent < 0 || percent >= 100)
+    return false;
+  *value = percent / 100;
+  return true;
+}
+
+/* whether <s> is written as a percentage (it ends with '%') */
+static bool is_percent(const char *s) {
+  size_t len = strlen(s);
+  return len > 0 && s[len - 1] == '%';
 }
 
 /* whether <name> is a built-in scheme (ignoring the case) */
@@ -270,10 +293,14 @@ void options_parse(options_t *self, int argc, char *argv[],
           self->max_errors = OPTIONS_MAX_ERRORS_AUTO;
           break;
         }
-        if (!parse_double(optarg, &x) || x < 0 ||
-            (x >= 1 && x != floor(x)))
-          OPT_ERR(c, "a fraction below 1, a whole number of bases or "
-                  "auto expected ('%s' found)", optarg);
+        if (is_percent(optarg)) {
+          if (!parse_percent(optarg, &x))
+            OPT_ERR(c, "a percentage from 0%% to below 100%% expected "
+                    "('%s' found)", optarg);
+        } else if (!parse_double(optarg, &x) || x < 0 ||
+                   (x >= 1 && x != floor(x)))
+          OPT_ERR(c, "a percentage (20%%), a fraction below 1, a whole "
+                  "number of bases or auto expected ('%s' found)", optarg);
         self->max_errors = x;
         break;
       case 'w':
@@ -375,9 +402,10 @@ void options_parse(options_t *self, int argc, char *argv[],
         }
         break;
       case OPT_PROBE_ERRORS:
-        if (!parse_double(optarg, &x) || x < 0 || x >= 1)
-          PARSE_ERR("Option '--probe-errors': a fraction >= 0 and < 1 "
-                    "expected ('%s' found)", optarg);
+        if (is_percent(optarg) ? !parse_percent(optarg, &x) :
+            (!parse_double(optarg, &x) || x < 0 || x >= 1))
+          PARSE_ERR("Option '--probe-errors': a percentage below 100%% or "
+                    "a fraction >= 0 and < 1 expected ('%s' found)", optarg);
         self->probe_error_rate = x;
         break;
       case OPT_TERMINAL_WINDOW:
@@ -452,6 +480,9 @@ void options_parse(options_t *self, int argc, char *argv[],
             self->references == NULL ? "none" : self->references);
   if (self->max_errors == OPTIONS_MAX_ERRORS_AUTO)
     PARSE_LOG("Errors in a primer: auto\n");
+  else if (self->max_errors < 1)
+    PARSE_LOG("Errors in a primer: %g%% of its length\n",
+              100 * self->max_errors);
   else
     PARSE_LOG("Errors in a primer: %g\n", self->max_errors);
   PARSE_LOG("Platform: %s\n", self->illumina ? "illumina" : "nanopore");

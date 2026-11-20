@@ -120,9 +120,10 @@ The main options (`flucut -h` lists all of them, with their defaults):
 - `--report-segment <s>`: show only one segment in the HTML report, by
   number or gene (e.g. `--report-segment HA`); the trimming does not
   change;
-- `-e`: errors allowed in a primer (a fraction of its length, a number
-  of bases, or `auto`, the default: 0.2, or 0.3 if the primers of the
-  first 1000 reads have at least 4% errors);
+- `-e`: errors allowed in a primer: a percentage of its length (`-e 20%`,
+  or as a fraction, `-e 0.2`), a number of bases (`-e 3`), or `auto`,
+  the default: 20%, or 30% if the primers of the first 1000 reads have
+  at least 4% errors;
 - `-p`: the platform: `nanopore` (default; reads of whole amplicons)
   or `illumina` (reads of fragments of the amplicons: the primer is at
   the read start; window 10, no adapter search);

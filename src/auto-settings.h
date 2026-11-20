@@ -32,6 +32,7 @@
 /* reads used to detect the subtype of a group (see
    auto_settings_detect_subtype) */
 #define AUTO_SUBTYPE_READS 2000
+/* (the help text of -e, in options.c, states these three values) */
 #define AUTO_MAX_ERRORS_LOW 0.2
 #define AUTO_MAX_ERRORS_HIGH 0.3
 #define AUTO_MAX_ERRORS_HIGH_RATE 0.04

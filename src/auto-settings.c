@@ -150,9 +150,9 @@ void auto_settings_decide(auto_settings_t *self, trimmer_config_t *config,
   s->file = self->file;
   s->pending = false;
   lprintf(logger, LOG_INFO, "Error rate of the primer alignments in the "
-          "first %zu reads of %s: %s; errors in a primer: %g of its "
+          "first %zu reads of %s: %s; errors in a primer: %g%% of its "
           "length (-e auto)\n", s->n_reads, file,
-          fraction_percent_text(s->measured).s, s->value);
+          fraction_percent_text(s->measured).s, 100 * s->value);
 }
 
 void auto_settings_free(auto_settings_t *self) {

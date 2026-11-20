@@ -627,7 +627,7 @@ static void write_max_errors(html_writer_t *w, const report_t *r) {
     html_text(w, "automatic, at the first input file");
   else {
     if (value < 1)
-      html_textf(w, "%g of its length", value);
+      html_textf(w, "%g%% of its length", 100 * value);
     else
       html_textf(w, "%g", value);
     if (s != NULL && s->automatic) {
@@ -656,7 +656,8 @@ static void write_parameters(html_writer_t *w, const report_t *r) {
   snprintf(window, sizeof(window), "%ld", o->window);
   snprintf(min_length, sizeof(min_length), "%zu", o->min_length);
   snprintf(probe, sizeof(probe), "%zu", o->probe_len);
-  snprintf(probe_errors, sizeof(probe_errors), "%g", o->probe_error_rate);
+  snprintf(probe_errors, sizeof(probe_errors), "%g%% of its length",
+           100 * o->probe_error_rate);
   snprintf(terminal_window, sizeof(terminal_window), "%ld",
            o->terminal_window);
   snprintf(threads, sizeof(threads), "%zu", o->threads);
