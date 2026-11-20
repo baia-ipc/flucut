@@ -6,6 +6,7 @@
 #include "amplicon.h"
 #include "auto-settings.h"
 #include "fastq-reader.h"
+#include "numutils.h"
 #include "reads-reader.h"
 #include "reference.h"
 #include "strutils.h"
@@ -149,9 +150,9 @@ void auto_settings_decide(auto_settings_t *self, trimmer_config_t *config,
   s->file = self->file;
   s->pending = false;
   lprintf(logger, LOG_INFO, "Error rate of the primer alignments in the "
-          "first %zu reads of %s: %.1f%%; errors in a primer: %g of its "
-          "length (-e auto)\n", s->n_reads, file, 100 * s->measured,
-          s->value);
+          "first %zu reads of %s: %s; errors in a primer: %g of its "
+          "length (-e auto)\n", s->n_reads, file,
+          fraction_percent_text(s->measured).s, s->value);
 }
 
 void auto_settings_free(auto_settings_t *self) {

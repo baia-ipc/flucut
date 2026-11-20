@@ -386,7 +386,17 @@ Numeric utilities (``numutils.h``)
 ``double nice_number(double v)``
    ``v`` rounded up to 1, 2 or 5 times a power of 10 (at least 1), e.g.
    for the maximum of the axis of a plot: 130 gives 200, 4000 gives
-   5000.
+   5000;
+``percent_text_t percent_text(size_t part, size_t total)``
+   the percentage ``part`` of ``total`` as text with one decimal, e.g.
+   ``42.3%``, for reports and log messages: the string is
+   ``percent_text(part, total).s``, a member of a structure returned by
+   value, valid up to the end of the statement. ``0.0%`` and ``100.0%``
+   are written only for none and for all: a part which is not zero, but
+   below 0.1%, gives ``<0.1%``, and one above 99.9%, but not all, gives
+   ``>99.9%`` (``0.0%`` if ``total`` is 0);
+``percent_text_t fraction_percent_text(double fraction)``
+   the same, for a fraction of 1 (e.g. a measured error rate).
 
 .. code-block:: c
 

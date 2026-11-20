@@ -165,7 +165,7 @@ Logging library
 
 **numutils.h**
 
-Numeric utilities: integer division rounding towards minus infinity, the median of a histogram, and the rounding of a value to a "nice" number (for the axes of plots).
+Numeric utilities: integer division rounding towards minus infinity, the median of a histogram, the rounding of a value to a "nice" number (for the axes of plots), and the text of a percentage.
 
 .. code-block:: c
 
@@ -173,6 +173,11 @@ Numeric utilities: integer division rounding towards minus infinity, the median 
    size_t hist_median(const size_t *hist, size_t n_bins, size_t bin_width,
        size_t total);
    double nice_number(double v);
+   typedef struct {
+     char s[16];
+   } percent_text_t;
+   percent_text_t percent_text(size_t part, size_t total);
+   percent_text_t fraction_percent_text(double fraction);
 
 **progress.h**
 

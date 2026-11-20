@@ -2,8 +2,8 @@
 
 /*
    Numeric utilities: integer division rounding towards minus infinity, the
-   median of a histogram, and the rounding of a value to a "nice" number
-   (for the axes of plots).
+   median of a histogram, the rounding of a value to a "nice" number
+   (for the axes of plots), and the text of a percentage.
 */
 
 #ifndef NUMUTILS_H
@@ -36,6 +36,24 @@ size_t hist_median(const size_t *hist, size_t n_bins, size_t bin_width,
    (the result is never below 1)
 */
 double nice_number(double v);
+
+/* a percentage formatted by percent_text() or fraction_percent_text() */
+typedef struct {
+  char s[16];
+} percent_text_t;
+
+/*
+   The percentage <part> of <total> with one decimal, e.g. "42.3%": the
+   string is percent_text(a, b).s, valid up to the end of the statement (a
+   value, not a static buffer). "0.0%" and "100.0%" are written only for
+   none and for all: a part which is not zero, but below 0.1%, gives
+   "<0.1%", and one above 99.9%, but not all, gives ">99.9%". If total is
+   0, "0.0%"
+*/
+percent_text_t percent_text(size_t part, size_t total);
+
+/* The same, for a <fraction> of 1 (0.0: none, 1.0: all) */
+percent_text_t fraction_percent_text(double fraction);
 
 /* Unit tests */
 void numutils_test(void);

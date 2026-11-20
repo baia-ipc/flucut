@@ -11,6 +11,7 @@
 #include "html-report.h"
 #include "html-template.h"
 #include "html-writer.h"
+#include "numutils.h"
 #include "segments.h"
 #include "strbuf.h"
 
@@ -125,7 +126,7 @@ static void tile(html_writer_t *w, const char *label, const char *fmt,
 /* a count, with its percentage of <total> */
 static void td_count(html_writer_t *w, size_t n, size_t total) {
   td(w, "%s", html_num(n).s);
-  td(w, "%.1f%%", html_percent(n, total));
+  td(w, "%s", percent_text(n, total).s);
 }
 
 /* --- sections --- */
@@ -133,10 +134,10 @@ static void td_count(html_writer_t *w, size_t n, size_t total) {
 static void write_tiles(html_writer_t *w, const report_t *r,
     const counter_reads_t *s) {
   tile(w, "reads", "%s", html_num(s->reads_in).s);
-  tile(w, "written", "%.1f%%",
-       html_percent(s->reads_out, counter_reads_analyzed(s)));
-  tile(w, "with both primers", "%.1f%%",
-       html_percent(s->n_ends[2], counter_reads_analyzed(s)));
+  tile(w, "written", "%s",
+       percent_text(s->reads_out, counter_reads_analyzed(s)).s);
+  tile(w, "with both primers", "%s",
+       percent_text(s->n_ends[2], counter_reads_analyzed(s)).s);
   if (r->references != NULL)
     tile(w, "internally primed ends", "%s",
          html_num(s->origin[COUNTER_LEFT][ORIGIN_INTERNAL] +
@@ -291,8 +292,8 @@ static void write_lengths(html_writer_t *w, const report_t *r,
       td_none(w);
       td_none(w);
     } else {
-      td(w, "%s (%.1f%%)", html_num(x.summary.short_count).s,
-         html_percent(x.summary.short_count, x.summary.total));
+      td(w, "%s (%s)", html_num(x.summary.short_count).s,
+         percent_text(x.summary.short_count, x.summary.total).s);
       if (x.summary.short_count > 0)
         td_bin(w, x.summary.short_bin);
       else
@@ -538,9 +539,9 @@ static void write_stats(html_writer_t *w, const report_t *r,
   if (s->reads_out > 0)
     html_textf(w, ", mean %s bp",
                html_num(s->bases_out / s->reads_out).s);
-  html_textf(w, ". Minus strand: %s (%.1f%%).",
+  html_textf(w, ". Minus strand: %s (%s).",
              html_num(s->minus).s,
-             html_percent(s->minus, counter_reads_analyzed(s)));
+             percent_text(s->minus, counter_reads_analyzed(s)).s);
   html_close(w);
 }
 
@@ -601,9 +602,10 @@ static void write_groups_table(html_writer_t *w, const report_t *r) {
     } else {
       const counter_reads_t *s = counter_reads(g->counts);
       td(w, "%s", html_num(s->reads_in).s);
-      td(w, "%.1f%%", html_percent(s->reads_out, counter_reads_analyzed(s)));
-      td(w, "%.1f%%",
-         html_percent(s->n_ends[2], counter_reads_analyzed(s)));
+      td(w, "%s",
+         percent_text(s->reads_out, counter_reads_analyzed(s)).s);
+      td(w, "%s",
+         percent_text(s->n_ends[2], counter_reads_analyzed(s)).s);
       if (r->references != NULL)
         td(w, "%s", html_num(s->origin[COUNTER_LEFT][ORIGIN_INTERNAL] +
                              s->origin[COUNTER_RIGHT][ORIGIN_INTERNAL]).s);
@@ -631,8 +633,9 @@ static void write_max_errors(html_writer_t *w, const report_t *r) {
     if (s != NULL && s->automatic) {
       html_text(w, " ");
       open_class(w, "span", "note");
-      html_textf(w, "(automatic: error rate %.1f%% in the first %s reads "
-                 "of %s)", 100 * s->measured, html_num(s->n_reads).s,
+      html_textf(w, "(automatic: error rate %s in the first %s reads "
+                 "of %s)", fraction_percent_text(s->measured).s,
+                 html_num(s->n_reads).s,
                  s->file);
       html_close(w);
     }
@@ -798,8 +801,8 @@ static void write_dashboard_bar(html_writer_t *w, const report_t *r) {
     html_close(w);
   } else if (e != NULL && e->automatic) {
     html_open(w, "p");
-    html_textf(w, "errors in a primer: automatic, error rate %.1f%% in the "
-               "first %s reads", 100 * e->measured,
+    html_textf(w, "errors in a primer: automatic, error rate %s in the "
+               "first %s reads", fraction_percent_text(e->measured).s,
                html_num(e->n_reads).s);
     html_close(w);
   }

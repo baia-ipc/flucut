@@ -85,6 +85,10 @@ Then, for each group (or for all reads, if there is only one):
    the primers of the run (``-s``), reads already trimmed, or a higher
    error rate than ``-e`` allows.
 
+   Everywhere in the report, ``0.0%`` and ``100.0%`` mean exactly none
+   and exactly all: a share which is not zero, but below 0.1%, is written
+   ``<0.1%``, and one above 99.9%, but not all, ``>99.9%``.
+
    .. figure:: figures/report_tiles.*
       :width: 100%
 

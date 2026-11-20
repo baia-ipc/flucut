@@ -113,7 +113,8 @@ typedef struct {
 */
 html_num_t html_num(size_t n);
 
-/* 100 * a / b (0 if b is 0) */
+/* 100 * a / b (0 if b is 0), e.g. for the size of a bar; the text of a
+   percentage is given by percent_text() of numutils.h */
 double html_percent(size_t a, size_t b);
 
 /*
