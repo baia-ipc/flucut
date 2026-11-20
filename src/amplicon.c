@@ -167,10 +167,10 @@ void amplicon_analyzer_use_references(amplicon_analyzer_t *self,
   XREALLOC(self->probe, reference_set_probe_len(refs) + 1);
 }
 
-void amplicon_analyzer_restrict_subtype(amplicon_analyzer_t *self,
-    int subtype) {
+void amplicon_analyzer_restrict_references(amplicon_analyzer_t *self,
+    const bool *allowed) {
   if (self->refs != NULL)
-    reference_set_restrict(self->refs, subtype);
+    reference_set_restrict(self->refs, allowed);
 }
 
 void amplicon_analyzer_delete(amplicon_analyzer_t *self) {

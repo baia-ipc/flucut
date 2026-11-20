@@ -265,11 +265,11 @@ void amplicon_analyzer_use_references(amplicon_analyzer_t *self,
 void amplicon_analyzer_use_adapters(amplicon_analyzer_t *self,
     adapters_t *adapters);
 
-/* Classify the reads only against the references of the subtype <subtype>
-   (see reference_set_restrict); -1 considers all. Without references it has
-   no effect */
-void amplicon_analyzer_restrict_subtype(amplicon_analyzer_t *self,
-    int subtype);
+/* Classify the reads only against the references <allowed> (one value
+   for each reference, see reference_set_restrict); NULL considers all.
+   Without references it has no effect */
+void amplicon_analyzer_restrict_references(amplicon_analyzer_t *self,
+    const bool *allowed);
 
 /* Delete an analyzer (NULL is accepted) */
 void amplicon_analyzer_delete(amplicon_analyzer_t *self);

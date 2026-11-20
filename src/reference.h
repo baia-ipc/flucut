@@ -64,6 +64,9 @@ typedef struct {
      the plus strand */
   long ref_start;
   long n_errors;
+  /* another reference has a match with as few errors: the probe does not
+     tell the two apart */
+  bool ambiguous;
 } reference_hit_t;
 
 /* probes shorter than this are not located (too short to be placed
@@ -132,6 +135,10 @@ size_t reference_index_n_subtypes(const reference_index_t *self);
 const char* reference_index_subtype_name(const reference_index_t *self,
     int subtype);
 
+/* The segment of the reference <ref> (1 to 8, 0 if its description names
+   none, see segments.h) */
+int reference_index_segment(const reference_index_t *self, size_t ref);
+
 /* a searcher of probes in the references */
 typedef struct reference_set_t reference_set_t;
 
@@ -151,12 +158,14 @@ reference_set_t* reference_set_new(const reference_index_t *index,
    result is the one the index approximates) */
 void reference_set_set_exhaustive(reference_set_t *self, bool exhaustive);
 
-/* Consider only the references of the subtype <subtype> (an id, see
-   reference_index_subtype); -1 (the default) considers all. Each read
-   should be classified against the subtype it belongs to, as the
-   references of other subtypes match it spuriously (their untranslated
-   regions are conserved, their coding regions diverge) */
-void reference_set_restrict(reference_set_t *self, int subtype);
+/* Consider only the references <allowed> (one value for each reference,
+   copied); NULL (the default) considers all. Each read should be
+   classified against the reference of each segment which is closest to
+   its sample (see auto_settings_choose_references()), as the other
+   references of a segment, e.g. those of other subtypes, match it
+   spuriously (their untranslated regions are conserved, their coding
+   regions diverge) */
+void reference_set_restrict(reference_set_t *self, const bool *allowed);
 
 /* Consider only the references of the segment <segment> (1 to 8, from
    their FASTA descriptions, see segments.h); 0 (the default) considers

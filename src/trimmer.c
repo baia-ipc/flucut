@@ -62,8 +62,8 @@ trimmer_t* trimmer_new(const trimmer_config_t *config) {
   return self;
 }
 
-void trimmer_restrict_subtype(trimmer_t *self, int subtype) {
-  amplicon_analyzer_restrict_subtype(self->analyzer, subtype);
+void trimmer_restrict_references(trimmer_t *self, const bool *allowed) {
+  amplicon_analyzer_restrict_references(self->analyzer, allowed);
 }
 
 void trimmer_delete(trimmer_t *self) {

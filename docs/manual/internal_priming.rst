@@ -108,13 +108,27 @@ cached (under ``$XDG_CACHE_HOME/flucut`` or ``~/.cache/flucut``), so later
 runs do not download it again. If it cannot be downloaded (no network, no
 ``curl``), flucut warns and runs without references.
 
-Each barcode (a different sample) is classified against the subtype its
-reads belong to: the subtype is detected from a sample of the reads, and
-only the references of that subtype are used. This matters because the
-UTRs are conserved across subtypes (so a terminal read matches any
-subtype's segment) and the coding regions diverge (so a read with a noisy
-start finds spurious interior matches); using one subtype avoids
-scattering the reads and inflating the internal priming.
+Each barcode (a different sample) is classified against one reference
+of each segment: the one closest to its reads. The segments are chosen
+independently, so that a reassortant gets, for each segment, the
+reference of the subtype that segment is closest to. This matters
+because the UTRs are conserved across subtypes (so a terminal read
+matches the segment of any subtype) and the coding regions diverge (so
+a read with a noisy start finds spurious interior matches); using one
+reference per segment avoids scattering the reads and inflating the
+internal priming.
+
+The choice is made from the first 2000 reads of the first file of the
+barcode. Eight probes are taken along each read and located in the
+references. A probe votes for the reference it is located in, unless
+another reference matches it as well: such a probe tells nothing, and
+does not vote. The reference with most votes of a segment is chosen if
+it has at least 20 votes. If a segment has fewer, the reads up to 20,000
+are used as well; a segment which still has fewer keeps all its
+references. The messages (``-v``) give the reference chosen for each
+segment, with its votes; a reference chosen with less than 60% of the
+votes of its segment is marked as about as close as others (common for
+the internal genes, which differ little between subtypes).
 
 For a run of one segment alone (e.g. an HA amplicon), ``--segment``
 does the same for the segments: the read ends are classified against

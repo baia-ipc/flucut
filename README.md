@@ -57,8 +57,9 @@ exactly or with one mismatch), so the trimming has to be done before it.
   references are a **built-in flu A set** (complete segments of several
   subtypes), downloaded from NCBI on first use and cached; `-r <file>`
   uses your own instead, and `-r off` turns references off (every
-  primer-derived base removed). With references of several subtypes, each
-  barcode is classified against the subtype its reads belong to;
+  primer-derived base removed). With several references of a segment
+  (e.g. of several subtypes), each barcode is classified against the
+  reference of each segment closest to its reads;
 - with the references, in either mode, measures internal priming: which
   segments, which sites, what share of the reads (the references must be
   complete segments, with the UTRs, not coding sequences; flucut warns

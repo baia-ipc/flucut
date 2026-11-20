@@ -143,6 +143,10 @@ size_t reference_index_n_subtypes(const reference_index_t *self) {
   return self->n_subtypes;
 }
 
+int reference_index_segment(const reference_index_t *self, size_t ref) {
+  return self->segment[ref];
+}
+
 const char* reference_index_subtype_name(const reference_index_t *self,
     int subtype) {
   if (subtype < 0 || (size_t)subtype >= self->n_subtypes)
@@ -157,9 +161,9 @@ struct reference_set_t {
   double max_error_rate;
   bool exhaustive;
   bool seeds_only;
-  /* if >= 0, only the references of this subtype are considered (see
-     reference_set_restrict); -1: all */
-  int restrict_subtype;
+  /* if not NULL, whether each reference is considered (see
+     reference_set_restrict) */
+  bool *allowed;
   /* if > 0, only the references of this segment are considered (see
      reference_set_restrict_segment); 0: all */
   int restrict_segment;
@@ -183,7 +187,7 @@ reference_set_t* reference_set_new(const reference_index_t *index,
   self->max_error_rate = max_error_rate;
   self->exhaustive = false;
   self->seeds_only = false;
-  self->restrict_subtype = -1;
+  self->allowed = NULL;
   self->restrict_segment = 0;
   XMALLOC(self->rc, probe_len + 1);
   self->hits = NULL;
@@ -199,8 +203,14 @@ void reference_set_set_exhaustive(reference_set_t *self, bool exhaustive) {
   self->exhaustive = exhaustive;
 }
 
-void reference_set_restrict(reference_set_t *self, int subtype) {
-  self->restrict_subtype = subtype;
+void reference_set_restrict(reference_set_t *self, const bool *allowed) {
+  free(self->allowed);
+  self->allowed = NULL;
+  size_t n = self->fasta->n_records;
+  if (allowed == NULL || n == 0)
+    return;
+  XMALLOC(self->allowed, sizeof(bool) * n);
+  memcpy(self->allowed, allowed, sizeof(bool) * n);
 }
 
 void reference_set_restrict_segment(reference_set_t *self, int segment) {
@@ -208,11 +218,10 @@ void reference_set_restrict_segment(reference_set_t *self, int segment) {
   self->restrict_segment = segment;
 }
 
-/* whether the reference <ref> is considered, given the restrictions to a
-   subtype and to a segment */
+/* whether the reference <ref> is considered, given the restrictions to
+   some references and to a segment */
 static bool ref_allowed(const reference_set_t *self, size_t ref) {
-  return (self->restrict_subtype < 0 ||
-          self->index->subtype[ref] == self->restrict_subtype) &&
+  return (self->allowed == NULL || self->allowed[ref]) &&
          (self->restrict_segment == 0 ||
           self->index->segment[ref] == self->restrict_segment);
 }
@@ -222,6 +231,7 @@ void reference_set_delete(reference_set_t *self) {
     return;
   free(self->rc);
   free(self->hits);
+  free(self->allowed);
   free(self);
 }
 
@@ -271,7 +281,8 @@ static void align_window(const reference_set_t *self, const char *query,
   reference_hit_t hit = {.mapped = true, .ref_index = ref_index,
                          .ref_len = (long)ref->seq_len, .reverse = reverse,
                          .ref_start = -1,
-                         .n_errors = result.editDistance};
+                         .n_errors = result.editDistance,
+                         .ambiguous = false};
   /* the location nearest to the terminus (several are reported e.g. for
      a repeat, or for equally good alignments of different lengths) */
   for (int i = 0; i < result.numLocations; i++) {
@@ -282,10 +293,16 @@ static void align_window(const reference_set_t *self, const char *query,
       hit.ref_start = pos;
   }
   edlibFreeAlignResult(result);
-  if (!best->mapped || hit.n_errors < best->n_errors ||
-      (hit.n_errors == best->n_errors &&
-       terminus_distance(&hit) < terminus_distance(best)))
+  if (!best->mapped || hit.n_errors < best->n_errors) {
     *best = hit;
+  } else if (hit.n_errors == best->n_errors) {
+    /* as good as the best one: nearer to the terminus, it replaces it;
+       on another reference, the probe does not tell the two apart */
+    bool ambiguous = best->ambiguous || hit.ref_index != best->ref_index;
+    if (terminus_distance(&hit) < terminus_distance(best))
+      *best = hit;
+    best->ambiguous = ambiguous;
+  }
 }
 
 /*

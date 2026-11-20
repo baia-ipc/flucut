@@ -94,7 +94,8 @@ support the trimming; they are not the purpose of the program.
 - **Choice of the references for a run**: done. A built-in set of complete
   segments of several subtypes (H1N1, H3N2, H5N1, H7N9, H9N2) is the
   default, downloaded on first use and cached; each barcode is classified
-  against the subtype its reads belong to (detected from a sample). Still
+  against the reference of each segment closest to its reads (chosen
+  from a sample of them, segment by segment). Still
   possible: more subtypes (more avian), a packaged copy for offline
   installs, and a check that the unclassified ends stay rare.
 - **Start contexts**: group the reads by the bases which follow the 5'

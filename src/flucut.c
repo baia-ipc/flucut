@@ -133,13 +133,16 @@ static void trim_group(const options_t *opts, const trimmer_config_t *config,
     lprintf(logger, LOG_SUCCESS, "Trimming %s, %zu files%s...\n", g->name,
             g->n_files, of);
   FILE *out = xfopen(path, NULL, "wb", "trimmed reads", logger);
-  /* each barcode is a different sample: classify it only against its own
-     subtype (detected from its first file), so the references of the
-     other subtypes do not match it spuriously */
+  /* each barcode is a different sample: classify it only against the
+     reference of each segment closest to it (chosen from its first
+     file), so the other references of a segment, e.g. of other
+     subtypes, do not match it spuriously */
   if (g->n_files > 0) {
-    int sub = auto_settings_detect_subtype(config, g->files[0], logger);
+    bool *allowed = auto_settings_choose_references(config, g->files[0],
+                                                    logger);
     for (size_t t = 0; t < opts->threads; t++)
-      worker_restrict_subtype(workers + t, sub);
+      worker_restrict_references(workers + t, allowed);
+    free(allowed);
   }
   for (size_t j = 0; j < g->n_files; j++) {
     if (g->n_files > 1)

@@ -29,9 +29,16 @@
 #include "trimmer.h"
 
 #define AUTO_MAX_ERRORS_READS 1000
-/* reads used to detect the subtype of a group (see
-   auto_settings_detect_subtype) */
-#define AUTO_SUBTYPE_READS 2000
+/* the choice of the reference of each segment for a group (see
+   auto_settings_choose_references): the reads used at first, and in all
+   if a segment has too few votes in them; the probes taken from each
+   read; the fewest votes of the reference chosen; its share of the
+   votes of its segment from which its lead is clear */
+#define AUTO_REFERENCE_READS 2000
+#define AUTO_REFERENCE_MORE_READS 20000
+#define AUTO_REFERENCE_PROBES 8
+#define AUTO_REFERENCE_MIN_VOTES 20
+#define AUTO_REFERENCE_MIN_SHARE 0.6
 /* (the help text of -e, in options.c, states these three values) */
 #define AUTO_MAX_ERRORS_LOW 0.2
 #define AUTO_MAX_ERRORS_HIGH 0.3
@@ -68,17 +75,46 @@ void auto_settings_decide(auto_settings_t *self, trimmer_config_t *config,
     const char *file, Logger *logger);
 
 /*
-   Detect the dominant subtype of the reads of <file> (an id into the
-   subtypes of the references, see reference_index_subtype): a sample of
-   the reads is classified against all the references, and the subtype
-   most of the located reads belong to is returned; -1 if the references
-   have fewer than two subtypes or no read was located. Each group (a
-   barcode, a different sample) is then classified against its own subtype
-   only, so that the references of the other subtypes do not match it
-   spuriously.
+   Choose, for each segment, the reference closest to the reads of
+   <file>, among the references of that segment (e.g. those of several
+   subtypes). Each group (a barcode, a different sample) is then
+   classified against the chosen references only, so that the other
+   references of a segment do not match it spuriously. The segments are
+   chosen independently, as the segments of a virus can be closest to
+   references of different subtypes (a reassortant).
+
+   Probes are taken along the first AUTO_REFERENCE_READS reads
+   (AUTO_REFERENCE_PROBES from each, evenly spaced) and located by their
+   k-mers; a probe votes for the reference it is located in, unless
+   another reference matches it as well (it then tells nothing). The
+   reference with most votes of a segment is chosen if it has at least
+   AUTO_REFERENCE_MIN_VOTES votes. If a segment has fewer, the reads up
+   to AUTO_REFERENCE_MORE_READS are used as well; a segment which still
+   has fewer keeps all its references. A reference chosen with less
+   than AUTO_REFERENCE_MIN_SHARE of the votes of its segment has no
+   clear lead: the sample is about as close to other references, and
+   more reads would not change that (it is reported).
+
+   Returns a new array with a value for each reference (whether it is
+   considered, see reference_set_restrict), to be freed by the caller,
+   or NULL if all references are considered (no segment has several
+   references, or none was decided).
 */
-int auto_settings_detect_subtype(const trimmer_config_t *config,
+bool* auto_settings_choose_references(const trimmer_config_t *config,
     const char *file, Logger *logger);
+
+/*
+   The decision of auto_settings_choose_references(), from the votes:
+   <segment> and <votes> have a value for each of the <n> references;
+   <allowed> is set for each. Returns the number of segments with
+   several references and too few votes for a choice.
+*/
+size_t auto_settings_decide_references(const int *segment,
+    const size_t *votes, size_t n, bool *allowed);
+
+/* Whether a reference with <best_votes> of the <segment_votes> votes of
+   its segment has a clear lead */
+bool auto_settings_clear_lead(size_t best_votes, size_t segment_votes);
 
 /* Free the memory */
 void auto_settings_free(auto_settings_t *self);
