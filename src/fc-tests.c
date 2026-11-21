@@ -28,6 +28,7 @@
 #include "junction.h"
 #include "logger.h"
 #include "placement.h"
+#include "read-agreement.h"
 #include "read-cover.h"
 #include "read-outputs.h"
 #include "primer-search.h"
@@ -110,6 +111,8 @@ static test_group_t test_groups[] = {
   {'S', "the recognition of the segments", segments_test, false},
   {'A', "the search of the adapters", adapters_test, false},
   {'u', "the automatic settings", auto_settings_test, false},
+  {'G', "the agreement of the probes of a read", read_agreement_test,
+   false},
   {'q', "the summary of a sample by segment", qc_summary_test, false},
   {'d', "the search of an adaptor (from Lumipore)", adaptor_search_test,
    false},

@@ -8,6 +8,7 @@
 #include "auto-settings.h"
 #include "fastq-reader.h"
 #include "numutils.h"
+#include "read-agreement.h"
 #include "reads-reader.h"
 #include "reference.h"
 #include "segments.h"
@@ -201,13 +202,16 @@ bool auto_settings_clear_lead(size_t best_votes, size_t segment_votes) {
 /* add to <votes> those of the probes of the read <seq> (length <len>),
    see auto_settings_choose_references(); the probes which do not vote,
    as several references match them, are counted in <ambiguous>, by the
-   segment <segment> of the reference found */
+   segment <segment> of the reference found; the votes of the read are
+   added to <agreement> */
 static void vote(reference_set_t *refs, const int *segment, const char *seq,
-    size_t len, size_t *votes, size_t *ambiguous) {
+    size_t len, size_t *votes, size_t *ambiguous,
+    read_agreement_t *agreement) {
   size_t probe_len = reference_set_probe_len(refs);
   if (len < probe_len)
     return;
   size_t room = len - probe_len, last = len;
+  size_t read_votes[AUTO_REFERENCE_PROBES], n_read_votes = 0;
   for (size_t j = 0; j < AUTO_REFERENCE_PROBES; j++) {
     size_t offset = room * (2 * j + 1) / (2 * AUTO_REFERENCE_PROBES);
     if (offset == last)
@@ -219,9 +223,12 @@ static void vote(reference_set_t *refs, const int *segment, const char *seq,
       continue;
     if (hit.ambiguous)
       ambiguous[segment[hit.ref_index]]++;
-    else
+    else {
       votes[hit.ref_index]++;
+      read_votes[n_read_votes++] = hit.ref_index;
+    }
   }
+  read_agreement_add(agreement, segment, read_votes, n_read_votes);
 }
 
 /* report the references chosen for <file> */
@@ -246,6 +253,10 @@ static void log_references(const trimmer_config_t *config, const char *file,
     }
     char name[16];
     segments_name(s, name, sizeof(name));
+    for (size_t i = 0; i < fa->n_records; i++)
+      if (segment[i] == s)
+        lprintf(logger, LOG_DEBUG, "votes of %s for %s: %s %zu\n", name,
+                file, fa->records[i].name, votes[i]);
     if (n_allowed != 1) {
       lprintf(logger, LOG_INFO, "reference of %s for %s: not chosen, too "
               "few probes (%zu) in the first %zu reads (%zu more match "
@@ -301,6 +312,8 @@ bool* auto_settings_choose_references(const trimmer_config_t *config,
   bool *allowed;
   XCALLOC(votes, n_refs, sizeof(size_t));
   XMALLOC(allowed, sizeof(bool) * n_refs);
+  read_agreement_t agreement;
+  read_agreement_init(&agreement, n_refs);
   reads_reader_t *reader = reads_reader_new(file, logger);
   fastq_batch_t batch;
   fastq_batch_init(&batch);
@@ -314,7 +327,7 @@ bool* auto_settings_choose_references(const trimmer_config_t *config,
       for (size_t i = 0; i < got; i++) {
         const fastq_record_t *rec = batch.records + i;
         vote(refs, segment, batch.data.s + rec->seq_from, rec->seq_len,
-             votes, ambiguous);
+             votes, ambiguous, &agreement);
       }
       n += got;
     }
@@ -329,6 +342,8 @@ bool* auto_settings_choose_references(const trimmer_config_t *config,
   reference_set_delete(refs);
   log_references(config, file, segment, subtype, votes, ambiguous, allowed, n,
                  logger);
+  read_agreement_log(&agreement, fa, segment, votes, file, logger);
+  read_agreement_free(&agreement);
   bool all = true;
   for (size_t i = 0; i < n_refs; i++)
     if (!allowed[i])

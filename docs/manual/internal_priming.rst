@@ -136,7 +136,17 @@ votes (common for the internal genes, which differ little between
 subtypes), and for a segment with too few votes the reads up to 20,000
 are used as well; if it still has too few, it keeps all its references.
 The messages (``-v``) give the reference chosen for each segment, with
-its votes and how it was chosen.
+its votes and how it was chosen, and how often the probes of one read
+all vote for the same reference, with the number expected if each probe
+voted on its own. A segment whose votes are split between two
+references has two causes which the votes alone do not separate: one
+strain lying between the two references, whose reads each vote for
+both; or two strains in the sample, whose reads each vote for one. In
+the second case many more reads agree with themselves than expected.
+The numbers are reported only; they do not change the references
+chosen. In HA and NA they tell the two cases apart down to a minor
+strain of a few percent, in the other segments they rarely do
+(``benchmark/RESULTS.md``).
 
 For a run of one segment alone (e.g. an HA amplicon), ``--segment``
 does the same for the segments: the read ends are classified against
