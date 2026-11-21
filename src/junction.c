@@ -9,7 +9,10 @@
 #include "test.h"
 
 bool junction_expected(long len, long distance) {
-  return distance - len > JUNCTION_MIN_DELETION + distance / 10;
+  long allowance = distance / 10;
+  if (allowance < JUNCTION_MIN_DELETION)
+    allowance = JUNCTION_MIN_DELETION;
+  return distance - len > allowance;
 }
 
 /* the flank to which a probe belongs */
@@ -251,8 +254,12 @@ void junction_test(void) {
   junction_t j;
 
   test_assert(junction_expected(550, 1000));
-  test_assert(!junction_expected(950, 1000));   /* indels of a long read */
+  test_assert(junction_expected(850, 1000));    /* a short deletion */
+  test_assert(!junction_expected(900, 1000));   /* the smallest deletion */
+  test_assert(!junction_expected(950, 1000));
   test_assert(!junction_expected(1000, 1000));
+  test_assert(!junction_expected(2100, 2300));  /* indels of a long read */
+  test_assert(junction_expected(2000, 2300));
 
   /* the bases 150 to 599 of the reference are missing */
   size_t len = deleted_copy(ref1, REF_LEN, 150, 600, read);

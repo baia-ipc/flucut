@@ -163,7 +163,7 @@
 
    With references, a read whose two ends map to the same segment (an
    end located from inside included), much farther apart than the
-   template between them is long, has an
+   template between them is long (see junction_expected()), has an
    internal deletion (e.g. a defective interfering genome). Its junction
    is located by probes from inside the template (see junction.h). It
    does not change the trimming: it is reported, so that each flank of

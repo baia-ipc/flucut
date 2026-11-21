@@ -39,7 +39,9 @@
 #include <stddef.h>
 #include "reference.h"
 
-/* a deletion smaller than this is not told from the indels of a read */
+/* a deletion smaller than this is not told from the indels of a read,
+   nor from the indels of a sample with respect to its reference (e.g.
+   60 bases in the stalk of a neuraminidase) */
 #define JUNCTION_MIN_DELETION 100
 
 /* the junction of a read on its reference */
@@ -54,8 +56,12 @@ typedef struct {
 /*
    Whether a template of <len> bases whose ends mapped <distance> bases
    apart has an internal deletion: it is shorter than the distance by
-   more than JUNCTION_MIN_DELETION and a tenth of the distance (the
-   allowance for the indels of a long read)
+   more than JUNCTION_MIN_DELETION, and by more than a tenth of the
+   distance (the larger of the two). The tenth is the allowance for the
+   indels of a long read: with accurate reads it is not reached (a read
+   of a whole segment is within about 100 bases of its distance), with
+   reads of 12% errors a read of a polymerase segment is up to about 160
+   bases shorter (99 of 100 reads).
 */
 bool junction_expected(long len, long distance);
 

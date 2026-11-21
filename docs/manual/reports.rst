@@ -192,11 +192,14 @@ Then, for each group (or for all reads, if there is only one):
 
    * **internal deletion** (purple, at the top): reads whose two ends
      map to the two ends of a segment, much farther apart than the read
-     is long, e.g. defective interfering genomes. Such a read covers
-     only its two flanks: the junction between them is located by
-     probes from inside the read, so the band steps down where the
-     deletions begin and up where they end. If the junction is not
-     found, half of the read is drawn at each end.
+     is long, e.g. defective interfering genomes: the read is shorter
+     than the distance between its ends by more than 100 bases, and by
+     more than 10% of that distance (smaller differences are the indels
+     of the read, or of the sample with respect to the reference). Such
+     a read covers only its two flanks: the junction between them is
+     located by probes from inside the read, so the band steps down
+     where the deletions begin and up where they end. If the junction
+     is not found, half of the read is drawn at each end.
 
    When only the 3' end of a read maps, its 5' origin is inferred from
    where its 5' end falls (the mapped 3' position less the read length):
