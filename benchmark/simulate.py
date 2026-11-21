@@ -23,18 +23,22 @@ gets, independently: an orientation; random flanking bases
 sequence); sometimes a start or an end inside a primer, or a break in
 the middle; and sequencing errors (substitutions, insertions and
 deletions) at a rate drawn for each read (--error-rate: its mean).
+With --joined-share, a share of the reads is two amplicons joined end to
+end, as a ligation library also gives: the second one is of any segment,
+each has its own orientation, and 0 to 20 other bases lie between them.
 These are modelling choices, documented here and in
 benchmark/README.md, not measured properties of a run.
 
 Outputs, in <outdir>:
   reads.fastq.gz   the reads
   truth.tsv.gz     for each read: name, segment, kind (full, internal,
-                   dimer, broken), orientation, and the origin of each of
+                   dimer, broken, joined), orientation, the origin of each of
                    its bases (a string as long as the read: f flank,
                    including the barcoding adapters,
                    t primer tail, p primer bases at a terminus, i primer
-                   bases at the internal site, T template), and the
-                   barcode (or none)
+                   bases at the internal site, T template), the
+                   barcode (or none), and the number of amplicons in
+                   the read (2 if joined)
   genome.fasta     the truth (a copy of the input genome)
   barcodes.fasta   with --barcodes: the barcoding adapters used
                    (flank, barcode, flank), named NB01 to NB04
@@ -144,6 +148,45 @@ def add_errors(seq, labels, rate, rng):
   return "".join(out), "".join(out_labels)
 
 
+def amplicon(name, seq, is_ha, site, internal_share, rc13, rng):
+  """One amplicon of the segment <seq>, as (sequence, labels, kind): full,
+  or started at the internal site <site> (a share of those of HA), or a
+  primer dimer; possibly with a start or an end inside a primer, or broken
+  in the middle."""
+  rc13_labels = "p" * len(UNI13) + "t" * len(MBT_TAIL)
+  p12 = resolve(UNI12, rng)
+  kind = "full"
+  r = rng.random()
+  if is_ha and r < internal_share:
+    kind = "internal"
+    body = seq[site + len(UNI12):len(seq) - len(UNI13)]
+    left_labels = "i" * len(p12)
+  else:
+    body = seq[len(UNI12):len(seq) - len(UNI13)]
+    left_labels = "p" * len(p12)
+    if rng.random() < 0.01:
+      kind = "dimer"
+      body = ""
+  amp = p12 + body + rc13
+  labels = left_labels + "T" * len(body) + rc13_labels
+  # a start or an end inside a primer, or a break in the middle
+  r = rng.random()
+  if r < 0.1:
+    cut = rng.randint(1, 8)
+    amp, labels = amp[cut:], labels[cut:]
+  elif r < 0.2:
+    cut = rng.randint(1, 15)
+    amp, labels = amp[:-cut], labels[:-cut]
+  elif r < 0.25 and kind != "dimer":
+    cut = rng.randint(len(amp) // 4, 3 * len(amp) // 4)
+    if rng.random() < 0.5:
+      amp, labels = amp[:cut], labels[:cut]
+    else:
+      amp, labels = amp[cut:], labels[cut:]
+    kind = "broken" if kind == "full" else kind + "_broken"
+  return amp, labels, kind
+
+
 def main():
   parser = argparse.ArgumentParser(
       description="Simulate Uni12/Uni13 amplicon reads with a truth.")
@@ -177,6 +220,10 @@ def main():
       help="if several positions of HA are equally similar to the "
            "primer, use the first as internal priming site (default: "
            "stop, the site must be unique)")
+  parser.add_argument(
+      "--joined-share", type=float, default=0.0,
+      help="share of the reads which are two amplicons joined end to end, "
+           "the second one of any segment (default 0: none)")
   parser.add_argument(
       "--read-prefix", default="",
       help="a prefix of the read names (default: none)")
@@ -216,42 +263,29 @@ def main():
         f.write(">NB%02d\n%s\n" % (b + 1,
                                     NB_FRONT + NB_BARCODES[b] + NB_REAR))
   rc13 = revcomp(MBT_TAIL + UNI13)
-  rc13_labels = "p" * len(UNI13) + "t" * len(MBT_TAIL)
   records = []
   n = 0
   for name, seq in segments:
     for k in range(segment_reads.get(numbers.get(name),
                                      args.reads_per_segment)):
-      p12 = resolve(UNI12, rng)
-      kind = "full"
-      r = rng.random()
-      if name == ha_name and r < args.internal_share:
-        kind = "internal"
-        body = seq[site + len(UNI12):len(seq) - len(UNI13)]
-        left_labels = "i" * len(p12)
-      else:
-        body = seq[len(UNI12):len(seq) - len(UNI13)]
-        left_labels = "p" * len(p12)
-        if rng.random() < 0.01:
-          kind = "dimer"
-          body = ""
-      amp = p12 + body + rc13
-      labels = left_labels + "T" * len(body) + rc13_labels
-      # a start or an end inside a primer, or a break in the middle
-      r = rng.random()
-      if r < 0.1:
-        cut = rng.randint(1, 8)
-        amp, labels = amp[cut:], labels[cut:]
-      elif r < 0.2:
-        cut = rng.randint(1, 15)
-        amp, labels = amp[:-cut], labels[:-cut]
-      elif r < 0.25 and kind != "dimer":
-        cut = rng.randint(len(amp) // 4, 3 * len(amp) // 4)
+      amp, labels, kind = amplicon(name, seq, name == ha_name, site,
+                                   args.internal_share, rc13, rng)
+      n_amplicons = 1
+      if args.joined_share > 0 and rng.random() < args.joined_share:
+        # a second amplicon, of any segment, joined to the first one: each
+        # in its own orientation, 0 to 20 other bases between them
+        other, other_seq = rng.choice(segments)
+        amp2, labels2, _ = amplicon(other, other_seq, False, site, 0.0, rc13,
+                                    rng)
         if rng.random() < 0.5:
-          amp, labels = amp[:cut], labels[:cut]
-        else:
-          amp, labels = amp[cut:], labels[cut:]
-        kind = "broken" if kind == "full" else kind + "_broken"
+          amp, labels = revcomp(amp), labels[::-1]
+        if rng.random() < 0.5:
+          amp2, labels2 = revcomp(amp2), labels2[::-1]
+        gap = rng.randint(0, 20)
+        amp += "".join(rng.choice("ACGT") for _ in range(gap)) + amp2
+        labels += "f" * gap + labels2
+        kind = "joined"
+        n_amplicons = 2
       barcode = "none"
       if args.barcodes > 0:
         b = rng.randrange(args.barcodes)
@@ -274,14 +308,15 @@ def main():
       n += 1
       rname = "%sr%05d" % (args.read_prefix, n)
       records.append(("@%s\n%s\n+\n%s\n" % (rname, read, qual),
-                      "%s\t%s\t%s\t%s\t%s\t%s\n"
-                      % (rname, name, kind, strand, read_labels, barcode)))
+                      "%s\t%s\t%s\t%s\t%s\t%s\t%d\n"
+                      % (rname, name, kind, strand, read_labels, barcode,
+                         n_amplicons)))
   if args.shuffle:
     # (a generator of its own: the reads are the same with and without)
     random.Random(args.seed).shuffle(records)
   fq = gzip.open(os.path.join(args.outdir, "reads.fastq.gz"), "wt")
   truth = gzip.open(os.path.join(args.outdir, "truth.tsv.gz"), "wt")
-  truth.write("read\tsegment\tkind\tstrand\tlabels\tbarcode\n")
+  truth.write("read\tsegment\tkind\tstrand\tlabels\tbarcode\tamplicons\n")
   for fastq_record, truth_record in records:
     fq.write(fastq_record)
     truth.write(truth_record)

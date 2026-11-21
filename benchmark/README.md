@@ -56,6 +56,12 @@ of Uni12 is A or G at random in each read. All of these are modelling
 choices, not measured properties of a run. The origin of each base of
 each read is written to `truth.tsv.gz`.
 
+With `--joined-share`, a share of the reads is two amplicons joined end
+to end (the second one of any segment, each in its own orientation,
+0-20 other bases between them): a tool which splits reads is scored on
+them, by the reads split wrongly and those not split
+(`score_reads.py`). The default has none.
+
 ## IRMA
 
 IRMA 1.4.0 with IRMA-core 0.11.0, IRMA-viz 0.2.2 and LABEL 0.7.2,
