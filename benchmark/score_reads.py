@@ -9,7 +9,8 @@ benchmark/simulate.py) then tells what was kept and what was removed:
 
   reads_in, reads_out   reads simulated, reads written
   reads_lost            reads with template bases which were not written
-  template_removed      template bases of the written reads removed
+  template_removed      template bases of the written reads removed: in
+                        none of the pieces written of the read
   primer_kept           primer bases kept (tail and terminus, at the
                         segment ends), flank_kept: flanking bases kept
   internal_kept         primer bases kept at the internal priming site
@@ -17,6 +18,10 @@ benchmark/simulate.py) then tells what was kept and what was removed:
   not_found             written reads not found in their input read
   pieces                written reads which are pieces of a read split
                         by the tool (named <read>_<n>, e.g. Porechop)
+  split_wrongly         reads written in more pieces than they have
+                        amplicons (2 in a read of joined amplicons,
+                        simulate.py --joined-share; otherwise 1)
+  not_split             reads of joined amplicons written in one piece
 
 Usage:
   python3 -I benchmark/score_reads.py <simulation dir> <trimmed reads>
@@ -54,7 +59,7 @@ def read_fastq(path):
 
 COLUMNS = ["reads_in", "reads_out", "reads_lost", "template_removed",
            "primer_kept", "flank_kept", "internal_kept", "not_found",
-           "pieces"]
+           "pieces", "split_wrongly", "not_split"]
 
 
 def main():
@@ -67,11 +72,13 @@ def main():
     f.readline()
     for line in f:
       fields = line.rstrip("\n").split("\t")
-      truth[fields[0]] = (fields[2], fields[4])
+      amplicons = int(fields[6]) if len(fields) > 6 else 1
+      truth[fields[0]] = (fields[4], amplicons)
   inputs = dict(read_fastq(simdir + "/reads.fastq.gz"))
   c = dict.fromkeys(COLUMNS, 0)
   c["reads_in"] = len(truth)
-  written = set()
+  # the parts kept of each read, as (start, end) in the input read
+  kept_parts = {}
   for name, seq in read_fastq(trimmed):
     c["reads_out"] += 1
     if name not in inputs:
@@ -80,24 +87,31 @@ def main():
         sys.exit("%s: read not in the simulation" % name)
       name = m.group(1)
       c["pieces"] += 1
-    written.add(name)
+    parts = kept_parts.setdefault(name, [])
     read = inputs[name]
-    labels = truth[name][1]
     start = read.find(seq)
     if start < 0:
       start = read.find(revcomp(seq))
     if start < 0:
       c["not_found"] += 1
       continue
-    end = start + len(seq)
-    kept = labels[start:end]
-    c["template_removed"] += (labels[:start] + labels[end:]).count("T")
-    c["primer_kept"] += kept.count("p") + kept.count("t")
-    c["flank_kept"] += kept.count("f")
-    c["internal_kept"] += kept.count("i")
-  for name, (kind, labels) in truth.items():
-    if name not in written and "T" in labels:
-      c["reads_lost"] += 1
+    parts.append((start, start + len(seq)))
+  for name, (labels, amplicons) in truth.items():
+    if name not in kept_parts:
+      c["reads_lost"] += "T" in labels
+      continue
+    parts = kept_parts[name]
+    # a base is removed if no written part of the read holds it
+    removed = list(labels)
+    for start, end in parts:
+      kept = labels[start:end]
+      removed[start:end] = "-" * (end - start)
+      c["primer_kept"] += kept.count("p") + kept.count("t")
+      c["flank_kept"] += kept.count("f")
+      c["internal_kept"] += kept.count("i")
+    c["template_removed"] += removed.count("T")
+    c["split_wrongly"] += len(parts) > amplicons
+    c["not_split"] += 0 < len(parts) < amplicons
   if "--no-header" not in sys.argv:
     print("\t".join(["label"] + COLUMNS))
   print("\t".join([label] + [str(c[k]) for k in COLUMNS]))
