@@ -1,5 +1,251 @@
 # Results
 
+## 2026-11-21: the choice of the reference of each segment
+
+Which reference flucut picks for a segment (`src/auto-settings.h`:
+`AUTO_REFERENCE_CLOSE_SHARE`, `AUTO_REFERENCE_MIN_VOTES`,
+`AUTO_REFERENCE_MIN_SHARE`), measured on simulated reads of 17 genomes
+which are not in the built-in set (`benchmark/README.md`, "the choice
+of the reference of each segment"), at the error rates 4, 8 and 12%:
+51 samples of 3200 reads, 2040 scored classifications (each sample
+against the references of each subtype and against the whole set), and
+3672 segment decisions over samples of 30 to 3200 reads.
+
+The measure is the share of the read ends with a primer whose origin
+(terminal or internal) and position on the reference flucut gets right
+(`benchmark/score_read_ends.py`, 5 bases of tolerance). The truth of
+each base comes from the simulator; the true position is carried over
+to each reference by a global alignment of the simulated segment with
+it.
+
+### Recommendation: keep AUTO_REFERENCE_CLOSE_SHARE at 0.5
+
+In the zone it governs, the value makes no measurable difference. The
+constant decides, in a segment without a clear lead, whether the
+reference of the common subtype is taken instead of the leading one.
+In the segments where that changes the reference, the accuracy of the
+two references, by the ratio of their votes (percentage points, the
+followed reference against the leading one):
+
+| votes / votes of the leader | segments | mean difference | median | better by > 2 | worse by > 2 | worst |
+|---|---|---|---|---|---|---|
+| 0.00-0.25 | 181 | -7.2 | -2.0 | 14 | 93 | -64 |
+| 0.25-0.50 | 163 | +10.4 | -0.3 | 48 | 56 | -51 |
+| 0.50-0.75 | 196 | -1.4 | +0.0 | 56 | 66 | -79 |
+| 0.75-1.00 | 161 | -0.2 | +0.3 | 51 | 35 | -89 |
+
+Above a ratio of 0.25 the two are equally good: the median difference
+is within 0.3 points of zero in every bin, and about as many segments
+gain as lose more than 2 points. Below 0.25 the followed reference is
+clearly the worse one (93 segments worse against 14 better), so the
+constant does do something: it keeps a reference with few votes from
+being followed. Any value from 0.25 to 1 does that; 0.5 lies in the
+middle of the flat zone, and nothing in these runs argues for moving
+it.
+
+The same holds over all the segments of a run, where the value changes
+little besides how many segments are labelled "follow":
+
+close share:
+
+| close share | clear | follow | leader | all kept | lost, not clear | lost, follow | lost, every segment | segments losing > 5 |
+|---|---|---|---|---|---|---|---|---|
+| never | 1526 | 567 | 1243 | 336 | 10.0 | 13.2 | 6.5 | 742 |
+| 0.75 | 1526 | 1214 | 596 | 336 | 10.0 | 11.7 | 6.5 | 751 |
+| 0.5 | 1526 | 1410 | 400 | 336 | 10.2 | 10.8 | 6.6 | 774 |
+| 0.25 | 1526 | 1573 | 237 | 336 | 9.2 | 10.1 | 6.1 | 764 |
+| 0.0 | 1526 | 1754 | 56 | 336 | 10.0 | 10.0 | 6.5 | 812 |
+
+(lost: the mean accuracy lost against the best of the five references
+of the segment, in percentage points; a segment whose reference is not
+chosen keeps all of them, as flucut does.)
+
+The real H5N1 sample which raised the question
+(`20240814_Influenza_Run_26_R10_barcode04`) behaves as the
+simulations: with 0.5 its NS takes the H5N1 reference (812 votes
+against 1198 for H7N9) and its PB2 likewise (384 against 517). In the
+simulations both references of such a segment classify the read ends
+equally well, so neither choice is an improvement or a loss.
+
+### The other two constants
+
+Neither is critical either. Requiring fewer votes gives more segments a
+reference and changes the mean loss by less than a point:
+
+least votes:
+
+| least votes | clear | follow | leader | all kept | lost, not clear | lost, follow | lost, every segment | segments losing > 5 |
+|---|---|---|---|---|---|---|---|---|
+| 5 | 1820 | 1325 | 506 | 21 | 9.6 | 10.6 | 6.0 | 735 |
+| 10 | 1702 | 1379 | 480 | 111 | 9.8 | 10.6 | 6.3 | 757 |
+| 20 | 1526 | 1410 | 400 | 336 | 10.2 | 10.8 | 6.6 | 774 |
+| 40 | 1286 | 1291 | 358 | 737 | 10.4 | 10.9 | 6.6 | 775 |
+| 80 | 1057 | 1186 | 284 | 1145 | 10.7 | 10.7 | 6.7 | 785 |
+
+The leading reference of a segment with few votes is usually the one
+which leads with all the reads, as soon as it has a clear share of
+them: with 10 to 19 votes and a share above 60%, it was the one
+leading with 3200 reads in 172 of 172 segments; with a share below
+50%, in 116 of 181. The value in brackets is the mean accuracy lost by
+taking that leader:
+
+| votes of the leader | share 0-50% | share 50-60% | share 60-70% | share 70-80% | share 80-100% |
+|---|---|---|---|---|---|
+| 1-4 | 25 / 51 (15.3) | 27 / 42 (3.3) | 14 / 20 (7.2) | 6 / 6 (2.1) | 60 / 63 (7.0) |
+| 5-9 | 74 / 123 (13.5) | 23 / 26 (4.2) | 18 / 22 (5.2) | 23 / 23 (4.9) | 71 / 73 (2.7) |
+| 10-19 | 116 / 181 (11.7) | 57 / 68 (5.2) | 38 / 38 (5.7) | 33 / 33 (3.2) | 101 / 101 (2.5) |
+| 20-39 | 123 / 174 (10.2) | 64 / 68 (9.7) | 47 / 47 (5.9) | 39 / 39 (2.1) | 150 / 150 (1.7) |
+| 40-79 | 158 / 195 (6.6) | 66 / 67 (6.2) | 40 / 40 (3.7) | 39 / 39 (2.2) | 147 / 147 (1.7) |
+| >= 80 | 346 / 384 (8.4) | 160 / 162 (8.6) | 166 / 166 (3.3) | 100 / 100 (0.7) | 590 / 590 (2.0) |
+
+The share from which a lead is called clear is just as flat:
+
+clear share:
+
+| clear share | clear | follow | leader | all kept | lost, not clear | lost, follow | lost, every segment | segments losing > 5 |
+|---|---|---|---|---|---|---|---|---|
+| 0.5 | 1867 | 1252 | 253 | 300 | 10.4 | 11.6 | 6.6 | 778 |
+| 0.6 | 1526 | 1410 | 400 | 336 | 10.2 | 10.8 | 6.6 | 774 |
+| 0.7 | 1227 | 1582 | 513 | 350 | 9.0 | 9.5 | 6.4 | 765 |
+| 0.8 | 1022 | 1530 | 712 | 408 | 8.4 | 9.2 | 6.4 | 761 |
+| 0.9 | 746 | 1550 | 888 | 488 | 7.7 | 8.7 | 6.3 | 753 |
+
+### Restricting the references hardly changes the accuracy
+
+Each segment against its chosen reference, compared with keeping all
+five references of the segment:
+
+| chosen | segments | mean difference to all the references | better by > 2 | worse by > 2 | worst |
+|---|---|---|---|---|---|
+| clear | 1526 | -0.0 | 2 | 4 | -9 |
+| every segment | 3336 | -0.7 | 63 | 140 | -98 |
+| follows | 1410 | -1.9 | 23 | 120 | -98 |
+| leader | 400 | +1.2 | 38 | 16 | -83 |
+
+Choosing is on average 0.7 points worse than keeping all of them: a
+read end is mapped to whichever reference of its segment fits best,
+and a position on another reference of the same segment is almost
+always as good. The restriction is there for other reasons (the reads
+of a sample are not scattered over five references in the report and
+the coverage, and the internal priming is not split), and it costs
+nothing worth measuring.
+
+### What does cost accuracy: the termini of the references
+
+Accuracy differs far more between references than between rules. The
+built-in references are complete coding sequences, but several lack
+bases of their UTRs. The bases missing at each end (start, end), with
+the mean accuracy with that reference in brackets:
+
+| segment | H1N1 | H3N2 | H5N1 | H7N9 | H9N2 |
+|---|---|---|---|---|---|
+| PB2 | 10, 13 (91) | 12, 13 (71) | 12, 13 (92) | 0, 0 (92) | 0, 0 (92) |
+| PB1 | 10, 13 (89) | 12, 13 (90) | 18, 17 (14) | 0, 0 (93) | 2, 7 (92) |
+| PA | 12, 12 (91) | 12, 12 (76) | 14, 15 (76) | 0, 0 (90) | 7, 2 (91) |
+| HA | 10, 13 (2) | 31, 9 (23) | 9, 11 (17) | 0, 0 (12) | 0, 19 (2) |
+| NP | 10, 13 (78) | 12, 11 (52) | 12, 13 (86) | 0, 0 (87) | 6, 2 (84) |
+| NA | 10, 10 (35) | 11, 18 (42) | 10, 13 (35) | 0, 0 (12) | 0, 0 (47) |
+| M | 17, 0 (69) | 12, 13 (79) | 12, 14 (87) | 0, 0 (92) | 0, 0 (89) |
+| NS | 12, 1 (84) | 0, 0 (88) | 12, 13 (89) | 0, 0 (84) | 0, 0 (75) |
+
+A reference which lacks more than the primer at an end (12 bases at
+the 5' end, 13 at the 3') cannot tell a terminal read end from an
+internal one there: the start of the segment in the reads lies inside
+the reference, so flucut reports the origin as unknown. The H5N1 PB1
+reference (18 and 17 bases missing) gets 14% of its read ends right
+where the other references of that segment get 89 to 93%. Cutting a
+complete reference shows it directly: with 12 and 13 bases removed the
+accuracy of PB1 does not change (729 of 742 ends), with 18 and 13 it
+halves (386), with 24 at each end no end is classified at all.
+
+The internal genes (not HA and NA):
+
+| bases lacking at an end | references x samples | mean accuracy |
+|---|---|---|
+| 0-0 | 510 | 88 |
+| 1-12 | 357 | 81 |
+| > 12 | 663 | 78 |
+
+This is a property of the reference set, not of the choice: which
+reference of a segment is picked matters less than whether the
+references reach their termini. Replacing the accessions which lack
+their UTRs (`src/builtin-references.c`) would gain more than any value
+of the three constants.
+
+### Mixed infections: HA and NA, down to 1-2%
+
+A segment whose votes are split has two causes which the votes alone
+do not separate: one strain lying between two references (the probes
+of the same read vote for different references), or two strains in the
+sample (the probes of a read agree, the reads disagree with each
+other). `src/read-agreement.h` counts, per segment, the reads with
+several voting probes which all vote for one reference, and the number
+expected if each probe voted independently of its read. It is reported
+in the `-v` log only and changes no reference.
+
+The statistic of a segment is the excess of reads agreeing on a
+reference other than the leading one. In 102 samples of one strain
+(the 17 genomes at three error rates and two seeds) it stays small;
+its highest value per segment is the threshold used below:
+
+| segment | samples | reads with several voting probes (median) | most reads agreeing on another reference | highest excess |
+|---|---|---|---|---|
+| PB2 | 102 | 236 | 5 | 1.5 |
+| PB1 | 102 | 230 | 14 | 6.7 |
+| PA | 102 | 232 | 11 | 5.7 |
+| HA | 102 | 204 | 1 | 0.9 |
+| NP | 102 | 230 | 6 | 3.0 |
+| NA | 102 | 182 | 15 | 2.3 |
+| M | 102 | 239 | 18 | 8.2 |
+| NS | 102 | 232 | 23 | 12.9 |
+
+In mixes of two strains (the minor one at 50, 10, 5, 2 and 1% of the
+reads, 6 runs each), the lowest minor fraction above the threshold in
+every run, by segment:
+
+| major | minor | PB2 | PB1 | PA | HA | NP | NA | M | NS |
+|---|---|---|---|---|---|---|---|---|---|
+| ny04_h3n2 | vn12_h5n1 | 50% | - | - | 1% | - | 50% | - | - |
+| vn12_h5n1 | ny04_h3n2 | - | - | - | 1% | - | 5% | - | - |
+| vn12_h5n1 | km17_h7n9 | - | - | - | 1% | - | - | - | - |
+| km17_h7n9 | vn13_h5n1 | - | - | - | 1% | - | - | - | - |
+| ah15_h9n2 | vn12_h5n1 | - | - | - | 1% | - | 50% | - | - |
+| km17_h7n9 | ah15_h9n2 | - | - | - | 2% | - | 50% | - | - |
+| pr8_h1n1 | ny04_h3n2 | - | - | - | 2% | - | 5% | - | - |
+| cl14_h1n2 | mx12_h3n2 | - | - | - | 2% | - | - | - | - |
+| vn12_h5n1 | vn13_h5n1 | - | - | - | - | - | - | - | - |
+
+- HA detects a minor strain of another subtype at 1-2% in every pair
+  tried, and separates the two cases cleanly: a sample of one strain
+  never had more than one read agreeing on a second HA reference.
+- NA detects it down to 5% in two pairs and only at 50% in others: its
+  references are further from the simulated segments, so fewer probes
+  vote at all.
+- The internal genes almost never detect it, at any fraction. Their
+  references differ too little: the probes of a single strain are
+  already split between them, and the reads of a minor strain vote for
+  the same references as those of the major one.
+- Two H5N1 of the same clade (`vn12_h5n1` with `vn13_h5n1`) are not
+  detected in any segment at any fraction, as expected.
+
+Limits of what this can show: a minor strain around 1% cannot be told
+from barcode crosstalk using the reads alone, whatever the statistic
+says, and two lineages of the same subtype are not separated by five
+subtype references. The thresholds above come from simulated samples
+of one strain, not from real runs. On the two real H5N1 samples the HA
+and NA agreement matches a single strain (61 of 61 and 272 of 274
+reads agreeing, 61.0 and 272.0 expected), while NS of `barcode04`
+shows an excess (30 reads agreeing on the H5N1 reference against 6.4
+expected) of the size these simulations see only in mixes. With one
+sample and no truth, that is an observation, not a detection.
+
+### Not measured
+
+Mixes of three strains, mixes with uneven depth between the segments,
+real mixed samples (none with a known composition was available), and
+what the choice does to the consensus of an assembler (only the read
+ends are scored here).
+
 ## 2026-10-31: time and memory at the scale of a real run
 
 flucut on 1,129,506 real Nanopore reads (the three H5N1 runs below,

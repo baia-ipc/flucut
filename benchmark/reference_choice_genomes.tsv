@@ -1,0 +1,24 @@
+# Genomes simulated for the calibration of the reference choice
+# (benchmark/README.md, "The choice of the reference"). None is in the
+# built-in reference set. Accessions: segments 1 to 8 (PB2, PB1, PA, HA,
+# NP, NA, M, NS), GenBank/RefSeq nucleotide. All 8 records start with
+# the Uni12 terminus and end with the Uni13 terminus (at most one
+# mismatch each), which fetch_genomes.py checks.
+label	strain	subtype	accessions	why
+pr8_h1n1	A/Puerto Rico/8/1934	H1N1	NC_002023.1,NC_002021.1,NC_002022.1,NC_002017.1,NC_002019.1,NC_002018.1,NC_002016.1,NC_002020.1	human H1N1 of 1934: far from the H1N1pdm09 reference in every segment
+ny04_h3n2	A/New York/392/2004	H3N2	NC_007373.1,NC_007372.1,NC_007371.1,NC_007366.1,NC_007369.1,NC_007368.1,NC_007367.1,NC_007370.1	human H3N2, the lineage of the H3N2 reference 22 years earlier
+jp57_h2n2	A/Japan/305/1957	H2N2	CY014983.1,CY014982.1,CY014981.1,CY014976.1,CY014979.1,CY014978.1,CY014977.1,CY014980.1	HA subtype not in the set; internal genes ancestral to human H3N2
+vn12_h5n1	A/duck/Vietnam/QT1455-1/2012	H5N1	KX513288.1,KX644109.1,KX513239.1,KX513392.1,KX513135.1,KX513202.1,KX513222.1,KX513148.1	South-East Asian H5N1 (poultry), far in time and clade from the 2.3.4.4b H5N1 reference
+vn13_h5n1	A/Muscovy duck/Vietnam/BG80-1/2013	H5N1	KX513329.1,KX513131.1,KX513159.1,KX513178.1,KX513306.1,KX513335.1,KX513291.1,KX513161.1	a second South-East Asian H5N1, of another sampling
+km17_h7n9	A/Kunming/KMCDC-YHY/2017	H7N9	MG366898.1,MG366899.1,MG366900.1,MG366901.1,MG366902.1,MG366903.1,MG366904.1,MG366905.1	human case of the Chinese H7N9: a known reassortant, H7 and N9 with the internal genes of poultry H9N2
+ah15_h9n2	A/chicken/Anhui/AH120/2015	H9N2	KX867830.1,KX867831.1,KX867832.1,KX867833.1,KX867834.1,KX867835.1,KX867836.1,KX867837.1	Chinese poultry H9N2; the H9N2 references are of several lineages (wild birds, poultry)
+hb15_h10n8	A/chicken/Hebei/SJZ01/2015	H10N8	KY402016.1,KY402017.1,KY402018.1,KY402019.1,KY402020.1,KY402021.1,KY402022.1,KY402023.1	HA and NA subtypes not in the set; poultry internal genes
+sx16_h5n8	A/Whooper Swan/Sanmenxia/01/2016	H5N8	KY320440.1,KY320441.1,KY320442.1,KY320443.1,KY320444.1,KY320445.1,KY320446.1,KY320447.1	clade 2.3.4.4b H5 as the H5N1 reference, NA subtype not in the set
+gd14_h5n6	A/duck/Guangdong/GD01/2014	H5N6	KJ754142.1,KJ754143.1,KJ754144.1,KJ754145.1,KJ754146.1,KJ754147.1,KJ754148.1,KJ754149.1	clade 2.3.4.4 H5, NA subtype not in the set
+nl11_h7n7	A/mallard duck/Netherlands/1/2011	H7N7	KX977913.1,KX979730.1,KX978781.1,KX979524.1,KX979022.1,KX978358.1,KX978096.1,KX979060.1	Eurasian wild-bird virus as the H7N9 reference (Dutch mallard); NA subtype not in the set
+ca16_h3n8	A/mallard duck/California/UCD558/2016	H3N8	KY990759.1,KY990772.1,KY990780.1,KY990752.1,KY990748.1,KY990808.1,KY990776.1,KY990777.1	American wild-bird virus: avian H3, NA subtype not in the set, internal genes between the avian references
+fl11_h3n8	A/equine/Florida/146609/2011	H3N8	MF173363.1,MF173219.1,MF173307.1,MF173407.1,MF173304.1,MF173237.1,MF173292.1,MF173196.1	equine lineage: far from every reference
+il15_h3n2	A/canine/Illinois/328292/2015	H3N2	MF173374.1,MF173173.1,MF173183.1,MF173305.1,MF173310.1,MF173314.2,MF173270.1,MF173225.1	canine H3N2 of avian origin: the subtype of the human H3N2 reference, but a different lineage
+cl14_h1n2	A/swine/Chile/28/2014	H1N2	MF099014.1,MF099049.1,MF098979.1,MF099083.1,MF099334.1,MF098998.1,MF099256.1,MF099404.1	swine reassortant: H1 with N2, a subtype combination not in the set
+cl14_h3n2	A/swine/Chile/33/2014	H3N2	MF099023.1,MF099048.1,MF099010.1,MF099075.1,MF099339.1,MF098837.1,MF099103.1,MF099137.1	swine H3N2 of the same sampling
+mx12_h3n2	A/swine/Mexico/AVX15/2012	H3N2	KU976617.1,KU976593.1,KU976776.1,KU976510.1,KU976932.1,KU976840.1,KU976913.1,KU976876.1	swine H3N2 (North American reassortant lineage)

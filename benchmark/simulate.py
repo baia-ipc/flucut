@@ -41,6 +41,15 @@ Outputs, in <outdir>:
   site.tsv         the internal priming site (segment, 0-based start,
                    template bases replaced, primer, mismatches)
 
+The reads are written segment after segment; --shuffle writes them in
+random order, as a sequencer does (flucut chooses its references from
+the first reads). --segment-reads gives some segments another number of
+reads (e.g. 1:8,2:20: 8 reads of segment 1, 20 of segment 2), for
+samples with uneven coverage. --first-site accepts an HA with several
+positions equally similar to the primer. --read-prefix names the reads
+<prefix>r00001, ..., so that the reads of several simulations can be
+put together (benchmark/mix_reads.py).
+
 Usage:
   python3 -I benchmark/simulate.py <genome.fasta> <outdir> \\
       [--reads-per-segment N] [--internal-share X] [--seed S]
@@ -50,6 +59,7 @@ import argparse
 import gzip
 import os
 import random
+import re
 
 UNI12 = "AGCRAAAGCAGG"
 MBT_TAIL = "ACGCGTGATC"
@@ -88,11 +98,11 @@ def matches(p, b):
   return b in IUPAC.get(p, p)
 
 
-def best_site(primer, seq, skip):
+def best_site(primer, seq, skip, first=False):
   """The position of seq most similar to the primer, without gaps (the
   primer anneals with mismatches), outside the first and last <skip>
   bases (the termini): returns (mismatches, start). The best position
-  must be unique."""
+  must be unique, unless <first>: the first one is then returned."""
   n = len(primer)
   scores = []
   for i in range(skip, len(seq) - n - skip + 1):
@@ -100,8 +110,9 @@ def best_site(primer, seq, skip):
     scores.append((d, i))
   best = min(scores)
   ties = [i for d, i in scores if d == best[0]]
-  if len(ties) > 1:
-    raise SystemExit("several equally good sites: %s" % ties)
+  if len(ties) > 1 and not first:
+    raise SystemExit("several equally good sites: %s (see --first-site)"
+                     % ties)
   return best
 
 
@@ -154,19 +165,43 @@ def main():
       "--barcodes", type=int, default=0, choices=range(0, 5),
       help="native barcoding: each amplicon gets the adapter of one of the "
            "first N barcodes (NB01-NB04) at both ends (default 0: none)")
+  parser.add_argument(
+      "--segment-reads", default="",
+      help="the reads of some segments, as <segment number>:<reads>, "
+           "comma-separated (default: --reads-per-segment for all)")
+  parser.add_argument(
+      "--shuffle", action="store_true",
+      help="write the reads in random order (default: by segment)")
+  parser.add_argument(
+      "--first-site", action="store_true",
+      help="if several positions of HA are equally similar to the "
+           "primer, use the first as internal priming site (default: "
+           "stop, the site must be unique)")
+  parser.add_argument(
+      "--read-prefix", default="",
+      help="a prefix of the read names (default: none)")
   args = parser.parse_args()
   rng = random.Random(args.seed)
+  segment_reads = {}
+  for item in filter(None, args.segment_reads.split(",")):
+    number, _, reads = item.partition(":")
+    segment_reads[int(number)] = int(reads)
   genome = read_fasta(args.genome)
   os.makedirs(args.outdir, exist_ok=True)
 
   # the segments, named by their number (segment 4 is HA)
   segments = [(name, seq) for name, seq, _ in genome]
+  numbers = {}
+  for name, _, header in genome:
+    m = re.search(r"segment (\d)", header)
+    if m:
+      numbers[name] = int(m.group(1))
   ha = [(n, s) for n, s, h in genome if "segment 4" in h]
   if len(ha) != 1:
     raise SystemExit("one HA record (\"segment 4\" in its header) is "
                      "needed in the genome")
   ha_name, ha_seq = ha[0]
-  dist, site = best_site(UNI12, ha_seq, 50)
+  dist, site = best_site(UNI12, ha_seq, 50, args.first_site)
   with open(os.path.join(args.outdir, "site.tsv"), "w") as f:
     f.write("segment\tstart\treplaced\tprimer\tmismatches\n")
     f.write("%s\t%d\t%s\t%s\t%d\n"
@@ -182,12 +217,11 @@ def main():
                                     NB_FRONT + NB_BARCODES[b] + NB_REAR))
   rc13 = revcomp(MBT_TAIL + UNI13)
   rc13_labels = "p" * len(UNI13) + "t" * len(MBT_TAIL)
-  fq = gzip.open(os.path.join(args.outdir, "reads.fastq.gz"), "wt")
-  truth = gzip.open(os.path.join(args.outdir, "truth.tsv.gz"), "wt")
-  truth.write("read\tsegment\tkind\tstrand\tlabels\tbarcode\n")
+  records = []
   n = 0
   for name, seq in segments:
-    for k in range(args.reads_per_segment):
+    for k in range(segment_reads.get(numbers.get(name),
+                                     args.reads_per_segment)):
       p12 = resolve(UNI12, rng)
       kind = "full"
       r = rng.random()
@@ -238,10 +272,19 @@ def main():
       read, read_labels = add_errors(amp, labels, rate, rng)
       qual = "".join(chr(33 + rng.randint(8, 30)) for _ in read)
       n += 1
-      rname = "r%05d" % n
-      fq.write("@%s\n%s\n+\n%s\n" % (rname, read, qual))
-      truth.write("%s\t%s\t%s\t%s\t%s\t%s\n"
-                  % (rname, name, kind, strand, read_labels, barcode))
+      rname = "%sr%05d" % (args.read_prefix, n)
+      records.append(("@%s\n%s\n+\n%s\n" % (rname, read, qual),
+                      "%s\t%s\t%s\t%s\t%s\t%s\n"
+                      % (rname, name, kind, strand, read_labels, barcode)))
+  if args.shuffle:
+    # (a generator of its own: the reads are the same with and without)
+    random.Random(args.seed).shuffle(records)
+  fq = gzip.open(os.path.join(args.outdir, "reads.fastq.gz"), "wt")
+  truth = gzip.open(os.path.join(args.outdir, "truth.tsv.gz"), "wt")
+  truth.write("read\tsegment\tkind\tstrand\tlabels\tbarcode\n")
+  for fastq_record, truth_record in records:
+    fq.write(fastq_record)
+    truth.write(truth_record)
   fq.close()
   truth.close()
 

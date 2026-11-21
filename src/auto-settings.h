@@ -41,6 +41,11 @@
 #define AUTO_REFERENCE_PROBES 8
 #define AUTO_REFERENCE_MIN_VOTES 20
 #define AUTO_REFERENCE_MIN_SHARE 0.6
+/* (on simulated reads of 17 genomes outside the built-in set, the three
+   values above change the share of read ends classified correctly by
+   less than a point: above a close share of 0.25 the reference of the
+   common subtype and the leading one are equally good, below it the
+   first is worse; benchmark/RESULTS.md) */
 #define AUTO_REFERENCE_CLOSE_SHARE 0.5
 /* (the help text of -e, in options.c, states these three values) */
 #define AUTO_MAX_ERRORS_LOW 0.2
