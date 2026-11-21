@@ -109,9 +109,10 @@ runs do not download it again. If it cannot be downloaded (no network, no
 ``curl``), flucut warns and runs without references.
 
 Each barcode (a different sample) is classified against one reference
-of each segment: the one closest to its reads. The segments are chosen
-independently, so that a reassortant gets, for each segment, the
-reference of the subtype that segment is closest to. This matters
+of each segment: the one closest to its reads. Each segment is chosen
+by its own reads, so that a reassortant gets, for each segment, the
+reference of the subtype that segment is closest to; a segment whose
+reads do not single out a reference follows the clear ones. This matters
 because the UTRs are conserved across subtypes (so a terminal read
 matches the segment of any subtype) and the coding regions diverge (so
 a read with a noisy start finds spurious interior matches); using one
@@ -122,13 +123,20 @@ The choice is made from the first 2000 reads of the first file of the
 barcode. Eight probes are taken along each read and located in the
 references. A probe votes for the reference it is located in, unless
 another reference matches it as well: such a probe tells nothing, and
-does not vote. The reference with most votes of a segment is chosen if
-it has at least 20 votes. If a segment has fewer, the reads up to 20,000
-are used as well; a segment which still has fewer keeps all its
-references. The messages (``-v``) give the reference chosen for each
-segment, with its votes; a reference chosen with less than 60% of the
-votes of its segment is marked as about as close as others (common for
-the internal genes, which differ little between subtypes).
+does not vote.
+
+A segment is clear if its reference with most votes has at least 20
+votes and at least 60% of the votes of the segment; that reference is
+chosen. The other segments follow the clear ones where they can: a
+segment with too few votes takes the reference of the subtype chosen in
+most clear segments, and so does a segment without a clear lead, if
+that reference has at least half the votes of the leading one.
+Otherwise a segment without a clear lead takes its reference with most
+votes (common for the internal genes, which differ little between
+subtypes), and for a segment with too few votes the reads up to 20,000
+are used as well; if it still has too few, it keeps all its references.
+The messages (``-v``) give the reference chosen for each segment, with
+its votes and how it was chosen.
 
 For a run of one segment alone (e.g. an HA amplicon), ``--segment``
 does the same for the segments: the read ends are classified against

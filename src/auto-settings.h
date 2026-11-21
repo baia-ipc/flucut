@@ -33,12 +33,15 @@
    auto_settings_choose_references): the reads used at first, and in all
    if a segment has too few votes in them; the probes taken from each
    read; the fewest votes of the reference chosen; its share of the
-   votes of its segment from which its lead is clear */
+   votes of its segment from which its lead is clear; the share of the
+   votes of the leading reference from which another one is a close
+   contender */
 #define AUTO_REFERENCE_READS 2000
 #define AUTO_REFERENCE_MORE_READS 20000
 #define AUTO_REFERENCE_PROBES 8
 #define AUTO_REFERENCE_MIN_VOTES 20
 #define AUTO_REFERENCE_MIN_SHARE 0.6
+#define AUTO_REFERENCE_CLOSE_SHARE 0.5
 /* (the help text of -e, in options.c, states these three values) */
 #define AUTO_MAX_ERRORS_LOW 0.2
 #define AUTO_MAX_ERRORS_HIGH 0.3
@@ -79,21 +82,33 @@ void auto_settings_decide(auto_settings_t *self, trimmer_config_t *config,
    <file>, among the references of that segment (e.g. those of several
    subtypes). Each group (a barcode, a different sample) is then
    classified against the chosen references only, so that the other
-   references of a segment do not match it spuriously. The segments are
-   chosen independently, as the segments of a virus can be closest to
-   references of different subtypes (a reassortant).
+   references of a segment do not match it spuriously. Each segment is
+   chosen by its own reads, as the segments of a virus can be closest
+   to references of different subtypes (a reassortant); a segment whose
+   reads do not single out a reference follows the clear ones.
 
    Probes are taken along the first AUTO_REFERENCE_READS reads
    (AUTO_REFERENCE_PROBES from each, evenly spaced) and located by their
    k-mers; a probe votes for the reference it is located in, unless
-   another reference matches it as well (it then tells nothing). The
-   reference with most votes of a segment is chosen if it has at least
-   AUTO_REFERENCE_MIN_VOTES votes. If a segment has fewer, the reads up
-   to AUTO_REFERENCE_MORE_READS are used as well; a segment which still
-   has fewer keeps all its references. A reference chosen with less
-   than AUTO_REFERENCE_MIN_SHARE of the votes of its segment has no
-   clear lead: the sample is about as close to other references, and
-   more reads would not change that (it is reported).
+   another reference matches it as well (it then tells nothing).
+
+   A segment is clear if its reference with most votes has at least
+   AUTO_REFERENCE_MIN_VOTES votes and at least AUTO_REFERENCE_MIN_SHARE
+   of the votes of the segment: that reference is chosen. The other
+   segments follow the clear ones, where they can: the subtype chosen
+   in most clear segments (in case of a tie, the one with most votes in
+   them) is the common subtype, and its reference is chosen
+   - in a segment with too few votes;
+   - in a segment without a clear lead, if it is a close contender (at
+     least AUTO_REFERENCE_CLOSE_SHARE of the votes of the leading
+     reference).
+   Where this does not apply (no clear segment, references without a
+   subtype, the reference of the common subtype is not close), a
+   segment without a clear lead takes its reference with most votes
+   (the sample is about as close to other references, and more reads
+   would not change that), and for a segment with too few votes the
+   reads up to AUTO_REFERENCE_MORE_READS are used as well; if it still
+   has too few, it keeps all its references. The choices are reported.
 
    Returns a new array with a value for each reference (whether it is
    considered, see reference_set_restrict), to be freed by the caller,
@@ -105,12 +120,20 @@ bool* auto_settings_choose_references(const trimmer_config_t *config,
 
 /*
    The decision of auto_settings_choose_references(), from the votes:
-   <segment> and <votes> have a value for each of the <n> references;
-   <allowed> is set for each. Returns the number of segments with
-   several references and too few votes for a choice.
+   <segment>, <subtype> and <votes> have a value for each of the <n>
+   references (<subtype> is an id, -1 if not known; NULL if none is
+   known); <allowed> is set for each. Returns the number of segments
+   with several references and too few votes for a choice.
 */
 size_t auto_settings_decide_references(const int *segment,
-    const size_t *votes, size_t n, bool *allowed);
+    const int *subtype, const size_t *votes, size_t n, bool *allowed);
+
+/*
+   The common subtype of the clear segments (see
+   auto_settings_choose_references()), -1 if there is none
+*/
+int auto_settings_common_subtype(const int *segment, const int *subtype,
+    const size_t *votes, size_t n);
 
 /* Whether a reference with <best_votes> of the <segment_votes> votes of
    its segment has a clear lead */
