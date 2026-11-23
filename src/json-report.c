@@ -194,7 +194,7 @@ static void write_section(json_writer_t *w, const report_t *r,
   }
   json_open_block(w, '[');
   for (size_t g = 0; g < r->references->n_records; g++)
-    if (json_coverage_has(c, g)) {
+    if (json_coverage_has(c, g, r->references)) {
       json_member(w, NULL);
       json_coverage_write(w->f, r->references, c, g);
     }

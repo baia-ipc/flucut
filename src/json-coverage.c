@@ -11,8 +11,18 @@ static const char *const names[COVER_N_CATEGORIES] = {
   "terminal_plus", "terminal_minus", "internal_plus", "internal_minus",
   "no_primer", "not_located", "deletion"};
 
-bool json_coverage_has(const counter_t *c, size_t ref) {
-  return counter_has_coverage(c, ref);
+bool json_coverage_has(const counter_t *c, size_t ref,
+    const fasta_t *refs) {
+  if (!counter_has_coverage(c, ref))
+    return false;
+  /* (reads can be counted for a reference without any depth on it: a
+     span outside the reference) */
+  size_t *depth, max = 0;
+  XMALLOC(depth, sizeof(size_t) * (refs->records[ref].seq_len + 1));
+  for (size_t k = 0; k < COVER_N_CATEGORIES && max == 0; k++)
+    max = counter_coverage(c, ref, k, depth);
+  free(depth);
+  return max > 0;
 }
 
 void json_coverage_write(FILE *f, const fasta_t *refs, const counter_t *c,

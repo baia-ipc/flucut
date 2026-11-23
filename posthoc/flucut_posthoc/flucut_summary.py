@@ -88,23 +88,31 @@ def on_references(coverage: dict[str, dict[str, np.ndarray]],
     references: a profile given on another reference of the same segment
     is transferred by the position map `lift` (see
     references.position_maps()), and interpolated between the positions
-    given."""
+    given. The profiles of several references of flucut which land on
+    one chosen reference are added (flucut can locate the reads of a
+    segment in more than one of its references); a reference without
+    depth tells nothing and is left out."""
     lengths = {r.name: r.length for r in references}
-    out: dict[str, dict[str, list[float]]] = {}
+    sums: dict[str, dict[str, np.ndarray]] = {}
     for name, profiles in coverage.items():
+        categories = [c for c in profiles if c != "positions"]
+        if not categories:
+            continue
         positions = profiles["positions"]
         if name in lift:
             name, mapped = lift[name]
             positions = mapped[np.minimum(positions.astype(int),
                                           len(mapped) - 1)]
-        if name not in lengths or name in out:
+        if name not in lengths:
             continue
         positions = np.maximum.accumulate(positions.astype(float))
         positions += np.arange(len(positions)) * 1e-6
         at = np.arange(lengths[name])
-        out[name] = {
-            category: np.interp(at, positions, values, left=0,
-                                right=0).round(1).tolist()
-            for category, values in profiles.items()
-            if category != "positions"}
-    return out
+        on_reference = sums.setdefault(name, {})
+        for category in categories:
+            depth = np.interp(at, positions, profiles[category], left=0,
+                              right=0)
+            on_reference[category] = on_reference.get(category, 0) + depth
+    return {name: {category: depth.round(1).tolist()
+                   for category, depth in profiles.items()}
+            for name, profiles in sums.items()}

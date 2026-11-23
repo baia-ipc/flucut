@@ -19,8 +19,9 @@
 /* the positions at which the depth of a reference is given, at most */
 #define JSON_COVERAGE_POINTS 200
 
-/* Whether <c> has the coverage of the reference <ref> to write */
-bool json_coverage_has(const counter_t *c, size_t ref);
+/* Whether <c> has a depth on the reference <ref> of <refs> to write */
+bool json_coverage_has(const counter_t *c, size_t ref,
+    const fasta_t *refs);
 
 /* Write the coverage of the reference <ref> of <refs>, as an object on
    one line: {"reference": ..., "length": ..., "positions": [...],

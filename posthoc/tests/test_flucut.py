@@ -120,6 +120,22 @@ def test_coverage_on_another_reference(reference):
     assert profiles["ref"]["terminal+"][599] == 4
 
 
+def test_coverage_of_several_references_is_added(reference):
+    # flucut located reads in the chosen reference and in another one
+    # of the segment, and names a third without any depth
+    coverage = {"empty": {"positions": np.array([0., 599.])},
+                "other": {"positions": np.array([0., 12., 611.]),
+                          "terminal+": np.array([4., 4., 4.])},
+                "ref": {"positions": np.array([0., 599.]),
+                        "terminal+": np.array([10., 10.]),
+                        "deletion": np.array([1., 1.])}}
+    lift = {"empty": ("ref", np.arange(600)),
+            "other": ("ref", np.arange(612) - 12)}
+    profiles = on_references(coverage, [reference], lift)
+    assert profiles["ref"]["terminal+"][300] == 14
+    assert profiles["ref"]["deletion"][300] == 1
+
+
 def test_scores_count_missed_and_false_primers():
     origin = {"left": {
         "internal": {"internal": 8, "terminal": 1, "no primer": 1},
