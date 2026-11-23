@@ -228,6 +228,16 @@ void reference_set_locate_in(reference_set_t *self, const char *probe,
     reference_hit_t *hit);
 
 /*
+   As reference_set_locate_in(), among the alignments which lie between
+   the positions <from> and <to> of the reference (0-based, inclusive;
+   limited to the reference): for a probe which is of use only if it
+   lies where it is expected.
+*/
+void reference_set_locate_within(reference_set_t *self, const char *probe,
+    size_t probe_len, size_t ref_index, bool reverse, long from, long to,
+    reference_hit_t *hit);
+
+/*
    Whether the mapped probe <hit> is at a terminus of the segment (a
    normal amplicon) rather than at an interior position (internal
    priming): within <terminal_window> bases of the start of the segment

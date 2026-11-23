@@ -6,11 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "edlib.h"
 #include "alloc.h"
 #include "fasta.h"
 #include "kmer-index.h"
-#include "primer-search.h"
+#include "pattern-scan.h"
 #include "primers.h"
 #include "reference.h"
 #include "segments.h"
@@ -179,8 +178,14 @@ struct reference_set_t {
   /* if > 0, only the references of this segment are considered (see
      reference_set_restrict_segment); 0: all */
   int restrict_segment;
-  /* the reverse complement of the probe (probe_len + 1 bytes) */
-  char *rc;
+  /* the reverse complement of the probe, and the probe reversed
+     (probe_len + 1 bytes each) */
+  char *rc, *reversed;
+  /* the probe prepared for its search in a window of a reference
+     (pattern-scan.h): on the strand of the reference, read backwards
+     (the probe reversed), and on the other strand (its reverse
+     complement) */
+  pattern_scan_t *scan_forward, *scan_reverse;
   /* the candidate diagonals (a buffer of hits_size bytes) */
   kmer_index_hit_t *hits;
   size_t hits_size;
@@ -202,6 +207,9 @@ reference_set_t* reference_set_new(const reference_index_t *index,
   self->allowed = NULL;
   self->restrict_segment = 0;
   XMALLOC(self->rc, probe_len + 1);
+  XMALLOC(self->reversed, probe_len + 1);
+  self->scan_forward = pattern_scan_new("N", 1);
+  self->scan_reverse = pattern_scan_new("N", 1);
   self->hits = NULL;
   self->hits_size = 0;
   return self;
@@ -247,6 +255,9 @@ void reference_set_delete(reference_set_t *self) {
   if (self == NULL)
     return;
   free(self->rc);
+  free(self->reversed);
+  pattern_scan_delete(self->scan_forward);
+  pattern_scan_delete(self->scan_reverse);
   free(self->hits);
   free(self->allowed);
   free(self);
@@ -269,51 +280,60 @@ static long terminus_distance(const reference_hit_t *hit) {
   return hit->reverse ? hit->ref_len - 1 - hit->ref_start : hit->ref_start;
 }
 
+/* prepare the search of <probe> (length <len>) on the strand of the
+   references (see align_window()) */
+static void set_forward(reference_set_t *self, const char *probe,
+    size_t len) {
+  for (size_t i = 0; i < len; i++)
+    self->reversed[i] = probe[len - 1 - i];
+  self->reversed[len] = '\0';
+  pattern_scan_set(self->scan_forward, self->reversed, len);
+}
+
+/* the same on the other strand; the reverse complement of the probe is
+   left in self->rc */
+static void set_reverse(reference_set_t *self, const char *probe,
+    size_t len) {
+  primers_reverse_complement(probe, len, self->rc);
+  self->rc[len] = '\0';
+  pattern_scan_set(self->scan_reverse, self->rc, len);
+}
+
 /*
-   Align <query> (length <len>) to the positions <from> to <to> of the
-   reference <ref_index> with at most <max_errors> errors; if found, and
-   better than <best> (fewer errors, or as many and nearer to the
-   terminus, see reference.h), store the match in <best>. For <reverse>,
-   <query> is the reverse complement of the probe, and the first base of
-   the probe is the last base of the alignment.
+   Align the probe prepared by set_forward() (or, for <reverse>, by
+   set_reverse()) to the positions <from> to <to> of the reference
+   <ref_index> with at most <max_errors> errors; if found, and better
+   than <best> (fewer errors, or as many and nearer to the terminus, see
+   reference.h), store the match in <best>. The position of a match is
+   that of the first base of the probe: where the alignment begins or,
+   for <reverse>, where it ends.
 
    (A run of N in a reference matches any probe: the references are
    expected to be complete sequences of the segments.)
 */
-static void align_window(const reference_set_t *self, const char *query,
-    size_t len, size_t ref_index, long from, long to, bool reverse,
-    long max_errors, reference_hit_t *best) {
+static void align_window(reference_set_t *self, size_t ref_index,
+    long from, long to, bool reverse, long max_errors,
+    reference_hit_t *best) {
   const fasta_record_t *ref = self->fasta->records + ref_index;
   if (from < 0)
     from = 0;
   if (to > (long)ref->seq_len - 1)
     to = (long)ref->seq_len - 1;
-  if (to - from + 1 < (long)len - max_errors || to < from)
+  if (to < from)
     return;
-  EdlibAlignResult result = edlibAlign(query, (int)len, ref->seq + from,
-      (int)(to - from + 1),
-      edlibNewAlignConfig((int)max_errors, EDLIB_MODE_HW, EDLIB_TASK_LOC,
-                          iupac_equalities, n_iupac_equalities));
-  assert(result.status == EDLIB_STATUS_OK);
-  if (result.editDistance < 0) {
-    edlibFreeAlignResult(result);
+  /* the location nearest to the terminus (there can be several, e.g.
+     for a repeat, or for equally good alignments of different lengths):
+     the first start on the strand of the reference, the last end on the
+     other one */
+  long n_errors, first, last;
+  if (!pattern_scan_best(reverse ? self->scan_reverse : self->scan_forward,
+                         ref->seq + from, (size_t)(to - from + 1),
+                         max_errors, !reverse, &n_errors, &first, &last))
     return;
-  }
   reference_hit_t hit = {.mapped = true, .ref_index = ref_index,
                          .ref_len = (long)ref->seq_len, .reverse = reverse,
-                         .ref_start = -1,
-                         .n_errors = result.editDistance,
-                         .ambiguous = false};
-  /* the location nearest to the terminus (several are reported e.g. for
-     a repeat, or for equally good alignments of different lengths) */
-  for (int i = 0; i < result.numLocations; i++) {
-    long pos = from + (reverse ? result.endLocations[i] :
-                       result.startLocations[i]);
-    if (hit.ref_start < 0 ||
-        (reverse ? pos > hit.ref_start : pos < hit.ref_start))
-      hit.ref_start = pos;
-  }
-  edlibFreeAlignResult(result);
+                         .ref_start = from + (reverse ? last : first),
+                         .n_errors = n_errors, .ambiguous = false};
   if (!best->mapped || hit.n_errors < best->n_errors) {
     *best = hit;
   } else if (hit.n_errors == best->n_errors) {
@@ -358,7 +378,7 @@ static void seeded_search(reference_set_t *self, const char *query,
     // a worse match than the best one so far is not needed (an equally
     // good one is, for the choice of the location)
     long k = best->mapped ? best->n_errors : max_errors;
-    align_window(self, query, len, ref, first - max_errors,
+    align_window(self, ref, first - max_errors,
                  last + (long)len - 1 + max_errors, reverse, k, best);
     i = j;
   }
@@ -379,8 +399,8 @@ static void locate(reference_set_t *self, const char *probe,
   size_t len = probe_len < self->probe_len ? probe_len : self->probe_len;
   if (len < REFERENCE_MIN_PROBE_LEN)
     return;
-  primers_reverse_complement(probe, len, self->rc);
-  self->rc[len] = '\0';
+  set_forward(self, probe, len);
+  set_reverse(self, probe, len);
   long max_errors = (long)((double)len * self->max_error_rate);
   if (!exhaustive) {
     seeded_search(self, probe, len, false, max_errors, hit);
@@ -395,9 +415,9 @@ static void locate(reference_set_t *self, const char *probe,
       continue;
     long to = (long)self->fasta->records[i].seq_len - 1;
     long k = hit->mapped ? hit->n_errors : max_errors;
-    align_window(self, probe, len, i, 0, to, false, k, hit);
+    align_window(self, i, 0, to, false, k, hit);
     k = hit->mapped ? hit->n_errors : max_errors;
-    align_window(self, self->rc, len, i, 0, to, true, k, hit);
+    align_window(self, i, 0, to, true, k, hit);
   }
 }
 
@@ -411,8 +431,8 @@ void reference_set_locate_seeded(reference_set_t *self, const char *probe,
   locate(self, probe, probe_len, false, true, hit);
 }
 
-void reference_set_locate_in(reference_set_t *self, const char *probe,
-    size_t probe_len, size_t ref_index, bool reverse,
+void reference_set_locate_within(reference_set_t *self, const char *probe,
+    size_t probe_len, size_t ref_index, bool reverse, long from, long to,
     reference_hit_t *hit) {
   assert(probe != NULL);
   assert(hit != NULL);
@@ -424,15 +444,20 @@ void reference_set_locate_in(reference_set_t *self, const char *probe,
   size_t len = probe_len < self->probe_len ? probe_len : self->probe_len;
   if (len < REFERENCE_MIN_PROBE_LEN)
     return;
-  const char *query = probe;
-  if (reverse) {
-    primers_reverse_complement(probe, len, self->rc);
-    self->rc[len] = '\0';
-    query = self->rc;
-  }
-  align_window(self, query, len, ref_index, 0,
-               (long)self->fasta->records[ref_index].seq_len - 1, reverse,
+  if (reverse)
+    set_reverse(self, probe, len);
+  else
+    set_forward(self, probe, len);
+  align_window(self, ref_index, from, to, reverse,
                (long)((double)len * self->max_error_rate), hit);
+}
+
+void reference_set_locate_in(reference_set_t *self, const char *probe,
+    size_t probe_len, size_t ref_index, bool reverse,
+    reference_hit_t *hit) {
+  assert(ref_index < self->fasta->n_records);
+  reference_set_locate_within(self, probe, probe_len, ref_index, reverse,
+      0, (long)self->fasta->records[ref_index].seq_len - 1, hit);
 }
 
 bool reference_hit_is_terminal(const reference_hit_t *hit,
