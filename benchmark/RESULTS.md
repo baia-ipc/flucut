@@ -311,8 +311,8 @@ these rates. The reads from amplicons started upstream of the site read
 ATA (`codons.tsv`); the AAA comes from the primer at the internal site.
 So on the consensus the primer-aware tools agree; flucut's addition is to
 **detect and quantify** the internal priming (above) and show it per
-segment (the coverage plot, `docs/manual/figures/report_coverage.png`,
-is `SRR36760543`), which the others do not.
+segment (the coverage by read origin of the report), which the others
+do not.
 
 **Speed at the scale of a full run.** The three runs concatenated to
 941,255 reads (680 MB gzipped), trimmed with the complete references

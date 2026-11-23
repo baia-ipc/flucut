@@ -41,36 +41,29 @@ The reports
 -----------
 
 After each file, ``summary.tsv``, ``lengths.tsv``, the JSON summary and
-``flucut_report.html`` are written again (each to a temporary file, then
-renamed, so that a reader never sees an incomplete one).
+the dashboard, ``flucut_dashboard.html``, are written again (each to a
+temporary file, then renamed, so that a reader never sees an incomplete
+one). flucut says where the dashboard is when it starts watching.
 
-While the run is in progress, ``flucut_report.html`` is a **dashboard**
-that reloads itself in the browser (the JSON summary has
-``"running": true``). The reload interval adapts to the run: it is halved
-when a scan has processed a new file and doubled when a scan finds none,
-between 1 and 30 seconds, so the page refreshes quickly while reads are
-coming in and rarely once the run is quiet. As each barcode directory is a
-different sample, the
-dashboard does not pool them: it has a tab for each barcode, with that
-sample's own reads at each step, internal priming and its sites, complete
-amplicons and coverage of every segment by read origin, and an **overview
-tab** for the run as a whole (the throughput, which does not depend on the
-sample, and a per-barcode summary: reads, written, with both primers, and
-internally primed ends). The chosen tab is kept in the page address, so it
-survives the automatic reload, and is highlighted in the tab bar. With a
-single sample there are no tabs, just
-its panels. A run of many samples does not fit one screen; the per-sample
-tab then scrolls.
+The **dashboard** (:doc:`reports`) reloads itself in the browser (the
+JSON summary has ``"running": true``). The reload interval adapts to the
+run: it is halved when a scan has processed a new file and doubled when
+a scan finds none, between 1 and 30 seconds, so the page refreshes
+quickly while reads are coming in and rarely once the run is quiet. As
+each barcode directory is a different sample, the dashboard does not
+pool them: it shows the overview of the run, the HA in all samples, or
+one sample. The choice is kept in the page address, so it survives the
+automatic reload. While reads are still being added, the count of
+complete segments of a sample is grey until all are complete: a
+segment not yet at the depth of 50 is not a failure during the run.
 
 .. figure:: figures/dashboard.*
    :width: 100%
 
-   The overview tab of a live run of three barcodes (reads of three real
-   H5N1 Nanopore runs, against complete segment references); each barcode
-   has its own tab with its coverage and sites.
+   The dashboard of a run of four barcodes (simulated reads).
 
-At the end, the final version is written as the **full report**
-(:doc:`reports`), scrolling, with a section for each barcode; the counts
+At the end, the dashboard stays in its last state and the **report**
+(:doc:`reports`) is written, with a section for each barcode; the counts
 of each sample are reported as in a normal run, with the warnings of the
 lengths.
 

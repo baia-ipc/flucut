@@ -1,11 +1,11 @@
 exit status: 0
 == messages ==
 SUCCESS | Trimming testdata/reads.fastq...
-SUCCESS | OUTDIR/reads.fastq.gz: 11 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
+SUCCESS | OUTDIR/reads.fastq.gz: 10 of 12 reads written (10 with both primers, 1 with one, 1 with none; 2 too short, of which 1 dimers)
 WARNING | OUTDIR/reads.fastq.gz: PA segment: 1 of 1 complete amplicons shorter than the closest reference (QB023392.1, 2224 bases), most at 20-29 bases: internal priming or deletions
-SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_summary.json
+SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_dashboard.html, OUTDIR/flucut_summary.json
 == reads.fastq.gz ==
-md5: 918015b90bb04a18187cd0e8ba0122de
+md5: e31735ebfb5d1cbb5f815f086ad30859
 @full_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	ct:Z:other	tl:i:12	tr:i:23
 1703 GGAATTACTTAACTA...AACATTTGTATATAA
 @full_minus simulated	fs:Z:-	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	ct:Z:other	tl:i:23	tr:i:12
@@ -24,13 +24,11 @@ md5: 918015b90bb04a18187cd0e8ba0122de
 900 GGAATTACTTAACTA...AATGTCAGACTGAAA
 @no_primer simulated	fs:Z:.	ct:Z:other	tl:i:0	tr:i:0
 300 AACAAACTCCACAGA...TTTTAGTTCCGCTAG
-@short_amplicon simulated	fs:Z:+	fl:Z:uni12r	ol:Z:internal	ml:Z:QB023392.1:1345:+	fr:Z:mbtuni-13	or:Z:internal	mr:Z:QB023392.1:1364:-	ct:Z:internal	tl:i:12	tr:i:23
-20 GGAATTACTTAACTA...TACTTAACTAGCAAA
 @left_only simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	ct:Z:other	tl:i:12	tr:i:0
 500 GGAATTACTTAACTA...TACAGGAGTATGAGA
 == summary.tsv ==
 output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other
-reads	12	12635	11	12240	10	1	1	2	1	1	0	0	0	1	10	0	1	9	1	0	1	0	10
+reads	12	12635	10	12220	10	1	1	2	1	2	0	0	0	1	10	0	1	9	1	0	0	0	10
 == lengths.tsv ==
 output	group	length	reads
 reads	QB023392.1	20	1
@@ -62,7 +60,7 @@ reads	not_located	1700	5
     "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0084, "reads": 12, "file": "testdata/reads.fastq"},
     "platform": "nanopore",
     "window": 100,
-    "min_length": 1,
+    "min_length": 50,
     "probe_length": 32,
     "probe_errors": 0.2,
     "terminal_window": 60,
@@ -78,24 +76,41 @@ reads	not_located	1700	5
   "length_bin": 10,
   "length_max": 4000,
   "short_fraction": 0.9,
+  "min_depth": 50,
+  "complete_fraction": 0.9,
   "all": {
     "reads": {
       "in": 12,
       "bases_in": 12635,
-      "written": 11,
-      "bases_written": 12240,
+      "written": 10,
+      "bases_written": 12220,
       "both_primers": 10,
       "one_primer": 1,
       "no_primer": 1,
       "dimers": 1,
-      "too_short": 1,
+      "too_short": 2,
       "minus_strand": 2,
       "with_internal_match": 0,
       "split": 0,
       "adapter_start": 0,
       "adapter_end": 0
     },
-    "written_by_category": {"full": 0, "internal": 1, "deletion": 0, "other": 10},
+    "written_by_category": {"full": 0, "internal": 0, "deletion": 0, "other": 10},
+    "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 10, "bases": 12220, "min": 300, "max": 1703, "mean": 1222, "median": 1003, "n50": 1702}},
+    "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 10, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
+    "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
+    "sample": {
+      "state": "few_reads",
+      "subtype": null,
+      "segments_expected": 1,
+      "segments_found": 1,
+      "segments_complete": 0,
+      "ends_not_located": 0.9048,
+      "flags": ["few_reads", "not_located"],
+      "segments": [
+        {"segment": 3, "gene": "PA", "state": "low", "reference": "QB023392.1", "length": 2224, "mean_depth": 0.0, "median_depth": 0, "covered": 0.0090, "well_covered": 0.0000, "internal": 1.0000, "deletion": 0.0000, "minus_strand": 0.0000, "complete_amplicons": 1, "short_complete": 1}
+      ]
+    },
     "primers": {
       "left": {"uni12r": 11},
       "right": {"mbtuni-13": 10}
@@ -112,6 +127,9 @@ reads	not_located	1700	5
     "complete_amplicons": [
       {"group": "QB023392.1", "reference_length": 2224, "amplicons": 1, "main_length": 20, "short": 1, "short_main_length": 20, "histogram": [0, 0, 1]},
       {"group": "not_located", "reference_length": null, "amplicons": 8, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]}
+    ],
+    "coverage": [
+      {"reference": "QB023392.1", "length": 2224, "positions": [0, 11, 22, 33, 44, 55, 67, 78, 89, 100, 111, 122, 134, 145, 156, 167, 178, 189, 201, 212, 223, 234, 245, 256, 268, 279, 290, 301, 312, 323, 335, 346, 357, 368, 379, 390, 402, 413, 424, 435, 446, 458, 469, 480, 491, 502, 513, 525, 536, 547, 558, 569, 580, 592, 603, 614, 625, 636, 647, 659, 670, 681, 692, 703, 714, 726, 737, 748, 759, 770, 781, 793, 804, 815, 826, 837, 848, 860, 871, 882, 893, 904, 916, 927, 938, 949, 960, 971, 983, 994, 1005, 1016, 1027, 1038, 1050, 1061, 1072, 1083, 1094, 1105, 1117, 1128, 1139, 1150, 1161, 1172, 1184, 1195, 1206, 1217, 1228, 1239, 1251, 1262, 1273, 1284, 1295, 1306, 1318, 1329, 1340, 1351, 1362, 1374, 1385, 1396, 1407, 1418, 1429, 1441, 1452, 1463, 1474, 1485, 1496, 1508, 1519, 1530, 1541, 1552, 1563, 1575, 1586, 1597, 1608, 1619, 1630, 1642, 1653, 1664, 1675, 1686, 1697, 1709, 1720, 1731, 1742, 1753, 1764, 1776, 1787, 1798, 1809, 1820, 1832, 1843, 1854, 1865, 1876, 1887, 1899, 1910, 1921, 1932, 1943, 1954, 1966, 1977, 1988, 1999, 2010, 2021, 2033, 2044, 2055, 2066, 2077, 2088, 2100, 2111, 2122, 2133, 2144, 2155, 2167, 2178, 2189, 2200, 2211, 2223], "depth": {"internal_plus": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}}
     ]
   },
   "groups": [
@@ -122,20 +140,35 @@ reads	not_located	1700	5
       "reads": {
         "in": 12,
         "bases_in": 12635,
-        "written": 11,
-        "bases_written": 12240,
+        "written": 10,
+        "bases_written": 12220,
         "both_primers": 10,
         "one_primer": 1,
         "no_primer": 1,
         "dimers": 1,
-        "too_short": 1,
+        "too_short": 2,
         "minus_strand": 2,
         "with_internal_match": 0,
         "split": 0,
         "adapter_start": 0,
         "adapter_end": 0
       },
-      "written_by_category": {"full": 0, "internal": 1, "deletion": 0, "other": 10},
+      "written_by_category": {"full": 0, "internal": 0, "deletion": 0, "other": 10},
+      "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 10, "bases": 12220, "min": 300, "max": 1703, "mean": 1222, "median": 1003, "n50": 1702}},
+      "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 10, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
+      "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
+      "sample": {
+        "state": "few_reads",
+        "subtype": null,
+        "segments_expected": 1,
+        "segments_found": 1,
+        "segments_complete": 0,
+        "ends_not_located": 0.9048,
+        "flags": ["few_reads", "not_located"],
+        "segments": [
+          {"segment": 3, "gene": "PA", "state": "low", "reference": "QB023392.1", "length": 2224, "mean_depth": 0.0, "median_depth": 0, "covered": 0.0090, "well_covered": 0.0000, "internal": 1.0000, "deletion": 0.0000, "minus_strand": 0.0000, "complete_amplicons": 1, "short_complete": 1}
+        ]
+      },
       "primers": {
         "left": {"uni12r": 11},
         "right": {"mbtuni-13": 10}
@@ -152,17 +185,18 @@ reads	not_located	1700	5
       "complete_amplicons": [
         {"group": "QB023392.1", "reference_length": 2224, "amplicons": 1, "main_length": 20, "short": 1, "short_main_length": 20, "histogram": [0, 0, 1]},
         {"group": "not_located", "reference_length": null, "amplicons": 8, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]}
+      ],
+      "coverage": [
+        {"reference": "QB023392.1", "length": 2224, "positions": [0, 11, 22, 33, 44, 55, 67, 78, 89, 100, 111, 122, 134, 145, 156, 167, 178, 189, 201, 212, 223, 234, 245, 256, 268, 279, 290, 301, 312, 323, 335, 346, 357, 368, 379, 390, 402, 413, 424, 435, 446, 458, 469, 480, 491, 502, 513, 525, 536, 547, 558, 569, 580, 592, 603, 614, 625, 636, 647, 659, 670, 681, 692, 703, 714, 726, 737, 748, 759, 770, 781, 793, 804, 815, 826, 837, 848, 860, 871, 882, 893, 904, 916, 927, 938, 949, 960, 971, 983, 994, 1005, 1016, 1027, 1038, 1050, 1061, 1072, 1083, 1094, 1105, 1117, 1128, 1139, 1150, 1161, 1172, 1184, 1195, 1206, 1217, 1228, 1239, 1251, 1262, 1273, 1284, 1295, 1306, 1318, 1329, 1340, 1351, 1362, 1374, 1385, 1396, 1407, 1418, 1429, 1441, 1452, 1463, 1474, 1485, 1496, 1508, 1519, 1530, 1541, 1552, 1563, 1575, 1586, 1597, 1608, 1619, 1630, 1642, 1653, 1664, 1675, 1686, 1697, 1709, 1720, 1731, 1742, 1753, 1764, 1776, 1787, 1798, 1809, 1820, 1832, 1843, 1854, 1865, 1876, 1887, 1899, 1910, 1921, 1932, 1943, 1954, 1966, 1977, 1988, 1999, 2010, 2021, 2033, 2044, 2055, 2066, 2077, 2088, 2100, 2111, 2122, 2133, 2144, 2155, 2167, 2178, 2189, 2200, 2211, 2223], "depth": {"internal_plus": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}}
       ]
     }
   ]
 }
 == flucut_report.html ==
 </html>
-<h2>All reads</h2>
-<h3>Sample: subtype and segments</h3>
-<h3>Reads at each step</h3>
-<h3>Primers found</h3>
-<h3>Internal priming</h3>
-<h3>Complete amplicons</h3>
-<h3>Lengths of the complete amplicons</h3>
-<h3>Coverage by read origin</h3>
+<h2>reads</h2>
+<h3>Reads</h3>
+<h3>Internal priming sites</h3>
+<h3>Bases by segment</h3>
+<h3>Segments</h3>
+<h3>Read length and quality</h3>

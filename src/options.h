@@ -20,12 +20,18 @@
 /* -e auto (see auto-settings.h): the default */
 #define OPTIONS_MAX_ERRORS_AUTO -1.0
 #define OPTIONS_DEFAULT_MAX_ERRORS OPTIONS_MAX_ERRORS_AUTO
-#define OPTIONS_DEFAULT_MIN_LENGTH 1
+/* reads shorter than this after the trimming are not written: a few
+   bases left between two primers, or after an adapter, are not a read of
+   a segment */
+#define OPTIONS_DEFAULT_MIN_LENGTH 50
 #define OPTIONS_MAX_THREADS 256
 /* --platform: the settings of each platform (see the help): the window
    of the Illumina reads (in which the primer is at the read start, the
    adapters removed by the instrument) */
 #define OPTIONS_ILLUMINA_WINDOW 10
+/* ... and their minimum length: no read is dropped for its length, so
+   that the files of the two reads of a pair keep the same reads */
+#define OPTIONS_ILLUMINA_MIN_LENGTH 1
 /* the live mode (see live.h): defaults of --min-age (seconds) and
    --scan-interval (seconds), maximum of --scan-interval */
 #define OPTIONS_DEFAULT_MIN_AGE 60

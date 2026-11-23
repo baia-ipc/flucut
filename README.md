@@ -127,11 +127,12 @@ The main options (`flucut -h` lists all of them, with their defaults):
   at least 4% errors;
 - `-p`: the platform: `nanopore` (default; reads of whole amplicons)
   or `illumina` (reads of fragments of the amplicons: the primer is at
-  the read start; window 10, no adapter search);
+  the read start; window 10, minimum length 1, no adapter search);
 - `-w`: a primer must lie within this many bases of its end of the read
   (default 100; 10 with `-p illumina`);
 - `-m`: reads shorter than this after trimming are not written
-  (default 1; primer dimers are never written);
+  (default 50; 1 with `-p illumina`, so that the two files of paired
+  reads keep the same reads; primer dimers are never written);
 - `-j`: worker threads (default 4), each trimming batches of 1000 reads
   in turn, written in the order of the input: the output does not
   depend on it;
@@ -190,26 +191,36 @@ Outputs:
   references, each reference with such amplicons and the length where
   most of them are; without references, it lists the peaks of the
   lengths.
-- `flucut_report.html`: the HTML report, self-contained (inline SVG
-  plots, light and dark themes): the run parameters and, for each group
-  of input files (for all reads, if there is only one), the reads at
-  each step, the primers found at each end, with references the
-  internal priming sites with their reads, the
-  complete amplicons shorter than 90% of their reference, the histograms
-  of the lengths and, per segment, the coverage by read origin (a
-  stacked profile along each segment, terminal and internal reads by
-  strand, where internal priming shows as a step up — no other primer
-  trimmer shows it; reads with a large internal deletion, such as
-  defective interfering genomes, are a separate band covering only the
-  two segment ends).
+- `flucut_report.html`: the HTML report, one self-contained file
+  (inline SVG plots, light and dark themes), made to be read at a
+  glance:
+  - a **run overview**: the samples by state, and a table with one row
+    per sample: complete segments (e.g. `7/8`), subtype, reads, N50 and
+    quality, a cell for each segment (PB2 to NS) with the share of it at
+    a depth of 50 or more, the segments with most internal priming and
+    most internal deletions, and the reads by origin; and the median
+    depth of each segment in each sample, as a plot;
+  - the **HA in all samples**, side by side;
+  - for each **sample**: its state and what deserves attention, the
+    subtype, the reads by primers found and by origin, the internal
+    priming sites, the bases by segment, a strip for each segment
+    (numbers, coverage by read origin where internal priming shows as a
+    step up, lengths of the complete amplicons), and the lengths and
+    qualities of the reads before and after the trimming, with the
+    flow cell, run and basecalling model found in the read titles.
+
+  See the Reports chapter of the manual for how to read it.
+- `flucut_dashboard.html`: the same content, one sample on the screen
+  at a time, to follow the run (below).
 - `flucut_summary.json`: the same content for programs, in a versioned
   format (`docs/json_summary.md`).
 
-A run with several samples can be followed while it is in progress: the
-tables and the reports are also written after each sample, and until
-the end `flucut_report.html` is a dashboard which reloads itself in the
-browser (as in the live mode, below). The messages show which sample is
-being trimmed (`Trimming run1/barcode01.fastq.gz (1 of 3)...`).
+A run with several samples can be followed while it is in progress:
+flucut writes the dashboard before the first sample and after each one,
+and says where it is (`Dashboard: out/flucut_dashboard.html (open it in
+a web browser to follow the run)`). The page reloads itself; at the end
+of the run it stays, with a link to the report. The messages show which
+sample is being trimmed (`Trimming run1/barcode01.fastq.gz (1 of 3)...`).
 
 ## With IRMA
 
@@ -255,8 +266,8 @@ to what IRMA assembled. It is a separate program, in Python; see
 it is sequencing: the files are
 trimmed as they are written (once not modified for `--min-age`, default
 60 s, and complete), appended to the outputs of their samples, and the
-tables and reports are updated after each file (the HTML report reloads
-itself). It stops at the end of the run (the `final_summary_*.txt` of
+tables, the dashboard and the JSON summary are updated after each file
+(the dashboard reloads itself). It stops at the end of the run (the `final_summary_*.txt` of
 MinKNOW), after `--timeout` without new files, or with Ctrl-C; with
 `--resume`, an interrupted live run continues where it stopped.
 

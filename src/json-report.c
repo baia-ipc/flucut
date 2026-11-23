@@ -6,7 +6,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include "file.h"
+#include "json-coverage.h"
+#include "json-reads.h"
 #include "json-report.h"
+#include "qc-flags.h"
+#include "qc-summary.h"
 #include "segments.h"
 #include "strutils.h"
 
@@ -233,14 +237,105 @@ static void write_lengths(json_writer_t *w, const report_t *r,
   close_block(w, ']', true);
 }
 
+/* a share (a fraction of 1) */
+static void share_member(json_writer_t *w, const char *k, double share) {
+  member(w, k);
+  fprintf(w->f, "%.4f", share);
+}
+
+/* the sample itself (null without references): its state, its subtype,
+   what deserves attention in it and its segments (qc-summary.h,
+   qc-flags.h) */
+static void write_sample(json_writer_t *w, const report_t *r,
+    const counter_t *c) {
+  static const char *const states[] = {
+    "complete", "partial", "incomplete", "few_reads", "not_located"};
+  static const char *const segment_states[] = {
+    "missing", "low", "partial", "complete"};
+  FILE *f = w->f;
+  member(w, "sample");
+  if (r->references == NULL) {
+    fputs("null", f);
+    return;
+  }
+  qc_summary_t qc;
+  qc_flags_t flags;
+  qc_summary(r->references, c, r->options->segment, &qc);
+  qc_flags(counter_reads(c), &qc, true, &flags);
+  open_block(w, '{');
+  member(w, "state");
+  fprintf(f, "\"%s\"", states[qc.status]);
+  member(w, "subtype");
+  if (qc.subtype[0] != '\0')
+    fputs_json_string(qc.subtype, f);
+  else
+    fputs("null", f);
+  count_member(w, "segments_expected", qc.n_expected);
+  count_member(w, "segments_found", qc.n_found);
+  count_member(w, "segments_complete", qc.n_complete);
+  share_member(w, "ends_not_located", qc.not_located);
+  member(w, "flags");
+  fputc('[', f);
+  bool first = true;
+  for (size_t i = 0; i < flags.n; i++) {
+    sep(f, &first);
+    fprintf(f, "\"%s\"", flags.flags[i].key);
+  }
+  fputc(']', f);
+  member(w, "segments");
+  open_block(w, '[');
+  for (int s = 1; s <= SEGMENTS_N; s++) {
+    const qc_segment_t *q = qc.segments + s;
+    if (!qc_expects(&qc, s))
+      continue;
+    member(w, NULL);
+    fprintf(f, "{\"segment\": %d, \"gene\": \"%s\", \"state\": \"%s\"", s,
+            segments_gene(s), segment_states[q->status]);
+    if (q->found) {
+      fputs(", \"reference\": ", f);
+      fputs_json_string(r->references->records[q->ref].name, f);
+      fprintf(f, ", \"length\": %zu, \"mean_depth\": %.1f, "
+              "\"median_depth\": %zu, \"covered\": %.4f, "
+              "\"well_covered\": %.4f, \"internal\": %.4f, "
+              "\"deletion\": %.4f, \"minus_strand\": %.4f, "
+              "\"complete_amplicons\": %zu, \"short_complete\": %zu",
+              q->ref_len, q->mean_depth, q->median_depth, q->covered,
+              q->well_covered, q->internal, q->deletion, q->minus,
+              q->complete, q->short_complete);
+    }
+    fputc('}', f);
+  }
+  close_block(w, ']', true);
+  close_block(w, '}', false);
+}
+
 /* the statistics of a counter, as members of the open object */
 static void write_section(json_writer_t *w, const report_t *r,
     const counter_t *c) {
   write_reads(w, counter_reads(c));
   write_categories(w, r, counter_reads(c));
+  member(w, "read_lengths");
+  json_reads_lengths(w->f, c);
+  member(w, "read_quality");
+  json_reads_quality(w->f, c);
+  member(w, "sequencing");
+  json_reads_sequencing(w->f, c);
+  write_sample(w, r, c);
   write_primers(w, r, c);
   write_internal(w, r, c);
   write_lengths(w, r, c);
+  member(w, "coverage");
+  if (r->references == NULL) {
+    fputs("null", w->f);
+    return;
+  }
+  open_block(w, '[');
+  for (size_t g = 0; g < r->references->n_records; g++)
+    if (json_coverage_has(c, g)) {
+      member(w, NULL);
+      json_coverage_write(w->f, r->references, c, g);
+    }
+  close_block(w, ']', true);
 }
 
 /* a member whose value is a segment (1 to 8), or null if 0 (all) */
@@ -371,6 +466,10 @@ static void write_summary(json_writer_t *w, const report_t *r) {
   fprintf(f, "%d", LENGTHS_MAX);
   member(w, "short_fraction");
   fprintf(f, "%g", LENGTHS_SHORT_FRACTION);
+  member(w, "min_depth");
+  fprintf(f, "%d", QC_MIN_DEPTH);
+  member(w, "complete_fraction");
+  fprintf(f, "%g", QC_COMPLETE_FRACTION);
   member(w, "all");
   open_block(w, '{');
   write_section(w, r, r->total);

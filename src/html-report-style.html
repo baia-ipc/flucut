@@ -1,60 +1,183 @@
 <!-- (c) 2026 Giorgio Gonnella -->
-<!-- report: the colors of flucut (of its logo: navy #03215A, orange-red -->
-<!-- #F84A2A, blue #0A72F5), over those of the page; lighter in the dark -->
-<!-- theme; div.plots: a grid of plots (div.plot) -->
+<!-- report: the style of flucut, over that of the page. Colors: those of -->
+<!-- the logo (navy #03215A, orange-red #F84A2A, blue #0A72F5), lighter -->
+<!-- in the dark theme; the origins of the reads (c-full, c-int, c-del, -->
+<!-- c-oth) have their own hues, never those of the states (ok, warn, -->
+<!-- bad), which always come with a symbol or a word -->
 <style>
-  :root { --primary: #0a72f5; --accent: #f84a2a; --brand: #03215a; }
+  :root { --primary: #0a72f5; --accent: #f84a2a; --brand: #03215a;
+    --full: #2a78d6; --int: #d55181; --del: #6250d6; --oth: #b9b8b2;
+    --short: #8a8983; --p1: #86b6ef; --s1: #256abf; --s2: #86b6ef;
+    --ok: #0ca30c; --warn: #c98500; --bad: #d03b3b;
+    --okbg: #e3f4e3; --warnbg: #fdf0d0; --badbg: #f9e1e1; --nabg: #ecebe7; }
   @media (prefers-color-scheme: dark) {
-    :root { --primary: #4d9bff; --accent: #ff6b4f; --brand: #9cc2ff; }
+    :root { --primary: #4d9bff; --accent: #ff6b4f; --brand: #9cc2ff;
+      --full: #3987e5; --int: #d55181; --del: #9085e9; --oth: #6d6b66;
+      --short: #a3a199; --p1: #1c5cab; --s1: #3987e5; --s2: #184f95;
+      --ok: #0ca30c; --warn: #fab219; --bad: #e66767;
+      --okbg: #17361a; --warnbg: #3d3115; --badbg: #432020; --nabg: #33322f; }
   }
+  main, body.dash main { max-width: 1280px; margin: 0 auto; }
+  body.dash main { height: auto; min-height: 100vh; display: block; }
   h2, h3 { color: var(--brand); }
   a { color: var(--primary); }
   h2 { border-top-color: var(--accent); }
-  .plots {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 4px 24px;
-  }
-  .plot b { font-size: 0.9em; }
-  .coverlegend { font-size: 0.85em; margin: 6px 0 10px; line-height: 1.8; }
-  .coverlegend span { white-space: nowrap; margin-right: 16px; }
-  .coverlegend i { width: 11px; height: 11px; border-radius: 2px;
-    display: inline-block; vertical-align: middle; margin-right: 4px; }
-  .coverplot { margin: 6px 0; }
-  .coverplot b { font-size: 0.9em; }
-  .coverplot svg { display: block; }
-  .stats { font-size: 0.9em; margin: 2px 0 12px; }
-  /* report of several groups: the links to the groups (nav.groupnav) in */
-  /* a column at the left, which stays in view while the sections */
-  /* (div.groups) scroll; on narrow screens, a row of links above them */
-  main:has(.withnav) { max-width: 1180px; }
-  .withnav { display: flex; align-items: flex-start; gap: 24px; }
-  .groups { flex: 1; min-width: 0; }
-  .groupnav { position: sticky; top: 12px; flex: 0 0 150px;
-    max-height: calc(100vh - 24px); overflow-y: auto; margin-top: 1.6em;
-    display: flex; flex-direction: column; gap: 2px; font-size: 0.9em; }
-  .groupnav a { padding: 3px 10px; border-radius: 6px;
-    text-decoration: none; overflow-wrap: anywhere; }
-  .groupnav a:first-child { font-weight: 600; }
-  .groupnav a:hover { background: var(--primary); color: #fff; }
-  @media (max-width: 800px) {
-    .withnav { display: block; }
-    .groupnav { position: static; max-height: none; flex-direction: row;
-      flex-wrap: wrap; }
-  }
-  /* dashboard (live mode): each barcode is a different sample, shown in */
-  /* its own tab; the per-sample content (all segments) may be taller */
-  /* than one screen, so the page scrolls */
-  body.dash main { height: auto; min-height: 100vh; }
-  .dash .dgrid { grid-auto-rows: auto; }
-  .panel.full { grid-column: 1 / -1; }
-  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 4px; }
+  h3 { margin: 0 0 8px; font-size: 1em; }
+  .runline { margin: 4px 0; font-size: 0.9em; }
+  .running { margin: 0 0 6px; padding: 5px 12px; font-size: 0.9em;
+    display: inline-block; background: var(--nabg);
+    box-shadow: inset 3px 0 var(--primary); }
+  .finished { margin: 0 0 4px; font-size: 0.9em; }
+  details > summary { cursor: pointer; color: var(--ink2); font-size: 0.85em;
+    margin: 4px 0; }
+  .terms { margin-top: 28px; }
+  .terms td { text-align: left; vertical-align: top; }
+  .terms td:first-child { white-space: nowrap; font-weight: 600; }
+  /* a sample: heading, state and remarks, tiles, cards */
+  .shead { display: flex; align-items: baseline; gap: 16px;
+    border-top: 2px solid var(--accent); margin-top: 1.8em;
+    padding-top: 0.5em; }
+  .shead h2 { border: 0; margin: 0; padding: 0; }
+  .shead a { font-size: 0.85em; text-decoration: none; }
+  .chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px;
+    margin: 6px 0 10px; font-size: 0.9em; }
+  .chips .count { font-size: 1.1em; margin-right: 4px; }
+  .st { display: inline-block; padding: 1px 9px; border-radius: 10px;
+    font-weight: 600; white-space: nowrap; background: var(--nabg); }
+  .st.ok { background: var(--okbg); box-shadow: inset 3px 0 var(--ok); }
+  .st.warn { background: var(--warnbg); box-shadow: inset 3px 0 var(--warn); }
+  .st.bad { background: var(--badbg); box-shadow: inset 3px 0 var(--bad); }
+  .subtype { font-weight: 700; font-size: 1.1em; padding: 0 4px; }
+  .chip { padding: 1px 9px; border-radius: 10px;
+    border: 1px solid var(--grid); color: var(--ink2); }
+  .tiles { margin: 0.6em 0; }
+  .tile { flex: 1 1 150px; min-width: 150px; }
+  .tile .u { color: var(--ink2); font-size: 0.75em; }
+  .cols { display: grid; grid-template-columns: 3fr 2fr; gap: 12px;
+    align-items: start; }
+  .card { background: var(--card); border-radius: 10px; padding: 10px 14px;
+    margin: 12px 0 0; min-width: 0; }
+  .card table { width: 100%; }
+  /* stacked bars, with their legends */
+  .bar { margin: 0 0 12px; }
+  .bl { font-size: 0.9em; font-weight: 600; margin-bottom: 3px; }
+  .bl .note { font-weight: 400; }
+  .sbar { display: flex; gap: 2px; height: 16px; }
+  .sbar i { display: block; min-width: 2px; border-radius: 2px; }
+  .lg { font-size: 0.8em; margin-top: 3px; line-height: 1.7; }
+  .lg span { white-space: nowrap; margin-right: 14px; }
+  .lg i { width: 10px; height: 10px; border-radius: 2px;
+    display: inline-block; vertical-align: -1px; margin-right: 4px; }
+  i.c-full, i.c-p2 { background: var(--full); }
+  i.c-int { background: var(--int); }
+  i.c-del { background: var(--del); }
+  i.c-oth { background: var(--oth); }
+  i.c-p1 { background: var(--p1); }
+  i.c-s1 { background: var(--s1); }
+  i.c-s2 { background: var(--s2); }
+  i.c-short { background: var(--short); }
+  i.c-low { background: var(--bad); }
+  i.c-nw { background: repeating-linear-gradient(45deg, var(--oth) 0 2px,
+    transparent 2px 5px); outline: 1px solid var(--oth);
+    outline-offset: -1px; }
+  /* small counts and numbers, with their names */
+  .kv { display: grid; grid-template-columns: repeat(auto-fill,
+    minmax(190px, 1fr)); gap: 0 18px; margin: 4px 0 0; font-size: 0.85em; }
+  .kv > div { display: flex; justify-content: space-between; gap: 8px;
+    border-bottom: 1px solid var(--grid); padding: 2px 0; }
+  .kv dt { color: var(--ink2); }
+  .kv dd { margin: 0; font-variant-numeric: tabular-nums;
+    white-space: nowrap; }
+  .kv small { color: var(--ink2); }
+  .kv .kh { display: block; border: 0; color: var(--ink2);
+    font-size: 0.9em; margin-top: 4px; }
+  /* the reads: a table and the plots of their lengths and qualities */
+  .readqc { display: grid; gap: 8px 24px; align-items: start;
+    grid-template-columns: minmax(250px, 1fr) minmax(0, 1.2fr)
+    minmax(0, 1.2fr); }
+  .readqc b { font-size: 0.9em; }
+  .readqc svg { width: 100%; }
+  i.c-line { background: var(--primary); height: 3px; vertical-align: 3px; }
+  .kv.meta { margin-top: 10px; grid-template-columns: repeat(auto-fill,
+    minmax(300px, 1fr)); }
+  /* the segments: a strip for each, numbers, coverage and lengths */
+  .seghead, .seg { display: grid; gap: 4px 18px; align-items: center;
+    grid-template-columns: 190px minmax(0, 1.9fr) minmax(0, 1fr); }
+  .seghead { font-size: 0.9em; align-items: end; }
+  .seg { border-top: 1px solid var(--grid); padding: 6px 0; }
+  .seg.missing { color: var(--ink2); }
+  .sname { display: flex; align-items: center; gap: 8px; }
+  .sname b { font-size: 1.15em; }
+  .sname a { text-decoration: none; }
+  .ssub { font-size: 1.5em; font-weight: 700; line-height: 1.2; }
+  .sname .st { font-size: 0.75em; }
+  .sinfo .kv { grid-template-columns: 1fr; font-size: 0.8em; }
+  .sinfo .note, .slen .note { margin: 0; font-size: 0.75em; }
+  .seg svg { width: 100%; }
+  svg .c-full { fill: var(--full); }
+  svg .c-int { fill: var(--int); }
+  svg .c-del { fill: var(--del); }
+  svg .c-oth { fill: var(--oth); }
+  svg .c-short { fill: var(--short); }
+  svg .c-low { fill: var(--bad); }
+  svg .dot { fill: var(--ink2); stroke: var(--card); }
+  svg .dot.open { fill: var(--card); stroke: var(--ink2); }
+  svg .band { fill: var(--grid); fill-opacity: 0.45; }
+  svg .line { stroke-width: 1.5; stroke-linejoin: round; }
+  svg .mark { stroke: var(--ink2); stroke-dasharray: 4 3; }
+  svg .site { stroke: var(--int); stroke-width: 1; }
+  svg .sitel { font-weight: 600; }
+  /* the bases by segment: a column for each */
+  .columns { display: flex; align-items: flex-end; gap: 6px; height: 112px;
+    font-size: 0.8em; }
+  .columns > div { flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-end; }
+  .columns i { display: block; width: 70%; min-height: 1px;
+    border-radius: 3px 3px 0 0; background: var(--full); }
+  .columns .cv { color: var(--ink2); }
+  /* the table of the samples of a run */
+  .scroll { overflow-x: auto; }
+  .sbar.mini { height: 10px; min-width: 90px; }
+  i.t-ok { background: var(--okbg); outline: 1px solid var(--ok); }
+  i.t-warn { background: var(--warnbg); outline: 1px solid var(--warn); }
+  i.t-bad { background: var(--badbg); outline: 1px solid var(--bad); }
+  .samples td:first-child, .samples th:first-child { position: sticky;
+    left: 0; background: var(--bg); }
+  .samples { width: 100%; }
+  .samples th { position: sticky; top: 0; background: var(--bg); }
+  .samples td { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .samples td:nth-child(2), .samples th:nth-child(2) { text-align: left; }
+  .samples .st { font-size: 0.9em; }
+  .samples .wait { text-align: left; color: var(--ink2); }
+  .rd { --tint: color-mix(in srgb, var(--full) 22%, transparent);
+    background: linear-gradient(90deg, var(--tint) var(--f),
+    transparent var(--f)); }
+  td.sc { text-align: center; width: 36px; border-left: 2px solid var(--bg);
+    background: var(--nabg); }
+  td.sc.ok { background: var(--okbg); }
+  td.sc.warn { background: var(--warnbg); }
+  td.sc.bad { background: var(--badbg); }
+  td.hi { font-weight: 700; }
+  .samples td:nth-last-child(-n+4):not(.hi) { color: var(--ink2); }
+  /* dashboard: the overview, or the sample chosen (the target of the */
+  /* URL fragment), on the screen */
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
   .tabs a { padding: 4px 13px; border-radius: 7px; background: var(--card);
     color: inherit; text-decoration: none; font-weight: 600;
     font-size: 0.9em; }
   .tabs a:hover { background: var(--primary); color: #fff; }
   .tabpanel { display: none; }
   .tabpanel:target { display: block; }
-  #ov { display: block; }
-  body:has(.tabpanel.bc:target) #ov { display: none; }
+  .tabpanel#ov { display: block; }
+  body:has(.tabpanel.bc:target) .tabpanel#ov { display: none; }
+  @media (max-width: 900px) {
+    .cols, .seghead, .seg, .readqc { grid-template-columns:
+      minmax(0, 1fr); }
+    .seghead { display: none; }
+  }
+  @media print {
+    .finished { margin: 0 0 4px; font-size: 0.9em; }
+  details > summary { display: none; }
+    .card, .seg { break-inside: avoid; }
+  }
 </style>

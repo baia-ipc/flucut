@@ -87,7 +87,8 @@ enum {
   XSTR(OPTIONS_ILLUMINA_WINDOW) ")\n" \
   "   -m, --min-length <n>   shorter reads after trimming are not\n" \
   "                          written (default: " \
-  XSTR(OPTIONS_DEFAULT_MIN_LENGTH) ")\n" \
+  XSTR(OPTIONS_DEFAULT_MIN_LENGTH) "; illumina: " \
+  XSTR(OPTIONS_ILLUMINA_MIN_LENGTH) ")\n" \
   "   -j, --threads <n>      threads (default: " \
   XSTR(OPTIONS_DEFAULT_THREADS) "; the output does not\n" \
   "                          depend on it)\n" \
@@ -236,6 +237,7 @@ void options_parse(options_t *self, int argc, char *argv[],
   self->adapters = ADAPTERS_DEFAULT;
   self->illumina = false;
   bool window_given = false, adapters_given = false;
+  bool min_length_given = false;
   self->live = false;
   self->live_timeout = 0;
   self->live_min_age = OPTIONS_DEFAULT_MIN_AGE;
@@ -328,6 +330,7 @@ void options_parse(options_t *self, int argc, char *argv[],
         break;
       case 'm':
         PARSE_INTEGER_OPT_MIN(c, &self->min_length, 1);
+        min_length_given = true;
         break;
       case 'j':
         PARSE_INTEGER_OPT_MIN_MAX(c, &self->threads, 1,
@@ -460,6 +463,8 @@ void options_parse(options_t *self, int argc, char *argv[],
   /* the settings of the platform, unless given */
   if (self->illumina && !window_given)
     self->window = OPTIONS_ILLUMINA_WINDOW;
+  if (self->illumina && !min_length_given)
+    self->min_length = OPTIONS_ILLUMINA_MIN_LENGTH;
   if (self->illumina && !adapters_given)
     self->adapters = "none";
   /* the options of the live mode require it */

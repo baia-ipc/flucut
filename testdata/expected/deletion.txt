@@ -3,7 +3,7 @@ exit status: 0
 SUCCESS | Trimming testdata/deletion.fastq...
 SUCCESS | OUTDIR/deletion.fastq.gz: 2 of 2 reads written (2 with both primers, 0 with one, 0 with none; 0 too short, of which 0 dimers)
 WARNING | OUTDIR/deletion.fastq.gz: HA segment: 2 of 2 complete amplicons shorter than the closest reference (NC_004908.1, 1714 bases), most at 550-559 bases: internal priming or deletions
-SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_summary.json
+SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_dashboard.html, OUTDIR/flucut_summary.json
 == deletion.fastq.gz ==
 md5: 564ba1743111c4573e6709803a319d3f
 @deletion_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:deletion	tl:i:0	tr:i:10
@@ -40,7 +40,7 @@ deletion	NC_004908.1	550	2
     "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0000, "reads": 2, "file": "testdata/deletion.fastq"},
     "platform": "nanopore",
     "window": 100,
-    "min_length": 1,
+    "min_length": 50,
     "probe_length": 32,
     "probe_errors": 0.2,
     "terminal_window": 60,
@@ -56,6 +56,8 @@ deletion	NC_004908.1	550	2
   "length_bin": 10,
   "length_max": 4000,
   "short_fraction": 0.9,
+  "min_depth": 50,
+  "complete_fraction": 0.9,
   "all": {
     "reads": {
       "in": 2,
@@ -74,6 +76,28 @@ deletion	NC_004908.1	550	2
       "adapter_end": 0
     },
     "written_by_category": {"full": 0, "internal": 0, "deletion": 2, "other": 0},
+    "read_lengths": {"input": {"reads": 2, "bases": 1170, "min": 585, "max": 585, "mean": 585, "median": 585, "n50": 585}, "written": {"reads": 2, "bases": 1150, "min": 575, "max": 575, "mean": 575, "median": 575, "n50": 575}},
+    "read_quality": {"input": {"reads": 2, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 2, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
+    "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
+    "sample": {
+      "state": "few_reads",
+      "subtype": "H9N?",
+      "segments_expected": 8,
+      "segments_found": 1,
+      "segments_complete": 0,
+      "ends_not_located": 0.0000,
+      "flags": ["few_reads"],
+      "segments": [
+        {"segment": 1, "gene": "PB2", "state": "missing"},
+        {"segment": 2, "gene": "PB1", "state": "missing"},
+        {"segment": 3, "gene": "PA", "state": "missing"},
+        {"segment": 4, "gene": "HA", "state": "low", "reference": "NC_004908.1", "length": 1714, "mean_depth": 0.6, "median_depth": 0, "covered": 0.3209, "well_covered": 0.0000, "internal": 0.0000, "deletion": 1.0000, "minus_strand": 0.0000, "complete_amplicons": 2, "short_complete": 2},
+        {"segment": 5, "gene": "NP", "state": "missing"},
+        {"segment": 6, "gene": "NA", "state": "missing"},
+        {"segment": 7, "gene": "M", "state": "missing"},
+        {"segment": 8, "gene": "NS", "state": "missing"}
+      ]
+    },
     "primers": {
       "left": {"uni12r": 2},
       "right": {"mbtuni-13": 2}
@@ -86,6 +110,9 @@ deletion	NC_004908.1	550	2
     "short_complete": 2,
     "complete_amplicons": [
       {"group": "NC_004908.1", "reference_length": 1714, "amplicons": 2, "main_length": 550, "short": 2, "short_main_length": 550, "histogram": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]}
+    ],
+    "coverage": [
+      {"reference": "NC_004908.1", "length": 1714, "positions": [0, 8, 17, 25, 34, 43, 51, 60, 68, 77, 86, 94, 103, 111, 120, 129, 137, 146, 154, 163, 172, 180, 189, 197, 206, 215, 223, 232, 241, 249, 258, 266, 275, 284, 292, 301, 309, 318, 327, 335, 344, 352, 361, 370, 378, 387, 395, 404, 413, 421, 430, 439, 447, 456, 464, 473, 482, 490, 499, 507, 516, 525, 533, 542, 550, 559, 568, 576, 585, 593, 602, 611, 619, 628, 636, 645, 654, 662, 671, 680, 688, 697, 705, 714, 723, 731, 740, 748, 757, 766, 774, 783, 791, 800, 809, 817, 826, 834, 843, 852, 860, 869, 878, 886, 895, 903, 912, 921, 929, 938, 946, 955, 964, 972, 981, 989, 998, 1007, 1015, 1024, 1032, 1041, 1050, 1058, 1067, 1076, 1084, 1093, 1101, 1110, 1119, 1127, 1136, 1144, 1153, 1162, 1170, 1179, 1187, 1196, 1205, 1213, 1222, 1230, 1239, 1248, 1256, 1265, 1273, 1282, 1291, 1299, 1308, 1317, 1325, 1334, 1342, 1351, 1360, 1368, 1377, 1385, 1394, 1403, 1411, 1420, 1428, 1437, 1446, 1454, 1463, 1471, 1480, 1489, 1497, 1506, 1515, 1523, 1532, 1540, 1549, 1558, 1566, 1575, 1583, 1592, 1601, 1609, 1618, 1626, 1635, 1644, 1652, 1661, 1669, 1678, 1687, 1695, 1704, 1713], "depth": {"deletion": [0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]}}
     ]
   },
   "groups": [
@@ -110,6 +137,28 @@ deletion	NC_004908.1	550	2
         "adapter_end": 0
       },
       "written_by_category": {"full": 0, "internal": 0, "deletion": 2, "other": 0},
+      "read_lengths": {"input": {"reads": 2, "bases": 1170, "min": 585, "max": 585, "mean": 585, "median": 585, "n50": 585}, "written": {"reads": 2, "bases": 1150, "min": 575, "max": 575, "mean": 575, "median": 575, "n50": 575}},
+      "read_quality": {"input": {"reads": 2, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 2, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
+      "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
+      "sample": {
+        "state": "few_reads",
+        "subtype": "H9N?",
+        "segments_expected": 8,
+        "segments_found": 1,
+        "segments_complete": 0,
+        "ends_not_located": 0.0000,
+        "flags": ["few_reads"],
+        "segments": [
+          {"segment": 1, "gene": "PB2", "state": "missing"},
+          {"segment": 2, "gene": "PB1", "state": "missing"},
+          {"segment": 3, "gene": "PA", "state": "missing"},
+          {"segment": 4, "gene": "HA", "state": "low", "reference": "NC_004908.1", "length": 1714, "mean_depth": 0.6, "median_depth": 0, "covered": 0.3209, "well_covered": 0.0000, "internal": 0.0000, "deletion": 1.0000, "minus_strand": 0.0000, "complete_amplicons": 2, "short_complete": 2},
+          {"segment": 5, "gene": "NP", "state": "missing"},
+          {"segment": 6, "gene": "NA", "state": "missing"},
+          {"segment": 7, "gene": "M", "state": "missing"},
+          {"segment": 8, "gene": "NS", "state": "missing"}
+        ]
+      },
       "primers": {
         "left": {"uni12r": 2},
         "right": {"mbtuni-13": 2}
@@ -122,17 +171,18 @@ deletion	NC_004908.1	550	2
       "short_complete": 2,
       "complete_amplicons": [
         {"group": "NC_004908.1", "reference_length": 1714, "amplicons": 2, "main_length": 550, "short": 2, "short_main_length": 550, "histogram": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]}
+      ],
+      "coverage": [
+        {"reference": "NC_004908.1", "length": 1714, "positions": [0, 8, 17, 25, 34, 43, 51, 60, 68, 77, 86, 94, 103, 111, 120, 129, 137, 146, 154, 163, 172, 180, 189, 197, 206, 215, 223, 232, 241, 249, 258, 266, 275, 284, 292, 301, 309, 318, 327, 335, 344, 352, 361, 370, 378, 387, 395, 404, 413, 421, 430, 439, 447, 456, 464, 473, 482, 490, 499, 507, 516, 525, 533, 542, 550, 559, 568, 576, 585, 593, 602, 611, 619, 628, 636, 645, 654, 662, 671, 680, 688, 697, 705, 714, 723, 731, 740, 748, 757, 766, 774, 783, 791, 800, 809, 817, 826, 834, 843, 852, 860, 869, 878, 886, 895, 903, 912, 921, 929, 938, 946, 955, 964, 972, 981, 989, 998, 1007, 1015, 1024, 1032, 1041, 1050, 1058, 1067, 1076, 1084, 1093, 1101, 1110, 1119, 1127, 1136, 1144, 1153, 1162, 1170, 1179, 1187, 1196, 1205, 1213, 1222, 1230, 1239, 1248, 1256, 1265, 1273, 1282, 1291, 1299, 1308, 1317, 1325, 1334, 1342, 1351, 1360, 1368, 1377, 1385, 1394, 1403, 1411, 1420, 1428, 1437, 1446, 1454, 1463, 1471, 1480, 1489, 1497, 1506, 1515, 1523, 1532, 1540, 1549, 1558, 1566, 1575, 1583, 1592, 1601, 1609, 1618, 1626, 1635, 1644, 1652, 1661, 1669, 1678, 1687, 1695, 1704, 1713], "depth": {"deletion": [0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]}}
       ]
     }
   ]
 }
 == flucut_report.html ==
 </html>
-<h2>All reads</h2>
-<h3>Sample: subtype and segments</h3>
-<h3>Reads at each step</h3>
-<h3>Primers found</h3>
-<h3>Internal priming</h3>
-<h3>Complete amplicons</h3>
-<h3>Lengths of the complete amplicons</h3>
-<h3>Coverage by read origin</h3>
+<h2>deletion</h2>
+<h3>Reads</h3>
+<h3>Internal priming sites</h3>
+<h3>Bases by segment</h3>
+<h3>Segments</h3>
+<h3>Read length and quality</h3>

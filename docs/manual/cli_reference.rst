@@ -89,7 +89,11 @@ Options
 
 ``-m, --min-length <n>``
    Reads shorter than ``<n>`` bases after the trimming are not written.
-   Default: 1 (empty reads, e.g. primer dimers, are never written).
+   Default: 50 (a few bases left between two primers, or after an
+   adapter, are not a read of a segment); with ``-p illumina``, 1, so
+   that no read is dropped for its length and the two files of paired
+   reads keep the same reads. Empty reads, e.g. primer dimers, are never
+   written.
 
 ``-j, --threads <n>``
    The number of worker threads (1 to 256; default 4), each trimming

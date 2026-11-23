@@ -1,12 +1,13 @@
 exit status: 0
 == messages ==
+SUCCESS | Dashboard: OUTDIR/flucut_dashboard.html (open it in a web browser to follow the run)
 SUCCESS | Trimming barcode01, 2 files (1 of 2)...
 SUCCESS | Trimming testdata/reads.fastq (2 of 2)...
-SUCCESS | OUTDIR/barcode01.fastq.gz: 11 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
-SUCCESS | OUTDIR/reads.fastq.gz: 11 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
-SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_summary.json
+SUCCESS | OUTDIR/barcode01.fastq.gz: 10 of 12 reads written (10 with both primers, 1 with one, 1 with none; 2 too short, of which 1 dimers)
+SUCCESS | OUTDIR/reads.fastq.gz: 10 of 12 reads written (10 with both primers, 1 with one, 1 with none; 2 too short, of which 1 dimers)
+SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_dashboard.html, OUTDIR/flucut_summary.json
 == barcode01.fastq.gz ==
-md5: e03dd06176b873cd319f6e67c375698a
+md5: ffb1a6437bac6615d7c14264b5e087a1
 @full_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
 1703 GGAATTACTTAACTA...AACATTTGTATATAA
 @full_minus simulated	fs:Z:-	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:23	tr:i:12
@@ -25,12 +26,10 @@ md5: e03dd06176b873cd319f6e67c375698a
 900 GGAATTACTTAACTA...AATGTCAGACTGAAA
 @no_primer simulated	fs:Z:.	tl:i:0	tr:i:0
 300 AACAAACTCCACAGA...TTTTAGTTCCGCTAG
-@short_amplicon simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
-20 GGAATTACTTAACTA...TACTTAACTAGCAAA
 @left_only simulated	fs:Z:+	fl:Z:uni12r	tl:i:12	tr:i:0
 500 GGAATTACTTAACTA...TACAGGAGTATGAGA
 == reads.fastq.gz ==
-md5: e03dd06176b873cd319f6e67c375698a
+md5: ffb1a6437bac6615d7c14264b5e087a1
 @full_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
 1703 GGAATTACTTAACTA...AACATTTGTATATAA
 @full_minus simulated	fs:Z:-	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:23	tr:i:12
@@ -49,14 +48,12 @@ md5: e03dd06176b873cd319f6e67c375698a
 900 GGAATTACTTAACTA...AATGTCAGACTGAAA
 @no_primer simulated	fs:Z:.	tl:i:0	tr:i:0
 300 AACAAACTCCACAGA...TTTTAGTTCCGCTAG
-@short_amplicon simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
-20 GGAATTACTTAACTA...TACTTAACTAGCAAA
 @left_only simulated	fs:Z:+	fl:Z:uni12r	tl:i:12	tr:i:0
 500 GGAATTACTTAACTA...TACAGGAGTATGAGA
 == summary.tsv ==
 output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other
-barcode01	12	12635	11	12240	10	1	1	2	1	1	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
-reads	12	12635	11	12240	10	1	1	2	1	1	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+barcode01	12	12635	10	12220	10	1	1	2	1	2	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+reads	12	12635	10	12220	10	1	1	2	1	2	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 barcode01	all	20	1
@@ -86,7 +83,7 @@ reads	all	1700	5
     "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0146, "reads": 6, "file": "testdata/barcode01/part1.fastq"},
     "platform": "nanopore",
     "window": 100,
-    "min_length": 1,
+    "min_length": 50,
     "probe_length": 32,
     "probe_errors": 0.2,
     "terminal_window": 60,
@@ -102,17 +99,19 @@ reads	all	1700	5
   "length_bin": 10,
   "length_max": 4000,
   "short_fraction": 0.9,
+  "min_depth": 50,
+  "complete_fraction": 0.9,
   "all": {
     "reads": {
       "in": 24,
       "bases_in": 25270,
-      "written": 22,
-      "bases_written": 24480,
+      "written": 20,
+      "bases_written": 24440,
       "both_primers": 20,
       "one_primer": 2,
       "no_primer": 2,
       "dimers": 2,
-      "too_short": 2,
+      "too_short": 4,
       "minus_strand": 4,
       "with_internal_match": 0,
       "split": 0,
@@ -120,6 +119,10 @@ reads	all	1700	5
       "adapter_end": 0
     },
     "written_by_category": null,
+    "read_lengths": {"input": {"reads": 24, "bases": 25270, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 20, "bases": 24440, "min": 300, "max": 1703, "mean": 1222, "median": 1003, "n50": 1702}},
+    "read_quality": {"input": {"reads": 24, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 20, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
+    "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
+    "sample": null,
     "primers": {
       "left": {"uni12r": 22},
       "right": {"mbtuni-13": 20}
@@ -129,7 +132,8 @@ reads	all	1700	5
     "short_complete": null,
     "complete_amplicons": [
       {"group": "all", "reference_length": null, "amplicons": 18, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]}
-    ]
+    ],
+    "coverage": null
   },
   "groups": [
     {
@@ -139,13 +143,13 @@ reads	all	1700	5
       "reads": {
         "in": 12,
         "bases_in": 12635,
-        "written": 11,
-        "bases_written": 12240,
+        "written": 10,
+        "bases_written": 12220,
         "both_primers": 10,
         "one_primer": 1,
         "no_primer": 1,
         "dimers": 1,
-        "too_short": 1,
+        "too_short": 2,
         "minus_strand": 2,
         "with_internal_match": 0,
         "split": 0,
@@ -153,6 +157,10 @@ reads	all	1700	5
         "adapter_end": 0
       },
       "written_by_category": null,
+      "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 10, "bases": 12220, "min": 300, "max": 1703, "mean": 1222, "median": 1003, "n50": 1702}},
+      "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 10, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
+      "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
+      "sample": null,
       "primers": {
         "left": {"uni12r": 11},
         "right": {"mbtuni-13": 10}
@@ -162,7 +170,8 @@ reads	all	1700	5
       "short_complete": null,
       "complete_amplicons": [
         {"group": "all", "reference_length": null, "amplicons": 9, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]}
-      ]
+      ],
+      "coverage": null
     },
     {
       "name": "reads",
@@ -171,13 +180,13 @@ reads	all	1700	5
       "reads": {
         "in": 12,
         "bases_in": 12635,
-        "written": 11,
-        "bases_written": 12240,
+        "written": 10,
+        "bases_written": 12220,
         "both_primers": 10,
         "one_primer": 1,
         "no_primer": 1,
         "dimers": 1,
-        "too_short": 1,
+        "too_short": 2,
         "minus_strand": 2,
         "with_internal_match": 0,
         "split": 0,
@@ -185,6 +194,10 @@ reads	all	1700	5
         "adapter_end": 0
       },
       "written_by_category": null,
+      "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 10, "bases": 12220, "min": 300, "max": 1703, "mean": 1222, "median": 1003, "n50": 1702}},
+      "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 10, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
+      "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
+      "sample": null,
       "primers": {
         "left": {"uni12r": 11},
         "right": {"mbtuni-13": 10}
@@ -194,22 +207,19 @@ reads	all	1700	5
       "short_complete": null,
       "complete_amplicons": [
         {"group": "all", "reference_length": null, "amplicons": 9, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]}
-      ]
+      ],
+      "coverage": null
     }
   ]
 }
 == flucut_report.html ==
 </html>
-<h2 id="ov">Groups</h2>
-<h2 id="s0">Group: barcode01</h2>
-<h3>Reads at each step</h3>
-<h3>Primers found</h3>
-<h3>Internal priming</h3>
-<h3>Complete amplicons</h3>
-<h3>Lengths of the complete amplicons</h3>
-<h2 id="s1">Group: reads</h2>
-<h3>Reads at each step</h3>
-<h3>Primers found</h3>
-<h3>Internal priming</h3>
-<h3>Complete amplicons</h3>
-<h3>Lengths of the complete amplicons</h3>
+<h2 id="ov">Run overview</h2>
+<h2>barcode01</h2>
+<h3>Reads</h3>
+<h3>Complete amplicons by length (bases)</h3>
+<h3>Read length and quality</h3>
+<h2>reads</h2>
+<h3>Reads</h3>
+<h3>Complete amplicons by length (bases)</h3>
+<h3>Read length and quality</h3>

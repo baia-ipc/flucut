@@ -469,6 +469,7 @@ void live_run(const options_t *opts, trimmer_config_t *config,
       .last_new = time(NULL), .refresh = LIVE_REFRESH_MAX};
   /* the reports of a run in progress, before the first file */
   write_results(&w, true);
+  run_report_announce_dashboard(report, logger);
   double interval = opts->live_timeout > 0 &&
                     opts->live_timeout < opts->live_scan_interval ?
                     (double)opts->live_timeout : opts->live_scan_interval;

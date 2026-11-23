@@ -191,7 +191,8 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
   fastq_writer_record(out, self->title.s, self->title.len,
                       seq + a->keep_from,
                       data + rec->qual_from + from + a->keep_from, kept);
-  counter_add_written(counts, kept, category);
+  counter_add_written(counts, kept, category, rec->qual_missing ? NULL :
+                      data + rec->qual_from + from + a->keep_from);
 }
 
 void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
@@ -200,6 +201,12 @@ void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
   const char *data = batch->data.s;
   for (size_t i = from; i < to; i++) {
     const fastq_record_t *rec = batch->records + i;
+    /* (the title of the first read of the range is read for the metadata
+       of the run) */
+    counter_add_input(counts, rec->seq_len, rec->qual_missing ? NULL :
+                      data + rec->qual_from,
+                      i == from ? data + rec->title_from : NULL,
+                      rec->title_len);
     chimera_part_t parts[CHIMERA_MAX_PARTS];
     size_t n_parts = self->chimera == NULL ? 0 :
         chimera_finder_run(self->chimera, data + rec->seq_from,

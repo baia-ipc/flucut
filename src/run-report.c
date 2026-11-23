@@ -15,7 +15,7 @@ struct run_report_t {
   const scheme_t *scheme;
   const fasta_t *references;
   const report_setting_t *max_errors;
-  char *command_line, *html_path, *json_path;
+  char *command_line, *html_path, *dashboard_path, *json_path;
   /* the reload interval of the HTML while a run is in progress; adapted
      by the live mode (run_report_set_refresh) */
   long refresh;
@@ -36,6 +36,7 @@ run_report_t* run_report_new(const options_t *opts, const char *version,
   self->command_line = sam_header_command_line(argc, argv);
   xmakedirs(opts->outdir, logger);
   self->html_path = path_join(opts->outdir, RUN_REPORT_HTML_FILE);
+  self->dashboard_path = path_join(opts->outdir, RUN_REPORT_DASHBOARD_FILE);
   self->json_path = path_join(opts->outdir, RUN_REPORT_JSON_FILE);
   self->refresh = RUN_REPORT_REFRESH;
   return self;
@@ -61,13 +62,23 @@ void run_report_write(const run_report_t *self,
     .options = self->opts, .scheme = self->scheme,
     .references = self->references, .sections = sections,
     .n_sections = n, .total = total, .max_errors = self->max_errors,
-    /* while a run is in progress the HTML is a dashboard, one
-       screen that fits without scrolling; the final report, at the end, is
-       the full scrolling report */
     .refresh = running ? self->refresh : 0, .running = running,
-    .dashboard = running};
-  html_report_write(self->html_path, &r, logger);
+    .dashboard = true, .report_file = RUN_REPORT_HTML_FILE};
+  /* the dashboard follows the run and stays, in its last state, at its
+     end, when the report is written */
+  html_report_write(self->dashboard_path, &r, logger);
+  if (!running) {
+    r.dashboard = false;
+    html_report_write(self->html_path, &r, logger);
+  }
   json_report_write(self->json_path, &r, logger);
+}
+
+void run_report_announce_dashboard(const run_report_t *self,
+    Logger *logger) {
+  assert(self != NULL);
+  lprintf(logger, LOG_SUCCESS, "Dashboard: %s (open it in a web browser "
+          "to follow the run)\n", self->dashboard_path);
 }
 
 void run_report_delete(run_report_t *self) {
@@ -75,6 +86,7 @@ void run_report_delete(run_report_t *self) {
     return;
   free(self->command_line);
   free(self->html_path);
+  free(self->dashboard_path);
   free(self->json_path);
   free(self);
 }

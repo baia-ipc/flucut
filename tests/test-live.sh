@@ -84,6 +84,10 @@ pid=$!
 wait_for "live: first scan" test -f $TMP/out/flucut_summary.json
 grep -q '"running": true' $TMP/out/flucut_summary.json || \
   fail "summary of the run in progress not running"
+grep -q 'http-equiv="refresh"' $TMP/out/flucut_dashboard.html || \
+  fail "dashboard of the run in progress does not reload itself"
+[ ! -e $TMP/out/flucut_report.html ] || \
+  fail "report written before the end of the run"
 cp $SRC/barcode02/part2.fastq.gz $RUN/barcode01/a.fastq.gz
 sleep 2
 write_slowly $SRC/barcode01/part1.fastq $RUN/barcode01/b.fastq
@@ -98,8 +102,11 @@ $FLUCUT -j 2 -o $TMP/dir $RUN 2> /dev/null
 compare $TMP/out $TMP/dir
 grep -q '"running": false' $TMP/out/flucut_summary.json || \
   fail "summary not final"
-grep -q 'http-equiv="refresh"' $TMP/out/flucut_report.html && \
-  fail "final report reloads itself"
+grep -q 'http-equiv="refresh"' $TMP/out/flucut_report.html \
+  $TMP/out/flucut_dashboard.html && \
+  fail "report or dashboard reloads itself after the end of the run"
+grep -q 'Dashboard: .*flucut_dashboard.html' $TMP/live.err || \
+  fail "dashboard not announced: $(cat $TMP/live.err)"
 echo "[OK] live: files written during the run"
 
 # 2. resume, with a new file

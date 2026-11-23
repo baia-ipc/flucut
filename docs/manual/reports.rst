@@ -4,254 +4,299 @@ Reports
 =======
 
 Besides the trimmed reads, the tables and the messages, flucut always
-writes two reports to the output directory:
+writes three files to the output directory:
 
-* ``flucut_report.html``, a report for people;
+* ``flucut_dashboard.html``, a dashboard to follow the run;
+* ``flucut_report.html``, the report of the run, written at its end;
 * ``flucut_summary.json``, the same information for programs
-  (pipelines, dashboards).
+  (pipelines, other dashboards).
 
-Both are written at the end of the run, to a temporary file which is
-then renamed, so that a partial report is never read. A run with several
-samples (several input files or directories, or the barcode directories
-of a run) can be followed while it is in progress: the tables and the
-reports are also written before the first sample and after each one.
-Until the end, ``flucut_report.html`` is then the dashboard of the
-:doc:`live mode <live>`, which reloads itself in the browser every 30
-seconds and shows the samples still to be processed as "not processed
-yet" (the JSON summary has ``"running": true``, and ``summary.tsv`` and
-``lengths.tsv`` only the samples already processed).
+Each is written to a temporary file which is then renamed, so that a
+partial file is never read. Both pages are single, self-contained files:
+the plots are inline SVG and no external resources are used, so that
+they can be opened offline in any browser, archived, and sent by
+e-mail. They follow the light or dark theme of the browser.
 
-The HTML report
----------------
+The dashboard
+-------------
 
-The report is a single, self-contained file: the plots are inline SVG,
-and it uses no external resources (and no JavaScript), so that it can
-be opened offline in any browser, archived, and sent by e-mail. It
-follows the light or dark theme of the browser.
+A run with several samples (several input files or directories, or the
+barcode directories of a run) can be followed while it is in progress.
+The dashboard is written before the first sample and after each one (in
+the :doc:`live mode <live>`, after each input file), and flucut says
+where it is as soon as it exists::
 
-Most figures of this chapter show the report of the simulated reads of
-the benchmark (3,200 reads of the eight segments, of which 239 HA reads
-internally primed, :doc:`performance`), trimmed with the references
-(``-r``); the coverage figure is from a real Nanopore run, where it is
-more telling. See ``docs/manual/figures/README.md`` for how they were
-made.
+   SUCCESS | Dashboard: out/flucut_dashboard.html (open it in a web
+     browser to follow the run)
+
+It reloads itself in the browser and shows one thing at a time: the
+**overview** of the run, the **HA** in all samples, or one **sample**,
+chosen with the links at the top or by the name of a sample in the
+table of the overview. The choice is kept in the page address, so it
+survives the reloads. Samples still to be processed are shown as
+waiting. At the end of the run the dashboard stays, in its last state,
+with a link to the report (the JSON summary has ``"running": true``
+until then).
+
+.. figure:: figures/dashboard.*
+   :width: 100%
+
+   The dashboard of a run of four barcodes (simulated reads), at the
+   end of the run.
+
+The report
+----------
+
+The report has the same parts as the dashboard, all on one page: the
+run overview, the HA in all samples, then each sample. With one sample
+only, it is that sample.
+
+The figures of this chapter show a simulated run of four barcodes
+(``docs/manual/figures/README.md`` says how it was made): two complete
+samples, one with few reads of a polymerase segment, and one with too
+few reads.
+
+How to read it
+~~~~~~~~~~~~~~
+
+A few conventions hold everywhere:
+
+* **Segments are judged by their depth.** A segment is *complete* when
+  at least 90% of its positions have a depth of 50 or more (what
+  FLU-minion of IRMA needs to support a base), *partial* from 50%, and
+  *low depth* below. Depth and coverage are estimated from where flucut
+  locates each read on its reference (its start and its length), not
+  from a base-by-base mapping.
+* **A sample is summarised by a count**: its complete segments, of the
+  eight (e.g. ``7/8``), green when all are complete, amber when some
+  are partial or low, red when some are missing. The count is grey when
+  the segments cannot be judged: fewer than 1,000 reads, or half or
+  more of the read ends not matched to the references (e.g. a sample
+  which is not influenza A). In the live mode it is grey as long as
+  reads are still being added.
+* **Reads have one of four origins**, always in the same colours: *full
+  template* (blue: the amplicon started at an end of the segment),
+  *internally primed* (magenta: it started inside the segment), *internal
+  deletion* (violet: the two ends of the read lie much farther apart on
+  the segment than the read is long, as in defective interfering
+  genomes) and *other* (grey: no 5' primer, or not located). They are
+  the categories of the ``ct`` tag and of ``--by-category``
+  (:ref:`reads-by-category`).
+* **Every percentage names what it is a share of** (of the reads after
+  splitting, of the depth of a segment, of the read ends).
+* ``0.0%`` and ``100.0%`` mean exactly none and exactly all: a share
+  which is not zero, but below 0.1%, is written ``<0.1%``, and one above
+  99.9%, but not all, ``>99.9%``.
+
+Details which are rarely needed (all the settings, the smaller internal
+priming sites, the read ends by origin, the terms) are folded: click
+their line to open them.
+
+The head
+~~~~~~~~
+
+The platform, the primer scheme, the trimming policy, the number of
+references and the version on one line; under it, when the titles of
+the reads give them, the name of the experiment, the flow cell and the
+basecalling model. *Settings* opens the full table: command line,
+references, errors allowed in a primer (and how ``-e auto`` decided),
+window, minimum length, probe, threads.
+
+Run overview
+~~~~~~~~~~~~
+
+.. figure:: figures/report_overview.*
+   :width: 100%
+
+   The overview of the simulated run.
+
+**The samples by state**, on one line (complete, partial, with segments
+missing, few reads, not matched to the references, waiting).
+
+**Tiles** with the throughput of the run: samples, subtype (and how
+many samples have each, if several), reads and bases, median read
+length (with the N50 and the median quality), reads written, reads with
+both primers.
+
+**The table of the samples**, one row each; the name links to the
+sample:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 78
+
+   * - column
+     - content
+   * - segments
+     - the complete segments, of those expected
+   * - subtype
+     - the H of the reference closest to its HA and the N of that
+       closest to its NA; with a question mark when the HA or the NA
+       has a low depth, or the sample cannot be judged
+   * - reads, N50, quality
+     - the reads of the input (the bar compares the samples), the N50
+       of their lengths and the median of their qualities
+   * - PB2 ... NS
+     - for each segment, the percentage of its positions at a depth of
+       50 or more, tinted by state (green: complete, amber: partial,
+       red: low depth or not found; no tint for a sample which cannot
+       be judged)
+   * - int. primed, int. deletions
+     - the segment with the greatest share of its depth from internally
+       primed reads, from reads with an internal deletion; bold from
+       10% and from 50%. Pointing at the cell lists all the segments.
+       Not given for a segment with a mean depth below 20.
+   * - reads by origin
+     - the reads written, by origin, as a small bar
+   * - both primers
+     - the reads with the primers of both ends
+
+**Median depth by segment**: a dot for each sample over each segment,
+on a logarithmic axis, with a line at 50. A segment which is low in all
+samples points to the amplification; one low in a single sample points
+to that sample. The dots of the samples which cannot be judged are
+hollow.
+
+Nothing else is pooled across samples: coverage, internal priming sites
+and amplicon lengths are those of each sample.
+
+HA in all samples
+~~~~~~~~~~~~~~~~~
+
+.. figure:: figures/report_ha.*
+   :width: 100%
+
+   The HA of the first two samples of the simulated run: 36% and 8% of
+   the depth come from reads internally primed at position 1090.
+
+The HA decides the subtype and is where internal priming matters most
+(:doc:`internal_priming`), so it has a view of its own: for each sample,
+its subtype, the strip of its HA (see *Segments* below), side by side
+for comparison. The view is left out when the run or the report is
+limited to another segment (``--segment``, ``--report-segment``).
+
+A sample
+~~~~~~~~
+
+.. figure:: figures/report_sample.*
+   :width: 100%
+
+   The top of a sample: state and remarks, tiles, reads, internal
+   priming sites, bases by segment.
+
+**State and remarks.** The count of complete segments and, when they
+apply, short remarks:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 55
+
+   * - remark
+     - shown when
+   * - few reads
+     - fewer than 1,000 reads
+   * - no primer in N% of the reads
+     - 20% or more: a scheme which does not match the primers of the
+       run (``-s``), reads already trimmed, or more errors than ``-e``
+       allows
+   * - N% of the read ends not located in the references
+     - 50% or more
+   * - HA 36% of depth internally primed
+     - 10% or more of the depth of a segment
+   * - PB2 90% of depth from reads with an internal deletion
+     - 50% or more of the depth of a segment
+
+**Tiles**: the subtype with the references closest to the HA and to the
+NA, the reads and bases, the median read length, the reads written, the
+reads with both primers.
+
+**Reads.** Two bars: the reads by primers found (both, one, none) and
+by origin (with the reads not written: too short after the trimming,
+dimers included). Under them the smaller counts: the primer of each end
+by name, minus strand, reads split into several amplicons, primer
+dimers, too short, primer matches inside the read, adapters removed.
+*Read ends by origin* opens the same division for the ends with a
+primer (terminal, internal, not located).
+
+**Internal priming sites.** The sites with 10 read ends or more, the
+largest first (at most five; the others are folded): segment, end
+(left: Uni12, right: Uni13), position of the first base after the
+primer (1-based on the plus strand of the reference, as in the
+``ml``/``mr`` tags; read ends at most 5 bases apart are one site), reads
+and their share of all reads.
+
+**Bases by segment.** The share of the located bases in each segment:
+the balance of the amplification.
+
+.. figure:: figures/report_segments.*
+   :width: 100%
+
+   The first segments of a sample.
+
+**Segments.** One strip for each segment (a segment without located
+reads is *not found*):
+
+* at the left, its state, its reference, and its numbers: median depth,
+  share of the positions at a depth of 50 or more, share covered, and
+  the shares of its depth from internally primed reads, from reads with
+  an internal deletion and from reads of the minus strand;
+* in the middle, the **coverage by read origin**: the depth along the
+  segment, stacked by origin. The reads of unknown origin and the full
+  templates are at the bottom, as flat bands; the internally primed
+  reads are above them, so that internal priming shows as a step up at
+  its site, which is marked with its position when 5% or more of the
+  depth is internally primed; reads with an internal deletion cover the
+  two ends only. The dashed line is the depth of 50, and the stretches
+  below it are marked in red under the axis;
+* at the right, the **complete amplicons by length**, with the length of
+  the segment marked: amplicons shorter than 90% of it (grey) come from
+  internal priming or from deletions.
+
+The coverage needs references which are **complete segments, with the
+UTRs**: a read is located by the sequence just after its 5' primer,
+which in a full segment is the 5' UTR. Against coding sequences only
+the internally primed reads map, and flucut warns
+(:doc:`troubleshooting`). How the reads are placed is described in
+:doc:`how_it_works`.
+
+.. figure:: figures/report_reads.*
+   :width: 100%
+
+   The lengths and qualities of the reads of a sample.
+
+**Read length and quality.** A table of the reads of the input and of
+the reads written: reads, bases, median and mean length, N50, shortest
+and longest, median quality, and the reads with a quality of 10 and of
+20 or more; and the distributions of the lengths and of the qualities,
+the input as bars and the reads written as an outline. The quality of a
+read is the Phred score of the mean error probability of its bases, as
+in MinKNOW. Reads are shorter after the trimming, and usually of a
+higher quality, as adapters and primers are removed. Under the table,
+what the titles of the reads say about the sequencing: flow cell, run,
+basecalling model (which names the pore, the chemistry, the speed and
+the accuracy, e.g. ``dna_r10.4.1_e8.2_400bps_sup@v4.3.0``), sample name
+and experiment as given in MinKNOW, and the time of the first read; for
+Illumina reads, the instrument, the run number and the flow cell. A
+value which differs among the reads is given as *several*.
+
+Without references
+~~~~~~~~~~~~~~~~~~
+
+With ``-r off`` the read ends are not classified: there is no subtype,
+no segment and no internal priming site. The report has the reads by
+primers found, the reads written, the lengths of all complete amplicons
+(internal priming shows there as amplicons much shorter than their
+segment) and the read lengths and qualities.
+
+One segment
+~~~~~~~~~~~
 
 With ``--report-segment`` (e.g. ``--report-segment HA``) the parts of
-the report which list the references (the internal priming sites, the
-complete amplicons and the coverage) show one segment only; the counts
-of all reads (tiles, steps, primers, read ends by origin) are unchanged
-With ``--segment``, which also limits the classification to the
-references of one segment, the report shows that segment
+the report which list the references show one segment only; the counts
+of the reads are unchanged. With ``--segment``, which also limits the
+classification to the references of one segment, only that segment is
+expected: a sample is then ``1/1`` when it is complete
 (:doc:`cli_reference`).
-
-**The run parameters.**
-   At the right of the logo: the version of flucut, the command line,
-   the primer scheme, the trimming policy, the references and the
-   options of the trimming.
-
-   .. figure:: figures/report_head.*
-      :width: 100%
-
-      The head of the report: the logo, the time of writing and the run
-      parameters.
-
-**Groups.**
-   With several groups of input files (:doc:`output`), e.g. the barcode
-   directories of a run, each group is a different sample and has its own
-   section. The report starts with the throughput of the whole run (the
-   tiles and the basic statistics) and a table of the groups, with their
-   reads, the reads written, those with both primers and, with
-   references, the internally primed read ends. Nothing else is pooled
-   across groups: coverage, internal priming sites and amplicon lengths
-   are shown for each group only. A column at the left of the page, which
-   stays in view while the page scrolls, lists the groups: their names
-   there, and in the table, link to their sections.
-
-   .. figure:: figures/report_groups.*
-      :width: 80%
-
-      The groups of the test data ``testdata/fastq_pass`` (two barcode
-      directories), without references.
-
-Then, for each group (or for all reads, if there is only one):
-
-**Sample: subtype and segments.**
-   With references, what the located reads say about the sample itself,
-   whatever is done with the trimmed reads afterwards. A first line
-   gives the subtype (the H of the reference of its HA and the N of
-   that of its NA) and the number of segments found, and notes when the
-   segments are closest to references of different subtypes (a
-   reassortant, or genes which differ little between subtypes). Then
-   one line for each segment:
-
-   - the reference its reads were located in, and the subtype named in
-     its description;
-   - the mean depth, the share of its positions covered by at least one
-     read, and by at least 50 reads (what FLU-minion of IRMA needs to
-     support a base);
-   - the share of its depth that comes from internally primed reads,
-     and from reads with an internal deletion: depth which does not
-     represent the whole segment;
-   - its complete amplicons, and the share of them shorter than the
-     reference.
-
-   A segment without located reads is shown as not found. Depth and
-   coverage are those of the reads as flucut locates them (see Coverage
-   by read origin below), not of a mapping.
-
-**Reads at each step.**
-   The reads read, those with the primers of both ends, of one end or
-   of none, the primer dimers, the reads too short to be written, the
-   reads written and those found on the minus strand, as tiles and as
-   bars. Many reads without primers mean a scheme which does not match
-   the primers of the run (``-s``), reads already trimmed, or a higher
-   error rate than ``-e`` allows.
-
-   Everywhere in the report, ``0.0%`` and ``100.0%`` mean exactly none
-   and exactly all: a share which is not zero, but below 0.1%, is written
-   ``<0.1%``, and one above 99.9%, but not all, ``>99.9%``.
-
-   .. figure:: figures/report_tiles.*
-      :width: 100%
-
-      The tiles of all reads: 3,200 reads, 99.2% written, 88.4% with
-      both primers, 231 internally primed read ends.
-
-   .. figure:: figures/report_steps.*
-      :width: 100%
-
-      All reads: 99.2% of the reads were written; 88.4% had both
-      primers, 11.6% only one (the simulation breaks some reads); the 24
-      primer dimers were not written.
-
-**Primers found.**
-   The reads with the primer of each end, by primer of the scheme (e.g.
-   the two forms of the Uni12 primer of the ``mbt`` scheme).
-
-**Internal priming.**
-   With references: the read ends of each end by origin (terminal,
-   internal, not located), and the internal priming sites, by
-   decreasing number of reads: the reference, the end, the position of
-   the first base after the primer (1-based on the plus strand of the
-   reference, as in the ``ml``/``mr`` tags of the reads) and the range
-   of the positions of the site (the read ends of a site map a few bases
-   apart, because of the sequencing errors: positions at most 5 bases
-   apart are one site). Without references, a note: the sites are not
-   known, and the length check below is the check of internal priming.
-
-   .. figure:: figures/report_internal.*
-      :width: 100%
-
-      Internal priming in the simulated reads: 231 left ends were
-      classified as internal; 224 of them are the site of the
-      simulation, in the HA (KF918483.1), the first base after the
-      primer at 1090.
-
-**Complete amplicons.**
-   For each reference (or for all reads, without references): the
-   complete amplicons (both primers found), the most frequent length of
-   the template between the primers, and the amplicons shorter than
-   90% of the reference, with their most frequent length; then the
-   histograms of the lengths, as in ``lengths.tsv``. Internal priming,
-   and deletions, show as short amplicons.
-
-   .. figure:: figures/report_complete.*
-      :width: 100%
-
-      Complete amplicons: 221 of the 367 HA amplicons are shorter than
-      90% of the reference, most of them 670-679 bases long, from the
-      internal site to the end of the segment.
-
-   .. figure:: figures/report_lengths.*
-      :width: 100%
-
-      The histograms of the lengths of the complete amplicons, one for
-      each reference and one for the amplicon whose read ends were not
-      located; that of the HA (KF918483.1) has two peaks, the amplicons
-      started at the internal site and the complete segment.
-
-**Coverage by read origin.**
-   With references: for each reference, a reconstructed coverage along
-   its length, stacked by the origin of the reads covering each
-   position. Each located read covers the span ``[start, start + length)``
-   on the reference (from the mapped position of its probe, the
-   ``ml``/``mr`` tags, and its kept length); the reads are coloured by
-   where their amplicon started and on which strand:
-
-   * **terminal +** and **terminal -**: started at a segment end (a
-     genuine full-length amplicon), on the plus or the minus strand;
-   * **internal +** and **internal -**: internally primed, on the plus
-     or the minus strand;
-   * **no 5' primer** and **5' probe not located** (grey, at the
-     bottom): reads without a located 5' end. A read with no 5' primer
-     is a fragment of unknown origin (a broken molecule, or a fragment
-     of an Illumina library), placed by its 3' end and its length or,
-     without a located 3' end, by its own sequence (see below).
-
-   * **internal deletion** (purple, at the top): reads whose two ends
-     map to the two ends of a segment, much farther apart than the read
-     is long, e.g. defective interfering genomes: the read is shorter
-     than the distance between its ends by more than 100 bases, and by
-     more than 10% of that distance (smaller differences are the indels
-     of the read, or of the sample with respect to the reference). Such
-     a read covers only its two flanks: the junction between them is
-     located by probes from inside the read, so the band steps down
-     where the deletions begin and up where they end. If the junction
-     is not found, half of the read is drawn at each end.
-
-   When only the 3' end of a read maps, its 5' origin is inferred from
-   where its 5' end falls (the mapped 3' position less the read length):
-   within the segment terminus it is counted as terminal, deeper as
-   internal.
-
-   A read of which neither end is located (no primer at all, or primers
-   whose probes do not map) is still counted: a probe from the middle of
-   its kept part is looked up in the k-mer index of the references, and
-   the read covers the span around it given by its length. If the probe
-   is not found, one at a quarter and one at three quarters of the read
-   are tried. Only the probe is aligned, not the read, so the span is
-   approximate (it ignores the indels of the rest of the read), but the
-   depth is close to that of a read mapping: without this the reads
-   without primers, most of an Illumina library, would be missing from
-   the plot. The trimming does not depend on it. A read is left out only
-   if no probe is found (a read which is not influenza, or one with an
-   error in every k-mer of its probes).
-
-   The same groups, with the strands merged, are the categories of the
-   reads in the output: the ``ct`` tag, and the files written by
-   ``--by-category`` (:ref:`reads-by-category`).
-
-   A complete amplicon (both primers found) which could not be located
-   in any of these ways is drawn over the whole segment of its length,
-   as terminal, if the length tells which segment it is: within 80 bases
-   of the length of a reference, and not as close to a reference of
-   another segment (e.g. PB2 and PB1).
-
-   Internal priming shows as a step up in the coloured (amber, blue)
-   bands at the site, marked with the red line of the largest site of
-   the reference. This is an overview built from flucut's classification,
-   not a base-by-base mapping: it ignores indels. No other primer
-   trimmer shows it.
-
-   .. note::
-      The coverage can only be reconstructed when the references are
-      **complete segments, with the UTRs**. A read is located by the
-      sequence just after its 5' primer, which in a full segment is the
-      5' UTR; against coding-sequence (CDS) references, which lack the
-      UTRs, only the internally primed reads map (their probe falls
-      inside the ORF) and flucut warns (:doc:`troubleshooting`). Use
-      ``scripts/fetch_references.py`` for complete segments.
-
-   .. figure:: figures/report_coverage.*
-      :width: 100%
-
-      The coverage by read origin of a real Nanopore run of an H5N1
-      isolate (SRA ``SRR36760543``, against complete H5N1 segment
-      references): every segment is covered by full-length amplicons
-      (green), and the HA (segment 4) shows the internal-priming step
-      at the site (the red line) with the internally primed reads (amber,
-      blue) rising far above the terminal baseline — internal artefacts
-      (:doc:`internal_priming`). PB1 shows a smaller internal step.
 
 The JSON summary
 ----------------
@@ -267,9 +312,13 @@ report, in a documented format (version 1, described in
   ``report_segment``, the segment of ``--segment`` and of
   ``--report-segment``, ``null`` for all segments);
 * ``all``: the statistics of all reads, and ``groups``: those of each
-  group, with ``reads`` (the reads at each step), ``primers``,
-  ``ends`` and ``internal_sites`` (with references), ``short_complete``
-  and ``complete_amplicons`` (with the histograms of the lengths).
+  group, with ``reads`` (the reads at each step), ``read_lengths`` and
+  ``read_quality`` (of the input and of the reads written),
+  ``sequencing`` (the metadata of the run in the titles of the reads),
+  ``sample`` (with references: state, subtype, remarks and the eight
+  segments), ``primers``, ``ends`` and ``internal_sites`` (with
+  references), ``short_complete`` and ``complete_amplicons`` (with the
+  histograms of the lengths).
 
 For example, the internal priming sites of each group with ``jq``::
 

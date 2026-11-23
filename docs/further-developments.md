@@ -46,15 +46,16 @@ support the trimming; they are not the purpose of the program.
   cut the ends without a primer found at the segment terminus (1864
   primer bases left in about 210 of 6400 read ends; the consensus is not
   affected in the benchmark). Not done: few reads.
-- **Live dashboard**: done. While a run is in progress the HTML report is
-  a dashboard, reloaded every 30 seconds, with a tab for each barcode
-  (its own coverage and sites, not pooled with the other samples) and an
-  overview tab, the current one highlighted in the tab bar; the final
-  report at the end is the full scrolling one. Still possible: a test on a
-  replay of a real run.
-- **Report, next**: the remnants (primer bases left), the read lengths
-  before and after the trimming, the primers found whole or partial,
-  per segment; a mark of the internal sites in the length histograms.
+- **Dashboard and report**: the dashboard (`flucut_dashboard.html`)
+  follows the run and stays at its end; the report is written at the
+  end. Both show the run overview (a row per sample, a cell per
+  segment), the HA in all samples, and each sample (state, subtype,
+  reads by origin, segments, read lengths and qualities, sequencing
+  metadata). Still possible: a test on a replay of a real run; the yield over time from the start times of the
+  reads; a remark when a second HA or NA reference has a substantial
+  depth (mixed infection or contamination); the remnants (primer bases
+  left) and the primers found whole or partial; the thresholds of the
+  states (depth 50, 90% of the segment) as options.
 - **Read-origin plot per segment**: done. For each reference, a stacked
   coverage profile along its length, built from flucut's classification
   (the span of each located read, from its probe position and kept

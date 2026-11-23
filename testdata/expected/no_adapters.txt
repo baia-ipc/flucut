@@ -2,7 +2,7 @@ exit status: 0
 == messages ==
 SUCCESS | Trimming testdata/adapters.fastq...
 SUCCESS | OUTDIR/adapters.fastq.gz: 8 of 8 reads written (6 with both primers, 2 with one, 0 with none; 0 too short, of which 0 dimers)
-SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_summary.json
+SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_dashboard.html, OUTDIR/flucut_summary.json
 == adapters.fastq.gz ==
 md5: a9bf9de8759e673bea45ba921a320ae8
 @full_plus_broken simulated, with adapters	fs:Z:+	fr:Z:mbtuni-13	tl:i:0	tr:i:68
@@ -46,7 +46,7 @@ adapters	all	1700	6
     "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0242, "reads": 8, "file": "testdata/adapters.fastq"},
     "platform": "nanopore",
     "window": 100,
-    "min_length": 1,
+    "min_length": 50,
     "probe_length": 32,
     "probe_errors": 0.2,
     "terminal_window": 60,
@@ -62,6 +62,8 @@ adapters	all	1700	6
   "length_bin": 10,
   "length_max": 4000,
   "short_fraction": 0.9,
+  "min_depth": 50,
+  "complete_fraction": 0.9,
   "all": {
     "reads": {
       "in": 8,
@@ -80,6 +82,10 @@ adapters	all	1700	6
       "adapter_end": 0
     },
     "written_by_category": null,
+    "read_lengths": {"input": {"reads": 8, "bases": 14566, "min": 1810, "max": 1844, "mean": 1820, "median": 1814, "n50": 1814}, "written": {"reads": 8, "bases": 13718, "min": 1702, "max": 1751, "mean": 1714, "median": 1702, "n50": 1702}},
+    "read_quality": {"input": {"reads": 8, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 8, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
+    "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
+    "sample": null,
     "primers": {
       "left": {"uni12r": 6},
       "right": {"mbtuni-13": 8}
@@ -89,7 +95,8 @@ adapters	all	1700	6
     "short_complete": null,
     "complete_amplicons": [
       {"group": "all", "reference_length": null, "amplicons": 6, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6]}
-    ]
+    ],
+    "coverage": null
   },
   "groups": [
     {
@@ -113,6 +120,10 @@ adapters	all	1700	6
         "adapter_end": 0
       },
       "written_by_category": null,
+      "read_lengths": {"input": {"reads": 8, "bases": 14566, "min": 1810, "max": 1844, "mean": 1820, "median": 1814, "n50": 1814}, "written": {"reads": 8, "bases": 13718, "min": 1702, "max": 1751, "mean": 1714, "median": 1702, "n50": 1702}},
+      "read_quality": {"input": {"reads": 8, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 8, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
+      "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
+      "sample": null,
       "primers": {
         "left": {"uni12r": 6},
         "right": {"mbtuni-13": 8}
@@ -122,15 +133,14 @@ adapters	all	1700	6
       "short_complete": null,
       "complete_amplicons": [
         {"group": "all", "reference_length": null, "amplicons": 6, "main_length": 1700, "short": null, "short_main_length": null, "histogram": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6]}
-      ]
+      ],
+      "coverage": null
     }
   ]
 }
 == flucut_report.html ==
 </html>
-<h2>All reads</h2>
-<h3>Reads at each step</h3>
-<h3>Primers found</h3>
-<h3>Internal priming</h3>
-<h3>Complete amplicons</h3>
-<h3>Lengths of the complete amplicons</h3>
+<h2>adapters</h2>
+<h3>Reads</h3>
+<h3>Complete amplicons by length (bases)</h3>
+<h3>Read length and quality</h3>

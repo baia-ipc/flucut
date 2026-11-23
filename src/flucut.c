@@ -164,7 +164,7 @@ static void trim_group(const options_t *opts, const trimmer_config_t *config,
 
 /* trim the files of the input groups (not the live mode); with several
    groups, the tables and reports are also written before the first group
-   and after each one (the HTML as a dashboard, see run-report.h), so
+   and after each one (the dashboard, see run-report.h), so
    that a long run can be followed */
 static void trim_groups(const options_t *opts, trimmer_config_t *config,
     auto_settings_t *autos, const scheme_t *scheme, const fasta_t *refs,
@@ -193,6 +193,8 @@ static void trim_groups(const options_t *opts, trimmer_config_t *config,
     if (n_groups > 1)
       results_write(opts->outdir, results, n_groups, total, refs, report,
                     true, logger);
+    if (n_groups > 1 && i == 0)
+      run_report_announce_dashboard(report, logger);
     counter_t *counts = counter_new(scheme, refs);
     trim_group(opts, config, workers, groups + i, i, n_groups, outputs[i],
                counts, logger);

@@ -1,10 +1,12 @@
 /* (c) 2026 Giorgio Gonnella */
 
 /*
-   The reports of a run: the context of the HTML report
+   The reports of a run: the context of the HTML pages
    and of the JSON summary (command line, options, scheme, references),
-   and their writing, at the end of the run and while it is in progress
-   (after each group of input files; in the live mode, after each file).
+   and their writing. The dashboard and the JSON summary are written
+   while the run is in progress (after each group of input files; in the
+   live mode, after each file) and at its end; the HTML report at its
+   end.
 */
 
 #ifndef RUN_REPORT_H
@@ -19,9 +21,10 @@
 #include "report.h"
 #include "scheme.h"
 
-/* files in the output directory, reload interval of the HTML report in
-   a run in progress (seconds) */
+/* files in the output directory, reload interval of the dashboard in a
+   run in progress (seconds) */
 #define RUN_REPORT_HTML_FILE "flucut_report.html"
+#define RUN_REPORT_DASHBOARD_FILE "flucut_dashboard.html"
 #define RUN_REPORT_JSON_FILE "flucut_summary.json"
 #define RUN_REPORT_REFRESH 30
 
@@ -43,17 +46,22 @@ run_report_t* run_report_new(const options_t *opts, const char *version,
 void run_report_set_max_errors(run_report_t *self,
     const report_setting_t *setting);
 
+/* Set the reload interval of the dashboard while a run is in progress
+   (live mode; seconds); see live.c for the adaptive rule */
+void run_report_set_refresh(run_report_t *self, long refresh);
+
 /*
    Write the reports of the <n> <sections> (groups of input files) and
    of the <total> counts; <running>: in a run in progress, before its end
 */
-/* set the reload interval of the HTML while a run is in progress (live
-   mode; seconds); see live.c for the adaptive rule */
-void run_report_set_refresh(run_report_t *self, long refresh);
-
 void run_report_write(const run_report_t *self,
     const report_section_t *sections, size_t n, const counter_t *total,
     bool running, Logger *logger);
+
+/* Tell the user where the dashboard is and how to follow the run with it
+   (to be called once it has been written) */
+void run_report_announce_dashboard(const run_report_t *self,
+    Logger *logger);
 
 /* Delete the report (NULL is accepted) */
 void run_report_delete(run_report_t *self);

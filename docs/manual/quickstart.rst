@@ -14,10 +14,10 @@ flucut writes:
 
 ::
 
-   SUCCESS | out/reads.fastq.gz: 11 of 12 reads written (10 with both
-     primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
+   SUCCESS | out/reads.fastq.gz: 10 of 12 reads written (10 with both
+     primers, 1 with one, 1 with none; 2 too short, of which 1 dimers)
    SUCCESS | Reports written: out/flucut_report.html,
-     out/flucut_summary.json
+     out/flucut_dashboard.html, out/flucut_summary.json
 
 (the lines are wrapped here, without the time stamps). The output
 directory contains:

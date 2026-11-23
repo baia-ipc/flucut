@@ -185,8 +185,9 @@ void results_write(const char *outdir, const results_group_t *groups,
   if (!running) {
     lprintf(logger, LOG_INFO, "Tables written: %s, %s\n", summary_path,
             lengths_path);
-    lprintf(logger, LOG_SUCCESS, "Reports written: %s/%s, %s/%s\n",
-            outdir, RUN_REPORT_HTML_FILE, outdir, RUN_REPORT_JSON_FILE);
+    lprintf(logger, LOG_SUCCESS, "Reports written: %s/%s, %s/%s, %s/%s\n",
+            outdir, RUN_REPORT_HTML_FILE, outdir, RUN_REPORT_DASHBOARD_FILE,
+            outdir, RUN_REPORT_JSON_FILE);
   }
   free(summary_path);
   free(lengths_path);

@@ -52,10 +52,13 @@ typedef struct {
   /* the errors in a primer, if decided automatically (NULL: the value of
      the options) */
   const report_setting_t *max_errors;
-  /* a run in progress: reload the page every <refresh> seconds (0: no);
-     <dashboard>: a dashboard (one screen), instead of a report (not
-     written yet: the report is written) */
+  /* <running>: a run in progress; the page is then reloaded every
+     <refresh> seconds (0: no); <dashboard>: the page is the dashboard
+     (one sample on the screen at a time), not the report */
   long refresh;
+  /* the file name of the report, to which the dashboard links at the end
+     of the run */
+  const char *report_file;
   bool running;
   bool dashboard;
 } report_t;

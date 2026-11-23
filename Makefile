@@ -81,7 +81,7 @@ TEMPLATE_INCS = $(patsubst $(SRCDIR)/%.html,$(OBJDIR)/%-html.inc,\
 CFLAGS += -I$(OBJDIR)
 $(OBJDIR)/%-html.inc: $(SRCDIR)/%.html $(CBAIA_EMBED) | $(OBJDIR)
 	$(CBAIA_EMBED) $< > $@
-$(OBJDIR)/html-report.o: | $(TEMPLATE_INCS)
+$(OBJDIR)/html-report.o $(OBJDIR)/html-report-run.o: | $(TEMPLATE_INCS)
 
 # the banner shown in a terminal (docs/logo/flucut-banner.ans), embedded
 # in the same way

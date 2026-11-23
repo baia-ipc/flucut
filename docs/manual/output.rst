@@ -18,9 +18,10 @@ groups with the same name are an error, as one would overwrite the
 other. ``summary.tsv`` and ``lengths.tsv`` have one part for each group.
 
 The output directory also contains the reports of the run
-(:doc:`reports`): ``flucut_report.html``, the HTML report, and
-``flucut_summary.json``, the same content for programs, with the
-statistics of all reads and of each group.
+(:doc:`reports`): ``flucut_report.html``, the HTML report,
+``flucut_dashboard.html``, the dashboard with which the run can be
+followed, and ``flucut_summary.json``, the same content for programs,
+with the statistics of all reads and of each group.
 
 The trimmed reads
 -----------------
@@ -174,16 +175,17 @@ without references), ``length`` (the start of the bin) and ``reads``.
 Only the bins with reads are written; the last bin collects the lengths
 from 4000 bases on.
 
-flucut_report.html, flucut_summary.json
----------------------------------------
+flucut_report.html, flucut_dashboard.html, flucut_summary.json
+---------------------------------------------------------------
 
-The reports of the run, always written, at its end: the run
-parameters and, for each group (for all reads if there is only one,
-and always in the JSON summary), the reads at each step, the primers
-found at each end, the internal priming sites (with references) and
-the complete amplicons, with the histograms of their lengths
-(:doc:`reports`). Each is written to a temporary file (suffix ``.tmp``)
-and then renamed.
+The reports of the run, always written (:doc:`reports`): the report at
+the end of the run; the dashboard and the JSON summary also while it is
+in progress, if it has several groups. They contain the settings of the
+run and, for each group (a sample), its state and subtype, the reads by
+primers found and by origin, their lengths and qualities before and
+after the trimming, the segments with their depth, coverage by read
+origin and complete amplicons, and the internal priming sites. Each is
+written to a temporary file (suffix ``.tmp``) and then renamed.
 
 Messages
 --------

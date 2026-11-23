@@ -9,7 +9,10 @@
    - the internal priming sites: with references, the read ends
      classified as internal, by reference, end and position (that of the
      first base after the primer, see reference_hit_t);
-   - the lengths of the complete amplicons (lengths.h).
+   - the lengths of the complete amplicons (lengths.h);
+   - the lengths and qualities of the reads, of the input and written
+     (read-stats.h), and what their titles say about the sequencing run
+     (read-metadata.h).
 
    A counter belongs to one thread; the counters of the threads are
    summed (counter_merge()) in the order of the input. The memory does
@@ -29,6 +32,8 @@
 #include "fasta.h"
 #include "lengths.h"
 #include "read-cover.h"
+#include "read-metadata.h"
+#include "read-stats.h"
 #include "scheme.h"
 
 /* the ends of an amplicon */
@@ -108,9 +113,23 @@ void counter_add_located_read(counter_t *self, const amplicon_t *a,
 void counter_add_split(counter_t *self, size_t n_parts, size_t len,
     size_t parts_len);
 
+/*
+   Count a read of the input for the statistics of the reads: its <len>
+   bases, with the qualities <qual> (NULL: none); <title>: its title, of
+   length <title_len>, read for the metadata of the run (NULL: not read;
+   the titles of some reads are enough, as those of a run say the same)
+*/
+void counter_add_input(counter_t *self, size_t len, const char *qual,
+    const char *title, size_t title_len);
+
 /* Count a read written, with <len> bases, of the category <category>
-   (READ_CATEGORY_*) */
-void counter_add_written(counter_t *self, size_t len, size_t category);
+   (READ_CATEGORY_*), with the qualities <qual> (NULL: none) */
+void counter_add_written(counter_t *self, size_t len, size_t category,
+    const char *qual);
+
+/* The lengths and qualities of the reads, and the metadata of the run */
+const read_stats_t* counter_read_stats(const counter_t *self);
+const read_metadata_t* counter_metadata(const counter_t *self);
 
 /* Count a read not written, as too short */
 void counter_add_too_short(counter_t *self);

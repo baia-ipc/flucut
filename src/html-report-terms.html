@@ -1,0 +1,19 @@
+<!-- (c) 2026 Giorgio Gonnella -->
+<!-- report: the terms of the report, at its end, shown when opened; -->
+<!-- depth: QC_MIN_DEPTH; complete: QC_COMPLETE_FRACTION and short: -->
+<!-- LENGTHS_SHORT_FRACTION, as percentages -->
+<details class="terms">
+  <summary>Terms used in this report</summary>
+  <table>
+    <tr><td>depth, coverage</td><td>Estimated from where flucut locates each read on its reference (start and length), not from a base-by-base mapping.</td></tr>
+    <tr><td>complete segment</td><td>An estimate, not a consensus: at least {{complete}}% of its positions at a depth of {{depth}}&times; or more.</td></tr>
+    <tr><td>full template</td><td>The amplicon started at an end of the segment.</td></tr>
+    <tr><td>internally primed</td><td>The amplicon started inside the segment, where the primer annealed to a similar sequence. Its primer bases are removed whole.</td></tr>
+    <tr><td>internal deletion</td><td>The two ends of the read lie much farther apart on the segment than the read is long, as in defective interfering genomes.</td></tr>
+    <tr><td>other</td><td>No primer at the 5' end, or the read was not located in the references.</td></tr>
+    <tr><td>left, right end</td><td>The end of the amplicon with the Uni12 primer, with the Uni13 primer.</td></tr>
+    <tr><td>complete amplicon</td><td>A read with both primers. Short: under {{short}}% of the length of its segment.</td></tr>
+    <tr><td>split</td><td>A read with several amplicons joined end to end, written as one read for each.</td></tr>
+    <tr><td>grey sample</td><td>Its segments cannot be judged: few reads, or most read ends not matched to the references (e.g. not influenza A). Its subtype then has a question mark, as when its HA or NA has a low depth.</td></tr>
+  </table>
+</details>

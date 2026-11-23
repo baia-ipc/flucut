@@ -23,51 +23,27 @@
       node terminal.js flucut.ans terminal_flucut.png \
         "flucut -o out -r testdata/ref-ha.fasta testdata/reads.fastq" 100
 
-- `screenshot.js`: screenshots of the sections of an HTML report
-  (`report_*.png`); requires Playwright with Chromium. The reports, from a
-  directory with copies of the reads and the genome of the simulation
-  and of `testdata`, with `bin` in the PATH:
-
-      flucut -q -o out -r genome.fasta reads.fastq.gz
-      flucut -q -o out2 testdata/fastq_pass
-      node screenshot.js out/flucut_report.html . report_head=head \
-        report_tiles="+All reads" report_steps="Reads at each step" \
-        report_internal="Internal priming" \
-        report_complete="+Complete amplicons" \
-        report_lengths="Lengths of the complete amplicons"
-      node screenshot.js out2/flucut_report.html . report_groups=Groups
-
-  The reads (`reads.fastq.gz`, 3200 reads, 239 of them started at the
-  internal site of the HA) and the genome (`genome.fasta`) are those of
-  the IRMA checks of the benchmark (`benchmark/README.md`): the genome
-  downloaded by `benchmark/make-genome.sh genome`, the reads simulated
-  with the defaults of `benchmark/simulate.py` (seed 1, 400 reads per
-  segment):
+- `report_figures.py`: the figures of the HTML report and of the
+  dashboard (`report_overview`, `report_ha`, `report_sample`,
+  `report_segments`, `report_reads`, `dashboard`): it renders the pages
+  with a headless Chromium and cuts them at their headings; requires
+  Chromium (the program named by `CHROMIUM`), Pillow and numpy. The run
+  shown is simulated: four barcodes, from the genome of the benchmark
+  (`benchmark/README.md`), with different numbers of reads and shares of
+  internal priming, so that the samples differ in state:
 
       benchmark/make-genome.sh genome
-      python3 -I benchmark/simulate.py genome/genome.fasta sim
-
-- `report_coverage.png`: the coverage-by-read-origin section, from a real
-  Nanopore run (it is more telling than the simulated reads, whose
-  amplicons are nearly all full length). The run is SRA `SRR36760543`
-  (an H5N1 isolate); the references are complete H5N1 segments **with the
-  UTRs** (`coverage_refs.fasta`, the eight segments of one isolate,
-  accessions `QB222556`-`QB222563`, fetched from NCBI), as the coverage
-  needs the 5' UTR to place the terminal reads (CDS-only references
-  cannot, see the manual). From a directory with the run's reads:
-
-      flucut -q -o cov -r coverage_refs.fasta SRR36760543.fastq.gz
-      node screenshot.js cov/flucut_report.html . \
-        report_coverage="+Coverage by read origin"
-
-- `dashboard.png`: the live-mode dashboard (its overview tab), from a
-  live run of three barcode directories (the reads of three real Nanopore
-  runs, `SRR36760543`, `SRR36760506` and `SRR36760520`, as `barcode01`,
-  `barcode02`, `barcode03`), against the complete-segment references
-  (`coverage_refs.fasta`). Start a live run, drop a file into each barcode
-  directory, and screenshot at a wide viewport while it is running (the
-  overview; a barcode tab is at the URL fragment `#s0`, `#s1`, ...):
-
-      flucut --live --min-age 0 -r coverage_refs.fasta -o out in &
-      # ... in/barcode01/*.fastq.gz, in/barcode02/*.fastq.gz, ... appear ...
-      node dashboard-shot.js out/flucut_report.html dashboard.png
+      S="python3 -I benchmark/simulate.py genome/genome.fasta"
+      $S sim/b1 --seed 1 --shuffle
+      $S sim/b2 --seed 2 --reads-per-segment 800 --internal-share 0.2 \
+        --joined-share 0.05 --shuffle
+      $S sim/b3 --seed 3 --segment-reads 1:60,2:40,3:90 --shuffle
+      $S sim/b4 --seed 4 --reads-per-segment 15 --shuffle
+      for i in 1 2 3 4; do
+        mkdir -p run/fastq_pass/barcode0$i
+        cp sim/b$i/reads.fastq.gz run/fastq_pass/barcode0$i/
+      done
+      flucut -q -r genome/genome.fasta -o out run/fastq_pass
+      python3 docs/manual/figures/report_figures.py \
+        out/flucut_report.html out/flucut_dashboard.html \
+        docs/manual/figures

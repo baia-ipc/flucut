@@ -23,6 +23,8 @@ struct counter_t {
      each category, prefix-summed by counter_coverage() */
   size_t **cover;
   lengths_t *lengths;
+  read_stats_t *stats;
+  read_metadata_t metadata;
 };
 
 /* the index in cover[r] of the start (side 0) or end (side 1) count of
@@ -49,6 +51,7 @@ counter_t* counter_new(const scheme_t *scheme, const fasta_t *references) {
     XCALLOC(self->cover, references->n_records + 1, sizeof(size_t *));
   }
   self->lengths = lengths_new(counter_n_length_groups(references));
+  XCALLOC(self->stats, 1, sizeof(read_stats_t));
   return self;
 }
 
@@ -65,6 +68,7 @@ void counter_delete(counter_t *self) {
   free(self->sites);
   free(self->cover);
   lengths_delete(self->lengths);
+  free(self->stats);
   free(self);
 }
 
@@ -83,6 +87,8 @@ void counter_clear(counter_t *self) {
                COVER_SLOTS(self->refs->records[r].seq_len));
     }
   lengths_clear(self->lengths);
+  read_stats_clear(self->stats);
+  read_metadata_clear(&self->metadata);
 }
 
 /* the counts of the sites of the reference <r> (allocated at its first
@@ -149,6 +155,8 @@ void counter_merge(counter_t *self, const counter_t *other) {
         dest[i] += other->cover[r][i];
     }
   lengths_add_all(self->lengths, other->lengths);
+  read_stats_merge(self->stats, other->stats);
+  read_metadata_merge(&self->metadata, &other->metadata);
 }
 
 /* count an end found (<e>: COUNTER_LEFT or COUNTER_RIGHT) */
@@ -194,7 +202,7 @@ static void read_counts(counter_reads_t *r, size_t *out[N_READ_COUNTS]) {
   assert(n == N_READ_COUNTS);
 }
 
-#define COUNTS_HEADER "flucut-counts 3"
+#define COUNTS_HEADER "flucut-counts 4"
 
 void counter_save(const counter_t *self, FILE *file) {
   assert(self != NULL);
@@ -252,6 +260,8 @@ void counter_save(const counter_t *self, FILE *file) {
       if (n > 0)
         fprintf(file, "length %zu %zu %zu\n", g, b, n);
     }
+  read_stats_save(self->stats, file);
+  read_metadata_save(&self->metadata, file);
   fputs("end\n", file);
 }
 
@@ -322,6 +332,10 @@ static bool load_line(counter_t *self, char *line, bool *ended) {
     *ended = true;
     return true;
   }
+  if (line[0] == 'r')
+    return read_stats_load_line(self->stats, line);
+  if (line[0] == 'm')
+    return read_metadata_load_line(&self->metadata, line);
   return false;
 }
 
@@ -431,11 +445,31 @@ void counter_add_split(counter_t *self, size_t n_parts, size_t len,
   s->bases_in += len - parts_len;
 }
 
-void counter_add_written(counter_t *self, size_t len, size_t category) {
+void counter_add_input(counter_t *self, size_t len, const char *qual,
+    const char *title, size_t title_len) {
+  assert(self != NULL);
+  read_stats_add(self->stats, READ_STATS_INPUT, len, qual);
+  if (title != NULL)
+    read_metadata_add_title(&self->metadata, title, title_len);
+}
+
+void counter_add_written(counter_t *self, size_t len, size_t category,
+    const char *qual) {
   assert(category < READ_N_CATEGORIES);
   self->reads.written[category]++;
   self->reads.reads_out++;
   self->reads.bases_out += len;
+  read_stats_add(self->stats, READ_STATS_WRITTEN, len, qual);
+}
+
+const read_stats_t* counter_read_stats(const counter_t *self) {
+  assert(self != NULL);
+  return self->stats;
+}
+
+const read_metadata_t* counter_metadata(const counter_t *self) {
+  assert(self != NULL);
+  return &self->metadata;
 }
 
 void counter_add_too_short(counter_t *self) {
@@ -670,7 +704,7 @@ void counter_test(void) {
   test_assert(counter_sites(c, 1, COUNTER_LEFT) == NULL);
   amplicon_t a = test_amplicon(30, 129, 7);
   counter_add_read(c, &a, 200);
-  counter_add_written(c, 100, READ_CATEGORY_INTERNAL);
+  counter_add_written(c, 100, READ_CATEGORY_INTERNAL, NULL);
   a = test_amplicon(30, 29, 7);
   counter_add_read(c, &a, 60);
   counter_add_too_short(c);
