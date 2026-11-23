@@ -27,6 +27,7 @@
 #include "input-groups.h"
 #include "junction.h"
 #include "logger.h"
+#include "pattern-scan.h"
 #include "placement.h"
 #include "read-agreement.h"
 #include "read-cover.h"
@@ -89,6 +90,8 @@ typedef struct {
 static test_group_t test_groups[] = {
   {'p', "the built-in primers", primers_test, false},
   {'s', "the search of a primer in a read", primer_search_test, false},
+  {'m', "the scan of a sequence for all the matches of a pattern",
+   pattern_scan_test, false},
   {'c', "the primer schemes", scheme_test, false},
   {'a', "the analysis and trimming of a read", amplicon_test, false},
   {'F', "reading of FASTA files", run_fasta_test, false},
