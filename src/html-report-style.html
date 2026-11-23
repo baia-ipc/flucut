@@ -114,6 +114,19 @@
   .sinfo .kv { grid-template-columns: 1fr; font-size: 0.8em; }
   .sinfo .note, .slen .note { margin: 0; font-size: 0.75em; }
   .seg svg { width: 100%; }
+  /* dashboard: a strip folded to its name and main numbers */
+  details.segd { border-top: 1px solid var(--grid); }
+  details.segd > summary { display: flex; flex-wrap: wrap;
+    align-items: center; gap: 4px 16px; margin: 0; padding: 6px 0;
+    font-size: 1em; color: inherit; list-style: none; }
+  details.segd > summary::-webkit-details-marker { display: none; }
+  details.segd > summary::before { content: "\25b8"; color: var(--ink2);
+    width: 1em; }
+  details.segd[open] > summary::before { content: "\25be"; }
+  details.segd .seg { border-top: 0; padding-top: 0; }
+  .sbrief { font-size: 0.85em; color: var(--ink2); }
+  .across { margin-bottom: 4px; }
+  .across td:nth-child(2), .across th:nth-child(2) { text-align: left; }
   svg .c-full { fill: var(--full); }
   svg .c-int { fill: var(--int); }
   svg .c-del { fill: var(--del); }
@@ -141,10 +154,13 @@
   i.t-ok { background: var(--okbg); outline: 1px solid var(--ok); }
   i.t-warn { background: var(--warnbg); outline: 1px solid var(--warn); }
   i.t-bad { background: var(--badbg); outline: 1px solid var(--bad); }
-  .samples td:first-child, .samples th:first-child { position: sticky;
-    left: 0; background: var(--bg); }
+  .samples td:first-child, .samples tr:first-child th:first-child {
+    position: sticky; left: 0; background: var(--bg); }
   .samples { width: 100%; }
-  .samples th { position: sticky; top: 0; background: var(--bg); }
+  .samples thead { position: sticky; top: 0; z-index: 1; }
+  .samples th { background: var(--bg); }
+  .samples th[colspan] { text-align: center; font-weight: 500;
+    color: var(--ink2); }
   .samples td { font-variant-numeric: tabular-nums; white-space: nowrap; }
   .samples td:nth-child(2), .samples th:nth-child(2) { text-align: left; }
   .samples .st { font-size: 0.9em; }

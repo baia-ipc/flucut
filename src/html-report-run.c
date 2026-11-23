@@ -133,10 +133,10 @@ void run_write(html_writer_t *w, const report_t *r) {
   } else if (r->dashboard) {
     markup_open(w, "p", "finished");
     html_tag_text(w, "b", "Run finished");
-    html_text(w, " \xc2\xb7 ");
+    html_text(w, " \xc2\xb7 all samples on one page, for printing: ");
     html_open(w, "a");
     html_attr(w, "href", "%s", r->report_file);
-    html_text(w, "full report");
+    html_text(w, r->report_file);
     html_close(w);
     html_close(w);
   }

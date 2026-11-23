@@ -53,27 +53,55 @@ static void write_name(html_writer_t *w, const char *name, long sample) {
   html_close(w);
 }
 
+/* the state of the segment measured as <q>, as a badge */
+static void segment_badge(html_writer_t *w, const qc_segment_t *q) {
+  markup_badge(w, q->status == QC_SEGMENT_COMPLETE ? MARKUP_GOOD :
+               q->status == QC_SEGMENT_PARTIAL ? MARKUP_WARNING :
+               MARKUP_CRITICAL, "%s",
+               q->status == QC_SEGMENT_COMPLETE ? "complete" :
+               q->status == QC_SEGMENT_PARTIAL ? "partial" : "low depth");
+}
+
+/* the name of a strip with the state of the segment (<badge>) */
+static void write_title(html_writer_t *w, const qc_segment_t *q,
+    const char *name, long sample, bool badge) {
+  markup_open(w, "div", "sname");
+  write_name(w, name, sample);
+  if (badge)
+    segment_badge(w, q);
+  html_close(w);
+}
+
 /* the strip of the reference measured as <q>, named <name> (a gene, the
    reference itself, or a sample: see write_name()); <badge>: with the
    state of the segment; <subtype>: the subtype of the sample, shown
-   under the name (NULL: not shown) */
+   under the name (NULL: not shown). In the dashboard the strip is
+   folded: only its name and its main numbers are shown until it is
+   opened; in the report (which is printed) it is always open */
 static void write_strip(html_writer_t *w, const report_t *r,
     const counter_t *c, const qc_segment_t *q, const char *name,
     long sample, bool badge, const char *subtype) {
   const fasta_record_t *ref = r->references->records + q->ref;
+  bool fold = r->dashboard;
+  if (fold) {
+    html_open(w, "details");
+    html_attr(w, "class", "segd");
+    html_open(w, "summary");
+    write_title(w, q, name, sample, badge);
+    if (subtype != NULL && subtype[0] != '\0')
+      markup_textf(w, "span", "sbrief", "%s", subtype);
+    markup_textf(w, "span", "sbrief", "median depth %s\xc3\x97 \xc2\xb7 "
+                 "%s at \xe2\x89\xa5%d\xc3\x97 \xc2\xb7 internally primed "
+                 "%s", html_num(q->median_depth).s,
+                 fraction_percent_text(q->well_covered).s, QC_MIN_DEPTH,
+                 fraction_percent_text(q->internal).s);
+    html_close(w);
+  }
   markup_open(w, "div", "seg");
   markup_open(w, "div", "sinfo");
-  markup_open(w, "div", "sname");
-  write_name(w, name, sample);
-  if (badge)
-    markup_badge(w, q->status == QC_SEGMENT_COMPLETE ? MARKUP_GOOD :
-                 q->status == QC_SEGMENT_PARTIAL ? MARKUP_WARNING :
-                 MARKUP_CRITICAL, "%s",
-                 q->status == QC_SEGMENT_COMPLETE ? "complete" :
-                 q->status == QC_SEGMENT_PARTIAL ? "partial" :
-                 "low depth");
-  html_close(w);
-  if (subtype != NULL && subtype[0] != '\0')
+  if (!fold)
+    write_title(w, q, name, sample, badge);
+  if (!fold && subtype != NULL && subtype[0] != '\0')
     markup_textf(w, "div", "ssub", "%s", subtype);
   markup_open(w, "div", "note");
   if (badge)
@@ -98,6 +126,8 @@ static void write_strip(html_writer_t *w, const report_t *r,
     markup_note(w, "No complete amplicons.");
   html_close(w);
   html_close(w);
+  if (fold)
+    html_close(w);
 }
 
 /* the strip of a segment without located reads, or (<waiting>) of a
@@ -171,10 +201,71 @@ void segments_write(html_writer_t *w, const report_t *r, const counter_t *c,
   html_close(w);
 }
 
+/* a row of the table of one segment in all samples: the sample <i> */
+static void across_row(html_writer_t *w, const report_t *r, size_t i,
+    int segment) {
+  const report_section_t *g = r->sections + i;
+  markup_open_row(w);
+  html_open(w, "td");
+  html_open(w, "a");
+  html_attr(w, "href", "#s%zu", i);
+  html_text(w, g->name);
+  html_close(w);
+  html_close(w);
+  qc_summary_t qc;
+  if (g->counts != NULL)
+    qc_summary(r->references, g->counts, r->options->segment, &qc);
+  if (g->counts == NULL || !qc.segments[segment].found) {
+    html_open(w, "td");
+    html_attr(w, "class", "wait");
+    html_attr(w, "colspan", "9");
+    html_text(w, g->counts == NULL ? "waiting" : "not found");
+    html_close(w);
+    html_close(w);
+    return;
+  }
+  const qc_segment_t *q = qc.segments + segment;
+  html_open(w, "td");
+  segment_badge(w, q);
+  html_close(w);
+  markup_td(w, "%s", sample_subtype(&qc).s);
+  markup_td(w, "%s", html_num(q->median_depth).s);
+  markup_td(w, "%s", fraction_percent_text(q->well_covered).s);
+  markup_td(w, "%s", fraction_percent_text(q->covered).s);
+  markup_td(w, "%s", fraction_percent_text(q->internal).s);
+  markup_td(w, "%s", fraction_percent_text(q->deletion).s);
+  markup_td(w, "%s", html_num(q->complete).s);
+  markup_td(w, "%s", q->complete > 0 ?
+            percent_text(q->short_complete, q->complete).s : "\xe2\x80\x93");
+  html_close(w);
+}
+
+/* the table of one segment in all samples, above their strips */
+static void write_across_table(html_writer_t *w, const report_t *r,
+    int segment) {
+  char well[32];
+  snprintf(well, sizeof(well), "at \xe2\x89\xa5%d\xc3\x97", QC_MIN_DEPTH);
+  markup_open(w, "div", "scroll");
+  markup_open(w, "table", "samples across");
+  markup_header_row(w, "sample", "state", "subtype", "median depth", well,
+                    "covered", "int. primed", "int. deletions",
+                    "complete amplicons", "short", NULL);
+  for (size_t i = 0; i < r->n_sections; i++)
+    across_row(w, r, i, segment);
+  html_close(w);
+  html_close(w);
+  markup_note(w, "%s: share of the %s positions at a depth of %d or more; "
+              "covered: at a depth of 1 or more; int. primed, int. "
+              "deletions: shares of the depth from internally primed reads "
+              "and from reads with an internal deletion.", well,
+              segments_gene(segment), QC_MIN_DEPTH);
+}
+
 void segments_write_across(html_writer_t *w, const report_t *r,
     int segment) {
   assert(r->references != NULL);
   markup_open(w, "section", "card");
+  write_across_table(w, r, segment);
   write_head(w);
   for (size_t i = 0; i < r->n_sections; i++) {
     const report_section_t *g = r->sections + i;

@@ -275,6 +275,51 @@ static void sample_row(html_writer_t *w, const report_t *r, size_t i,
   html_close(w);
 }
 
+/* a header cell; <title>: its tooltip (or NULL); <rows>, <cols>: the
+   rows and columns it spans */
+static void header_cell(html_writer_t *w, const char *text,
+    const char *title, int rows, int cols) {
+  html_open(w, "th");
+  if (rows > 1)
+    html_attr(w, "rowspan", "%d", rows);
+  if (cols > 1)
+    html_attr(w, "colspan", "%d", cols);
+  if (title != NULL)
+    html_attr(w, "title", "%s", title);
+  html_raw(w, text);
+  html_close(w);
+}
+
+/* the header of the table of samples, in two rows: the coverage of the
+   segments under one heading, the other columns over both rows */
+static void samples_header(html_writer_t *w) {
+  char complete[160], coverage[96];
+  snprintf(complete, sizeof(complete), "segments with at least %.0f%% of "
+           "their length at a depth of %d or more, of the segments "
+           "expected", 100 * QC_COMPLETE_FRACTION, QC_MIN_DEPTH);
+  snprintf(coverage, sizeof(coverage), "coverage: %% of the segment at "
+           "\xe2\x89\xa5%d\xc3\x97", QC_MIN_DEPTH);
+  static const char *const after[] = {
+    "int. primed", "int. deletions", "reads by origin", "both primers"};
+  html_open(w, "thead");
+  markup_open_row(w);
+  header_cell(w, "sample", NULL, 2, 1);
+  header_cell(w, "complete segments", complete, 2, 1);
+  header_cell(w, "subtype", NULL, 2, 1);
+  header_cell(w, "reads", NULL, 2, 1);
+  header_cell(w, "N50", NULL, 2, 1);
+  header_cell(w, "quality", NULL, 2, 1);
+  header_cell(w, coverage, NULL, 1, SEGMENTS_N);
+  for (size_t k = 0; k < sizeof(after) / sizeof(*after); k++)
+    header_cell(w, after[k], NULL, 2, 1);
+  html_close(w);
+  markup_open_row(w);
+  for (int s = 1; s <= SEGMENTS_N; s++)
+    header_cell(w, segments_gene(s), NULL, 1, 1);
+  html_close(w);
+  html_close(w);
+}
+
 static void write_table(html_writer_t *w, const report_t *r) {
   size_t max_reads = 0;
   for (size_t i = 0; i < r->n_sections; i++)
@@ -284,11 +329,7 @@ static void write_table(html_writer_t *w, const report_t *r) {
   markup_open(w, "div", "scroll");
   markup_open(w, "table", "samples");
   if (r->references != NULL)
-    markup_header_row(w, "sample", "segments", "subtype", "reads", "N50",
-                      "quality", "PB2", "PB1", "PA", "HA", "NP", "NA", "M",
-                      "NS",
-                      "int. primed", "int. deletions", "reads by origin",
-                      "both primers", NULL);
+    samples_header(w);
   else
     markup_header_row(w, "sample", "reads", "N50", "quality",
                       "both primers", NULL);

@@ -218,8 +218,12 @@ Outputs:
 A run with several samples can be followed while it is in progress:
 flucut writes the dashboard before the first sample and after each one,
 and says where it is (`Dashboard: out/flucut_dashboard.html (open it in
-a web browser to follow the run)`). The page reloads itself; at the end
-of the run it stays, with a link to the report. The messages show which
+a web browser to follow the run)`). The page reloads itself while the
+run is in progress; at the end it stays as the dashboard of the
+finished run. The report is a separate page with all the samples one
+after the other, for printing or archiving. In the dashboard the strips
+of the segments are folded (a click opens one), and the HA tab starts
+with a table of the HA of every sample. The messages show which
 sample is being trimmed (`Trimming run1/barcode01.fastq.gz (1 of 3)...`).
 
 ## With IRMA

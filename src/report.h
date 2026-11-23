@@ -56,8 +56,8 @@ typedef struct {
      <refresh> seconds (0: no); <dashboard>: the page is the dashboard
      (one sample on the screen at a time), not the report */
   long refresh;
-  /* the file name of the report, to which the dashboard links at the end
-     of the run */
+  /* the file name of the report, which the dashboard of a finished run
+     names (the two pages are distinct) */
   const char *report_file;
   bool running;
   bool dashboard;

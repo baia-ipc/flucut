@@ -35,8 +35,16 @@ chosen with the links at the top or by the name of a sample in the
 table of the overview. The choice is kept in the page address, so it
 survives the reloads. Samples still to be processed are shown as
 waiting. At the end of the run the dashboard stays, in its last state,
-with a link to the report (the JSON summary has ``"running": true``
-until then).
+as the dashboard of the finished run, and names the report (the JSON
+summary has ``"running": true`` until then). The two pages are
+distinct: the dashboard for looking at the run on the screen, the
+report for printing or archiving it.
+
+In the dashboard the strips of the segments (of a sample, and of the
+HA in all samples) are folded to one line: the name, the state, the
+median depth, the share at a depth of 50 or more and the share from
+internally primed reads. A click opens a strip. In the report they are
+always open.
 
 .. figure:: figures/dashboard.*
    :width: 100%
@@ -127,8 +135,8 @@ sample:
 
    * - column
      - content
-   * - segments
-     - the complete segments, of those expected
+   * - complete segments
+     - the complete segments, of those expected (e.g. ``7/8``)
    * - subtype
      - the H of the reference closest to its HA and the N of that
        closest to its NA; with a question mark when the HA or the NA
@@ -137,8 +145,9 @@ sample:
      - the reads of the input (the bar compares the samples), the N50
        of their lengths and the median of their qualities
    * - PB2 ... NS
-     - for each segment, the percentage of its positions at a depth of
-       50 or more, tinted by state (green: complete, amber: partial,
+     - under the heading *coverage*: for each
+       segment, the percentage of its positions at a depth of 50 or
+       more (rounded down: 100 only for the whole segment), tinted by state (green: complete, amber: partial,
        red: low depth or not found; no tint for a sample which cannot
        be judged)
    * - int. primed, int. deletions
@@ -170,9 +179,12 @@ HA in all samples
    the depth come from reads internally primed at position 1090.
 
 The HA decides the subtype and is where internal priming matters most
-(:doc:`internal_priming`), so it has a view of its own: for each sample,
-its subtype, the strip of its HA (see *Segments* below), side by side
-for comparison. The view is left out when the run or the report is
+(:doc:`internal_priming`), so it has a view of its own. A table gives,
+for each sample, the state and subtype, the median depth of its HA, the
+shares of the HA at a depth of 50 or more and covered, the shares of
+its depth from internally primed reads and from reads with an internal
+deletion, and its complete amplicons. Under it, the strip of the HA of
+each sample (see *Segments* below), side by side for comparison. The view is left out when the run or the report is
 limited to another segment (``--segment``, ``--report-segment``).
 
 A sample

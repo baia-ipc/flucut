@@ -64,8 +64,9 @@ void run_report_write(const run_report_t *self,
     .n_sections = n, .total = total, .max_errors = self->max_errors,
     .refresh = running ? self->refresh : 0, .running = running,
     .dashboard = true, .report_file = RUN_REPORT_HTML_FILE};
-  /* the dashboard follows the run and stays, in its last state, at its
-     end, when the report is written */
+  /* the dashboard follows the run and stays, in its last state, as the
+     dashboard of the finished run; the report is a separate page, written
+     at the end */
   html_report_write(self->dashboard_path, &r, logger);
   if (!running) {
     r.dashboard = false;

@@ -124,7 +124,8 @@ static void write_report(html_writer_t *w, const report_t *r) {
                 "(https://github.com/baia-ipc/flucut).");
 }
 
-/* --- dashboard (run in progress): one sample on the screen at a time --- */
+/* --- dashboard: one sample on the screen at a time; it follows the run
+   and stays as the dashboard of the finished run --- */
 
 /* the links to the panels, above them: the overview, the HA in all the
    samples and, if they are not too many, the samples */
