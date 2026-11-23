@@ -265,6 +265,11 @@ MinKNOW), after `--timeout` without new files, or with Ctrl-C; with
 The user manual is `manual/flucut-manual.pdf` (sources in
 `docs/manual`; `make manual` rebuilds it, with Sphinx and LaTeX).
 
+The methods are described algorithm by algorithm, as pseudocode with
+explanations and figures, in `docs/methods/methods.md`, also as
+`manual/flucut-methods.pdf` (`make methods` rebuilds it; this needs
+Sphinx with `myst-parser`, matplotlib and XeLaTeX).
+
 ## Building
 
 Only a C compiler and `make` are needed: the libraries used (libcbaia,

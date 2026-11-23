@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="475.2pt" height="172.8pt" viewBox="0 0 475.2 172.8" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 172.8 
+L 475.2 172.8 
+L 475.2 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 18.72288 38.772 
+L 102.54816 38.772 
+L 102.54816 21.132 
+L 18.72288 21.132 
+z
+" clip-path="url(#pfbf5bf2584)" style="fill: #a3acb6"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 102.54816 38.772 
+L 114.19056 38.772 
+L 114.19056 21.132 
+L 102.54816 21.132 
+z
+" clip-path="url(#pfbf5bf2584)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 114.19056 38.772 
+L 274.85568 38.772 
+L 274.85568 21.132 
+L 114.19056 21.132 
+z
+" clip-path="url(#pfbf5bf2584)" style="fill: #3b7fc4"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 18.72288 95.22 
+L 102.54816 95.22 
+L 102.54816 77.58 
+L 18.72288 77.58 
+z
+" clip-path="url(#pfbf5bf2584)" style="fill: #a3acb6; opacity: 0.25"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 18.72288 95.22 
+L 102.54816 95.22 
+L 102.54816 77.58 
+L 18.72288 77.58 
+L 18.72288 95.22 
+z
+" clip-path="url(#pfbf5bf2584)" style="fill: none; stroke: #d4453c; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 102.54816 95.22 
+L 114.19056 95.22 
+L 114.19056 77.58 
+L 102.54816 77.58 
+z
+" clip-path="url(#pfbf5bf2584)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 114.19056 95.22 
+L 274.85568 95.22 
+L 274.85568 77.58 
+L 114.19056 77.58 
+z
+" clip-path="url(#pfbf5bf2584)" style="fill: #3b7fc4"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 74.6064 151.668 
+L 102.54816 151.668 
+L 102.54816 134.028 
+L 74.6064 134.028 
+z
+" clip-path="url(#pfbf5bf2584)" style="fill: #e2a12c; opacity: 0.25"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 102.54816 151.668 
+L 114.19056 151.668 
+L 114.19056 134.028 
+L 102.54816 134.028 
+z
+" clip-path="url(#pfbf5bf2584)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 74.6064 151.668 
+L 114.19056 151.668 
+L 114.19056 134.028 
+L 74.6064 134.028 
+L 74.6064 151.668 
+z
+" clip-path="url(#pfbf5bf2584)" style="fill: none; stroke: #d4453c; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 114.19056 151.668 
+L 274.85568 151.668 
+L 274.85568 134.028 
+L 114.19056 134.028 
+z
+" clip-path="url(#pfbf5bf2584)" style="fill: #3b7fc4"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 114.19056 151.3152 
+L 114.19056 157.6656 
+L 274.85568 157.6656 
+L 274.85568 151.3152 
+" clip-path="url(#pfbf5bf2584)" style="fill: none; stroke: #2c9a5f; stroke-width: 1.2"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="9.40896" y="16.154438" transform="rotate(-0 9.40896 16.154438)">First analysis</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(293.48352 27.569676)">no primer is found at this end:</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(293.48352 35.97159)">too little of it is left</text>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="9.40896" y="72.602438" transform="rotate(-0 9.40896 72.602438)">Adapter</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(293.48352 84.017676)">an adapter is found within the</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(293.48352 92.41959)">window and removed</text>
+   </g>
+   <g id="text_5">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="9.40896" y="129.050437" transform="rotate(-0 9.40896 129.050437)">Second analysis</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(293.48352 140.465676)">a primer is accepted within 5 bases</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(293.48352 148.86759)">of the adapter, also overhanging</text>
+   </g>
+   <g id="text_7">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="60.63552" y="31.770633" transform="rotate(-0 60.63552 31.770633)">adapter + barcode</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="194.52312" y="31.770633" transform="rotate(-0 194.52312 31.770633)">template</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #2c9a5f" x="194.52312" y="166.186828" transform="rotate(-0 194.52312 166.186828)">kept</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pfbf5bf2584">
+   <rect x="4.752" y="1.728" width="465.696" height="169.344"/>
+  </clipPath>
+ </defs>
+</svg>

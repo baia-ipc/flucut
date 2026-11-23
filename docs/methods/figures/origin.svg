@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="475.2pt" height="165.6pt" viewBox="0 0 475.2 165.6" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 165.6 
+L 475.2 165.6 
+L 475.2 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 28.0368 42.228 
+L 447.1632 42.228 
+L 447.1632 31.644 
+L 28.0368 31.644 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #3b7fc4; opacity: 0.45"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 28.0368 47.52 
+L 65.29248 47.52 
+L 65.29248 26.352 
+L 28.0368 26.352 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #2c9a5f; opacity: 0.3"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 409.90752 47.52 
+L 447.1632 47.52 
+L 447.1632 26.352 
+L 409.90752 26.352 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #2c9a5f; opacity: 0.3"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 28.0368 116.316 
+L 42.00768 116.316 
+L 42.00768 98.676 
+L 28.0368 98.676 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 42.00768 118.08 
+L 79.26336 118.08 
+L 79.26336 96.912 
+L 42.00768 96.912 
+L 42.00768 118.08 
+z
+" clip-path="url(#pce03f81d13)" style="fill: none; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 42.00768 116.316 
+L 130.48992 116.316 
+L 130.48992 98.676 
+L 42.00768 98.676 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #3b7fc4; opacity: 0.8"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 42.00768 118.08 
+L 79.26336 118.08 
+L 79.26336 96.912 
+L 42.00768 96.912 
+L 42.00768 118.08 
+z
+" clip-path="url(#pce03f81d13)" style="fill: none; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 32.69376 45.756 
+L 69.94944 45.756 
+L 69.94944 28.116 
+L 32.69376 28.116 
+L 32.69376 45.756 
+z
+" clip-path="url(#pce03f81d13)" style="fill: none; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 191.0304 116.316 
+L 205.00128 116.316 
+L 205.00128 98.676 
+L 191.0304 98.676 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 205.00128 118.08 
+L 242.25696 118.08 
+L 242.25696 96.912 
+L 205.00128 96.912 
+L 205.00128 118.08 
+z
+" clip-path="url(#pce03f81d13)" style="fill: none; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 205.00128 116.316 
+L 293.48352 116.316 
+L 293.48352 98.676 
+L 205.00128 98.676 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #3b7fc4; opacity: 0.8"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 205.00128 118.08 
+L 242.25696 118.08 
+L 242.25696 96.912 
+L 205.00128 96.912 
+L 205.00128 118.08 
+z
+" clip-path="url(#pce03f81d13)" style="fill: none; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 209.65824 45.756 
+L 246.91392 45.756 
+L 246.91392 28.116 
+L 209.65824 28.116 
+L 209.65824 45.756 
+z
+" clip-path="url(#pce03f81d13)" style="fill: none; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_15">
+    <path d="M 358.68096 116.316 
+L 372.65184 116.316 
+L 372.65184 98.676 
+L 358.68096 98.676 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_16">
+    <path d="M 372.65184 118.08 
+L 409.90752 118.08 
+L 409.90752 96.912 
+L 372.65184 96.912 
+L 372.65184 118.08 
+z
+" clip-path="url(#pce03f81d13)" style="fill: none; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_17">
+    <path d="M 372.65184 116.316 
+L 461.13408 116.316 
+L 461.13408 98.676 
+L 372.65184 98.676 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #3b7fc4; opacity: 0.8"/>
+   </g>
+   <g id="patch_18">
+    <path d="M 372.65184 118.08 
+L 409.90752 118.08 
+L 409.90752 96.912 
+L 372.65184 96.912 
+L 372.65184 118.08 
+z
+" clip-path="url(#pce03f81d13)" style="fill: none; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="9.40896" y="14.318437" transform="rotate(-0 9.40896 14.318437)">Reference segment</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 6.5px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #1d6b41" x="405.25056" y="15.69273" transform="rotate(-0 405.25056 15.69273)">terminal windows (60 bases), at both ends</text>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1d6b41" x="28.0368" y="136.034125" transform="rotate(-0 28.0368 136.034125)">TERMINAL</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 6.5px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(28.0368 149.383842)">the probe lies within 60 bases</text>
+    <text style="font-size: 6.5px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(28.0368 157.185619)">of the terminus</text>
+   </g>
+   <g id="patch_19">
+    <path d="M 60.251798 93.185787 
+Q 55.978831 71.335388 51.877523 50.362789 
+" style="fill: none; stroke: #1c2530; stroke-width: 0.8; stroke-linecap: round"/>
+    <path d="M 50.921411 53.810375 
+L 51.877523 50.362789 
+L 54.061925 53.19623 
+" style="fill: none; stroke: #1c2530; stroke-width: 0.8; stroke-linecap: round"/>
+   </g>
+   <g id="text_5">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #d4453c" x="191.0304" y="136.034125" transform="rotate(-0 191.0304 136.034125)">INTERNAL</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 6.5px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(191.0304 149.383842)">the probe lies further inside:</text>
+    <text style="font-size: 6.5px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(191.0304 157.185619)">internal priming</text>
+   </g>
+   <g id="patch_20">
+    <path d="M 223.823823 93.156717 
+Q 225.957585 71.334155 228.004306 50.401775 
+" style="fill: none; stroke: #1c2530; stroke-width: 0.8; stroke-linecap: round"/>
+    <path d="M 226.100497 53.430885 
+L 228.004306 50.401775 
+L 229.285309 53.742289 
+" style="fill: none; stroke: #1c2530; stroke-width: 0.8; stroke-linecap: round"/>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #5d6b7a" x="358.68096" y="136.034125" transform="rotate(-0 358.68096 136.034125)">UNKNOWN</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 6.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #5d6b7a" x="358.68096" y="153.28473" transform="rotate(-0 358.68096 153.28473)">the probe is not located</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 6.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="81.59184" y="86.25273" transform="rotate(-0 81.59184 86.25273)">probe: the 32 bases after the primer</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pce03f81d13">
+   <rect x="4.752" y="1.656" width="465.696" height="162.288"/>
+  </clipPath>
+ </defs>
+</svg>

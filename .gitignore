@@ -8,5 +8,8 @@ obj/
 build/
 *.egg-info/
 
-# Sphinx build of the manual
+# Sphinx builds of the manual and of the methods
 docs/manual/_build/
+docs/methods/_build/
+# figures of the methods: the PDF copies are drawn at each build
+docs/methods/figures/*.pdf

@@ -9,7 +9,7 @@ PROGS = $(BINDIR)/flucut $(BINDIR)/fc-tests
 .PHONY: default objs install uninstall clean cleanup cleandep cbaia-clean \
         test check_style test_units test_programs test_options test_live \
         test_scripts \
-        manual
+        manual methods
 
 # (a failed rule, e.g. the embedding of a template, leaves no partial file)
 .DELETE_ON_ERROR:
@@ -226,3 +226,13 @@ manual:
 	$(SPHINXBUILD) -M latexpdf docs/manual docs/manual/_build -q
 	mkdir -p manual
 	cp docs/manual/_build/latex/flucut.pdf manual/flucut-manual.pdf
+
+# the methods as pseudocode (PDF), from docs/methods/methods.md: the
+# figures are drawn first (matplotlib, with the Python of Sphinx);
+# requires Sphinx with myst-parser, and XeLaTeX
+methods:
+	"$$(dirname "$$(command -v $(SPHINXBUILD))")/python" \
+	  docs/methods/figure_scripts/draw_all.py
+	$(SPHINXBUILD) -M latexpdf docs/methods docs/methods/_build -q
+	mkdir -p manual
+	cp docs/methods/_build/latex/methods.pdf manual/flucut-methods.pdf

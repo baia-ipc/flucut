@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="475.2pt" height="198pt" viewBox="0 0 475.2 198" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 198 
+L 475.2 198 
+L 475.2 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 51.3216 38.709 
+L 423.8784 38.709 
+L 423.8784 27.621 
+L 51.3216 27.621 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #3b7fc4; opacity: 0.45"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 51.3216 38.709 
+L 69.94944 38.709 
+L 69.94944 27.621 
+L 51.3216 27.621 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #1c2530"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 405.25056 38.709 
+L 423.8784 38.709 
+L 423.8784 27.621 
+L 405.25056 27.621 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #1c2530"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 200.34432 38.709 
+L 218.97216 38.709 
+L 218.97216 27.621 
+L 200.34432 27.621 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #d4453c; opacity: 0.75"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 28.0368 97.2675 
+L 51.3216 97.2675 
+L 51.3216 79.9425 
+L 28.0368 79.9425 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #8e62c0"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 51.3216 97.2675 
+L 69.94944 97.2675 
+L 69.94944 79.9425 
+L 51.3216 79.9425 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 69.94944 97.2675 
+L 405.25056 97.2675 
+L 405.25056 79.9425 
+L 69.94944 79.9425 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #3b7fc4"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 405.25056 97.2675 
+L 423.8784 97.2675 
+L 423.8784 79.9425 
+L 405.25056 79.9425 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 423.8784 97.2675 
+L 447.1632 97.2675 
+L 447.1632 79.9425 
+L 423.8784 79.9425 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #8e62c0"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 177.05952 163.1025 
+L 200.34432 163.1025 
+L 200.34432 145.7775 
+L 177.05952 145.7775 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #8e62c0"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 200.34432 163.1025 
+L 218.97216 163.1025 
+L 218.97216 145.7775 
+L 200.34432 145.7775 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #e2a12c; stroke: #d4453c; stroke-width: 1.6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 218.97216 163.1025 
+L 405.25056 163.1025 
+L 405.25056 145.7775 
+L 218.97216 145.7775 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #3b7fc4"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 405.25056 163.1025 
+L 423.8784 163.1025 
+L 423.8784 145.7775 
+L 405.25056 145.7775 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_15">
+    <path d="M 423.8784 163.1025 
+L 447.1632 163.1025 
+L 447.1632 145.7775 
+L 423.8784 145.7775 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #8e62c0"/>
+   </g>
+   <g id="patch_16">
+    <path d="M 14.06592 196.3665 
+L 21.517056 196.3665 
+Q 21.610195 196.3665 21.610195 195.6735 
+L 21.610195 188.0505 
+Q 21.610195 187.3575 21.517056 187.3575 
+L 14.06592 187.3575 
+Q 13.972781 187.3575 13.972781 188.0505 
+L 13.972781 195.6735 
+Q 13.972781 196.3665 14.06592 196.3665 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #3b7fc4"/>
+   </g>
+   <g id="patch_17">
+    <path d="M 116.51904 196.3665 
+L 123.970176 196.3665 
+Q 124.063315 196.3665 124.063315 195.6735 
+L 124.063315 188.0505 
+Q 124.063315 187.3575 123.970176 187.3575 
+L 116.51904 187.3575 
+Q 116.425901 187.3575 116.425901 188.0505 
+L 116.425901 195.6735 
+Q 116.425901 196.3665 116.51904 196.3665 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_18">
+    <path d="M 218.97216 196.3665 
+L 226.423296 196.3665 
+Q 226.516435 196.3665 226.516435 195.6735 
+L 226.516435 188.0505 
+Q 226.516435 187.3575 226.423296 187.3575 
+L 218.97216 187.3575 
+Q 218.879021 187.3575 218.879021 188.0505 
+L 218.879021 195.6735 
+Q 218.879021 196.3665 218.97216 196.3665 
+z
+" clip-path="url(#p7f31a1a54f)" style="fill: #8e62c0"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 51.3216 99 
+L 51.3216 105.237 
+L 423.8784 105.237 
+L 423.8784 99 
+" clip-path="url(#p7f31a1a54f)" style="fill: none; stroke: #2c9a5f; stroke-width: 1.2"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 218.97216 164.835 
+L 218.97216 171.072 
+L 423.8784 171.072 
+L 423.8784 164.835 
+" clip-path="url(#p7f31a1a54f)" style="fill: none; stroke: #2c9a5f; stroke-width: 1.2"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="14.06592" y="16.185625" transform="rotate(-0 14.06592 16.185625)">Segment</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(51.3216 47.84709)">conserved terminus</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(51.3216 56.249004)">(12 bases)</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(354.271056 47.84709)">conserved terminus</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(386.950119 56.249004)">(13 bases)</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #d4453c" transform="translate(175.932459 47.84709)">site that resembles</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #d4453c" transform="translate(190.856677 56.249004)">a terminus</text>
+   </g>
+   <g id="text_5">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="14.06592" y="71.625937" transform="rotate(-0 14.06592 71.625937)">Amplicon primed at the termini</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="237.6" y="90.423633" transform="rotate(-0 237.6 90.423633)">template</text>
+   </g>
+   <g id="text_7">
+    <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #2c9a5f" x="237.6" y="113.707828" transform="rotate(-0 237.6 113.707828)">kept: the termini are those of the segment, only the tails are removed</text>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="14.06592" y="137.460938" transform="rotate(-0 14.06592 137.460938)">Internally primed amplicon</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="312.11136" y="156.258633" transform="rotate(-0 312.11136 156.258633)">template</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #d4453c" transform="translate(101.665372 152.057676)">bases of the primer,</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #d4453c" transform="translate(104.430372 160.45959)">not of the template</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #2c9a5f" x="321.42528" y="179.542828" transform="rotate(-0 321.42528 179.542828)">kept: the whole primer is removed at the internal start</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #5d6b7a" x="25.242624" y="193.810535" transform="rotate(-0 25.242624 193.810535)">template</text>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #5d6b7a" x="127.695744" y="193.810535" transform="rotate(-0 127.695744 193.810535)">primer terminus</text>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #5d6b7a" x="230.148864" y="193.810535" transform="rotate(-0 230.148864 193.810535)">primer tail</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p7f31a1a54f">
+   <rect x="4.752" y="1.98" width="465.696" height="194.04"/>
+  </clipPath>
+ </defs>
+</svg>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="475.2pt" height="165.6pt" viewBox="0 0 475.2 165.6" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 165.6 
+L 475.2 165.6 
+L 475.2 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 97.8912 42.228 
+L 209.65824 42.228 
+L 209.65824 24.588 
+L 97.8912 24.588 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #3b7fc4"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 97.8912 53.1648 
+L 132.8184 53.1648 
+L 132.8184 48.9312 
+L 97.8912 48.9312 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 97.8912 53.1648 
+L 132.8184 53.1648 
+L 295.812 116.316 
+L 260.8848 116.316 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #e2a12c; opacity: 0.18"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 174.73104 53.1648 
+L 209.65824 53.1648 
+L 209.65824 48.9312 
+L 174.73104 48.9312 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 174.73104 53.1648 
+L 209.65824 53.1648 
+L 372.65184 116.316 
+L 337.72464 116.316 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #e2a12c; opacity: 0.18"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 28.0368 126.9 
+L 456.47712 126.9 
+L 456.47712 116.316 
+L 28.0368 116.316 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #3b7fc4; opacity: 0.45"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 260.8848 126.9 
+L 295.812 126.9 
+L 295.812 116.316 
+L 260.8848 116.316 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 337.72464 126.9 
+L 372.65184 126.9 
+L 372.65184 116.316 
+L 337.72464 116.316 
+z
+" clip-path="url(#pce03f81d13)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 242.25696 132.5448 
+L 391.27968 132.5448 
+L 391.27968 110.6712 
+L 242.25696 110.6712 
+L 242.25696 132.5448 
+z
+" clip-path="url(#pce03f81d13)" style="fill: none; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 158.43168 33.408 
+" clip-path="url(#pce03f81d13)" style="fill: none; stroke: #d4453c; stroke-width: 1.5; stroke-linecap: square"/>
+    <defs>
+     <path id="md62a6f5325" d="M -3.5 3.5 
+L 3.5 -3.5 
+M -3.5 -3.5 
+L 3.5 3.5 
+" style="stroke: #d4453c; stroke-width: 1.8"/>
+    </defs>
+    <g clip-path="url(#pce03f81d13)">
+     <use xlink:href="#md62a6f5325" x="158.43168" y="33.408" style="fill: #d4453c; stroke: #d4453c; stroke-width: 1.8"/>
+    </g>
+   </g>
+   <g id="line2d_2">
+    <path d="M 242.25696 132.192 
+L 242.25696 138.5424 
+L 391.27968 138.5424 
+L 391.27968 132.192 
+" clip-path="url(#pce03f81d13)" style="fill: none; stroke: #1c2530; stroke-width: 1.2"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="9.40896" y="14.318437" transform="rotate(-0 9.40896 14.318437)">Probe (32 bases) and its 10-mers</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="153.77472" y="35.226633" transform="rotate(-0 153.77472 35.226633)">probe</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(218.97216 31.025676)">a sequencing error: the 10-mers over it</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(218.97216 39.42759)">are not in the references</text>
+   </g>
+   <g id="text_4">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="9.40896" y="104.282437" transform="rotate(-0 9.40896 104.282437)">Reference</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #1c2530" x="316.76832" y="147.063628" transform="rotate(-0 316.76832 147.063628)">window aligned: around the diagonal of the seeds</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #b07a12" transform="translate(312.11136 75.125676)">10-mers found in the reference (seeds),</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #b07a12" transform="translate(312.11136 83.52759)">on the same diagonal</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pce03f81d13">
+   <rect x="4.752" y="1.656" width="465.696" height="162.288"/>
+  </clipPath>
+ </defs>
+</svg>

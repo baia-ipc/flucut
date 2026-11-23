@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="475.2pt" height="259.2pt" viewBox="0 0 475.2 259.2" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 259.2 
+L 475.2 259.2 
+L 475.2 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 18.72288 47.952 
+L 37.35072 47.952 
+L 37.35072 29.808 
+L 18.72288 29.808 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 37.35072 47.952 
+L 191.0304 47.952 
+L 191.0304 29.808 
+L 37.35072 29.808 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #3b7fc4"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 191.0304 47.952 
+L 209.65824 47.952 
+L 209.65824 29.808 
+L 191.0304 29.808 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 209.65824 47.952 
+L 246.91392 47.952 
+L 246.91392 29.808 
+L 209.65824 29.808 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #a3acb6"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 246.91392 47.952 
+L 265.54176 47.952 
+L 265.54176 29.808 
+L 246.91392 29.808 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 265.54176 47.952 
+L 437.84928 47.952 
+L 437.84928 29.808 
+L 265.54176 29.808 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #3b7fc4"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 437.84928 47.952 
+L 456.47712 47.952 
+L 456.47712 29.808 
+L 437.84928 29.808 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 18.72288 142.3008 
+L 37.35072 142.3008 
+L 37.35072 124.1568 
+L 18.72288 124.1568 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 37.35072 142.3008 
+L 218.97216 142.3008 
+L 218.97216 124.1568 
+L 37.35072 124.1568 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #3b7fc4"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 218.97216 142.3008 
+L 237.6 142.3008 
+L 237.6 124.1568 
+L 218.97216 124.1568 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #8e62c0"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 237.6 142.3008 
+L 256.22784 142.3008 
+L 256.22784 124.1568 
+L 237.6 124.1568 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 256.22784 142.3008 
+L 437.84928 142.3008 
+L 437.84928 124.1568 
+L 256.22784 124.1568 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #3b7fc4"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 437.84928 142.3008 
+L 456.47712 142.3008 
+L 456.47712 124.1568 
+L 437.84928 124.1568 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #e2a12c"/>
+   </g>
+   <g id="patch_15">
+    <path d="M 256.22784 144.47808 
+L 293.48352 144.47808 
+L 293.48352 121.97952 
+L 256.22784 121.97952 
+L 256.22784 144.47808 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: none; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_16">
+    <path d="M 181.71648 144.47808 
+L 218.97216 144.47808 
+L 218.97216 121.97952 
+L 181.71648 121.97952 
+L 181.71648 144.47808 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: none; stroke-dasharray: 4.44,1.92; stroke-dashoffset: 0; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_17">
+    <path d="M 144.4608 144.47808 
+L 181.71648 144.47808 
+L 181.71648 121.97952 
+L 144.4608 121.97952 
+L 144.4608 144.47808 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: none; stroke-dasharray: 4.44,1.92; stroke-dashoffset: 0; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_18">
+    <path d="M 107.20512 144.47808 
+L 144.4608 144.47808 
+L 144.4608 121.97952 
+L 107.20512 121.97952 
+L 107.20512 144.47808 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: none; stroke-dasharray: 4.44,1.92; stroke-dashoffset: 0; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_19">
+    <path d="M 79.26336 198.5472 
+L 456.47712 198.5472 
+L 456.47712 191.2896 
+L 79.26336 191.2896 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #3b7fc4; opacity: 0.45"/>
+   </g>
+   <g id="patch_20">
+    <path d="M 107.20512 202.176 
+L 144.4608 202.176 
+L 144.4608 187.6608 
+L 107.20512 187.6608 
+L 107.20512 202.176 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: none; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_21">
+    <path d="M 79.26336 234.8352 
+L 456.47712 234.8352 
+L 456.47712 227.5776 
+L 79.26336 227.5776 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: #3b7fc4; opacity: 0.45"/>
+   </g>
+   <g id="patch_22">
+    <path d="M 400.5936 238.464 
+L 437.84928 238.464 
+L 437.84928 223.9488 
+L 400.5936 223.9488 
+L 400.5936 238.464 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: none; stroke-dasharray: 4.44,1.92; stroke-dashoffset: 0; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_23">
+    <path d="M 363.33792 238.464 
+L 400.5936 238.464 
+L 400.5936 223.9488 
+L 363.33792 223.9488 
+L 363.33792 238.464 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: none; stroke-dasharray: 4.44,1.92; stroke-dashoffset: 0; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_24">
+    <path d="M 326.08224 238.464 
+L 363.33792 238.464 
+L 363.33792 223.9488 
+L 326.08224 223.9488 
+L 326.08224 238.464 
+z
+" clip-path="url(#p4b720e5ae8)" style="fill: none; stroke-dasharray: 4.44,1.92; stroke-dashoffset: 0; stroke: #1c2530; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 209.65824 48.67776 
+L 209.65824 55.2096 
+L 246.91392 55.2096 
+L 246.91392 48.67776 
+" clip-path="url(#p4b720e5ae8)" style="fill: none; stroke: #5d6b7a; stroke-width: 1.2"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 209.65824 53.3952 
+L 209.65824 24.3648 
+" clip-path="url(#p4b720e5ae8)" style="fill: none; stroke: #d4453c; stroke-width: 1.4; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_3">
+    <path d="M 246.91392 53.3952 
+L 246.91392 24.3648 
+" clip-path="url(#p4b720e5ae8)" style="fill: none; stroke: #d4453c; stroke-width: 1.4; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_4">
+    <path d="M 218.97216 149.5584 
+L 218.97216 116.8992 
+" clip-path="url(#p4b720e5ae8)" style="fill: none; stroke: #d4453c; stroke-width: 1.4; stroke-linecap: square"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="9.40896" y="15.556838" transform="rotate(-0 9.40896 15.556838)">A pair: the end of an amplicon, then the start of another</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="114.19056" y="40.698633" transform="rotate(-0 114.19056 40.698633)">amplicon 1</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="351.69552" y="40.698633" transform="rotate(-0 351.69552 40.698633)">amplicon 2</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #5d6b7a" x="200.34432" y="25.457399" transform="rotate(-0 200.34432 25.457399)">END</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #5d6b7a" x="256.22784" y="25.457399" transform="rotate(-0 256.22784 25.457399)">START</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(192.257369 64.562201)">at most 100 bases:</text>
+    <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(212.702486 73.564251)">dropped</text>
+   </g>
+   <g id="text_7">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(284.1696 57.698319)">at most 2 errors in the two matches together;</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(284.1696 66.100233)">not split if the references show that the read</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(284.1696 74.502147)">runs through the pair</text>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="9.40896" y="102.648038" transform="rotate(-0 9.40896 102.648038)">A lone match, with references: does the read stop following the reference there?</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="69.94944" y="135.047433" transform="rotate(-0 69.94944 135.047433)">amplicon 1</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="377.3088" y="135.047433" transform="rotate(-0 377.3088 135.047433)">amplicon 2</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #5d6b7a" x="246.91392" y="118.354679" transform="rotate(-0 246.91392 118.354679)">START</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="274.85568" y="118.354953" transform="rotate(-0 274.85568 118.354953)">inner probe</text>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #1c2530" x="163.08864" y="118.354953" transform="rotate(-0 163.08864 118.354953)">outer probes, at three distances</text>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #d4453c" x="218.97216" y="158.506106" transform="rotate(-0 218.97216 158.506106)">cut outside the whole primer</text>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(9.40896 192.536076)">segment of</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(9.40896 200.93799)">amplicon 2</text>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="107.20512" y="181.496073" transform="rotate(-0 107.20512 181.496073)">the inner probe is located here</text>
+   </g>
+   <g id="text_17">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(9.40896 228.824076)">segment of</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #5d6b7a" transform="translate(9.40896 237.22599)">amplicon 1</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #2c9a5f" x="437.84928" y="217.784073" transform="rotate(-0 437.84928 217.784073)">the outer probes are not continuous with it</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p4b720e5ae8">
+   <rect x="4.752" y="2.592" width="465.696" height="254.016"/>
+  </clipPath>
+ </defs>
+</svg>
