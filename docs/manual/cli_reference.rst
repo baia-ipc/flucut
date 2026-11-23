@@ -205,12 +205,17 @@ The live mode (:doc:`live`): its options can only be given with
    Seconds between the scans of the input directories (at most 3600).
    Default: 10.
 
-``--resume``
-   Skip the files already trimmed by an interrupted live run with the
-   same output directory, continuing its outputs and counts.
-
 Other options
 -------------
+
+``--resume``
+   Continue an interrupted run with the same output directory. In a
+   normal run, the samples already trimmed completely are skipped
+   (their outputs and counts are kept) and the others are trimmed from
+   the beginning; in the live mode, the files already trimmed are
+   skipped and the outputs and counts of each sample are continued
+   (:doc:`live`). Run it with the same inputs and options as the
+   interrupted run.
 
 ``-q, --quiet``
    Only error messages.

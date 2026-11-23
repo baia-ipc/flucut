@@ -225,6 +225,9 @@ after the other, for printing or archiving. In the dashboard the strips
 of the segments are folded (a click opens one), and the HA tab starts
 with a table of the HA of every sample. The messages show which
 sample is being trimmed (`Trimming run1/barcode01.fastq.gz (1 of 3)...`).
+If such a run is interrupted, running it again with `--resume` (same
+inputs, options and output directory) skips the samples already
+trimmed and trims only the others.
 
 ## With IRMA
 

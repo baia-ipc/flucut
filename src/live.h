@@ -10,9 +10,9 @@
    (the HTML report reloads itself while the run is in progress).
 
    The list of the processed files and the counts of each group are saved
-   in the output directory (<group>LIVE_FILES_SFX, <group>LIVE_COUNTS_SFX),
-   so that an interrupted run can be continued (--resume): the files
-   already processed are skipped. Without --resume, the outputs of a
+   in the output directory after each file (group-state.h), so that an
+   interrupted run can be continued (--resume): the files already
+   processed are skipped. Without --resume, the outputs of a
    group are replaced.
 
    The mode ends at the end of the run (a file LIVE_END_FILES in an input
@@ -39,10 +39,6 @@
 
 /* the end of the run (see above) */
 #define LIVE_END_FILES "final_summary_*.txt"
-
-/* the state files of a group (see above) */
-#define LIVE_FILES_SFX ".flucut-files"
-#define LIVE_COUNTS_SFX ".flucut-counts"
 
 /*
    Run the live mode, with the options <opts>, the trimming settings

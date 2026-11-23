@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "alloc.h"
 #include "auto-settings.h"
 #include "banner.h"
@@ -25,6 +26,7 @@
 #include "counter.h"
 #include "fasta.h"
 #include "file.h"
+#include "group-state.h"
 #include "input-groups.h"
 #include "live.h"
 #include "logger.h"
@@ -162,6 +164,23 @@ static void trim_group(const options_t *opts, const trimmer_config_t *config,
   read_outputs_close(out, logger);
 }
 
+/* with --resume: whether the group <g> was completely trimmed by an
+   earlier run in the same output directory (its saved list of files is
+   the list of its files, and its outputs exist); if so, its saved counts
+   are added to <counts> */
+static bool group_already_trimmed(const options_t *opts,
+    const input_group_t *g, const read_outputs_t *out, counter_t *counts) {
+  size_t n;
+  char **files = group_state_load_files(opts->outdir, g->name, &n);
+  bool same = files != NULL && n == g->n_files;
+  for (size_t j = 0; same && j < n; j++)
+    same = strcmp(files[j], g->files[j]) == 0;
+  group_state_free_files(files, n);
+  for (size_t k = 0; same && k < out->n; k++)
+    same = access(out->paths[k], F_OK) == 0;
+  return same && group_state_load_counts(opts->outdir, g->name, counts);
+}
+
 /* trim the files of the input groups (not the live mode); with several
    groups, the tables and reports are also written before the first group
    and after each one (the dashboard, see run-report.h), so
@@ -196,13 +215,30 @@ static void trim_groups(const options_t *opts, trimmer_config_t *config,
     if (n_groups > 1 && i == 0)
       run_report_announce_dashboard(report, logger);
     counter_t *counts = counter_new(scheme, refs);
-    trim_group(opts, config, workers, groups + i, i, n_groups, outputs[i],
-               counts, logger);
+    if (opts->resume &&
+        group_already_trimmed(opts, groups + i, outputs[i], counts)) {
+      lprintf(logger, LOG_SUCCESS, "%s: trimmed by an earlier run, "
+              "skipped (--resume)\n", groups[i].name);
+    } else {
+      /* (the counts of a group whose loading failed half-way are
+         discarded; its state is removed, so that it is only saved again
+         once the group is complete) */
+      counter_delete(counts);
+      counts = counter_new(scheme, refs);
+      group_state_remove(opts->outdir, groups[i].name, logger);
+      trim_group(opts, config, workers, groups + i, i, n_groups, outputs[i],
+                 counts, logger);
+      group_state_save(opts->outdir, groups[i].name, counts,
+                       groups[i].files, groups[i].n_files, logger);
+    }
     counter_merge(total, counts);
     results[i].counts = counts;
   }
   results_write(opts->outdir, results, n_groups, total, refs, report,
                 false, logger);
+  /* the run is complete: the states of the groups are no longer needed */
+  for (size_t i = 0; i < n_groups; i++)
+    group_state_remove(opts->outdir, groups[i].name, logger);
   for (size_t i = 0; i < n_groups; i++)
     counter_delete((counter_t *)results[i].counts);
   free(results);

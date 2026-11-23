@@ -58,7 +58,6 @@ expect 1 --adapters nb,xx "$reads"
 expect 1 --timeout 5m testdata/fastq_pass
 expect 1 --min-age 5 testdata/fastq_pass
 expect 1 --scan-interval 1 testdata/fastq_pass
-expect 1 --resume testdata/fastq_pass
 expect 1 --live "$reads"
 expect 1 --live --timeout 0 testdata/fastq_pass
 expect 1 --live --timeout x testdata/fastq_pass

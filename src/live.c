@@ -15,6 +15,7 @@
 #include "alloc.h"
 #include "counter.h"
 #include "file.h"
+#include "group-state.h"
 #include "input-groups.h"
 #include "live.h"
 #include "read-outputs.h"
@@ -90,84 +91,31 @@ static void add_done(live_group_t *st, const char *path, long size) {
   kh_value(st->done_set, k) = size;
 }
 
-/* the path of a state file of a group (to be freed by the caller) */
-static char* state_path(const char *outdir, const char *group,
-    const char *sfx) {
-  char *name = strcat_alloc(group, sfx);
-  char *path = path_join(outdir, name);
-  free(name);
-  return path;
-}
-
-/* write a state file of a group, the counts or the list of processed
-   files: to a temporary file, then renamed, so that an interruption
-   while writing it does not leave it incomplete */
-static void write_state_file(const options_t *opts, const live_group_t *st,
-    bool counts, Logger *logger) {
-  char *path = state_path(opts->outdir, st->name,
-                          counts ? LIVE_COUNTS_SFX : LIVE_FILES_SFX);
-  FILE *f = xfopen(path, REPORT_TMP_SFX, "w", "state file", logger);
-  if (counts)
-    counter_save(st->counts, f);
-  else
-    for (size_t i = 0; i < st->n_done; i++)
-      fprintf(f, "%s\n", st->done[i]);
-  xfclose(&f, logger);
-  xfrename(path, REPORT_TMP_SFX, path, NULL, logger);
-  free(path);
-}
-
-/*
-   save the counts and the list of processed files of a group (for
-   --resume); the list is replaced last, so that a file is only listed as
-   processed once its counts are saved: after an interruption between the
-   two, the file is processed again on resuming (as after an interruption
-   while processing it; then its counts are added again, as its reads are
-   appended again to the output), instead of being skipped with its
-   counts missing
-*/
+/* save the counts and the list of processed files of a group (for
+   --resume, see group-state.h) */
 static void save_state(const options_t *opts, const live_group_t *st,
     Logger *logger) {
-  write_state_file(opts, st, true, logger);
-  write_state_file(opts, st, false, logger);
+  group_state_save(opts->outdir, st->name, st->counts, st->done, st->n_done,
+                   logger);
 }
 
 /* with --resume: read the list of processed files and the counts of a
    group, if available */
 static void load_state(const options_t *opts, live_group_t *st,
     Logger *logger) {
-  char *path = state_path(opts->outdir, st->name, LIVE_FILES_SFX);
-  FILE *f = fopen(path, "r");
-  free(path);
-  if (f == NULL)
+  size_t n;
+  char **files = group_state_load_files(opts->outdir, st->name, &n);
+  if (files == NULL)
     return;
-  char *line = NULL;
-  size_t cap = 0;
-  ssize_t len;
-  while ((len = getline(&line, &cap, f)) > 0) {
-    if (line[len - 1] == '\n')
-      line[--len] = '\0';
-    if (len > 0 && !is_done(st, line))
-      add_done(st, line, -1);
-  }
-  free(line);
-  fclose(f);
-  path = state_path(opts->outdir, st->name, LIVE_COUNTS_SFX);
-  f = fopen(path, "r");
-  free(path);
-  if (f == NULL || !counter_load(st->counts, f))
+  for (size_t i = 0; i < n; i++)
+    if (!is_done(st, files[i]))
+      add_done(st, files[i], -1);
+  group_state_free_files(files, n);
+  if (!group_state_load_counts(opts->outdir, st->name, st->counts))
     lprintf(logger, LOG_WARN, "%s: the counts of the files processed "
             "before resuming could not be read\n", st->name);
-  if (f != NULL)
-    fclose(f);
   lprintf(logger, LOG_INFO, "%s: %zu file%s processed before resuming\n",
           st->name, st->n_done, st->n_done == 1 ? "" : "s");
-}
-
-/* remove the file <path>, if any */
-static void remove_file(const char *path, Logger *logger) {
-  LCHECK(unlink(path) == 0 || errno == ENOENT, logger,
-         "Deleting file '%s' failed, %s\n", path, strerror(errno));
 }
 
 /* remove the output of a group and its state files (when it is processed
@@ -175,12 +123,7 @@ static void remove_file(const char *path, Logger *logger) {
 static void clear_group(const options_t *opts, const live_group_t *st,
     Logger *logger) {
   read_outputs_remove(st->output, logger);
-  const char *sfx[] = {LIVE_FILES_SFX, LIVE_COUNTS_SFX};
-  for (size_t i = 0; i < 2; i++) {
-    char *path = state_path(opts->outdir, st->name, sfx[i]);
-    remove_file(path, logger);
-    free(path);
-  }
+  group_state_remove(opts->outdir, st->name, logger);
 }
 
 /* the live mode: the arguments of live_run() and its state */

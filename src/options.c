@@ -112,6 +112,10 @@ enum {
   "                          ends without a primer: a comma-separated\n" \
   "                          list of " ADAPTERS_KITS ", or none\n" \
   "                          (default: " ADAPTERS_DEFAULT ")\n" \
+  "   --resume               continue an interrupted run in the same\n" \
+  "                          output directory: the samples already\n" \
+  "                          trimmed (in the live mode: the files\n" \
+  "                          already processed) are skipped\n" \
   "\n" \
   "Live mode (a MinKNOW run in progress):\n" \
   "   --live                 process the files of the input directories as\n" \
@@ -130,8 +134,6 @@ enum {
   "   --scan-interval <s>    seconds between the scans of the input\n" \
   "                          directories (default: " \
   XSTR(OPTIONS_DEFAULT_SCAN_INTERVAL) ")\n" \
-  "   --resume               skip the files already processed by an\n" \
-  "                          interrupted live run (same output directory)\n" \
   "\n" \
   "Classification against the references (with --references):\n" \
   "   --probe-len <n>        bases after the primer located in the\n" \
@@ -475,8 +477,6 @@ void options_parse(options_t *self, int argc, char *argv[],
   if (scan_interval_given && !self->live)
     PARSE_ERR("Option '--scan-interval': the live mode (--live) is "
               "required");
-  if (self->resume && !self->live)
-    PARSE_ERR("Option '--resume': the live mode (--live) is required");
   if (self->live)
     for (int i = optind; i < argc; i++) {
       struct stat st;
