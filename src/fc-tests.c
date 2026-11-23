@@ -25,6 +25,7 @@
 #include "lengths.h"
 #include "file.h"
 #include "input-groups.h"
+#include "internal-matches.h"
 #include "junction.h"
 #include "logger.h"
 #include "pattern-scan.h"
@@ -93,6 +94,8 @@ static test_group_t test_groups[] = {
   {'s', "the search of a primer in a read", primer_search_test, false},
   {'m', "the scan of a sequence for all the matches of a pattern",
    pattern_scan_test, false},
+  {'i', "the matches of the primers inside a read",
+   internal_matches_test, false},
   {'c', "the primer schemes", scheme_test, false},
   {'a', "the analysis and trimming of a read", amplicon_test, false},
   {'F', "reading of FASTA files", run_fasta_test, false},

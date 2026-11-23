@@ -9,6 +9,7 @@
 #include "fasta.h"
 #include "logger.h"
 #include "numutils.h"
+#include "internal-matches.h"
 #include "primer-search.h"
 #include "primers.h"
 #include "reference.h"
@@ -32,6 +33,8 @@ struct amplicon_analyzer_t {
      max_primer_len + 1 for each primer (see missing_costs()) */
   long *left_skip, *left_edge, *right_skip, *right_edge;
   primer_search_t *search;
+  /* the search of the primers inside the read */
+  internal_matches_t *internal;
   /* the reverse complement of the read */
   char *rc;
   size_t rc_cap;
@@ -151,6 +154,8 @@ amplicon_analyzer_t* amplicon_analyzer_new(const scheme_t *scheme,
                   self->right_max_errors[i], self->right_skip + i * stride,
                   self->right_edge + i * stride);
   self->search = primer_search_new();
+  self->internal = internal_matches_new(scheme, self->left_max_errors,
+                                        self->right_max_errors);
   self->rc = NULL;
   self->rc_cap = 0;
   self->refs = NULL;
@@ -195,6 +200,7 @@ void amplicon_analyzer_delete(amplicon_analyzer_t *self) {
   free(self->right_skip);
   free(self->right_edge);
   primer_search_delete(self->search);
+  internal_matches_delete(self->internal);
   free(self->rc);
   free(self->probe);
   free(self->template);
@@ -335,46 +341,14 @@ static void search_layout(amplicon_analyzer_t *self, const char *seq,
   }
 }
 
-/*
-   Collect the matches of the primers of the scheme which lie between the
-   primers of the two ends, i.e. inside the part of the read which is
-   kept (see amplicon.h: internal priming and chimeras).
-
-   The matches are searched from left to right, without a partial
-   alignment at either side, and are not trimmed.
-*/
+/* collect the matches of the primers of the scheme which lie between
+   the primers of the two ends (see internal-matches.h) */
 static void search_internal(amplicon_analyzer_t *self, const char *seq,
     size_t len, amplicon_t *out) {
-  const scheme_t *sc = self->scheme;
   long lo = out->left.found ? out->left.hit.end + 1 : 0;
   long hi = out->right.found ? out->right.hit.start : (long)len;
-  while (out->n_internal < AMPLICON_MAX_INTERNAL && hi - lo > 0) {
-    amplicon_end_t best;
-    bool from_left_end = true;
-    search_end(self, sc->left, self->left_max_errors, NULL, NULL,
-               sc->n_left, seq + lo, (size_t)(hi - lo), false, false,
-               &best);
-    /* (the primers of the right end are searched as well: a match of
-       either primer inside the read is reported) */
-    amplicon_end_t other;
-    search_end(self, sc->right, self->right_max_errors, NULL, NULL,
-               sc->n_right, seq + lo, (size_t)(hi - lo), false, false,
-               &other);
-    if (other.found && (!best.found ||
-                        other.hit.n_errors < best.hit.n_errors)) {
-      best = other;
-      from_left_end = false;
-    }
-    if (!best.found)
-      return;
-    amplicon_match_t *m = out->internal + out->n_internal++;
-    m->at_left_end = from_left_end;
-    m->variant = best.variant;
-    m->start = best.hit.start + lo;
-    m->end = best.hit.end + lo;
-    m->n_errors = best.hit.n_errors;
-    lo = m->end + 1;
-  }
+  out->n_internal = internal_matches_find(self->internal, seq, lo, hi,
+                                          out->internal);
 }
 
 /* a value limited to [lo, hi] */
