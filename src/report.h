@@ -1,8 +1,8 @@
 /* (c) 2026 Giorgio Gonnella */
 
 /*
-   Content of the reports of a run (HTML report, JSON summary), as in
-   Lumipore: the counts of all reads and of each group of input files,
+   Content of the reports of a run (HTML report, JSON summary):
+   the counts of all reads and of each group of input files,
    the information needed to describe them, and the values computed from
    them for both reports (the internal priming sites, the short complete
    amplicons).

@@ -51,7 +51,7 @@ support the trimming; they are not the purpose of the program.
   (its own coverage and sites, not pooled with the other samples) and an
   overview tab, the current one highlighted in the tab bar; the final
   report at the end is the full scrolling one. Still possible: a test on a
-  replay of a real run (Lumipore's `tests/fake_minknow`).
+  replay of a real run.
 - **Report, next**: the remnants (primer bases left), the read lengths
   before and after the trimming, the primers found whole or partial,
   per segment; a mark of the internal sites in the length histograms.

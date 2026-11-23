@@ -3,8 +3,7 @@
 /*
    Search of an adaptor in a read, using edlib (edit distance, the
    adaptor must be completely aligned, the ends of the read are free).
-   From Lumipore (github.com/baia-ipc/lumipore, src/adaptor-search.h),
-   unchanged. An N of the adaptor matches any base (e.g. a barcode of
+   An N of the adaptor matches any base (e.g. a barcode of
    unknown sequence, see adapters.h).
 
    If a partial alignment is allowed on one side and the complete adaptor

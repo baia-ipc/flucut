@@ -15,7 +15,7 @@
    member on each line, indented by the nesting level; the values of the
    members are written on their line (lists on one line: see sep()). The
    writer keeps, for each open block, whether it has a member yet, for
-   the commas between the members (as in Lumipore).
+   the commas between the members.
 */
 #define MAX_NESTING 8
 

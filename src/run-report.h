@@ -1,7 +1,7 @@
 /* (c) 2026 Giorgio Gonnella */
 
 /*
-   The reports of a run (from Lumipore): the context of the HTML report
+   The reports of a run: the context of the HTML report
    and of the JSON summary (command line, options, scheme, references),
    and their writing, at the end of the run and while it is in progress
    (after each group of input files; in the live mode, after each file).

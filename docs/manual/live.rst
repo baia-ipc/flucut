@@ -4,8 +4,7 @@ Live mode
 With ``--live``, flucut follows a MinKNOW run while it is sequencing: the
 files of reads are trimmed as they are written, and the outputs, the
 tables and the reports are updated after each file, so that the samples
-can be assembled, or at least looked at, before the end of the run. The
-live mode is that of Lumipore (its real-time mode, ``--watch``).
+can be assembled, or at least looked at, before the end of the run.
 
 ::
 

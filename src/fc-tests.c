@@ -124,7 +124,7 @@ static test_group_t test_groups[] = {
   {'G', "the agreement of the probes of a read", read_agreement_test,
    false},
   {'q', "the summary of a sample by segment", qc_summary_test, false},
-  {'d', "the search of an adaptor (from Lumipore)", adaptor_search_test,
+  {'d', "the search of an adaptor", adaptor_search_test,
    false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))

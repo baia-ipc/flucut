@@ -1,7 +1,7 @@
 /* (c) 2026 Giorgio Gonnella */
 
 /*
-   HTML report (from Lumipore): a self-contained HTML file (no external
+   HTML report: a self-contained HTML file (no external
    resources, plots as inline SVG, light and dark themes), with the
    statistics of a run:
    - the run parameters;

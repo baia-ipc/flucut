@@ -1,6 +1,6 @@
 // The brochure as a PDF (two A4 pages).
 //
-// Usage: node pdf.js brochure.html lumipore-brochure.pdf
+// Usage: node pdf.js brochure.html flucut-brochure.pdf
 //
 // Requires Playwright (with Chromium).
 const { chromium } = require('playwright');

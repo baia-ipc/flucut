@@ -57,7 +57,7 @@ error rates of 1, 2, 4, 8 and 12% (measured: 0.9, 1.7, 3.0, 5.0 and
 left few primer bases up to 4%; at 8 and 12%, 30% left 4 times fewer
 primer bases and 2 to 4 times fewer bases of the internal priming site
 than 20%, at the cost of about 3 times more template bases removed
-(``benchmark/RESULTS.md``). As in Lumipore, the rule has two values and
+(``benchmark/RESULTS.md``). The rule has two values and
 one threshold, measured once, before the trimming.
 
 The window
@@ -107,8 +107,7 @@ the usual window of the new end, a primer-like sequence of the template
 could otherwise be taken for it. The tags ``a5`` and ``a3`` tell which
 kit's adapter was removed at the start and at the end of a read.
 
-The search uses the adaptor search of Lumipore (``src/adaptor-search.c``,
-unchanged); the adapters are searched only at the ends without a primer,
+The search is that of ``src/adaptor-search.c``; the adapters are searched only at the ends without a primer,
 so the reads with both primers are trimmed as without it.
 
 The trimming
@@ -145,8 +144,8 @@ bases after the trimming are not written.
 Threads
 -------
 
-The files are trimmed by ``-j`` worker threads, started for each file
-(as in Lumipore): each thread reads a batch of 1000 reads in turn,
+The files are trimmed by ``-j`` worker threads, started for each file:
+each thread reads a batch of 1000 reads in turn,
 trims it and compresses it with its own objects, and writes it in the
 order of the input, waiting for its turn. Each batch is a gzip member of
 its own, so that the output file is the same, byte for byte, for any

@@ -12,8 +12,8 @@
 - `title.jpg`: the illustration of the title page, provided by the
   author, converted from PNG to JPEG (quality 90) with Pillow.
 
-- `terminal.js`: a terminal transcript as an image (ANSI colors), from
-  the manual of Lumipore, with the long lines wrapped; requires
+- `terminal.js`: a terminal transcript as an image (ANSI colors), with
+  the long lines wrapped; requires
   Playwright with Chromium and the fonts JetBrains Mono and FreeMono
   (Braille). `terminal_flucut.png`, from a copy of `testdata` in an
   empty directory, with `bin` in the PATH:
@@ -24,8 +24,7 @@
         "flucut -o out -r testdata/ref-ha.fasta testdata/reads.fastq" 100
 
 - `screenshot.js`: screenshots of the sections of an HTML report
-  (`report_*.png`), from the manual of Lumipore (unchanged, but for its
-  header); requires Playwright with Chromium. The reports, from a
+  (`report_*.png`); requires Playwright with Chromium. The reports, from a
   directory with copies of the reads and the genome of the simulation
   and of `testdata`, with `bin` in the PATH:
 

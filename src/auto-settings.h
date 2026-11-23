@@ -1,7 +1,7 @@
 /* (c) 2026 Giorgio Gonnella */
 
 /*
-   The automatic settings (from Lumipore): -e auto, the errors allowed in
+   The automatic settings: -e auto, the errors allowed in
    a primer, decided from the error rate of the primer alignments in the
    first AUTO_MAX_ERRORS_READS reads of the first input file, before the
    trimming (in the live mode, at the first file ready). The decision and

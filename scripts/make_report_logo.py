@@ -3,9 +3,8 @@ Generate src/report-logo-data.inc, the logo of the HTML report, from the
 wide logo of flucut (docs/logo/flucut-banner.png) and its variant for
 dark backgrounds (docs/logo/flucut-banner-dark.png): as data URIs (so
 that the report stays self-contained) of WebP images, 520 pixels wide
-(shown at about half size, sharp on high-resolution screens). From
-Lumipore (github.com/baia-ipc/lumipore, scripts/make_report_logo.py),
-with the dark variant read from its own file. Requires Pillow.
+(shown at about half size, sharp on high-resolution screens). The
+dark variant is read from its own file. Requires Pillow.
 
 Usage: make_report_logo.py docs/logo/flucut-banner.png \
          docs/logo/flucut-banner-dark.png > src/report-logo-data.inc

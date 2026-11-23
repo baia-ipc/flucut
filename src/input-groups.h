@@ -1,7 +1,7 @@
 /* (c) 2026 Giorgio Gonnella */
 
 /*
-   Groups of input files (from Lumipore): each group gives one output.
+   Groups of input files: each group gives one output.
    - a file of reads given directly is a group, named as the file without
      its suffix (.fastq, .fq, optionally .gz, or .bam);
    - a directory is a group of its files of reads, named as the

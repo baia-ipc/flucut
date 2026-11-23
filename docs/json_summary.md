@@ -3,8 +3,7 @@
 flucut always writes a machine-readable summary of the run to
 `outdir/flucut_summary.json`, with the same information as the HTML
 report (`outdir/flucut_report.html`). The file is written to a temporary
-file and then renamed, so that it can be read at any time. The format is
-that of the summary of Lumipore, with the content of flucut.
+file and then renamed, so that it can be read at any time.
 
 ## Format (version 1)
 

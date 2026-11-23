@@ -50,7 +50,7 @@ static const char *const lengths_note_tmpl =
 /* the logo in the top bar of the dashboard is smaller */
 #define DASHBOARD_LOGO_HEIGHT 40
 
-/* --- markup helpers (as in Lumipore) --- */
+/* --- markup helpers --- */
 
 /* start an element of the class <cls> */
 static void open_class(html_writer_t *w, const char *tag, const char *cls) {

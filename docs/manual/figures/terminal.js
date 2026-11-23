@@ -1,9 +1,8 @@
 // (c) 2026 Giorgio Gonnella
 // A terminal transcript as an image, for the manual: the output of a
 // program in a terminal (ANSI colors, e.g. the banner of flucut),
-// captured with `script`, rendered in a terminal window. From the manual
-// of Lumipore (github.com/baia-ipc/lumipore, docs/manual/figures), with
-// the lines longer than the columns wrapped, as in a terminal.
+// captured with `script`, rendered in a terminal window. The
+// lines longer than the columns are wrapped, as in a terminal.
 //
 // Usage: node terminal.js TRANSCRIPT OUTPUT.png COMMAND [COLUMNS]
 //

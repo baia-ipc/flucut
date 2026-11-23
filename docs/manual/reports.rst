@@ -19,9 +19,7 @@ Until the end, ``flucut_report.html`` is then the dashboard of the
 :doc:`live mode <live>`, which reloads itself in the browser every 30
 seconds and shows the samples still to be processed as "not processed
 yet" (the JSON summary has ``"running": true``, and ``summary.tsv`` and
-``lengths.tsv`` only the samples already processed). The report and
-the summary, their templates and plots come from Lumipore, with the
-content of flucut.
+``lengths.tsv`` only the samples already processed).
 
 The HTML report
 ---------------

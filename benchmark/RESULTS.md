@@ -519,7 +519,7 @@ The error rate of the primer alignments in the first 1000 reads, with
 6.3% (below the mean of the simulation: the alignments with more errors
 than allowed are not found, and the rate counts the read bases aligned).
 
-The rule of `-e auto` (as in Lumipore: two values, one threshold): 0.2
+The rule of `-e auto` (two values, one threshold): 0.2
 below a measured rate of 4%, 0.3 from 4% on; it chooses 0.2 for the
 reads at 1, 2 and 4%, and 0.3 at 8 and 12%. At 1-4%, 0.2 leaves 1073 to
 1819 primer bases and 1 to 23 of the internal site, and removes 607 to

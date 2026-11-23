@@ -1,7 +1,7 @@
 /* (c) 2026 Giorgio Gonnella */
 
 /*
-   The live mode (--live, from the real-time mode of Lumipore): the files
+   The live mode (--live): the files
    of the input directories are processed as they are written, e.g. by
    MinKNOW during a run. The directories are scanned regularly
    (--scan-interval), and the new files which are ready (not modified for

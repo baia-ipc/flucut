@@ -2,7 +2,7 @@
 
 /*
    Trimming of the reads of a file (FASTQ or BAM) by a number of worker
-   threads (from Lumipore): each thread reads a batch of reads in turn
+   threads: each thread reads a batch of reads in turn
    (under a lock), trims it with its own objects (trimmer, compressor,
    buffers, counts), and writes its compressed output in the order of
    the input, waiting for its turn, so that the output does not depend on

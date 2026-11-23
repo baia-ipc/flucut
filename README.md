@@ -252,7 +252,7 @@ to what IRMA assembled. It is a separate program, in Python; see
 ## Live mode
 
 `flucut --live -o out /data/run1/fastq_pass` follows a MinKNOW run while
-it is sequencing (as the real-time mode of Lumipore): the files are
+it is sequencing: the files are
 trimmed as they are written (once not modified for `--min-age`, default
 60 s, and complete), appended to the outputs of their samples, and the
 tables and reports are updated after each file (the HTML report reloads

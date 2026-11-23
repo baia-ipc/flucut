@@ -1,8 +1,7 @@
 #!/bin/bash
 # (c) 2026 Giorgio Gonnella
 #
-# Test of the live mode (--live; from the test of the real-time mode of
-# Lumipore, tests/test-watch.sh): files are written into the input
+# Test of the live mode (--live): files are written into the input
 # directory while flucut is running, as by MinKNOW (including a file
 # written in two parts, and a barcode directory created later); the
 # outputs and the tables must be the same as those of a normal run on the

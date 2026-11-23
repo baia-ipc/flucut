@@ -1,7 +1,7 @@
 /* (c) 2026 Giorgio Gonnella */
 
 /*
-   JSON summary (from Lumipore): the statistics of a run (the same as in
+   JSON summary: the statistics of a run (the same as in
    the HTML report, see report.h), in a machine-readable form, e.g. for
    pipelines. The format is described in docs/json_summary.md. The file
    is written to a temporary file and then renamed, so that it is never
