@@ -38,6 +38,7 @@
 #include "report.h"
 #include "scheme.h"
 #include "segments.h"
+#include "terminus-matches.h"
 #include "trimmer.h"
 
 /* the directory for temporary files (-T; NULL: a new one, see
@@ -103,6 +104,8 @@ static test_group_t test_groups[] = {
    junction_test, false},
   {'V', "the category of a read, from where it lies on its reference",
    read_cover_test, false},
+  {'e', "the matches of the conserved termini in a read",
+   terminus_matches_test, false},
   {'C', "the splitting of the reads with several amplicons",
    chimera_test, false},
   {'t', "the trimming of a batch of reads", trimmer_test, false},

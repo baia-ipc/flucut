@@ -52,11 +52,20 @@ cases:
 
 - the end of an amplicon followed, within 100 bases, by the start of
   another: e.g. the reverse complement of Uni13, the adapters and
-  barcodes, then Uni12. This needs no reference;
+  barcodes, then Uni12. This needs no reference. The two matches may
+  have at most two errors together: with more, two primer-like
+  sequences next to each other are found by chance in ordinary reads.
+  With references, the read is not cut if it runs through the pair (the
+  bases before it and those after it lie next to each other in a
+  reference);
 - with references, a single primer inside the read at which the read
   stops following the segment: the bases on one side of it are located
   in a reference, and those on the other side are not found next to
-  them.
+  them. The read is cut on the outer side of the primer, tail included.
+
+The primers are searched inside a read by their conserved termini (12
+and 13 bases), with the errors allowed in a primer (``-e``) but at most
+two.
 
 A read of a complete amplicon which runs through a primer-like site of
 its segment is not cut: the segment continues on both sides of the site.
