@@ -75,6 +75,11 @@ typedef struct {
   size_t ref_len;
   double mean_depth;       /* reads per position */
   size_t median_depth;     /* the depth of half of the positions or more */
+  size_t median_full_depth;  /* ... counting only the full templates (the
+                              reads whose amplicon started at a segment
+                              end): the depth which carries the whole
+                              segment, internal priming and deletions
+                              left out */
   double bases;            /* the bases of the located reads (the sum of
                               the depths) */
   double minus;            /* share of the depth from reads on the minus

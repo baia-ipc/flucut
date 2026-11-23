@@ -55,11 +55,13 @@ void json_sample_write(json_writer_t *w, const report_t *r,
       fputs(", \"reference\": ", f);
       fputs_json_string(r->references->records[q->ref].name, f);
       fprintf(f, ", \"length\": %zu, \"mean_depth\": %.1f, "
-              "\"median_depth\": %zu, \"covered\": %.4f, "
+              "\"median_depth\": %zu, \"median_full_depth\": %zu, "
+              "\"covered\": %.4f, "
               "\"well_covered\": %.4f, \"internal\": %.4f, "
               "\"deletion\": %.4f, \"minus_strand\": %.4f, "
               "\"complete_amplicons\": %zu, \"short_complete\": %zu",
-              q->ref_len, q->mean_depth, q->median_depth, q->covered,
+              q->ref_len, q->mean_depth, q->median_depth,
+              q->median_full_depth, q->covered,
               q->well_covered, q->internal, q->deletion, q->minus,
               q->complete, q->short_complete);
     }

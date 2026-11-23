@@ -24,12 +24,15 @@ static void number(html_writer_t *w, const char *name, const char *value) {
 
 /* the numbers of the reference measured as <q> */
 static void write_numbers(html_writer_t *w, const qc_segment_t *q) {
-  char depth[40], name[40];
+  char depth[40], full[40], name[40];
   snprintf(depth, sizeof(depth), "%s\xc3\x97",
            html_num(q->median_depth).s);
+  snprintf(full, sizeof(full), "%s\xc3\x97",
+           html_num(q->median_full_depth).s);
   snprintf(name, sizeof(name), "at \xe2\x89\xa5%d\xc3\x97", QC_MIN_DEPTH);
   markup_open(w, "dl", "kv");
   number(w, "median depth", depth);
+  number(w, "of full templates", full);
   number(w, name, fraction_percent_text(q->well_covered).s);
   number(w, "covered", fraction_percent_text(q->covered).s);
   markup_textf(w, "div", "kh", "share of the depth");
@@ -90,9 +93,10 @@ static void write_strip(html_writer_t *w, const report_t *r,
     write_title(w, q, name, sample, badge);
     if (subtype != NULL && subtype[0] != '\0')
       markup_textf(w, "span", "sbrief", "%s", subtype);
-    markup_textf(w, "span", "sbrief", "median depth %s\xc3\x97 \xc2\xb7 "
-                 "%s at \xe2\x89\xa5%d\xc3\x97 \xc2\xb7 internally primed "
-                 "%s", html_num(q->median_depth).s,
+    markup_textf(w, "span", "sbrief", "median depth %s\xc3\x97 (full "
+                 "templates %s\xc3\x97) \xc2\xb7 %s at \xe2\x89\xa5%d\xc3\x97 "
+                 "\xc2\xb7 internally primed %s", html_num(q->median_depth).s,
+                 html_num(q->median_full_depth).s,
                  fraction_percent_text(q->well_covered).s, QC_MIN_DEPTH,
                  fraction_percent_text(q->internal).s);
     html_close(w);
@@ -218,7 +222,7 @@ static void across_row(html_writer_t *w, const report_t *r, size_t i,
   if (g->counts == NULL || !qc.segments[segment].found) {
     html_open(w, "td");
     html_attr(w, "class", "wait");
-    html_attr(w, "colspan", "9");
+    html_attr(w, "colspan", "10");
     html_text(w, g->counts == NULL ? "waiting" : "not found");
     html_close(w);
     html_close(w);
@@ -230,6 +234,7 @@ static void across_row(html_writer_t *w, const report_t *r, size_t i,
   html_close(w);
   markup_td(w, "%s", sample_subtype(&qc).s);
   markup_td(w, "%s", html_num(q->median_depth).s);
+  markup_td(w, "%s", html_num(q->median_full_depth).s);
   markup_td(w, "%s", fraction_percent_text(q->well_covered).s);
   markup_td(w, "%s", fraction_percent_text(q->covered).s);
   markup_td(w, "%s", fraction_percent_text(q->internal).s);
@@ -247,14 +252,17 @@ static void write_across_table(html_writer_t *w, const report_t *r,
   snprintf(well, sizeof(well), "at \xe2\x89\xa5%d\xc3\x97", QC_MIN_DEPTH);
   markup_open(w, "div", "scroll");
   markup_open(w, "table", "samples across");
-  markup_header_row(w, "sample", "state", "subtype", "median depth", well,
+  markup_header_row(w, "sample", "state", "subtype", "median depth",
+                    "of full templates", well,
                     "covered", "int. primed", "int. deletions",
                     "complete amplicons", "short", NULL);
   for (size_t i = 0; i < r->n_sections; i++)
     across_row(w, r, i, segment);
   html_close(w);
   html_close(w);
-  markup_note(w, "%s: share of the %s positions at a depth of %d or more; "
+  markup_note(w, "of full templates: the median depth counting only the "
+              "reads whose amplicon started at a segment end. "
+              "%s: share of the %s positions at a depth of %d or more; "
               "covered: at a depth of 1 or more; int. primed, int. "
               "deletions: shares of the depth from internally primed reads "
               "and from reads with an internal deletion.", well,

@@ -136,9 +136,9 @@ static void segment_cell(html_writer_t *w, const qc_summary_t *qc, int s,
             q->status == QC_SEGMENT_COMPLETE ? "ok" :
             q->status == QC_SEGMENT_PARTIAL ? "warn" : "bad");
   html_attr(w, "title", "%s: %s at \xe2\x89\xa5%d\xc3\x97, median depth "
-            "%s\xc3\x97", segments_gene(s),
+            "%s\xc3\x97 (of full templates %s\xc3\x97)", segments_gene(s),
             fraction_percent_text(q->well_covered).s, QC_MIN_DEPTH,
-            html_num(q->median_depth).s);
+            html_num(q->median_depth).s, html_num(q->median_full_depth).s);
   /* (rounded down: 100 only for the whole segment) */
   html_textf(w, "%d", (int)(100 * q->well_covered));
   html_close(w);

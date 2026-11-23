@@ -42,8 +42,8 @@ report for printing or archiving it.
 
 In the dashboard the strips of the segments (of a sample, and of the
 HA in all samples) are folded to one line: the name, the state, the
-median depth, the share at a depth of 50 or more and the share from
-internally primed reads. A click opens a strip. In the report they are
+median depth (and that of the full templates), the share at a depth of
+50 or more and the share from internally primed reads. A click opens a strip. In the report they are
 always open.
 
 .. figure:: figures/dashboard.*
@@ -180,8 +180,8 @@ HA in all samples
 
 The HA decides the subtype and is where internal priming matters most
 (:doc:`internal_priming`), so it has a view of its own. A table gives,
-for each sample, the state and subtype, the median depth of its HA, the
-shares of the HA at a depth of 50 or more and covered, the shares of
+for each sample, the state and subtype, the median depth of its HA
+(all reads, and full templates only), the shares of the HA at a depth of 50 or more and covered, the shares of
 its depth from internally primed reads and from reads with an internal
 deletion, and its complete amplicons. Under it, the strip of the HA of
 each sample (see *Segments* below), side by side for comparison. The view is left out when the run or the report is
@@ -248,8 +248,10 @@ the balance of the amplification.
 **Segments.** One strip for each segment (a segment without located
 reads is *not found*):
 
-* at the left, its state, its reference, and its numbers: median depth,
-  share of the positions at a depth of 50 or more, share covered, and
+* at the left, its state, its reference, and its numbers: median depth;
+  median depth of the full templates only (the reads whose amplicon
+  started at a segment end, which carry the whole segment: internally
+  primed reads and internal deletions left out); share of the positions at a depth of 50 or more, share covered, and
   the shares of its depth from internally primed reads, from reads with
   an internal deletion and from reads of the minus strand;
 * in the middle, the **coverage by read origin**: the depth along the

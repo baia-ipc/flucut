@@ -37,15 +37,19 @@ void qc_reference(const fasta_t *refs, const counter_t *c, size_t ref,
   if (!reference_description_subtype(record->description, q->subtype,
                                      QC_SUBTYPE_SIZE))
     q->subtype[0] = '\0';
-  size_t *depth, *total;
+  size_t *depth, *total, *full;
   XMALLOC(depth, sizeof(size_t) * (len > 0 ? len : 1));
   XCALLOC(total, len > 0 ? len : 1, sizeof(size_t));
+  XCALLOC(full, len > 0 ? len : 1, sizeof(size_t));
   double sum = 0, internal = 0, deletion = 0, minus = 0, stranded = 0;
   for (size_t cat = 0; cat < COVER_N_CATEGORIES; cat++) {
     counter_coverage(c, ref, cat, depth);
     double cat_sum = 0;
+    bool is_full = cat == COVER_TERMINAL_PLUS || cat == COVER_TERMINAL_MINUS;
     for (size_t p = 0; p < len; p++) {
       total[p] += depth[p];
+      if (is_full)
+        full[p] += depth[p];
       cat_sum += (double)depth[p];
     }
     sum += cat_sum;
@@ -68,11 +72,14 @@ void qc_reference(const fasta_t *refs, const counter_t *c, size_t ref,
   if (len > 0) {
     qsort(total, len, sizeof(size_t), size_cmp);
     q->median_depth = total[len / 2];
+    qsort(full, len, sizeof(size_t), size_cmp);
+    q->median_full_depth = full[len / 2];
   }
   q->bases = sum;
   q->minus = stranded > 0 ? minus / stranded : 0;
   free(depth);
   free(total);
+  free(full);
   if (len > 0) {
     q->mean_depth = sum / (double)len;
     q->covered = (double)covered / (double)len;

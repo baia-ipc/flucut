@@ -108,7 +108,7 @@ reads	NC_004908.1	1700	5
       "ends_not_located": 0.0952,
       "flags": ["few_reads"],
       "segments": [
-        {"segment": 4, "gene": "HA", "state": "low", "reference": "NC_004908.1", "length": 1714, "mean_depth": 7.1, "median_depth": 7, "covered": 0.9936, "well_covered": 0.0000, "internal": 0.1639, "deletion": 0.0000, "minus_strand": 0.2266, "complete_amplicons": 9, "short_complete": 4}
+        {"segment": 4, "gene": "HA", "state": "low", "reference": "NC_004908.1", "length": 1714, "mean_depth": 7.1, "median_depth": 7, "median_full_depth": 6, "covered": 0.9936, "well_covered": 0.0000, "internal": 0.1639, "deletion": 0.0000, "minus_strand": 0.2266, "complete_amplicons": 9, "short_complete": 4}
       ]
     },
     "primers": {
@@ -166,7 +166,7 @@ reads	NC_004908.1	1700	5
         "ends_not_located": 0.0952,
         "flags": ["few_reads"],
         "segments": [
-          {"segment": 4, "gene": "HA", "state": "low", "reference": "NC_004908.1", "length": 1714, "mean_depth": 7.1, "median_depth": 7, "covered": 0.9936, "well_covered": 0.0000, "internal": 0.1639, "deletion": 0.0000, "minus_strand": 0.2266, "complete_amplicons": 9, "short_complete": 4}
+          {"segment": 4, "gene": "HA", "state": "low", "reference": "NC_004908.1", "length": 1714, "mean_depth": 7.1, "median_depth": 7, "median_full_depth": 6, "covered": 0.9936, "well_covered": 0.0000, "internal": 0.1639, "deletion": 0.0000, "minus_strand": 0.2266, "complete_amplicons": 9, "short_complete": 4}
         ]
       },
       "primers": {

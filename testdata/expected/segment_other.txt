@@ -108,7 +108,7 @@ reads	not_located	1700	5
       "ends_not_located": 0.9048,
       "flags": ["few_reads", "not_located"],
       "segments": [
-        {"segment": 3, "gene": "PA", "state": "low", "reference": "QB023392.1", "length": 2224, "mean_depth": 0.0, "median_depth": 0, "covered": 0.0090, "well_covered": 0.0000, "internal": 1.0000, "deletion": 0.0000, "minus_strand": 0.0000, "complete_amplicons": 1, "short_complete": 1}
+        {"segment": 3, "gene": "PA", "state": "low", "reference": "QB023392.1", "length": 2224, "mean_depth": 0.0, "median_depth": 0, "median_full_depth": 0, "covered": 0.0090, "well_covered": 0.0000, "internal": 1.0000, "deletion": 0.0000, "minus_strand": 0.0000, "complete_amplicons": 1, "short_complete": 1}
       ]
     },
     "primers": {
@@ -166,7 +166,7 @@ reads	not_located	1700	5
         "ends_not_located": 0.9048,
         "flags": ["few_reads", "not_located"],
         "segments": [
-          {"segment": 3, "gene": "PA", "state": "low", "reference": "QB023392.1", "length": 2224, "mean_depth": 0.0, "median_depth": 0, "covered": 0.0090, "well_covered": 0.0000, "internal": 1.0000, "deletion": 0.0000, "minus_strand": 0.0000, "complete_amplicons": 1, "short_complete": 1}
+          {"segment": 3, "gene": "PA", "state": "low", "reference": "QB023392.1", "length": 2224, "mean_depth": 0.0, "median_depth": 0, "median_full_depth": 0, "covered": 0.0090, "well_covered": 0.0000, "internal": 1.0000, "deletion": 0.0000, "minus_strand": 0.0000, "complete_amplicons": 1, "short_complete": 1}
         ]
       },
       "primers": {
