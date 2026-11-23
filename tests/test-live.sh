@@ -119,7 +119,8 @@ rm -rf $TMP/dir
 $FLUCUT -o $TMP/dir $RUN 2> /dev/null
 compare $TMP/out $TMP/dir
 for g in barcode01 barcode02; do
-  [ -s $TMP/out/$g.flucut-files ] && [ -s $TMP/out/$g.flucut-counts ] || \
+  [ -s $TMP/out/.flucut-state/$g.flucut-files ] && \
+    [ -s $TMP/out/.flucut-state/$g.flucut-counts ] || \
     fail "resume: state files of $g missing"
 done
 [ -z "$(find $TMP/out -name '*.tmp')" ] || \

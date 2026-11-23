@@ -236,9 +236,8 @@ static void trim_groups(const options_t *opts, trimmer_config_t *config,
   }
   results_write(opts->outdir, results, n_groups, total, refs, report,
                 false, logger);
-  /* the run is complete: the states of the groups are no longer needed */
-  for (size_t i = 0; i < n_groups; i++)
-    group_state_remove(opts->outdir, groups[i].name, logger);
+  /* (the states of the groups are kept: --resume on a complete run only
+     writes the reports again) */
   for (size_t i = 0; i < n_groups; i++)
     counter_delete((counter_t *)results[i].counts);
   free(results);

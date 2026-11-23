@@ -85,10 +85,10 @@ Resuming
 --------
 
 The list of the files trimmed for each sample and its counts are saved
-in the output directory (``<sample>.flucut-files``,
-``<sample>.flucut-counts``) after each file. With ``--resume``, a live
-run started again with the same output directory skips the files
-already trimmed, and continues the outputs and the counts: e.g. after a
+in the output directory (``.flucut-state/<sample>.flucut-files``,
+``.flucut-state/<sample>.flucut-counts``) after each file. With
+``--resume``, a live run started again with the same output directory
+skips the files already trimmed, and continues the outputs and the counts: e.g. after a
 restart of the computer. Without ``--resume``, the outputs of each
 sample are written again from the beginning.
 

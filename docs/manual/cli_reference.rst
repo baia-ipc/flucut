@@ -212,7 +212,9 @@ Other options
    Continue an interrupted run with the same output directory. In a
    normal run, the samples already trimmed completely are skipped
    (their outputs and counts are kept) and the others are trimmed from
-   the beginning; in the live mode, the files already trimmed are
+   the beginning; when all are complete, only the tables and reports are
+   written again. The state of each sample is kept in
+   ``outdir/.flucut-state/``; in the live mode, the files already trimmed are
    skipped and the outputs and counts of each sample are continued
    (:doc:`live`). Run it with the same inputs and options as the
    interrupted run.

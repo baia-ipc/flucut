@@ -14,15 +14,20 @@
 /* the path of a state file of a group (to be freed by the caller) */
 static char* state_path(const char *outdir, const char *group,
     const char *sfx) {
+  char *dir = path_join(outdir, GROUP_STATE_DIR);
   char *name = strcat_alloc(group, sfx);
-  char *path = path_join(outdir, name);
+  char *path = path_join(dir, name);
   free(name);
+  free(dir);
   return path;
 }
 
 void group_state_save(const char *outdir, const char *group,
     const counter_t *counts, char *const *files, size_t n_files,
     Logger *logger) {
+  char *dir = path_join(outdir, GROUP_STATE_DIR);
+  xmakedirs(dir, logger);
+  free(dir);
   char *path = state_path(outdir, group, GROUP_COUNTS_SFX);
   FILE *f = xfopen(path, REPORT_TMP_SFX, "w", "state file", logger);
   counter_save(counts, f);

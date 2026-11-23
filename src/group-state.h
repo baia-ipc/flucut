@@ -1,10 +1,10 @@
 /* (c) 2026 Giorgio Gonnella */
 
 /*
-   The state of a group (a sample) in the output directory, so that an
-   interrupted run can be continued (--resume): the counts of the reads
-   processed (<group>GROUP_COUNTS_SFX) and the list of the input files
-   processed (<group>GROUP_FILES_SFX).
+   The state of a group (a sample), in the subdirectory GROUP_STATE_DIR
+   of the output directory, so that a run can be continued (--resume):
+   the counts of the reads processed (<group>GROUP_COUNTS_SFX) and the
+   list of the input files processed (<group>GROUP_FILES_SFX).
 
    Each file is written to a temporary file and then renamed, so that an
    interruption while writing it does not leave it incomplete. The list
@@ -14,8 +14,8 @@
    its counts missing.
 
    In the live mode (live.h) the list grows file by file. Otherwise it is
-   written once a group is complete, and the state files are removed at
-   the end of the run.
+   written once a group is complete, and kept after the end of the run:
+   --resume on a complete run then only writes the reports again.
 */
 
 #ifndef GROUP_STATE_H
@@ -26,11 +26,12 @@
 #include "counter.h"
 #include "logger.h"
 
+#define GROUP_STATE_DIR ".flucut-state"
 #define GROUP_FILES_SFX ".flucut-files"
 #define GROUP_COUNTS_SFX ".flucut-counts"
 
 /* Save the counts of the group <group> of <outdir>, then the list of its
-   <n_files> processed <files> */
+   <n_files> processed <files> (GROUP_STATE_DIR is created if needed) */
 void group_state_save(const char *outdir, const char *group,
     const counter_t *counts, char *const *files, size_t n_files,
     Logger *logger);
