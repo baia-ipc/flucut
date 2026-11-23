@@ -9,101 +9,36 @@
 #include "json-coverage.h"
 #include "json-reads.h"
 #include "json-report.h"
-#include "qc-flags.h"
+#include "json-sample.h"
+#include "json-writer.h"
 #include "qc-summary.h"
 #include "segments.h"
 #include "strutils.h"
 
-/*
-   The summary is written as nested objects and arrays (blocks) with one
-   member on each line, indented by the nesting level; the values of the
-   members are written on their line (lists on one line: see sep()). The
-   writer keeps, for each open block, whether it has a member yet, for
-   the commas between the members.
-*/
-#define MAX_NESTING 8
-
-typedef struct {
-  FILE *f;
-  int level;  /* number of open blocks */
-  bool empty[MAX_NESTING];
-} json_writer_t;
-
-static void indent(FILE *f, int level) {
-  for (int i = 0; i < level; i++)
-    fputs("  ", f);
-}
-
-/* open a block: <c> is { or [ */
-static void open_block(json_writer_t *w, char c) {
-  assert(w->level < MAX_NESTING);
-  fputc(c, w->f);
-  w->empty[w->level++] = true;
-}
-
-/* start a member of the open block: on a new line (after a comma, unless
-   the first); with "<k>": (k != NULL: object) */
-static void member(json_writer_t *w, const char *k) {
-  assert(w->level > 0);
-  fputs(w->empty[w->level - 1] ? "\n" : ",\n", w->f);
-  w->empty[w->level - 1] = false;
-  indent(w->f, w->level);
-  if (k != NULL) {
-    fputs_json_string(k, w->f);
-    fputs(": ", w->f);
-  }
-}
-
-/* close the open block: <c> is } or ]; on a new line, or, if empty and
-   <compact>, as {} or [] */
-static void close_block(json_writer_t *w, char c, bool compact) {
-  assert(w->level > 0);
-  w->level--;
-  if (!w->empty[w->level] || !compact) {
-    fputc('\n', w->f);
-    indent(w->f, w->level);
-  }
-  fputc(c, w->f);
-}
-
-/* the separator of the elements of a list on one line (none before the
-   first: <first>, then set to false) */
-static void sep(FILE *f, bool *first) {
-  if (!*first)
-    fputs(", ", f);
-  *first = false;
-}
-
-/* a member with a count */
-static void count_member(json_writer_t *w, const char *k, size_t n) {
-  member(w, k);
-  fprintf(w->f, "%zu", n);
-}
-
 static void write_reads(json_writer_t *w, const counter_reads_t *s) {
-  member(w, "reads");
-  open_block(w, '{');
-  count_member(w, "in", s->reads_in);
-  count_member(w, "bases_in", s->bases_in);
-  count_member(w, "written", s->reads_out);
-  count_member(w, "bases_written", s->bases_out);
-  count_member(w, "both_primers", s->n_ends[2]);
-  count_member(w, "one_primer", s->n_ends[1]);
-  count_member(w, "no_primer", s->n_ends[0]);
-  count_member(w, "dimers", s->dimers);
-  count_member(w, "too_short", s->too_short);
-  count_member(w, "minus_strand", s->minus);
-  count_member(w, "with_internal_match", s->with_internal);
-  count_member(w, "split", s->split);
-  count_member(w, "adapter_start", s->adapter_start);
-  count_member(w, "adapter_end", s->adapter_end);
-  close_block(w, '}', false);
+  json_member(w, "reads");
+  json_open_block(w, '{');
+  json_count_member(w, "in", s->reads_in);
+  json_count_member(w, "bases_in", s->bases_in);
+  json_count_member(w, "written", s->reads_out);
+  json_count_member(w, "bases_written", s->bases_out);
+  json_count_member(w, "both_primers", s->n_ends[2]);
+  json_count_member(w, "one_primer", s->n_ends[1]);
+  json_count_member(w, "no_primer", s->n_ends[0]);
+  json_count_member(w, "dimers", s->dimers);
+  json_count_member(w, "too_short", s->too_short);
+  json_count_member(w, "minus_strand", s->minus);
+  json_count_member(w, "with_internal_match", s->with_internal);
+  json_count_member(w, "split", s->split);
+  json_count_member(w, "adapter_start", s->adapter_start);
+  json_count_member(w, "adapter_end", s->adapter_end);
+  json_close_block(w, '}', false);
 }
 
 /* the reads written, by category (null without references) */
 static void write_categories(json_writer_t *w, const report_t *r,
     const counter_reads_t *s) {
-  member(w, "written_by_category");
+  json_member(w, "written_by_category");
   if (r->references == NULL) {
     fputs("null", w->f);
     return;
@@ -111,7 +46,7 @@ static void write_categories(json_writer_t *w, const report_t *r,
   fputc('{', w->f);
   bool first = true;
   for (size_t k = 0; k < READ_N_CATEGORIES; k++) {
-    sep(w->f, &first);
+    json_sep(w->f, &first);
     fprintf(w->f, "\"%s\": %zu", read_category_name(k), s->written[k]);
   }
   fputc('}', w->f);
@@ -120,22 +55,22 @@ static void write_categories(json_writer_t *w, const report_t *r,
 /* the primers found at each end, by primer of the scheme */
 static void write_primers(json_writer_t *w, const report_t *r,
     const counter_t *c) {
-  member(w, "primers");
-  open_block(w, '{');
+  json_member(w, "primers");
+  json_open_block(w, '{');
   for (size_t e = 0; e < COUNTER_N_ENDS; e++) {
     const primer_t *p = e == COUNTER_LEFT ? r->scheme->left :
                         r->scheme->right;
-    member(w, report_end_name(e));
+    json_member(w, report_end_name(e));
     fputc('{', w->f);
     bool first = true;
     for (size_t v = 0; v < counter_n_variants(c, e); v++) {
-      sep(w->f, &first);
+      json_sep(w->f, &first);
       fputs_json_string(p[v].name, w->f);
       fprintf(w->f, ": %zu", counter_primer(c, e, v));
     }
     fputc('}', w->f);
   }
-  close_block(w, '}', false);
+  json_close_block(w, '}', false);
 }
 
 /* the read ends by origin and the internal priming sites (null without
@@ -143,38 +78,38 @@ static void write_primers(json_writer_t *w, const report_t *r,
 static void write_internal(json_writer_t *w, const report_t *r,
     const counter_t *c) {
   FILE *f = w->f;
-  member(w, "ends");
+  json_member(w, "ends");
   if (r->references == NULL)
     fputs("null", f);
   else {
     const counter_reads_t *s = counter_reads(c);
-    open_block(w, '{');
+    json_open_block(w, '{');
     for (size_t e = 0; e < COUNTER_N_ENDS; e++) {
-      member(w, report_end_name(e));
+      json_member(w, report_end_name(e));
       fprintf(f, "{\"terminal\": %zu, \"internal\": %zu, \"unknown\": "
               "%zu}", s->origin[e][ORIGIN_TERMINAL],
               s->origin[e][ORIGIN_INTERNAL], s->origin[e][ORIGIN_UNKNOWN]);
     }
-    close_block(w, '}', false);
+    json_close_block(w, '}', false);
   }
-  member(w, "internal_sites");
+  json_member(w, "internal_sites");
   if (r->references == NULL) {
     fputs("null", f);
     return;
   }
   size_t n;
   report_site_t *sites = report_sites(r->references, c, &n);
-  open_block(w, '[');
+  json_open_block(w, '[');
   for (size_t i = 0; i < n && i < JSON_MAX_SITES; i++) {
     const report_site_t *x = sites + i;
-    member(w, NULL);
+    json_member(w, NULL);
     fputs("{\"reference\": ", f);
     fputs_json_string(r->references->records[x->ref].name, f);
     fprintf(f, ", \"end\": \"%s\", \"position\": %zu, \"from\": %zu, "
             "\"to\": %zu, \"reads\": %zu}", report_end_name(x->end),
             x->pos, x->from, x->to, x->reads);
   }
-  close_block(w, ']', true);
+  json_close_block(w, ']', true);
   free(sites);
 }
 
@@ -191,20 +126,20 @@ static void write_lengths(json_writer_t *w, const report_t *r,
     const counter_t *c) {
   FILE *f = w->f;
   const lengths_t *l = counter_lengths(c);
-  member(w, "short_complete");
+  json_member(w, "short_complete");
   if (r->references == NULL)
     fputs("null", f);
   else
     fprintf(f, "%zu", report_short_complete(r->references, c));
-  member(w, "complete_amplicons");
-  open_block(w, '[');
+  json_member(w, "complete_amplicons");
+  json_open_block(w, '[');
   for (size_t g = 0; g < lengths_n_groups(l); g++) {
     report_lengths_t x;
     report_lengths(r->references, c, g, &x);
     if (x.summary.total == 0)
       continue;
     bool ref = x.ref_len > 0;
-    member(w, NULL);
+    json_member(w, NULL);
     fputs("{\"group\": ", f);
     fputs_json_string(x.name, f);
     fputs(", \"reference_length\": ", f);
@@ -229,84 +164,12 @@ static void write_lengths(json_writer_t *w, const report_t *r,
     fputs(", \"histogram\": [", f);
     bool first = true;
     for (size_t b = 0; b < last; b++) {
-      sep(f, &first);
+      json_sep(f, &first);
       fprintf(f, "%zu", lengths_count(l, g, b));
     }
     fputs("]}", f);
   }
-  close_block(w, ']', true);
-}
-
-/* a share (a fraction of 1) */
-static void share_member(json_writer_t *w, const char *k, double share) {
-  member(w, k);
-  fprintf(w->f, "%.4f", share);
-}
-
-/* the sample itself (null without references): its state, its subtype,
-   what deserves attention in it and its segments (qc-summary.h,
-   qc-flags.h) */
-static void write_sample(json_writer_t *w, const report_t *r,
-    const counter_t *c) {
-  static const char *const states[] = {
-    "complete", "partial", "incomplete", "few_reads", "not_located"};
-  static const char *const segment_states[] = {
-    "missing", "low", "partial", "complete"};
-  FILE *f = w->f;
-  member(w, "sample");
-  if (r->references == NULL) {
-    fputs("null", f);
-    return;
-  }
-  qc_summary_t qc;
-  qc_flags_t flags;
-  qc_summary(r->references, c, r->options->segment, &qc);
-  qc_flags(counter_reads(c), &qc, true, &flags);
-  open_block(w, '{');
-  member(w, "state");
-  fprintf(f, "\"%s\"", states[qc.status]);
-  member(w, "subtype");
-  if (qc.subtype[0] != '\0')
-    fputs_json_string(qc.subtype, f);
-  else
-    fputs("null", f);
-  count_member(w, "segments_expected", qc.n_expected);
-  count_member(w, "segments_found", qc.n_found);
-  count_member(w, "segments_complete", qc.n_complete);
-  share_member(w, "ends_not_located", qc.not_located);
-  member(w, "flags");
-  fputc('[', f);
-  bool first = true;
-  for (size_t i = 0; i < flags.n; i++) {
-    sep(f, &first);
-    fprintf(f, "\"%s\"", flags.flags[i].key);
-  }
-  fputc(']', f);
-  member(w, "segments");
-  open_block(w, '[');
-  for (int s = 1; s <= SEGMENTS_N; s++) {
-    const qc_segment_t *q = qc.segments + s;
-    if (!qc_expects(&qc, s))
-      continue;
-    member(w, NULL);
-    fprintf(f, "{\"segment\": %d, \"gene\": \"%s\", \"state\": \"%s\"", s,
-            segments_gene(s), segment_states[q->status]);
-    if (q->found) {
-      fputs(", \"reference\": ", f);
-      fputs_json_string(r->references->records[q->ref].name, f);
-      fprintf(f, ", \"length\": %zu, \"mean_depth\": %.1f, "
-              "\"median_depth\": %zu, \"covered\": %.4f, "
-              "\"well_covered\": %.4f, \"internal\": %.4f, "
-              "\"deletion\": %.4f, \"minus_strand\": %.4f, "
-              "\"complete_amplicons\": %zu, \"short_complete\": %zu",
-              q->ref_len, q->mean_depth, q->median_depth, q->covered,
-              q->well_covered, q->internal, q->deletion, q->minus,
-              q->complete, q->short_complete);
-    }
-    fputc('}', f);
-  }
-  close_block(w, ']', true);
-  close_block(w, '}', false);
+  json_close_block(w, ']', true);
 }
 
 /* the statistics of a counter, as members of the open object */
@@ -314,34 +177,34 @@ static void write_section(json_writer_t *w, const report_t *r,
     const counter_t *c) {
   write_reads(w, counter_reads(c));
   write_categories(w, r, counter_reads(c));
-  member(w, "read_lengths");
+  json_member(w, "read_lengths");
   json_reads_lengths(w->f, c);
-  member(w, "read_quality");
+  json_member(w, "read_quality");
   json_reads_quality(w->f, c);
-  member(w, "sequencing");
+  json_member(w, "sequencing");
   json_reads_sequencing(w->f, c);
-  write_sample(w, r, c);
+  json_sample_write(w, r, c);
   write_primers(w, r, c);
   write_internal(w, r, c);
   write_lengths(w, r, c);
-  member(w, "coverage");
+  json_member(w, "coverage");
   if (r->references == NULL) {
     fputs("null", w->f);
     return;
   }
-  open_block(w, '[');
+  json_open_block(w, '[');
   for (size_t g = 0; g < r->references->n_records; g++)
     if (json_coverage_has(c, g)) {
-      member(w, NULL);
+      json_member(w, NULL);
       json_coverage_write(w->f, r->references, c, g);
     }
-  close_block(w, ']', true);
+  json_close_block(w, ']', true);
 }
 
 /* a member whose value is a segment (1 to 8), or null if 0 (all) */
 static void segment_member(json_writer_t *w, const char *name,
     int segment) {
-  member(w, name);
+  json_member(w, name);
   if (segment == 0)
     fputs("null", w->f);
   else
@@ -352,37 +215,37 @@ static void segment_member(json_writer_t *w, const char *name,
 static void write_parameters(json_writer_t *w, const report_t *r) {
   FILE *f = w->f;
   const options_t *o = r->options;
-  member(w, "scheme");
-  open_block(w, '{');
-  member(w, "name");
+  json_member(w, "scheme");
+  json_open_block(w, '{');
+  json_member(w, "name");
   fputs_json_string(r->scheme->name, f);
   for (size_t e = 0; e < COUNTER_N_ENDS; e++) {
     const primer_t *p = e == COUNTER_LEFT ? r->scheme->left :
                         r->scheme->right;
     size_t n = e == COUNTER_LEFT ? r->scheme->n_left : r->scheme->n_right;
-    member(w, report_end_name(e));
+    json_member(w, report_end_name(e));
     fputc('[', f);
     bool first = true;
     for (size_t v = 0; v < n; v++) {
-      sep(f, &first);
+      json_sep(f, &first);
       fputs_json_string(p[v].name, f);
     }
     fputc(']', f);
   }
-  close_block(w, '}', false);
-  member(w, "trim_policy");
+  json_close_block(w, '}', false);
+  json_member(w, "trim_policy");
   fputs(o->policy == TRIM_PRIMER ? "\"primer\"" : "\"terminus\"", f);
-  member(w, "references");
+  json_member(w, "references");
   if (r->references == NULL)
     fputs("null", f);
   else {
-    open_block(w, '{');
-    member(w, "file");
+    json_open_block(w, '{');
+    json_member(w, "file");
     fputs_json_string(o->references, f);
-    member(w, "sequences");
-    open_block(w, '[');
+    json_member(w, "sequences");
+    json_open_block(w, '[');
     for (size_t i = 0; i < r->references->n_records; i++) {
-      member(w, NULL);
+      json_member(w, NULL);
       fputs("{\"name\": ", f);
       fputs_json_string(r->references->records[i].name, f);
       int segment = segments_of_description(
@@ -395,12 +258,12 @@ static void write_parameters(json_writer_t *w, const report_t *r) {
         fprintf(f, "%d, \"gene\": \"%s\"}", segment,
                 segments_gene(segment));
     }
-    close_block(w, ']', false);
-    close_block(w, '}', false);
+    json_close_block(w, ']', false);
+    json_close_block(w, '}', false);
   }
-  member(w, "settings");
-  open_block(w, '{');
-  member(w, "max_errors");
+  json_member(w, "settings");
+  json_open_block(w, '{');
+  json_member(w, "max_errors");
   const report_setting_t *s = r->max_errors;
   if (s == NULL || !s->automatic)
     fprintf(f, "{\"mode\": \"fixed\", \"value\": %g}",
@@ -415,37 +278,37 @@ static void write_parameters(json_writer_t *w, const report_t *r) {
     fputs_json_string(s->file, f);
     fputc('}', f);
   }
-  member(w, "platform");
+  json_member(w, "platform");
   fputs(o->illumina ? "\"illumina\"" : "\"nanopore\"", f);
-  count_member(w, "window", (size_t)o->window);
-  count_member(w, "min_length", o->min_length);
-  count_member(w, "probe_length", o->probe_len);
-  member(w, "probe_errors");
+  json_count_member(w, "window", (size_t)o->window);
+  json_count_member(w, "min_length", o->min_length);
+  json_count_member(w, "probe_length", o->probe_len);
+  json_member(w, "probe_errors");
   fprintf(f, "%g", o->probe_error_rate);
-  count_member(w, "terminal_window", (size_t)o->terminal_window);
-  member(w, "exhaustive_search");
+  json_count_member(w, "terminal_window", (size_t)o->terminal_window);
+  json_member(w, "exhaustive_search");
   fputs(o->exhaustive_search ? "true" : "false", f);
   segment_member(w, "segment", o->segment);
   segment_member(w, "report_segment", o->report_segment);
-  member(w, "tags");
+  json_member(w, "tags");
   fputs(o->tags ? "true" : "false", f);
-  member(w, "split");
+  json_member(w, "split");
   fputs(o->split ? "true" : "false", f);
-  member(w, "by_category");
+  json_member(w, "by_category");
   fputs(o->by_category ? "true" : "false", f);
-  count_member(w, "threads", o->threads);
-  count_member(w, "compress_level", (size_t)o->compress_level);
-  close_block(w, '}', false);
+  json_count_member(w, "threads", o->threads);
+  json_count_member(w, "compress_level", (size_t)o->compress_level);
+  json_close_block(w, '}', false);
 }
 
 static void write_summary(json_writer_t *w, const report_t *r) {
   FILE *f = w->f;
-  open_block(w, '{');
-  member(w, "format");
+  json_open_block(w, '{');
+  json_member(w, "format");
   fprintf(f, "%d", JSON_SUMMARY_FORMAT);
-  member(w, "program");
+  json_member(w, "program");
   fputs("\"flucut\"", f);
-  member(w, "version");
+  json_member(w, "version");
   fputs_json_string(r->version, f);
   time_t now = time(NULL);
   struct tm tm;
@@ -453,44 +316,44 @@ static void write_summary(json_writer_t *w, const report_t *r) {
   if (localtime_r(&now, &tm) == NULL ||
       strftime(date, sizeof(date), "%Y-%m-%dT%H:%M:%S%z", &tm) == 0)
     date[0] = '\0';
-  member(w, "updated");
+  json_member(w, "updated");
   fputs_json_string(date, f);
-  member(w, "running");
+  json_member(w, "running");
   fputs(r->running ? "true" : "false", f);
-  member(w, "command");
+  json_member(w, "command");
   fputs_json_string(r->command_line, f);
   write_parameters(w, r);
-  member(w, "length_bin");
+  json_member(w, "length_bin");
   fprintf(f, "%d", LENGTHS_BIN);
-  member(w, "length_max");
+  json_member(w, "length_max");
   fprintf(f, "%d", LENGTHS_MAX);
-  member(w, "short_fraction");
+  json_member(w, "short_fraction");
   fprintf(f, "%g", LENGTHS_SHORT_FRACTION);
-  member(w, "min_depth");
+  json_member(w, "min_depth");
   fprintf(f, "%d", QC_MIN_DEPTH);
-  member(w, "complete_fraction");
+  json_member(w, "complete_fraction");
   fprintf(f, "%g", QC_COMPLETE_FRACTION);
-  member(w, "all");
-  open_block(w, '{');
+  json_member(w, "all");
+  json_open_block(w, '{');
   write_section(w, r, r->total);
-  close_block(w, '}', false);
-  member(w, "groups");
-  open_block(w, '[');
+  json_close_block(w, '}', false);
+  json_member(w, "groups");
+  json_open_block(w, '[');
   for (size_t i = 0; i < r->n_sections; i++) {
     const report_section_t *g = r->sections + i;
-    member(w, NULL);
-    open_block(w, '{');
-    member(w, "name");
+    json_member(w, NULL);
+    json_open_block(w, '{');
+    json_member(w, "name");
     fputs_json_string(g->name, f);
-    count_member(w, "files", g->n_files);
-    member(w, "processed");
+    json_count_member(w, "files", g->n_files);
+    json_member(w, "processed");
     fputs(g->counts != NULL ? "true" : "false", f);
     if (g->counts != NULL)
       write_section(w, r, g->counts);
-    close_block(w, '}', false);
+    json_close_block(w, '}', false);
   }
-  close_block(w, ']', true);
-  close_block(w, '}', false);
+  json_close_block(w, ']', true);
+  json_close_block(w, '}', false);
   fputc('\n', f);
 }
 
