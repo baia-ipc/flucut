@@ -381,6 +381,11 @@ static void write_table(html_writer_t *w, const report_t *r) {
   markup_swatch(w, "t-ok", "complete");
   markup_swatch(w, "t-warn", "partial");
   markup_swatch(w, "t-bad", "low depth or not found");
+  char na[128];
+  snprintf(na, sizeof(na), "not judged (fewer than %s reads, read ends "
+           "mostly not located, or still being sequenced)",
+           html_num(QC_FEW_READS).s);
+  markup_swatch(w, "t-na", na);
   html_text(w, "Reads by origin: ");
   markup_swatch(w, "c-full", "full template");
   markup_swatch(w, "c-int", "internally primed");
