@@ -32,11 +32,11 @@ Contents
   - [A10. Location of a probe in the references](#a10-location-of-a-probe-in-the-references)
   - [A11. Computation of the part to keep](#a11-computation-of-the-part-to-keep)
   - [A12. Removal of adapters and second analysis](#a12-removal-of-adapters-and-second-analysis)
-  - [A13. Location of reads and ends without a located probe](#a13-location-of-reads-and-ends-without-a-located-probe)
+  - [A13. Location of reads and ends whose probe was not located](#a13-location-of-reads-and-ends-whose-probe-was-not-located)
   - [A14. Location of the junction of an internal deletion](#a14-location-of-the-junction-of-an-internal-deletion)
   - [A15. Clustering of internal priming sites](#a15-clustering-of-internal-priming-sites)
-  - [A16. Histogram of complete-amplicon lengths](#a16-histogram-of-complete-amplicon-lengths)
-  - [A17. Construction of the coverage by read origin](#a17-construction-of-the-coverage-by-read-origin)
+  - [A16. Histogram of the lengths of complete amplicons](#a16-histogram-of-the-lengths-of-complete-amplicons)
+  - [A17. Construction of the coverage profiles by read origin](#a17-construction-of-the-coverage-profiles-by-read-origin)
 - **B. Checking flucut against full alignments (`flucut-posthoc`)**
   - [B1. Analysis of a sample](#b1-analysis-of-a-sample)
   - [B2. Choice and adaptation of the references](#b2-choice-and-adaptation-of-the-references)
@@ -45,24 +45,23 @@ Contents
   - [B5. Construction of amplicons from alignments](#b5-construction-of-amplicons-from-alignments)
   - [B6. Classification of reads that do not map](#b6-classification-of-reads-that-do-not-map)
   - [B7. Comparison of flucut with the mapping, read by read](#b7-comparison-of-flucut-with-the-mapping-read-by-read)
-  - [B8. Comparison of sites, lengths and coverage](#b8-comparison-of-sites-lengths-and-coverage)
+  - [B8. Comparison of sites, lengths and coverage profiles](#b8-comparison-of-sites-lengths-and-coverage-profiles)
   - [B9. Comparison of IRMA with the mapping](#b9-comparison-of-irma-with-the-mapping)
 - **C. Benchmark**
-  - [C1. Simulation of reads with a known origin of every base](#c1-simulation-of-reads-with-a-known-origin-of-every-base)
-  - [C2. Scoring of trimmed reads against the truth](#c2-scoring-of-trimmed-reads-against-the-truth)
-  - [C3. Comparison of a consensus with the truth](#c3-comparison-of-a-consensus-with-the-truth)
-  - [C4. Test at low depth](#c4-test-at-low-depth)
-  - [C5. Count of the codon in real reads, by read start](#c5-count-of-the-codon-in-real-reads-by-read-start)
-  - [C6. Comparison of the consensus from trimmed and untrimmed reads](#c6-comparison-of-the-consensus-from-trimmed-and-untrimmed-reads)
-  - [C7. Scan of database records and raw reads for the artefact](#c7-scan-of-database-records-and-raw-reads-for-the-artefact)
-  - [C8. Summary of the results](#c8-summary-of-the-results)
+  - [C1. Simulation of reads in which the origin of every base is known](#c1-simulation-of-reads-in-which-the-origin-of-every-base-is-known)
+  - [C2. Evaluation of trimmed reads by the known origin of their bases](#c2-evaluation-of-trimmed-reads-by-the-known-origin-of-their-bases)
+  - [C3. Comparison of a consensus with the true sequence](#c3-comparison-of-a-consensus-with-the-true-sequence)
+  - [C4. Effect of the artefact at low sequencing depth](#c4-effect-of-the-artefact-at-low-sequencing-depth)
+  - [C5. Codon at the internal priming site in real reads, by read start position](#c5-codon-at-the-internal-priming-site-in-real-reads-by-read-start-position)
+  - [C6. Comparison of the consensus sequences from trimmed and untrimmed reads](#c6-comparison-of-the-consensus-sequences-from-trimmed-and-untrimmed-reads)
+  - [C7. Search for the artefact in database records and raw reads](#c7-search-for-the-artefact-in-database-records-and-raw-reads)
 - **D. Appendix: secondary procedures**
-  - [D1. Counters of a readset](#d1-counters-of-a-readset)
-  - [D2. Choice between two candidates](#d2-choice-between-two-candidates)
-  - [D3. Distance of a reference hit from its terminus](#d3-distance-of-a-reference-hit-from-its-terminus)
-  - [D4. Outputs of a readset](#d4-outputs-of-a-readset)
-  - [D5. Helpers of the coverage](#d5-helpers-of-the-coverage)
-  - [D6. K-mer index of the references](#d6-k-mer-index-of-the-references)
+  - [D1. K-mer index of the references](#d1-k-mer-index-of-the-references)
+  - [D2. Counters of a readset](#d2-counters-of-a-readset)
+  - [D3. Outputs of a readset](#d3-outputs-of-a-readset)
+  - [D4. Choice between two candidates](#d4-choice-between-two-candidates)
+  - [D5. Distance of a reference hit from its terminus](#d5-distance-of-a-reference-hit-from-its-terminus)
+  - [D6. Helpers of the coverage analysis](#d6-helpers-of-the-coverage-analysis)
 - **E. Parameters and limits**
   - [E1. Parameters and constants](#e1-parameters-and-constants)
   - [E2. Assumptions and limits](#e2-assumptions-and-limits)
@@ -154,8 +153,8 @@ The case that motivated the method: in H5N1 HA, a Uni12-like site lies
 in the fusion peptide. The template codon `ATA` (Ile) is read as the
 `AAA` (Lys) of the primer; the motif `GLFGAIA` becomes `GLFGAKA`. Of 787
 H5N1 HA sequences of the Virology Unit of the Institut Pasteur du
-Cambodge, 140 carried the false form; of the H5N1 HA records of GenBank, 109 have `AAA` there
-(29,777 have `ATA`).
+Cambodge, 140 carried the false form; of the H5N1 HA records of GenBank,
+109 have `AAA` there (29,777 have `ATA`).
 
 ![An amplicon primed at the termini and an internally primed amplicon](figures/amplicons.svg)
 
@@ -270,12 +269,13 @@ procedure assigns (often a length or a list of matches).
 
 `FIND(p, s, k)`, `FIND_ALL(p, s, k)` and `EDIT` use the bit-parallel
 algorithm of Myers (edlib; for `FIND_ALL` and the probes of A10, one
-machine word per pattern of up to 64 bases): `FIND` and `FIND_ALL` take *O*(⌈*length(p)*/*w*⌉ · *length(s)*) time and
-*O*(*length(p)* + *length(s)*) memory, so a primer or a probe is searched
-in time linear in the text. *W* and *P* are options of a run; they are kept in the bounds to show
-where the time goes. The primer scheme is fixed: 2 or 3 primers, each
-of at most 23 bases, searched one after the other. Their number and
-length are treated as constants.
+machine word per pattern of up to 64 bases): `FIND` and `FIND_ALL` take
+*O*(⌈*length(p)*/*w*⌉ · *length(s)*) time and *O*(*length(p)* +
+*length(s)*) memory, so a primer or a probe is searched in time linear
+in the text. *W* and *P* are options of a run; they are kept in the
+bounds to show where the time goes. The primer scheme is fixed: 2 or 3
+primers, each of at most 23 bases, searched one after the other. Their
+number and length are treated as constants.
 
 ---
 
@@ -298,10 +298,10 @@ steps:
   inside the read (A13), and the junction of an internal deletion is
   searched (A14);
 - three summaries of a sample are built: the internal priming sites
-  (A15), the amplicon lengths (A16) and the coverage by read origin
-  (A17).
+  (A15), the amplicon lengths (A16) and the coverage profiles by read
+  origin (A17).
 
-Two searches carry the decisions: that of a primer at a read end, by
+The decisions rest on two searches: that of a primer at a read end, by
 alignment (A7), and that of a probe of 32 bases in the references,
 through a k-mer index (A10). Counters, tie-breaks, outputs and the index
 are in the appendix (part D).
@@ -338,12 +338,12 @@ FLUCUT_RUN(inputs)
     readsets = readset, one per input sample (file or directory)
     scheme = the left and right primers (option -s)
     refs = reference set (built-in, user-specified, or NIL)
- 1  // k-mer index of the references: [k-mer → reference, position], k = 10 (→ D6)
+ 1  // k-mer index of the references: [k-mer → reference, position], k = 10 (→ D1)
     index = BUILD_INDEX(refs) if refs ≠ NIL
  2  // calibrate error allowance from primers in beginning of first readset: (→ A2)
     e = ALLOWED_ERROR_PERCENT(first readset in readsets)
  3  for each rs in readsets
- 4      INIT_COUNTS(rs) // set all statistics of rs to zero (→ D1)
+ 4      INIT_COUNTS(rs) // set all statistics of rs to zero (→ D2)
  5      // for each segment, the ref closest to its reads (→ A3)
         allowed = CLOSEST_REFERENCES(first file of rs)
  6      for each read r of rs
@@ -365,10 +365,10 @@ FLUCUT_RUN(inputs)
                     a.junction = FIND_JUNCTION(part, a) if d − length(part[a.from:a.to]) > max(100, ⌊ d / 10 ⌋)
 15              // is enough left of the part to be written?
                 keep = a.to − a.from + 1 ≥ max(1, minimum length)
-16              UPDATE_COUNTS(rs, a, part, keep) // add a to the statistics of rs (→ D1)
-17              // trimmed FASTQ record with tags (→ D4)
+16              UPDATE_COUNTS(rs, a, part, keep) // add a to the statistics of rs (→ D2)
+17              // trimmed FASTQ record with tags (→ D3)
                 WRITE_RECORD(rs.out, part, a) if keep
-18      WRITE_REPORTS(rs) // tables and report from the statistics of rs (→ D4)
+18      WRITE_REPORTS(rs) // tables and report from the statistics of rs (→ D3)
 ```
 
 `x.pos` is the position of an end on the reference, from its probe or
@@ -378,7 +378,7 @@ checks that, and makes the comparison with the bases between the
 primers: the kept part can hold up to 13 terminus bases more at each
 end.
 
-The index (D6) is built once per run, over the references of all
+The index (D1) is built once per run, over the references of all
 subtypes (when there are references, i.e. not with `-r off`).
 
 A read is never reverse-complemented: all positions refer to the read as given.
@@ -463,8 +463,8 @@ Symbols:
 | &nbsp;&nbsp;&nbsp;– index | *O*(*m*) | ³ |  |  | *O*(*m*) | ³ |
 | &nbsp;&nbsp;&nbsp;– reads | *O*(*n* + *Nm* + *n* · *n*′<sub>max</sub>) | ⁴ | *O*(*n*) | ⁵ | one batch per thread | ⁶ |
 | &nbsp;&nbsp;&nbsp;– counts | *O*(*m* + *NM*) | ⁷ | *O*(*m* + *N*) |  | *O*(*m*) | ⁸ |
-| INIT_COUNTS (D1) | *Θ*(*m*) per readset |  |  |  | *Θ*(*m*) | ⁸ |
-| UPDATE_COUNTS (D1) | *O*(*M*) | ⁹ | *O*(1) |  | *O*(1) |  |
+| INIT_COUNTS (D2) | *Θ*(*m*) per readset |  |  |  | *Θ*(*m*) | ⁸ |
+| UPDATE_COUNTS (D2) | *O*(*M*) | ⁹ | *O*(1) |  | *O*(1) |  |
 
 - ¹ The sum of the three phases. The terms *m* (index) and *n* (primer
   searches) are absorbed by the two others.
@@ -482,19 +482,20 @@ Symbols:
 - ⁵ Probes are located through their seeds, and junctions bracketed by
   the bisection: what remains is linear in the bases read.
 - ⁶ 1000 reads per batch.
-- ⁷ INIT_COUNTS once, then UPDATE_COUNTS for each part of a read (D1).
+- ⁷ INIT_COUNTS once, then UPDATE_COUNTS for each part of a read (D2).
 - ⁸ Arrays over the reference positions: 2 for the sites, 2 for each of
   the 7 coverage categories.
 - ⁹ When COVER falls back on the reference lengths (A17).
 
 ## A2. Calibration of the error percentage allowed in primers
 
-How many errors to accept in a primer match depends on the error rate of
-the reads: with too few, primers are missed; with too many, template is
-taken for a primer. In the first 1000 reads (line 2) the primers are
-searched with a provisional limit of 20% (line 3), and the error rate of
-their alignments is computed, as errors per aligned base (lines 4–7). If
-the rate is 4% or more 30% is allowed, otherwise 20% (line 8).
+The number of errors accepted in a primer match has to fit the error
+rate of the reads: with too few, primers are missed; with too many,
+template is taken for a primer. In the first 1000 reads (line 2) the
+primers are searched with a provisional limit of 20% (line 3), and the
+error rate of their alignments is computed, as errors per aligned base
+(lines 4–7). If the rate is 4% or more 30% is allowed, otherwise 20%
+(line 8).
 
 > **Source:** `src/auto-settings.c`
 
@@ -727,8 +728,8 @@ the probe on the amplicon side of the match is located in a reference
 (lines 1–7) and that the probes on the other side, at three distances,
 are not continuous with it on that reference (lines 8–17). The cut is
 placed outside the whole primer, tail included (PRIMER_BOUND). The
-segments contain primer-like stretches, so every rule is made to avoid
-cutting a read that is one amplicon.
+segments contain primer-like stretches, so each rule is designed to
+avoid splitting a read that holds a single amplicon.
 
 > **Source:** `src/terminus-matches.c`, `src/chimera.c`
 
@@ -741,19 +742,6 @@ two forms).
 ![The two kinds of junction at which a read is split](figures/split.svg)
 
 *Figure: The two kinds of junction: a pair of matches, and a lone match at which the read stops following the reference.*
-
-```
-TERMINUS_MATCHES(read)
-   // every match of a terminus, at most 2 errors; of overlapping ones the best
-1  C = ∅
-2  for each pattern t, in order
-3      for each hp in FIND_ALL(t, read, min(MAX_ERRORS(t, e), 2))
-4          C = C ∪ {hp, with hp.kind = t.kind and hp.pattern = t}
-5  M = ⟨⟩
-6  for each c in C, by errors, then order of the pattern, then start
-7      append c to M if c overlaps no match of M and length(M) < 16
-8  return M sorted by start
-```
 
 ```
 SPLIT(read)
@@ -792,6 +780,19 @@ SPLIT(read)
 27      INC(i)
 28  append (begin, n) to parts
 29  return parts without its empty intervals
+```
+
+```
+TERMINUS_MATCHES(read)
+   // every match of a terminus, at most 2 errors; of overlapping ones the best
+1  C = ∅
+2  for each pattern t, in order
+3      for each hp in FIND_ALL(t, read, min(MAX_ERRORS(t, e), 2))
+4          C = C ∪ {hp, with hp.kind = t.kind and hp.pattern = t}
+5  M = ⟨⟩
+6  for each c in C, by errors, then order of the pattern, then start
+7      append c to M if c overlaps no match of M and length(M) < 16
+8  return M sorted by start
 ```
 
 ```
@@ -932,7 +933,7 @@ ANALYSE_ENDS(seq, w_start, w_end)
  2  minus = NIL
  3  if N_PRIMERS(plus) < 2 or TOTAL_ERRORS(plus) > 0
  4      minus = LAYOUT(RC(seq), w_end, w_start)
- 5  // MINUS_IS_BETTER: more primers, then fewer errors; at a tie, plus (→ D2)
+ 5  // MINUS_IS_BETTER: more primers, then fewer errors; at a tie, plus (→ D4)
     if minus ≠ NIL and N_PRIMERS(minus) > 0 and MINUS_IS_BETTER(minus, plus)
  6      a = minus
  7      s = RC(seq)
@@ -973,7 +974,7 @@ Symbols:
 | procedure | worst case | note | typical | note | memory | note |
 | --- | --- | :-: | --- | :-: | --- | :-: |
 | ANALYSE_ENDS | *O*(*n*′ + *m*) | ¹ | *O*(*n*′) | ² | *O*(*n*′) | ³ |
-| MINUS_IS_BETTER (D2) | *O*(1) |  |  |  | *O*(1) |  |
+| MINUS_IS_BETTER (D4) | *O*(1) |  |  |  | *O*(1) |  |
 
 - ¹ In full *O*(*n*′ + *W* + *m*): reverse complement and MATCHES_INSIDE
   (*n*′), LAYOUT twice (*W*), two LOCATE (*m*).
@@ -1016,7 +1017,7 @@ BEST_PRIMER(primers, s, side)
 2  for each primer p of primers, in the order of the scheme
 3      // align the primer to the read end, outer bases possibly missing (→ A7)
        hp = PRIMER_AT_END(p, s) at the end side of s
-4      // BETTER: the outermost, then fewer errors, then the longer (→ D2)
+4      // BETTER: the outermost, then fewer errors, then the longer (→ D4)
        if hp ≠ NIL and (best == NIL or BETTER(hp, best, side))
 5          best = hp
 6  return best
@@ -1037,7 +1038,7 @@ Symbols:
 
 | procedure | time | note | memory |
 | --- | --- | :-: | --- |
-| BETTER (D2) | *O*(1) |  | *O*(1) |
+| BETTER (D4) | *O*(1) |  | *O*(1) |
 | BEST_PRIMER | *O*(*W*) | ¹ | *O*(*W*) |
 | LAYOUT | *O*(*W*) | ² | *O*(*W*) |
 
@@ -1055,12 +1056,12 @@ the read at no cost (line 5), and part-way into the primer at a cost
 (the arrays `edge` in line 7 and `skip` in line 10). The match with the
 lowest cost is taken if it is within the errors allowed (lines 11–12),
 and extended inwards where that costs nothing (lines 13–14).
-MISSING_COSTS computes these costs: a truncated primer must be at least
-half there and 8 bases long (line 3) and is allowed one error fewer
-(line 6); a primer that overhangs the read start is allowed errors in
-proportion to the part inside the read (line 10). PRIMER_AT_END tries
-first a primer that lies inside the read (line 3), and only if there is
-none one that overhangs it (line 4).
+MISSING_COSTS computes these costs: a truncated primer must retain at
+least half of its bases, and at least 8 (line 3) and is allowed one
+error fewer (line 6); a primer that overhangs the read start is allowed
+errors in proportion to the part inside the read (line 10).
+PRIMER_AT_END tries first a primer that lies inside the read (line 3),
+and only if there is none one that overhangs it (line 4).
 
 > **Source:** `primer_search_end` in `src/primer-search.c`;
 > `missing_costs`, `search_primer_end` in `src/amplicon.c`
@@ -1073,6 +1074,16 @@ primer and the read are reversed, so that "outer" is always index 1.
 ![The three forms of a primer at the start of a read](figures/primer_forms.svg)
 
 *Figure: The three forms in which a primer is found at the start of a read.*
+
+```
+PRIMER_AT_END(p, s)
+1  (skip, edge) = MISSING_COSTS(p)
+2  K = MAX_ERRORS(p, e)
+3  hp = ALIGN_END(p, s, skip, skip, K) // whole or truncated, inside the read
+4  // only then: overhanging the read
+   hp = ALIGN_END(p, s, skip, edge, K) if hp == NIL
+5  return hp
+```
 
 ```
 MISSING_COSTS(p)
@@ -1118,16 +1129,6 @@ ALIGN_END(p, s, skip, edge, K)
 18  hp.errors = D[m, best] − c
 19  hp.terminus_start, hp.terminus_end = read positions of the terminus of p on the path
 20  return hp
-```
-
-```
-PRIMER_AT_END(p, s)
-1  (skip, edge) = MISSING_COSTS(p)
-2  K = MAX_ERRORS(p, e)
-3  hp = ALIGN_END(p, s, skip, skip, K) // whole or truncated, inside the read
-4  // only then: overhanging the read
-   hp = ALIGN_END(p, s, skip, edge, K) if hp == NIL
-5  return hp
 ```
 
 A truncated primer is thus allowed one error fewer than its length
@@ -1248,7 +1249,7 @@ CLASSIFY_ENDS(seq, a)
 ```
 ORIGIN(hr)
 1  return UNKNOWN if hr == NIL
-2  // distance of the hit from the terminus it would start at (→ D3)
+2  // distance of the hit from the terminus it would start at (→ D5)
    if TERMINUS_DISTANCE(hr) < T
 3      return TERMINAL
 4  return INTERNAL
@@ -1285,7 +1286,7 @@ Symbols:
 To locate a part of a read on the references, a probe of 32 bases is
 taken from it (line 1) and searched in them, on both strands (line 5),
 with at most 20% errors (line 3). Aligning it to every reference would
-be slow, so the k-mer index is used first (D6): the 10-mers that the
+be slow, so the k-mer index is used first (D1): the 10-mers that the
 probe shares with a reference are its seeds, and give the diagonals on
 which the probe may lie (line 7); the probe is aligned only to the
 windows around them (lines 8–12). The location with the fewest errors
@@ -1310,13 +1311,13 @@ LOCATE(probe)
  4  best = NIL
  5  for each (x, σ) in ⟨(q, "+"), (RC(q), "−")⟩
  6      for each reference R of allowed // chosen for the readset (→ A3); --segment
- 7          // diagonals (position in R − position in x) of the 10-mers of x in R (→ D6)
+ 7          // diagonals (position in R − position in x) of the 10-mers of x in R (→ D1)
             Δ = the diagonals of DIAGONALS(index, x) that are on R
  8          for each maximal run of Δ, sorted, with gaps ≤ length(x)
  9              lo = first diagonal of the run − K
 10              hi = last diagonal of the run + length(x) + K
 11              k = K if best == NIL else best.errors
-12              // BETTER_HIT: fewer errors, then nearer the terminus (→ D2)
+12              // BETTER_HIT: fewer errors, then nearer the terminus (→ D4)
                 best = BETTER_HIT(best, ALIGN_TO(x, R, lo, hi, σ, k))
 13  return best if best ≠ NIL or the platform is Illumina
 14  for each reference R of allowed // no seed: the whole reference
@@ -1367,8 +1368,8 @@ Symbols:
 | procedure | worst case | note | typical | note | memory | note |
 | --- | --- | :-: | --- | :-: | --- | :-: |
 | ALIGN_TO | *O*(*hi* − *lo*) | ¹ |  |  | *O*(*P*) |  |
-| BETTER_HIT (D2) | *O*(1) |  |  |  | *O*(1) |  |
-| TERMINUS_DISTANCE (D3) | *O*(1) |  |  |  | *O*(1) |  |
+| BETTER_HIT (D4) | *O*(1) |  |  |  | *O*(1) |  |
+| TERMINUS_DISTANCE (D5) | *O*(1) |  |  |  | *O*(1) |  |
 | LOCATE | *O*(*h* log *h* + *m*) | ² | *O*(*P*) | ³ | *O*(*h* + *P*) | ⁴ |
 | LOCATE_SEEDED | *O*(*h* log *h* + *m*) |  | *O*(*P*) |  | *O*(*h* + *P*) |  |
 | LOCATE_IN | *Θ*(*m*′) | ⁵ |  |  | *O*(*P*) |  |
@@ -1387,20 +1388,25 @@ Symbols:
 
 ## A11. Computation of the part to keep
 
-KEEP decides what is cut. At an end with a primer, the primer and
-everything outside it are removed (lines 6 and 10); this is also done
-when the origin is unknown, so that in doubt no primer base is left. The
-exception is a terminal start, known only with references: the last 12
-or 13 bases of the primer are then the true end of the segment, so they
-are kept and only the tail before them is removed (lines 5 and 9). If
-the two primers touch or overlap there is no template between them (a
-primer dimer) and nothing is kept (lines 11–12). CUT_FACING_PRIMER deals
-with a rarer case: at the end of the read where no primer was found, the
-other strand shows a second copy of the primer of the opposite end, as
-when two amplicons are joined without a primer between them. That copy
-and what lies beyond it are removed as well (lines 1–7).
+KEEP computes the part of the read that is kept. At an end with a
+primer, the primer and everything outside it are removed (lines 6 and
+10); this is also done when the origin is unknown, so that in doubt no
+primer base is left. The exception is a terminal start, known only with
+references: the last 12 or 13 bases of the primer are then the true end
+of the segment, so they are kept and only the tail before them is
+removed (lines 5 and 9). If the two primers touch or overlap there is no
+template between them (a primer dimer) and nothing is kept (lines
+11–12). CUT_FACING_PRIMER handles a less frequent case: at the end of
+the read where no primer was found, the other strand shows a second copy
+of the primer of the opposite end, as when two amplicons are joined
+without a primer between them. That copy and what lies beyond it are
+removed as well (lines 1–7).
 
 > **Source:** `compute_keep`, `cut_facing_primer` in `src/amplicon.c`
+
+![The part of a read that is kept, in four cases](figures/keep.svg)
+
+*Figure: The part of a read that is kept: with terminal ends, with an internal or unknown end, for a primer dimer, and when the primer of one end is found at both read ends.*
 
 ```
 KEEP(a, n)
@@ -1441,7 +1447,7 @@ between them).
 
 | end classified as | without references | with references |
 |---|---|---|
-| terminal | whole primer removed | tail removed, **conserved terminus kept** |
+| terminal | whole primer removed | tail removed, conserved terminus kept |
 | internal | whole primer removed | whole primer removed |
 | unknown | whole primer removed | whole primer removed |
 | no primer found | nothing removed (unless an adapter is found) | the same |
@@ -1465,16 +1471,17 @@ written.
 
 ## A12. Removal of adapters and second analysis
 
-Library adapters and barcodes lie outside the primers, and normally go
-with everything outside a primer. When no primer is found at a read end,
-an adapter is searched there instead. FIND_ADAPTER searches the adapters
-of the kits in use at that end, with at most 20% errors (lines 2–5),
-also partly outside the read (lines 6–9), and takes the one that reaches
-furthest into the read (lines 10–12). REMOVE_ADAPTERS does this at each
-end without a primer (lines 2–5), cuts the adapters off (lines 7–10) and
-analyses the rest again, now accepting a primer only within 5 bases of
-where an adapter was (lines 13–15). The second analysis is used unless
-it finds fewer primers than the first (line 16).
+Library adapters and barcodes lie outside the primers, and are normally
+removed together with everything outside a primer. When no primer is
+found at a read end, an adapter is searched there instead. FIND_ADAPTER
+searches the adapters of the kits in use at that end, with at most 20%
+errors (lines 2–5), also partly outside the read (lines 6–9), and takes
+the one that reaches furthest into the read (lines 10–12).
+REMOVE_ADAPTERS does this at each end without a primer (lines 2–5), cuts
+the adapters off (lines 7–10) and analyses the rest again, now accepting
+a primer only within 5 bases of where an adapter was (lines 13–15). The
+second analysis is used unless it finds fewer primers than the first
+(line 16).
 
 > **Source:** `analyze_with_adapters` in `src/amplicon.c`;
 > `src/adapters.c`, `src/adaptor-search.c`
@@ -1482,23 +1489,6 @@ it finds fewer primers than the first (line 16).
 ![An adapter removed at an end without a primer, and the second analysis](figures/adapter_removal.svg)
 
 *Figure: At an end without a primer an adapter is searched and removed; the rest is analysed again, with a primer accepted only next to the adapter.*
-
-```
-FIND_ADAPTER(read, side)
- 1  best = NIL
- 2  for each kit in use that has an adapter d for side
- 3      s = the min(length(read), W + length(d)) bases of read at side
- 4      K = ⌊ 20% · number of bases of d other than N ⌋ // a barcode is 24 N
- 5      hp = FIND(d, s, K)
- 6      if hp == NIL and d has no barcode
- 7          hp = FIND(d, s extended by ⌊ length(d) / 2 ⌋ N beyond the read end, K)
- 8          if hp ≠ NIL and hp.errors > ⌊ K · (bases of hp inside the read) / length(d) ⌋
- 9              hp = NIL
-10      if hp ≠ NIL and hp lies within W bases of the read end
-11          if best == NIL or hp reaches further into the read than best
-12              best = hp
-13  return best
-```
 
 ```
 REMOVE_ADAPTERS(read, a)
@@ -1525,6 +1515,23 @@ REMOVE_ADAPTERS(read, a)
 19  b.adapter_start = s
 20  b.adapter_end = t
 21  return b
+```
+
+```
+FIND_ADAPTER(read, side)
+ 1  best = NIL
+ 2  for each kit in use that has an adapter d for side
+ 3      s = the min(length(read), W + length(d)) bases of read at side
+ 4      K = ⌊ 20% · number of bases of d other than N ⌋ // a barcode is 24 N
+ 5      hp = FIND(d, s, K)
+ 6      if hp == NIL and d has no barcode
+ 7          hp = FIND(d, s extended by ⌊ length(d) / 2 ⌋ N beyond the read end, K)
+ 8          if hp ≠ NIL and hp.errors > ⌊ K · (bases of hp inside the read) / length(d) ⌋
+ 9              hp = NIL
+10      if hp ≠ NIL and hp lies within W bases of the read end
+11          if best == NIL or hp reaches further into the read than best
+12              best = hp
+13  return best
 ```
 
 The adapters are those of the Oxford Nanopore kits (`--adapters`,
@@ -1565,31 +1572,31 @@ Symbols:
 - ¹ In full *O*(*κ* ⌈*d*/*w*⌉ (*W* + *d*)); constant in the length of the read.
 - ² Plus one more ANALYSE_ENDS (A5) if an adapter is found.
 
-## A13. Location of reads and ends without a located probe
+## A13. Location of reads and ends whose probe was not located
 
 Some reads or ends have no position on a reference: no primer was found,
 or the bases next to the primer were not found in the references. For
-the coverage they still need one. PLACE handles a read without any
-position: it locates by its seeds a probe from the middle of the kept
-part, then from a quarter and from three quarters of it (lines 4–5), and
-lays the whole read on the reference from there (lines 6–11).
-LOCATE_ENDS_FROM_INSIDE handles an end without a position. FROM_INSIDE
-takes probes further and further inside the read, up to four (lines
-2–5); if the other end is known, the probe is searched only in its
-reference, on the strand that fits (lines 6–7). From the probe found,
-the position of the end is worked back (line 10). END_POSITION normally
-just counts back the bases skipped (lines 2–5). If those bases do not
+the coverage analysis (A17) they still need one. PLACE handles a read
+without any position: it locates by its seeds a probe from the middle of
+the kept part, then from a quarter and from three quarters of it (lines
+4–5), and places the whole read on the reference accordingly (lines
+6–11). LOCATE_ENDS_FROM_INSIDE handles an end without a position.
+FROM_INSIDE takes probes further and further inside the read, up to four
+(lines 2–5); if the other end is known, the probe is searched only in
+its reference, on the strand that fits (lines 6–7). From the probe
+found, the position of the end is derived (line 10). END_POSITION
+normally subtracts the bases skipped (lines 2–5). If those bases do not
 match the reference there, they may be a short stretch from the end of
-the segment followed by a deletion, so it tests whether they fit the end
-of the segment instead (lines 6–13). When neither end had a position and
-only one is found this way, both are left without: one probe alone can
-match by chance (LOCATE_ENDS_FROM_INSIDE lines 10–12).
+the segment followed by a deletion, so they are compared with the end of
+the segment instead (lines 6–13). When neither end had a position and
+only one is found this way, both remain without a position: one probe
+alone can match by chance (LOCATE_ENDS_FROM_INSIDE lines 10–12).
 
 > **Source:** `src/placement.c`; `locate_inner_ends`,
 > `locate_from_inside`, `inner_end_position` in `src/amplicon.c`.
 
-These positions serve the coverage only: the trimming and the origins of
-A9 do not change.
+These positions serve the coverage analysis only: the trimming and the
+origins of A9 do not change.
 
 ![An end located by probes from further inside the read](figures/from_inside.svg)
 
@@ -1680,7 +1687,8 @@ shorter than the distance between its ends.
 
 The placement by a probe from inside is approximate (the insertions and
 deletions of the rest of the read are ignored); without it, most of an
-Illumina library would be absent from the coverage. In END_POSITION the
+Illumina library would be absent from the coverage analysis. In
+END_POSITION the
 terminus is tried from 8 bases before its first base to 21 after, as a
 reference can lack terminal bases or have a few more; flanks of 16 bases
 before a deletion are frequent in real samples. The origin of an end
@@ -1727,23 +1735,18 @@ would have it and where the right one would (lines 22–23). If it lies on
 the left flank, the junction is to its right; if on the right flank, to
 its left. This bisection halves the unassigned part (lines 24–31) and is
 repeated (line 17). If a probe fits neither flank its two neighbours are
-tried (line 20), and if none tells, the bisection stops. The bases that
-remain are aligned to both flanks by banded dynamic programming, and the
-junction is put where the two alignments together have the fewest errors
-(JUNCTION_BY_ALIGNMENT lines 3–8). It is reported only if the fit is
-good (line 9) and at least 100 bases are missing (line 12).
+tried (line 20), and if none can be assigned to a flank, the bisection
+stops. The bases that remain are aligned to both flanks by banded
+dynamic programming, and the junction is put where the two alignments
+together have the fewest errors (JUNCTION_BY_ALIGNMENT lines 3–8). It is
+reported only if the fit is good (line 9) and at least 100 bases are
+missing (line 12).
 
 > **Source:** `src/junction.c`; `find_junction` in `src/amplicon.c`
 
 ![The bisection for the junction of an internal deletion](figures/junction.svg)
 
 *Figure: A read with an internal deletion lies on two diagonals of the reference, one for each flank. Each probe of the bisection lies on one of them; the bases left between the probes are aligned to both.*
-
-```
-DELETION_EXPECTED(n, distance)
-   // n template bases whose ends lie distance bases apart on the reference
-1  return distance − n > max(100, ⌊ distance / 10 ⌋)
-```
 
 ```
 FIND_JUNCTION(read, a)
@@ -1781,6 +1784,12 @@ FIND_JUNCTION(read, a)
 30                  hi = o
 31                  right = y.pos − o − 1
 32  return JUNCTION_BY_ALIGNMENT(t, R, lo + 1, min(hi + P, n), left, right)
+```
+
+```
+DELETION_EXPECTED(n, distance)
+   // n template bases whose ends lie distance bases apart on the reference
+1  return distance − n > max(100, ⌊ distance / 10 ⌋)
 ```
 
 ```
@@ -1854,7 +1863,7 @@ Symbols:
 
 Each end classified INTERNAL has a position on its reference: the first
 base after the primer. COUNT_SITE counts the reads that start at each
-position (lines 1–2). Sequencing errors move a start by a few bases, so
+position (lines 1–2). Sequencing errors shift a start by a few bases, so
 SITES clusters the positions that are at most 5 apart into one site
 (lines 5–15), named after its position with most reads (lines 12–13),
 and lists the sites, the most used first (line 17).
@@ -1910,7 +1919,7 @@ Symbols:
 - ¹ Two counts per reference position, whatever the number of reads.
 - ² A walk over the positions, then the sort of the sites.
 
-## A16. Histogram of complete-amplicon lengths
+## A16. Histogram of the lengths of complete amplicons
 
 In a read with both primers, the bases between them are the whole
 amplicon, so their number is its length (lines 1–3). The lengths are
@@ -1991,21 +2000,22 @@ bins of 10).
 - ² One pass over the bins.
 - ³ 11 neighbours for each bin.
 
-## A17. Construction of the coverage by read origin
+## A17. Construction of the coverage profiles by read origin
 
-The coverage is the depth along each segment, by read origin. COVER lays
-each read on its reference as one span, from the position of one end to
-that of the other, without aligning its bases. The span comes from the
-best information there is: both ends (lines 9–11); one end and the
-length of the read (lines 12–16 and 24–32); a probe from inside the read
-(lines 34–36); or, for a complete amplicon that was not located, the
-only reference of a fitting length (lines 38–41). Otherwise the read is
-not drawn (line 42). The category is the origin of the 5′ end of the
-amplicon: terminal, internal or without primer (lines 17–23, 33 and 37).
-A read with an internal deletion is drawn as two spans, one for each
-flank, in a category of its own (lines 43–48); the others go to their
-category, by strand (lines 49–51). An internal priming site shows in the
-coverage as a step in the depth of the internal category.
+The coverage profile of a segment is its depth at each position, by read
+origin. COVER represents each read as one span on its reference, from
+the position of one end to that of the other, without aligning its
+bases. The span is taken from the best information available: both ends
+(lines 9–11); one end and the length of the read (lines 12–16 and
+24–32); a probe from inside the read (lines 34–36); or, for a complete
+amplicon that was not located, the only reference of a fitting length
+(lines 38–41). Otherwise the read is not drawn (line 42). The category
+is the origin of the 5′ end of the amplicon: terminal, internal or
+without primer (lines 17–23, 33 and 37). A read with an internal
+deletion is drawn as two spans, one for each flank, in a category of its
+own (lines 43–48); the others go to their category, by strand (lines
+49–51). An internal priming site shows in the coverage plot as a step in
+the depth of the internal category.
 
 > **Source:** `count_cover` in `src/counter.c`
 
@@ -2031,7 +2041,7 @@ COVER(rs, a)
 14          to = from + span − 1
 15      else to = l.pos
 16          from = to − span + 1
-17      // distance of the hit from the terminus it would start at (→ D3)
+17      // distance of the hit from the terminus it would start at (→ D5)
         if a.left has no primer
 18          c = NO_PRIMER
 19      elseif a.left.hit ≠ NIL
@@ -2048,7 +2058,7 @@ COVER(rs, a)
 30      else from = r.pos
 31          to = from + span − 1
 32          start = length(R) − to
-33      // ORIGIN_BY_DISTANCE: no primer; else terminal if start ≤ near, else internal (→ D5)
+33      // ORIGIN_BY_DISTANCE: no primer; else terminal if start ≤ near, else internal (→ D6)
         c = ORIGIN_BY_DISTANCE(a, start, near)
 34  elseif a.placement ≠ NIL
 35      (R, from, to) = a.placement
@@ -2062,7 +2072,7 @@ COVER(rs, a)
 41      c = TERMINAL
 42  else return // not drawn
 43  if both and a.junction ≠ NIL // is the template much shorter than its span? (→ A14)
-44      // ADD_SPAN: one more span of a category on from:to of R (→ D5)
+44      // ADD_SPAN: one more span of a category on from:to of R (→ D6)
         ADD_SPAN(rs, R, DELETION, from, a.junction.left_end)
 45      ADD_SPAN(rs, R, DELETION, a.junction.right_start, to)
 46  elseif both and DELETION_EXPECTED(span, to − from + 1)
@@ -2085,8 +2095,8 @@ close it is.
 | no 5′ primer | a fragment of unknown origin |
 | internal deletion | covers only its two flanks, up to the junction (or half the template at each end if the junction was not found) |
 
-On ten Nanopore samples the coverage was compared with full alignments
-(part B; `notes/coverage_inner_ends`).
+On ten Nanopore samples the coverage profiles were compared with those
+from full alignments (part B; `notes/coverage_inner_ends`).
 
 **Running time and memory.**
 
@@ -2097,8 +2107,8 @@ Symbols:
 
 | procedure | time | note | memory | note |
 | --- | --- | :-: | --- | :-: |
-| ORIGIN_BY_DISTANCE (D5) | *O*(1) |  | *O*(1) |  |
-| ADD_SPAN (D5) | *O*(1) |  | *O*(1) |  |
+| ORIGIN_BY_DISTANCE (D6) | *O*(1) |  | *O*(1) |  |
+| ADD_SPAN (D6) | *O*(1) |  | *O*(1) |  |
 | COVER | *O*(1) per read | ¹ | *Θ*(*m*) | ² |
 | depth of a reference | *Θ*(*m*′) | ³ | *Θ*(*m*′) |  |
 
@@ -2133,11 +2143,12 @@ whole sample:
 - the alignments of a read are joined into amplicons (B5), and the
   reads that do not map are classified (B6);
 - the comparison is made read by read (B7) and on the summaries of a
-  sample: internal priming sites, amplicon lengths and coverage (B8);
+  sample: internal priming sites, amplicon lengths and coverage
+  profiles (B8);
 - the reads that the assembler IRMA used are compared with the same
   amplicons (B9).
 
-A full alignment is not the truth either: it depends on the reference
+A full alignment is not a ground truth either: it depends on the reference
 and on the aligner. For real reads it is the best estimate there is;
 reads in which the origin of every base is known are simulated in
 part C.
@@ -2147,14 +2158,14 @@ are those of the plus strand of the reference.
 
 ## B1. Analysis of a sample
 
-The trimming is checked on real reads, for which the truth is not known,
-by the slow step that the trimming itself avoids: aligning every read in
-full to the references. First the references are chosen and adapted to
-the sample (lines 1–3). For each read, the amplicons it holds are then
-built from its alignments (line 6) and classified, or the read itself if
-nothing maps (lines 7–9). This is compared with what was written about
-the read when it was trimmed (line 10) and with what IRMA did with it
-(line 11). At the end the counts are summarized (line 12).
+The trimming is checked on real reads, of which the true origin is not
+known, by the slow step that the trimming itself avoids: aligning every
+read in full to the references. First the references are chosen and
+adapted to the sample (lines 1–3). For each read, the amplicons it holds
+are then built from its alignments (line 6) and classified, or the read
+itself if nothing maps (lines 7–9). This is compared with what was
+written about the read when it was trimmed (line 10) and with what IRMA
+did with it (line 11). At the end the counts are summarized (line 12).
 
 > **Source:** `pipeline.py`, `analysis.py`
 
@@ -2180,7 +2191,7 @@ POSTHOC(reads, all_refs, flucut_output, irma_runs)
         COMPARE_READ(tags[r], the amplicons of r, lift)
 11      // count which reads IRMA used, and on which segment (→ B9)
         COMPARE_IRMA(r, U, irma_runs)
-12  summarize the sites, lengths, coverage and agreement
+12  summarize the sites, lengths, coverage profiles and agreement
 ```
 
 **Running time and memory.**
@@ -2202,22 +2213,23 @@ the number of alignments of a read.
 - ¹ *O*(*an*′) per read (B5), for bounded *a*. Batches of 2000 reads are
   analysed in parallel.
 - ² *O*(*N*): the tags of flucut and the read names of each IRMA run,
-  held for all reads. *O*(*m*): the coverage. The rest is per batch.
+  held for all reads. *O*(*m*): the coverage profiles. The rest is per
+  batch.
 
 ## B2. Choice and adaptation of the references
 
 The alignments depend on how close the reference is to the sample.
 CHOOSE_REFERENCES maps the first 20,000 reads to all references and
 keeps, for each segment, the one with most matching bases (lines 1–8).
-ADAPT_REFERENCES then makes it resemble the sample: the reads are
-mapped, and wherever most reads agree on a base that differs from the
-reference, the base of the reference is replaced (lines 4–13). This is
-repeated up to 4 times, until almost nothing changes (line 14). The ends
-of the reads are left out, as they can be primer (line 7). TERMINI notes
-whether a reference includes the conserved ends of its segment, and
-where its template begins and ends (lines 1–6). POSITION_MAPS translates
-the positions on the references not chosen, which flucut may have used,
-to those of the chosen one, by aligning the two (lines 1–5).
+ADAPT_REFERENCES then adapts it to the sample: the reads are mapped, and
+wherever most reads agree on a base that differs from the reference, the
+base of the reference is replaced (lines 4–13). This is repeated up to 4
+times, until almost nothing changes (line 14). The ends of the reads are
+left out, as they can be primer (line 7). TERMINI notes whether a
+reference includes the conserved ends of its segment, and where its
+template begins and ends (lines 1–6). POSITION_MAPS translates the
+positions on the references not chosen, which flucut may have used, to
+those of the chosen one, by aligning the two (lines 1–5).
 
 > **Source:** `references.py`
 
@@ -2338,22 +2350,39 @@ and a primer should lie just outside. PRIMER_AT searches the conserved
 bases of the primers in the read next to that boundary (lines 2–7) with
 at most 20% errors, also when the read begins inside the primer (lines 6
 and 8–9), and keeps the match with the lowest error rate, then the
-nearest to the boundary (lines 10–12). ALLOWED_GAP says how far from the
-boundary the primer may be: 10 bases more than the bases the alignment
-lacks up to the end of the segment, 40 more if the reference has no
-terminus, and just 10 if the alignment stops far from the end of the
-segment (lines 1–3). SEARCH_BOUNDARIES does this at both ends of an
-alignment (lines 2–5). To know how often a primer is found by chance, it
-searches in the same places three control sequences, the bases of the
-primer in another order, which cannot be real primers (lines 6–8).
-CHANCE_RATE is the median share of the searches in which a control is
-found (lines 1–3).
+nearest to the boundary (lines 10–12). ALLOWED_GAP gives the largest
+distance of the primer from the boundary: 10 bases more than the bases
+the alignment lacks up to the end of the segment, 40 more if the
+reference has no terminus, and just 10 if the alignment stops far from
+the end of the segment (lines 1–3). SEARCH_BOUNDARIES does this at both
+ends of an alignment (lines 2–5). To know how often a primer is found by
+chance, it searches in the same places three control sequences, the
+bases of the primer in another order, which cannot be real primers
+(lines 6–8). CHANCE_RATE is the median share of the searches in which a
+control is found (lines 1–3).
 
 > **Source:** `primers.py`; `_searched`, `_allowed_gap` in
 > `amplicons.py`
 
 Only the conserved termini are searched (`AGCRAAAGCAGG`,
 `AGTAGAAACAAGG`), so the result does not depend on the primer scheme.
+
+```
+SEARCH_BOUNDARIES(x, R)
+    // x: an alignment of a read, as oriented on R
+ 1  s = x.seq
+ 2  left_gap = ALLOWED_GAP(x.rs − R.first_template, R.t12 > 0)
+ 3  right_gap = ALLOWED_GAP(R.last_template − x.re, R.t13 > 0)
+ 4  x.left = PRIMER_AT(s, x.qs, left_gap, primers)
+ 5  x.right = PRIMER_AT(RC(s), length(s) − x.qe + 1, right_gap, primers)
+ 6  for i = 1 to 3
+ 7      x.left_control[i] = PRIMER_AT(s, x.qs, left_gap, controls[i]) ≠ NIL
+ 8      x.right_control[i] = PRIMER_AT(RC(s), length(s) − x.qe + 1, right_gap, controls[i]) ≠ NIL
+ 9  if x.left == NIL
+10      // detect a flank too short to map, before a deletion (→ B5)
+        x.left_flank = SHORT_FLANK(x, R, LEFT)
+11  x.right_flank = SHORT_FLANK(x, R, RIGHT) if x.right == NIL
+```
 
 ```
 ALLOWED_GAP(distance, has_terminus)
@@ -2382,23 +2411,6 @@ PRIMER_AT(seq, boundary, gap, oligos)
 11              if best == NIL or score < best.score
 12                  best = hp, with its score
 13  return best
-```
-
-```
-SEARCH_BOUNDARIES(x, R)
-    // x: an alignment of a read, as oriented on R
- 1  s = x.seq
- 2  left_gap = ALLOWED_GAP(x.rs − R.first_template, R.t12 > 0)
- 3  right_gap = ALLOWED_GAP(R.last_template − x.re, R.t13 > 0)
- 4  x.left = PRIMER_AT(s, x.qs, left_gap, primers)
- 5  x.right = PRIMER_AT(RC(s), length(s) − x.qe + 1, right_gap, primers)
- 6  for i = 1 to 3
- 7      x.left_control[i] = PRIMER_AT(s, x.qs, left_gap, controls[i]) ≠ NIL
- 8      x.right_control[i] = PRIMER_AT(RC(s), length(s) − x.qe + 1, right_gap, controls[i]) ≠ NIL
- 9  if x.left == NIL
-10      // detect a flank too short to map, before a deletion (→ B5)
-        x.left_flank = SHORT_FLANK(x, R, LEFT)
-11  x.right_flank = SHORT_FLANK(x, R, RIGHT) if x.right == NIL
 ```
 
 Each control is the bases of a primer in another order, at least 5
@@ -2448,9 +2460,9 @@ reference it covers, with the deletions of at least 100 bases between
 them (lines 20–29). SHORT_FLANK recovers a flank too short to be mapped
 before a deletion: a primer followed by a few bases that match the start
 of the segment (lines 1–6; MAKE_UNIT lines 14–18). CATEGORY names the
-amplicon as the coverage of flucut does: deletion, internal, terminal or
-without primer (lines 1–9). JUNCTION_KIND says what joins two amplicons
-of one read (lines 1–4).
+amplicon with the categories of the coverage analysis (A17): deletion,
+internal, terminal or without primer (lines 1–9). JUNCTION_KIND says
+what joins two amplicons of one read (lines 1–4).
 
 > **Source:** `amplicons.py`
 
@@ -2585,10 +2597,10 @@ CLASSIFY_UNMAPPED searches a primer within 100 bases of each end (lines
 1–2). Two primers with fewer than 30 bases between them are a primer
 dimer; two primers with more are an off-target amplicon, in which
 something other than influenza was amplified; then come the reads with
-one primer and with none (lines 4–8). CLUSTER_OFFTARGET groups the
-off-target amplicons to see what they are: templates whose first 24
-bases differ by at most 3 edits go together (lines 2–5), and the 10
-largest groups are reported, each with a typical sequence (lines 6–7).
+one primer and with none (lines 4–8). CLUSTER_OFFTARGET clusters the
+off-target amplicons to identify them: templates whose first 24 bases
+differ by at most 3 edits go together (lines 2–5), and the 10 largest
+groups are reported, each with a typical sequence (lines 6–7).
 
 > **Source:** `classify_unmapped` in `amplicons.py`; `offtarget.py`
 
@@ -2650,12 +2662,12 @@ given by the trimming (terminal, internal, unknown, no primer) with the
 one the alignment shows (lines 1–7), and how far apart the two positions
 are (lines 8–11); then the category of the read (line 12); and, for a
 read in one piece, whether exactly the bases outside the template were
-removed (lines 13–16). TRIM_VERDICT puts that difference into words:
-right, too much (template removed) or too little (primer bases left),
-with the special case of the terminus that is meant to be kept (lines
-2–8). ORIGIN_SCORES summarizes the origins as precision (of the ends
-reported as internal, the share that are) and recall (of the ends that
-are internal, the share reported as such), and the same for terminal; a
+removed (lines 13–16). TRIM_VERDICT classifies that difference: right,
+too much (template removed) or too little (primer bases left), with the
+special case of the terminus that is meant to be kept (lines 2–8).
+ORIGIN_SCORES summarizes the origins as precision (of the ends reported
+as internal, the share that are) and recall (of the ends that are
+internal, the share reported as such), and the same for terminal; a
 primer that only one of the two finds counts as a mistake (lines 1–4).
 
 > **Source:** `flucut_tags.py`; `_agreement` in `summary.py`
@@ -2671,7 +2683,7 @@ COMPARE_READ(parts, layout, lift)
  5  INC(split[length(parts), length(layout)])
  6  for i = 1 to length(parts)
  7      p = parts[i], its positions moved to the chosen references by lift
- 8      c = the category flucut gives p in its coverage // as COVER, from the tags
+ 8      c = the category flucut gives p in its coverage analysis // as COVER, from the tags
  9      if length(parts) == length(layout) and layout[i] is a unit
 10          COMPARE_UNIT(p, c, layout[i], length(parts) == 1)
 11      else INC(category[c, "split differently", "not influenza" or the unmapped kind])
@@ -2739,7 +2751,7 @@ ORIGIN_SCORES(origin, end)
 - ¹ Plus the length of the tags, which are parsed.
 - ² The tables of counts have a fixed size.
 
-## B8. Comparison of sites, lengths and coverage
+## B8. Comparison of sites, lengths and coverage profiles
 
 Three summaries of the trimming are compared with the same quantities
 measured from the alignments. COMPARE_SITES, the internal priming sites:
@@ -2877,50 +2889,41 @@ Symbols:
 # C. Benchmark
 
 Part C measures the trimming where the right answer is known. The
-artefact it is about: a primer that binds at an internal site writes
-its own bases into the reads that start there; at the Uni12-like site
-of HA the codon ATA (isoleucine) is read as AAA (lysine).
+artefact in question: a primer that binds at an internal site writes its
+own bases into the reads that start there; at the Uni12-like site of HA
+the codon ATA (isoleucine) is read as AAA (lysine).
 
 - Reads are simulated with a label for every base (C1), so that the
   bases wrongly removed or kept by each tool are counted exactly (C2).
 - The consensus assembled from the trimmed reads is compared with the
-  true segment (C3), also at low depth, where the artefact weighs most
-  (C4).
+  true segment (C3), also at low depth, where the artefact has its
+  largest effect (C4).
 - In real and public data the artefact is followed at its codon: in
   mapped reads, by where the read starts (C5); in the consensus from
   trimmed and untrimmed reads (C6); and in database records and raw
   reads (C7).
 
-Source: `benchmark/`. Results: C8, in full in
-`benchmark/RESULTS.md`.
+Source: `benchmark/`. Results: `benchmark/RESULTS.md`.
 
-## C1. Simulation of reads with a known origin of every base
+## C1. Simulation of reads in which the origin of every base is known
 
-To score a trimmer exactly, reads are simulated so that the origin of
-every base is known. BEST_SITE finds the place inside the HA segment
-that most resembles Uni12, where the primer could bind by mistake (lines
-2–4). SIMULATE builds amplicons: primer, segment, primer (line 8) or,
-for a share of the HA amplicons, starting at the internal site, where
-the bases of the primer replace those of the segment (lines 6–7). It
-adds what real libraries have: primer dimers (line 9), amplicons that
-lack bases at an end or are broken (lines 10–16), adapters (line 17),
-either strand (line 18), random flanks (line 19), and sequencing errors
-at a rate drawn for each read (lines 20–22). Each base is written with a
-label that says what it is (line 23).
+To measure the accuracy of a trimming tool exactly, reads are simulated
+in which the origin of every base is known. BEST_SITE finds the place
+inside the HA segment that most resembles Uni12, where the primer could
+bind by mistake (lines 2–4). SIMULATE builds amplicons: primer, segment,
+primer (line 8) or, for a share of the HA amplicons, starting at the
+internal site, where the bases of the primer replace those of the
+segment (lines 6–7). It adds what real libraries have: primer dimers
+(line 9), amplicons that lack bases at an end or are broken (lines
+10–16), adapters (line 17), either strand (line 18), random flanks (line
+19), and sequencing errors at a rate drawn for each read (lines 20–22).
+Each base is written with a label that says what it is (line 23).
 
 > **Source:** `simulate.py`
 
 ![The label of each base of a simulated read](figures/simulated_labels.svg)
 
 *Figure: Each base of a simulated read carries the label of its origin.*
-
-```
-BEST_SITE(primer, seq)
-1  n = length(primer)
-2  for i = 51 to length(seq) − n − 49 // not in the first or last 50 bases
-3      d[i] = positions j at which primer[j] does not match seq[i + j − 1]
-4  return argmin(d) // it must be unique
-```
 
 ```
 SIMULATE(genome, reads_per_segment, internal_share, μ)
@@ -2950,6 +2953,14 @@ SIMULATE(genome, reads_per_segment, internal_share, μ)
 23          write amp, and for each of its bases its label
 ```
 
+```
+BEST_SITE(primer, seq)
+1  n = length(primer)
+2  for i = 51 to length(seq) − n − 49 // not in the first or last 50 bases
+3      d[i] = positions j at which primer[j] does not match seq[i + j − 1]
+4  return argmin(d) // it must be unique
+```
+
 Labels: `f` flank, `t` primer tail, `p` primer at a terminus, `i`
 primer at the internal site, `T` template. The bases under a primer
 come from the primer, not from the segment.
@@ -2970,15 +2981,15 @@ Symbols:
 - ¹ The bases written; plus *Θ*(*ℓm*′) for BEST_SITE.
 - ² One read at a time.
 
-## C2. Scoring of trimmed reads against the truth
+## C2. Evaluation of trimmed reads by the known origin of their bases
 
 The output of each tool is compared with the labels. SCORE_READS finds
 each trimmed read in its original read (lines 4–5), which gives the
 labels of the bases kept (line 8), and counts the two kinds of mistake:
-template bases removed (line 9), and bases kept that should have gone,
-i.e. primer, flank and, above all, primer at the internal site, which
-carries the artefact (lines 10–12). The reads of which nothing is left
-are counted too (line 13).
+template bases removed (line 9), and bases kept that should have been
+removed, i.e. primer, flank and, above all, primer at the internal site,
+which carries the artefact (lines 10–12). Reads of which nothing is left
+are counted as well (line 13).
 
 > **Source:** `score_reads.py`, `run-tools.sh`
 
@@ -3018,9 +3029,9 @@ Symbols:
 - ² *O*(*n*′) per read.
 - ³ All input reads and their labels are held.
 
-## C3. Comparison of a consensus with the truth
+## C3. Comparison of a consensus with the true sequence
 
-What matters in the end is the consensus sequence assembled from the
+The result that counts is the consensus sequence assembled from the
 trimmed reads. COMPARE_CONSENSUS aligns it to the true segment (line 1)
 and counts the bases missing or extra at the two ends (lines 2–4), the
 substitutions, insertions, deletions and ambiguous bases (lines 6–16)
@@ -3070,13 +3081,13 @@ Symbols:
 - ³ The alignment path; edlib bounds it by divide and conquer for large
   tables.
 
-## C4. Test at low depth
+## C4. Effect of the artefact at low sequencing depth
 
-The artefact matters most when few reads cover a position. LOW_DEPTH
-simulates samples with 10, 20 and 40 reads per segment, three times
-each, with 60% of the HA reads internally primed (lines 1–3), trims them
-with each tool (line 4), assembles them with IRMA (line 5) and compares
-each consensus with the truth (lines 6–8).
+The artefact has its largest effect where few reads cover a position.
+LOW_DEPTH simulates samples with 10, 20 and 40 reads per segment, three
+times each, with 60% of the HA reads internally primed (lines 1–3),
+trims them with each tool (line 4), assembles them with IRMA (line 5)
+and compares each consensus with the true sequence (lines 6–8).
 
 > **Source:** `run-coverage.sh`
 
@@ -3101,14 +3112,18 @@ LOW_DEPTH(genome)
 LOW_DEPTH is 9 simulations (C1), each trimmed by 4 tools, assembled by
 IRMA and compared (C3): its cost is that of the 36 assemblies.
 
-## C5. Count of the codon in real reads, by read start
+## C5. Codon at the internal priming site in real reads, by read start position
 
-In real reads the evidence is where a read starts. A read that started
-before the site crossed it as template and shows the true codon; a read
-that starts at the site can carry the codon of the primer.
-CODON_BY_START takes the alignments that cover the codon (line 3),
-classes each by where it starts (lines 5–9) and counts the codons seen
-in each class (line 10).
+In real data the true sequence is not known, but the start position of a
+read tells whether the codon at the internal priming site can come from
+the primer. A read that begins upstream of the site was copied through
+it from the template, and shows the codon of the virus. A read that
+begins at the site may have been primed there: its first bases, the
+codon among them, are then those of the primer. CODON_BY_START takes the
+primary alignments that cover the codon (line 3), assigns each to a
+class by its start position (lines 5–9) and counts the codons observed
+in each class (line 10). The artefact appears as `AAA` in the reads that
+start at the site, against `ATA` in those that start upstream.
 
 > **Source:** `site_reads.py`, `run-real-nanopore.sh`,
 > `run-real-illumina.sh`
@@ -3141,9 +3156,9 @@ site can carry the primer.
 - ¹ Per alignment over the codon; only those are read (indexed BAM).
 - ² The distinct codons seen.
 
-## C6. Comparison of the consensus from trimmed and untrimmed reads
+## C6. Comparison of the consensus sequences from trimmed and untrimmed reads
 
-COMPARE_TO_UNTRIMMED asks whether trimming changes the result on real
+COMPARE_TO_UNTRIMMED tests whether trimming changes the result on real
 data. IRMA is run on the untrimmed reads (line 1) and on the reads
 trimmed by each tool (line 3); the differences between the two consensus
 sequences are counted for each segment (line 5), and the codon at the
@@ -3178,9 +3193,9 @@ few bases.
 
 - ¹ Per segment and tool.
 
-## C7. Scan of database records and raw reads for the artefact
+## C7. Search for the artefact in database records and raw reads
 
-Two scans that need no mapping. SCAN_RECORDS looks in public H5N1 HA
+Two scans are made without mapping. SCAN_RECORDS looks in public H5N1 HA
 sequences for the protein motif around the site and reports the amino
 acid at the affected position: I is the virus, K the artefact of the
 primer (lines 1–4). CODON_IN_RAW_READS does the same in raw reads: it
@@ -3232,56 +3247,6 @@ Symbols:
 - ² With a constant up to 12 (the length of the flank searched), on each
   strand.
 
-## C8. Summary of the results
-
-Simulated reads show the artefact and its removal; real runs show it at
-the same site. The full tables are in `benchmark/RESULTS.md` and in
-the performance chapter of the manual.
-
-> **Source:** `benchmark/RESULTS.md`
-
-**Simulated reads** (3200 reads, 400 per segment, PR8 segments plus an
-H5N1 HA with the internal site, 60% of the HA reads started there; IRMA
-1.4.0 FLU-minion):
-
-- Untrimmed reads give `AAA` at the codon; trimmed reads give `ATA`,
-  the truth.
-- At 10, 20 and 40 reads per segment (three simulations each), untrimmed
-  reads give the artefact in 5 of 9 runs, trimmed reads in none.
-- Bases by true origin after trimming:
-
-| tool | template removed | primer kept | flank kept | internal-site bases kept |
-|---|---|---|---|---|
-| untrimmed | 0 | 102,554 | 127,032 | 2,698 |
-| flucut | 680 | 1,819 | 7,542 | 23 |
-| cutadapt | 102,408 | 3,037 | 8,784 | 25 |
-
-- cutadapt without anchoring cuts complete reads at primer-like sites
-  inside them: 150 times more template lost.
-- With the reference elongation of IRMA, the consensus of the trimmed
-  reads has no error and ends 12 and 13 bases short; with references it
-  has complete ends carrying the terminus bases of the primer.
-- Length check: 209 of 340 complete HA amplicons reported short, most at
-  670–679 bases.
-
-**Real Nanopore runs** (H5N1, SRR36760543, SRR36760506, SRR36760520;
-complete-segment references): the internal share of the located 5′ ends
-is 12.0%, 12.9% and 45.8%, concentrated in HA at the Uni12-like site,
-the same site in all three; other segments a few percent. Untrimmed
-reads give `AAA` in every run, trimmed reads `ATA`.
-
-**A real Illumina run** (SRR34913296, dairy cattle H5N1, GenBank
-consensus PX279898.1 with `AAA`): reads starting at least 10 bases
-before the site show `ATA` 35 to 2; reads starting at the site show
-`AAA` 92 of 94. IRMA on untrimmed reads gives `AAA`, on reads trimmed
-with `-p illumina` gives `ATA`, the only difference in eight segments;
-99.1% of the bases are kept.
-
-**Speed.** 1.13 million real Nanopore reads with references, 4 threads:
-34 s, 45 MB. On 32,000 reads: flucut 1.6 s, cutadapt 3.7 s, BBDuk 4.0 s,
-dorado trim 8.1 s, minimap2 + samtools ampliconclip 15 s, Porechop_ABI
-34 s.
-
 ---
 
 # D. Appendix: secondary procedures
@@ -3289,277 +3254,7 @@ dorado trim 8.1 s, minimap2 + samtools ampliconclip 15 s, Porechop_ABI
 Procedures that the main algorithms call but that decide nothing about
 a read: bookkeeping and small helpers.
 
-## D1. Counters of a readset
-
-INIT_COUNTS sets all counts of a sample to zero and prepares the arrays
-that hold one count per reference position (lines 1–6). UPDATE_COUNTS
-adds one analysed part of a read: reads and bases in and out (lines
-1–5), how many primers were found (lines 6–7), strand, dimers, matches
-inside and adapters (lines 8–12), the origin and the primer of each end
-(lines 13–15), and the three summaries kept per position or length:
-sites, lengths and coverage (lines 16–18).
-
-> **Source:** `src/counter.c`
-
-> **Called from:** FLUCUT_RUN (A1)
-
-```
-INIT_COUNTS(rs)
-   // sets the statistics of the readset rs to zero, before its first read
-1  set every counter of rs to 0: reads_in, bases_in, reads_out, bases_out, too_short,
-           primers_found[0:2], minus_strand, dimers, with_internal, adapter_start,
-           adapter_end, origin[side, origin], primer_used[side, primer]
-2  if refs ≠ NIL
-3      for each reference R of refs
-4          // starts of internally primed ends, per position
-           let rs.starts[R, side, 1:length(R)] be zeros
-5          // spans begun and ended, per position and category c
-           let rs.begins[R, c, 1:length(R)], rs.ends[R, c, 1:length(R)] be zeros
-6  // template lengths of complete amplicons, bins of 10
-   let rs.hist[k, 0:400] be zeros, for each reference k and NOT_LOCATED
-```
-
-```
-UPDATE_COUNTS(rs, a, part, keep)
-    // adds the analysis a of a part of a read to the statistics of its readset rs
-    // keep: whether the part is written (enough of it is left after trimming)
-    // INC(c) adds 1 to the counter c; INC(c, v) adds v
- 1  // counters of rs (one number each)
-    INC(rs.reads_in)
- 2  INC(rs.bases_in, length(part))
- 3  INC(rs.reads_out)                      if keep
- 4  INC(rs.bases_out, a.to − a.from + 1)   if keep
- 5  INC(rs.too_short)                      if not keep
- 6  k = number of ends of a with a primer // 0, 1 or 2
- 7  INC(rs.primers_found[k])
- 8  INC(rs.minus_strand)   if a.strand == "−"
- 9  // both primers, nothing between them
-    INC(rs.dimers)         if k == 2 and a.to < a.from
-10  // primer-like matches inside the read
-    INC(rs.with_internal)  if a.internal ≠ ⟨⟩
-11  // adapter removed at the read start, at the read end
-    INC(rs.adapter_start)  if a.adapter_start ≠ NIL
-12  INC(rs.adapter_end)    if a.adapter_end ≠ NIL
-13  for each x in ⟨a.left, a.right⟩ with x ≠ NIL
-14      // origin of the end (terminal, internal, unknown) and primer of the scheme found there
-        INC(rs.origin[x.side, x.origin])
-15      INC(rs.primer_used[x.side, x.primer])
-16  COUNT_SITE(rs, a) // count where internally primed ends start (→ A15)
-17  // add template length of a complete amplicon to its histogram (→ A16)
-    COUNT_LENGTH(rs, a)
-18  // add span of the read to the coverage of its category (→ A17)
-    COVER(rs, a)           if refs ≠ NIL
-```
-
-Their running time and memory are given with FLUCUT_RUN, in A1.
-
-## D2. Choice between two candidates
-
-Three steps choose between two candidates; their rules are collected
-here. The orientation of a read: more primers, then fewer errors
-(MINUS_IS_BETTER lines 1–3). The primer at a read end: the one nearest
-the end, then fewer errors, then the longer (BETTER lines 1–7). The
-location of a probe: fewer errors; of two equally good ones the nearer
-to the end of the segment, and if they are on different references the
-hit is marked ambiguous (BETTER_HIT lines 2–6).
-
-> **Source:** `analyze`, `better_hit` in `src/amplicon.c`;
-> `align_window` in `src/reference.c`
-
-> **Called from:** ANALYSE_ENDS (A5), BEST_PRIMER (A6) and LOCATE
-> (A10)
-
-Between the layouts found on the two strands of a read:
-
-```
-MINUS_IS_BETTER(minus, plus)
-1  if N_PRIMERS(minus) ≠ N_PRIMERS(plus)
-2      return N_PRIMERS(minus) > N_PRIMERS(plus)
-3  return TOTAL_ERRORS(minus) < TOTAL_ERRORS(plus) // at a tie: plus
-```
-
-Between two primer hits at the same end of a read:
-
-```
-BETTER(hp, b, side)
-1  if side == LEFT and hp.end ≠ b.end
-2      return hp.end < b.end // the outermost
-3  if side == RIGHT and hp.start ≠ b.start
-4      return hp.start > b.start
-5  if hp.errors ≠ b.errors
-6      return hp.errors < b.errors
-7  return hp.end − hp.start > b.end − b.start // the longer
-```
-
-Between two locations of a probe in the references:
-
-```
-BETTER_HIT(b, hr)
-1  return b if hr == NIL
-2  return hr if b == NIL or hr.errors < b.errors
-3  if hr.errors == b.errors
-4      // as good as b: on another reference, the probe does not tell the two apart
-       ambiguous = b.ambiguous or hr.ref ≠ b.ref
-5      b = hr if TERMINUS_DISTANCE(hr) < TERMINUS_DISTANCE(b)
-6      b.ambiguous = ambiguous
-7  return b
-```
-
-Their running time and memory are given in A5, A6 and A10.
-
-## D3. Distance of a reference hit from its terminus
-
-How many bases lie between the location of a probe and the end of the
-segment from which its read would have started (line 1).
-
-> **Source:** `terminus_distance` in `src/reference.c`
-
-> **Called from:** BETTER_HIT (D2), ORIGIN (A9) and COVER (A17)
-
-```
-TERMINUS_DISTANCE(hr)
-1  return hr.pos − 1 if hr.strand == "+" else length(hr.ref) − hr.pos
-```
-
-The terminus is the end of the segment from which a read with this hit
-would start: the first base for a hit on the plus strand, the last for
-one on the minus strand. Its running time and memory are given in A10.
-
-## D4. Outputs of a readset
-
-WRITE_RECORD writes the kept part of a read, with tags that describe
-what was found in it (lines 1–4). WRITE_REPORTS writes the counts of the
-sample (line 1), its internal priming sites (line 2) and its short
-amplicons (line 4), turns the counts per position into depths (lines
-5–7) and writes the tables and the report (lines 8–9).
-
-> **Source:** `src/trimmer.c`, `src/results.c`, `src/report.c`
-
-> **Called from:** FLUCUT_RUN (A1)
-
-```
-WRITE_RECORD(out, part, a)
-    // appends the kept bases of a part of a read to the FASTQ output out
-1  title = part.name + TAGS(a)
-2  seq = part.seq[a.from:a.to]
-3  qual = part.qual[a.from:a.to]
-4  append the record (title, seq, qual) to out
-```
-
-`TAGS(a)` are the SAM-style tags that describe the analysis: `fs`
-strand; `fl`, `fr` primer found at each end; `tl`, `tr` bases removed at
-the start and at the end; `ni` primer-like matches inside; `a5`, `a3`
-adapter kit removed; `ol`, `or` origin of each end; `ml`, `mr` where its
-probe mapped (reference:position:strand); `sp` part k/n of a split
-read. The sequence and its orientation are not changed.
-
-```
-WRITE_REPORTS(rs)
-    // writes what was counted for the readset rs
-1  append the counters of rs to summary.tsv, as one line
-2  // internal priming sites, by decreasing number of reads (→ A15)
-   S = SITES(rs)
-3  for each reference R of refs
-4      // complete amplicons shorter than 90% of R (→ A16)
-       short[R] = SHORT_COMPLETE(rs, R)
-5      for each coverage category c
-6          for x = 1 to length(R)
-7              depth[R, c, x] = depth[R, c, x − 1] + rs.begins[R, c, x] − rs.ends[R, c, x − 1]
-8  append the length histograms rs.hist to lengths.tsv
-9  write S, short, rs.hist and depth to the HTML report and the JSON summary
-```
-
-In line 7, `depth[R, c, 0]` and `rs.ends[R, c, 0]` are 0: the depth at
-`x` is the number of spans begun at or before `x` less the number ended
-before it (A17). Without references, lines 3–7 are skipped and the
-peaks of the length histogram are reported instead (PEAKS, A16).
-
-Left and right in the tags are those of the amplicon; for a read of the
-minus strand the left end is at the end of the read. `--no-tags` leaves
-the tags out.
-
-| file | content |
-|---|---|
-| `<sample>.fastq.gz` | trimmed reads, original order and orientation, tags in the title |
-| `summary.tsv` | one line per sample: the counters of D1 |
-| `lengths.tsv` | histograms of complete-amplicon lengths |
-| `flucut_report.html` | self-contained report (inline SVG, no scripts): parameters, the sample (subtype and segments), reads at each step, primers, internal priming sites, complete amplicons, length histograms, coverage by origin |
-| `flucut_summary.json` | the same content, versioned format |
-
-Reports are written to a temporary file and renamed, so that a partial
-report is never read.
-
-### The sample, segment by segment
-
-`src/qc-summary.c`. From the same counts, a summary of the sample is
-shown first in the report of each readset. For each of the eight
-segments, the reference with the greatest depth among those of the
-segment gives:
-
-| measure | definition |
-|---|---|
-| reference, subtype | its accession, and the subtype (H and N numbers) named in its description |
-| mean depth | reads per position, over all coverage categories |
-| covered | share of its positions with at least 1 read |
-| depth ≥ 50 | share of its positions with at least 50 reads (the support FLU-minion of IRMA needs for a base of its amended consensus) |
-| internally primed | share of the depth in the two internal categories |
-| internal deletion | share of the depth in the deletion category |
-| complete amplicons, short | amplicons with both primers; of them, the share shorter than 90% of the reference |
-
-The subtype of the sample is the H of the reference of its HA and the N
-of the reference of its NA. If the references of the segments found
-name different subtypes, this is reported: a reassortant, or genes which
-differ little between subtypes. A segment without located reads is
-reported as not found.
-
-**Running time and memory.**
-
-Symbols:
-- *n*′ length of the read (or part);
-- *m* total length of the references.
-
-| procedure | time | memory |
-| --- | --- | --- |
-| WRITE_RECORD | *O*(*n*′) | *O*(*n*′) |
-| WRITE_REPORTS | *Θ*(*m*) | *Θ*(*m*) |
-
-## D5. Helpers of the coverage
-
-ORIGIN_BY_DISTANCE gives the origin of a read from how far its 5′ end
-lies from the end of the segment (lines 1–3). ADD_SPAN records a span,
-clipped to the reference (lines 1–2), by adding 1 where it begins and 1
-where it ends (lines 4–5): the depth is later a prefix sum, and no read
-needs to be stored.
-
-> **Source:** `count_cover`, `add_span` in `src/counter.c`
-
-> **Called from:** COVER (A17)
-
-The origin of the 5′ end of a read whose own probe was not located,
-from the distance `start` of that end from its segment terminus:
-
-```
-ORIGIN_BY_DISTANCE(a, start, near)
-1  return NO_PRIMER if a.left has no primer
-2  return TERMINAL if start ≤ near
-3  return INTERNAL
-```
-
-One more span of category `c` on the positions `from:to` of the
-reference `R`, limited to the reference:
-
-```
-ADD_SPAN(rs, R, c, from, to)
-1  from = max(from, 1)
-2  to = min(to, length(R))
-3  if from ≤ to
-4      INC(rs.begins[R, c, from])
-5      INC(rs.ends[R, c, to])
-```
-
-Their running time and memory are given in A17.
-
-## D6. K-mer index of the references
+## D1. K-mer index of the references
 
 The k-mer index gives, for each possible k-mer (a word of k = 10 bases),
 where it occurs in the references. BUILD_INDEX counts each k-mer (lines
@@ -3637,6 +3332,276 @@ Symbols:
   `start` and `next`, of 4^10 ≈ 10^6 entries each.
 - ² For a probe: one look-up per k-mer, then the sort of the hits.
 
+## D2. Counters of a readset
+
+INIT_COUNTS sets all counts of a sample to zero and prepares the arrays
+that hold one count per reference position (lines 1–6). UPDATE_COUNTS
+adds one analysed part of a read: reads and bases in and out (lines
+1–5), how many primers were found (lines 6–7), strand, dimers, matches
+inside and adapters (lines 8–12), the origin and the primer of each end
+(lines 13–15), and the three summaries kept per position or length:
+sites, lengths and coverage profiles (lines 16–18).
+
+> **Source:** `src/counter.c`
+
+> **Called from:** FLUCUT_RUN (A1)
+
+```
+INIT_COUNTS(rs)
+   // sets the statistics of the readset rs to zero, before its first read
+1  set every counter of rs to 0: reads_in, bases_in, reads_out, bases_out, too_short,
+           primers_found[0:2], minus_strand, dimers, with_internal, adapter_start,
+           adapter_end, origin[side, origin], primer_used[side, primer]
+2  if refs ≠ NIL
+3      for each reference R of refs
+4          // starts of internally primed ends, per position
+           let rs.starts[R, side, 1:length(R)] be zeros
+5          // spans begun and ended, per position and category c
+           let rs.begins[R, c, 1:length(R)], rs.ends[R, c, 1:length(R)] be zeros
+6  // template lengths of complete amplicons, bins of 10
+   let rs.hist[k, 0:400] be zeros, for each reference k and NOT_LOCATED
+```
+
+```
+UPDATE_COUNTS(rs, a, part, keep)
+    // adds the analysis a of a part of a read to the statistics of its readset rs
+    // keep: whether the part is written (enough of it is left after trimming)
+    // INC(c) adds 1 to the counter c; INC(c, v) adds v
+ 1  // counters of rs (one number each)
+    INC(rs.reads_in)
+ 2  INC(rs.bases_in, length(part))
+ 3  INC(rs.reads_out)                      if keep
+ 4  INC(rs.bases_out, a.to − a.from + 1)   if keep
+ 5  INC(rs.too_short)                      if not keep
+ 6  k = number of ends of a with a primer // 0, 1 or 2
+ 7  INC(rs.primers_found[k])
+ 8  INC(rs.minus_strand)   if a.strand == "−"
+ 9  // both primers, nothing between them
+    INC(rs.dimers)         if k == 2 and a.to < a.from
+10  // primer-like matches inside the read
+    INC(rs.with_internal)  if a.internal ≠ ⟨⟩
+11  // adapter removed at the read start, at the read end
+    INC(rs.adapter_start)  if a.adapter_start ≠ NIL
+12  INC(rs.adapter_end)    if a.adapter_end ≠ NIL
+13  for each x in ⟨a.left, a.right⟩ with x ≠ NIL
+14      // origin of the end (terminal, internal, unknown) and primer of the scheme found there
+        INC(rs.origin[x.side, x.origin])
+15      INC(rs.primer_used[x.side, x.primer])
+16  COUNT_SITE(rs, a) // count where internally primed ends start (→ A15)
+17  // add template length of a complete amplicon to its histogram (→ A16)
+    COUNT_LENGTH(rs, a)
+18  // add span of the read to the coverage profile of its category (→ A17)
+    COVER(rs, a)           if refs ≠ NIL
+```
+
+Their running time and memory are given with FLUCUT_RUN, in A1.
+
+## D3. Outputs of a readset
+
+WRITE_RECORD writes the kept part of a read, with tags that describe
+what was found in it (lines 1–4). WRITE_REPORTS writes the counts of the
+sample (line 1), its internal priming sites (line 2) and its short
+amplicons (line 4), turns the counts per position into depths (lines
+5–7) and writes the tables and the report (lines 8–9).
+
+> **Source:** `src/trimmer.c`, `src/results.c`, `src/report.c`
+
+> **Called from:** FLUCUT_RUN (A1)
+
+```
+WRITE_RECORD(out, part, a)
+    // appends the kept bases of a part of a read to the FASTQ output out
+1  title = part.name + TAGS(a)
+2  seq = part.seq[a.from:a.to]
+3  qual = part.qual[a.from:a.to]
+4  append the record (title, seq, qual) to out
+```
+
+`TAGS(a)` are the SAM-style tags that describe the analysis: `fs`
+strand; `fl`, `fr` primer found at each end; `tl`, `tr` bases removed at
+the start and at the end; `ni` primer-like matches inside; `a5`, `a3`
+adapter kit removed; `ol`, `or` origin of each end; `ml`, `mr` where its
+probe mapped (reference:position:strand); `sp` part k/n of a split
+read. The sequence and its orientation are not changed.
+
+```
+WRITE_REPORTS(rs)
+    // writes what was counted for the readset rs
+1  append the counters of rs to summary.tsv, as one line
+2  // internal priming sites, by decreasing number of reads (→ A15)
+   S = SITES(rs)
+3  for each reference R of refs
+4      // complete amplicons shorter than 90% of R (→ A16)
+       short[R] = SHORT_COMPLETE(rs, R)
+5      for each coverage category c
+6          for x = 1 to length(R)
+7              depth[R, c, x] = depth[R, c, x − 1] + rs.begins[R, c, x] − rs.ends[R, c, x − 1]
+8  append the length histograms rs.hist to lengths.tsv
+9  write S, short, rs.hist and depth to the HTML report and the JSON summary
+```
+
+In line 7, `depth[R, c, 0]` and `rs.ends[R, c, 0]` are 0: the depth at
+`x` is the number of spans begun at or before `x` less the number ended
+before it (A17). Without references, lines 3–7 are skipped and the
+peaks of the length histogram are reported instead (PEAKS, A16).
+
+Left and right in the tags are those of the amplicon; for a read of the
+minus strand the left end is at the end of the read. `--no-tags` leaves
+the tags out.
+
+| file | content |
+|---|---|
+| `<sample>.fastq.gz` | trimmed reads, original order and orientation, tags in the title |
+| `summary.tsv` | one line per sample: the counters of D2 |
+| `lengths.tsv` | histograms of complete-amplicon lengths |
+| `flucut_report.html` | self-contained report (inline SVG, no scripts): parameters, the sample (subtype and segments), reads at each step, primers, internal priming sites, complete amplicons, length histograms, coverage plots by read origin |
+| `flucut_summary.json` | the same content, versioned format |
+
+Reports are written to a temporary file and renamed, so that a partial
+report is never read.
+
+### The sample, segment by segment
+
+`src/qc-summary.c`. From the same counts, a summary of the sample is
+shown first in the report of each readset. For each of the eight
+segments, the reference with the greatest depth among those of the
+segment gives:
+
+| measure | definition |
+|---|---|
+| reference, subtype | its accession, and the subtype (H and N numbers) named in its description |
+| mean depth | reads per position, over all coverage categories |
+| covered | share of its positions with at least 1 read |
+| depth ≥ 50 | share of its positions with at least 50 reads (the support FLU-minion of IRMA needs for a base of its amended consensus) |
+| internally primed | share of the depth in the two internal categories |
+| internal deletion | share of the depth in the deletion category |
+| complete amplicons, short | amplicons with both primers; of them, the share shorter than 90% of the reference |
+
+The subtype of the sample is the H of the reference of its HA and the N
+of the reference of its NA. If the references of the segments found
+name different subtypes, this is reported: a reassortant, or genes which
+differ little between subtypes. A segment without located reads is
+reported as not found.
+
+**Running time and memory.**
+
+Symbols:
+- *n*′ length of the read (or part);
+- *m* total length of the references.
+
+| procedure | time | memory |
+| --- | --- | --- |
+| WRITE_RECORD | *O*(*n*′) | *O*(*n*′) |
+| WRITE_REPORTS | *Θ*(*m*) | *Θ*(*m*) |
+
+## D4. Choice between two candidates
+
+Three steps choose between two candidates; their rules are collected
+here. The orientation of a read: more primers, then fewer errors
+(MINUS_IS_BETTER lines 1–3). The primer at a read end: the one nearest
+the end, then fewer errors, then the longer (BETTER lines 1–7). The
+location of a probe: fewer errors; of two equally good ones the nearer
+to the end of the segment, and if they are on different references the
+hit is marked ambiguous (BETTER_HIT lines 2–6).
+
+> **Source:** `analyze`, `better_hit` in `src/amplicon.c`;
+> `align_window` in `src/reference.c`
+
+> **Called from:** ANALYSE_ENDS (A5), BEST_PRIMER (A6) and LOCATE
+> (A10)
+
+Between the layouts found on the two strands of a read:
+
+```
+MINUS_IS_BETTER(minus, plus)
+1  if N_PRIMERS(minus) ≠ N_PRIMERS(plus)
+2      return N_PRIMERS(minus) > N_PRIMERS(plus)
+3  return TOTAL_ERRORS(minus) < TOTAL_ERRORS(plus) // at a tie: plus
+```
+
+Between two primer hits at the same end of a read:
+
+```
+BETTER(hp, b, side)
+1  if side == LEFT and hp.end ≠ b.end
+2      return hp.end < b.end // the outermost
+3  if side == RIGHT and hp.start ≠ b.start
+4      return hp.start > b.start
+5  if hp.errors ≠ b.errors
+6      return hp.errors < b.errors
+7  return hp.end − hp.start > b.end − b.start // the longer
+```
+
+Between two locations of a probe in the references:
+
+```
+BETTER_HIT(b, hr)
+1  return b if hr == NIL
+2  return hr if b == NIL or hr.errors < b.errors
+3  if hr.errors == b.errors
+4      // as good as b: on another reference, the probe does not tell the two apart
+       ambiguous = b.ambiguous or hr.ref ≠ b.ref
+5      b = hr if TERMINUS_DISTANCE(hr) < TERMINUS_DISTANCE(b)
+6      b.ambiguous = ambiguous
+7  return b
+```
+
+Their running time and memory are given in A5, A6 and A10.
+
+## D5. Distance of a reference hit from its terminus
+
+How many bases lie between the location of a probe and the end of the
+segment from which its read would have started (line 1).
+
+> **Source:** `terminus_distance` in `src/reference.c`
+
+> **Called from:** BETTER_HIT (D4), ORIGIN (A9) and COVER (A17)
+
+```
+TERMINUS_DISTANCE(hr)
+1  return hr.pos − 1 if hr.strand == "+" else length(hr.ref) − hr.pos
+```
+
+The terminus is the end of the segment from which a read with this hit
+would start: the first base for a hit on the plus strand, the last for
+one on the minus strand. Its running time and memory are given in A10.
+
+## D6. Helpers of the coverage analysis
+
+ORIGIN_BY_DISTANCE gives the origin of a read from how far its 5′ end
+lies from the end of the segment (lines 1–3). ADD_SPAN records a span,
+clipped to the reference (lines 1–2), by adding 1 where it begins and 1
+where it ends (lines 4–5): the depth is later a prefix sum, and no read
+needs to be stored.
+
+> **Source:** `count_cover`, `add_span` in `src/counter.c`
+
+> **Called from:** COVER (A17)
+
+The origin of the 5′ end of a read whose own probe was not located,
+from the distance `start` of that end from its segment terminus:
+
+```
+ORIGIN_BY_DISTANCE(a, start, near)
+1  return NO_PRIMER if a.left has no primer
+2  return TERMINAL if start ≤ near
+3  return INTERNAL
+```
+
+One more span of category `c` on the positions `from:to` of the
+reference `R`, limited to the reference:
+
+```
+ADD_SPAN(rs, R, c, from, to)
+1  from = max(from, 1)
+2  to = min(to, length(R))
+3  if from ≤ to
+4      INC(rs.begins[R, c, from])
+5      INC(rs.ends[R, c, to])
+```
+
+Their running time and memory are given in A17.
+
 ---
 
 # E. Parameters and limits
@@ -3646,38 +3611,38 @@ Symbols:
 The quantities that the rules of part A use, with the option or the
 constant of the source code that holds each.
 
-| quantity | value | option / constant |
+| option / constant | quantity | value |
 |---|---|---|
-| most errors in a primer match | auto: 20% of its length, or 30% if the measured rate is ≥ 4% | `-e` (`20%`, `30%`) |
-| reads used for the calibration | 1000 | `AUTO_MAX_ERRORS_READS` |
-| window at each read end | 100 (Illumina 10) | `-w` |
-| shortest truncated primer | half, at least 8 bases | `AMPLICON_MIN_TRUNCATED` |
-| largest overhang | half of the primer | |
-| primer window next to an adapter | 5 | `AMPLICON_ADAPTER_WINDOW` |
-| adapter error allowance | 20% of fixed bases | `ADAPTERS_ERROR_RATE` |
-| probe length | 32 (minimum 16) | `--probe-len` |
-| most errors in a probe match | 20% of its length | `--probe-errors` (`20%`) |
-| terminal window | 60 | `--terminal-window` |
-| k-mer length, most occurrences | 10, 4096 | `REFERENCE_KMER_LEN`, `REFERENCE_MAX_KMER_OCC` |
-| reads used to choose the references | 2000, then up to 20,000 | `AUTO_REFERENCE_READS`, `AUTO_REFERENCE_MORE_READS` |
-| probes per read for that choice | 8 | `AUTO_REFERENCE_PROBES` |
-| reference chosen for a segment | at least 20 votes; clear lead from 60% of the votes; close contender from half the votes of the leading one | `AUTO_REFERENCE_MIN_*`, `AUTO_REFERENCE_CLOSE_SHARE` |
-| terminus inside a read: most errors | 2; a pair, 2 together | `TERMINUS_MATCHES_MAX_ERRORS`, `CHIMERA_MAX_PAIR_ERRORS` |
-| junction pair: largest gap | 100 | `CHIMERA_MAX_GAP` |
-| continuity tolerance (shorter on the reference only), outer probes | 10, 3 | `CHIMERA_*` |
-| most parts per read | 8 | `CHIMERA_MAX_PARTS` |
-| deletion threshold | the larger of 100 and 10% of the distance | `JUNCTION_MIN_DELETION` |
-| junction by alignment: most differences | 30% of the bases aligned | `JUNCTION_MAX_DIFFERENCE` |
-| probes to locate an end from inside | 4 | `AMPLICON_INNER_PROBES` |
-| skipped bases: most differences, continuing / at the terminus | 30%, 40% | `INNER_MAX_*` |
-| terminus searched for a short flank | 8 bases before to 21 after the first base | `INNER_TERMINUS_*` |
-| complete amplicon placed by its length | within 80 bases | `COVER_LENGTH_TOLERANCE` |
-| placement probes | 3 | `PLACEMENT_N_PROBES` |
-| site merging distance | 5 | `REPORT_SITE_GAP` |
-| length bins, short threshold | 10 bases, 90% of the reference | `LENGTHS_*` |
-| batch size | 1000 reads | `WORKER_BATCH_SIZE` |
-| well-covered depth in the sample summary | 50 | `QC_MIN_DEPTH` |
-| minimum output length | 1 | `-m` |
+| `-e` (`20%`, `30%`) | most errors in a primer match | auto: 20% of its length, or 30% if the measured rate is ≥ 4% |
+| `AUTO_MAX_ERRORS_READS` | reads used for the calibration | 1000 |
+| `-w` | window at each read end | 100 (Illumina 10) |
+| `AMPLICON_MIN_TRUNCATED` | shortest truncated primer | half, at least 8 bases |
+|  | largest overhang | half of the primer |
+| `AMPLICON_ADAPTER_WINDOW` | primer window next to an adapter | 5 |
+| `ADAPTERS_ERROR_RATE` | adapter error allowance | 20% of fixed bases |
+| `--probe-len` | probe length | 32 (minimum 16) |
+| `--probe-errors` (`20%`) | most errors in a probe match | 20% of its length |
+| `--terminal-window` | terminal window | 60 |
+| `REFERENCE_KMER_LEN`, `REFERENCE_MAX_KMER_OCC` | k-mer length, most occurrences | 10, 4096 |
+| `AUTO_REFERENCE_READS`, `AUTO_REFERENCE_MORE_READS` | reads used to choose the references | 2000, then up to 20,000 |
+| `AUTO_REFERENCE_PROBES` | probes per read for that choice | 8 |
+| `AUTO_REFERENCE_MIN_*`, `AUTO_REFERENCE_CLOSE_SHARE` | reference chosen for a segment | at least 20 votes; clear lead from 60% of the votes; close contender from half the votes of the leading one |
+| `TERMINUS_MATCHES_MAX_ERRORS`, `CHIMERA_MAX_PAIR_ERRORS` | terminus inside a read: most errors | 2; a pair, 2 together |
+| `CHIMERA_MAX_GAP` | junction pair: largest gap | 100 |
+| `CHIMERA_*` | continuity tolerance (shorter on the reference only), outer probes | 10, 3 |
+| `CHIMERA_MAX_PARTS` | most parts per read | 8 |
+| `JUNCTION_MIN_DELETION` | deletion threshold | the larger of 100 and 10% of the distance |
+| `JUNCTION_MAX_DIFFERENCE` | junction by alignment: most differences | 30% of the bases aligned |
+| `AMPLICON_INNER_PROBES` | probes to locate an end from inside | 4 |
+| `INNER_MAX_*` | skipped bases: most differences, continuing / at the terminus | 30%, 40% |
+| `INNER_TERMINUS_*` | terminus searched for a short flank | 8 bases before to 21 after the first base |
+| `COVER_LENGTH_TOLERANCE` | complete amplicon placed by its length | within 80 bases |
+| `PLACEMENT_N_PROBES` | placement probes | 3 |
+| `REPORT_SITE_GAP` | site merging distance | 5 |
+| `LENGTHS_*` | length bins, short threshold | 10 bases, 90% of the reference |
+| `WORKER_BATCH_SIZE` | batch size | 1000 reads |
+| `QC_MIN_DEPTH` | well-covered depth in the sample summary | 50 |
+| `-m` | minimum output length | 1 |
 
 ## E2. Assumptions and limits
 
@@ -3686,8 +3651,8 @@ constant of the source code that holds each.
 - Kept termini are primer sequence, not measured virus sequence.
 - The classification needs complete-segment references of the right
   subtype; the built-in set covers five subtypes.
-- Coverage, placement and junctions come from probes and from short
-  alignments around them, not from a full alignment of each read.
+- Coverage profiles, placement and junctions come from probes and from
+  short alignments around them, not from a full alignment of each read.
 - An end located from inside the read keeps the origin "unknown" for the
   trimming: its conserved terminus is not kept, even where the position
   found is a segment terminus.

@@ -128,3 +128,53 @@ def split():
   label(ax, 93, 1.12, "the outer probes are not continuous with it",
         fontsize=7, color=OK, ha="right")
   save(fig, "split")
+
+
+def keep():
+  """The part of a read that is kept, in the four cases."""
+  fig, ax = canvas(6.6, 3.6, 100, 7.2)
+  notes = [(6.3, "Both ends terminal, with references",
+            "tails removed,\nconserved termini kept"),
+           (4.5, "An end internal or unknown (here the left one), or no "
+            "references",
+            "at that end the whole\nprimer is removed"),
+           (2.7, "Primer dimer", "the primers touch or\noverlap: nothing "
+            "is kept"),
+           (0.9, "The primer of the same end at both read ends",
+            "the second copy, found in\nthe other orientation, is\nremoved "
+            "with what lies\nbeyond it")]
+  for y, title, note in notes:
+    label(ax, 1, y + 0.5, title, fontweight="bold")
+    label(ax, 74, y - 0.1, note, fontsize=7, color=MUTED)
+
+  def read(y, left_end=14, right_start=58):
+    """Flanks, tails, primers and template of a read, on the row y."""
+    bar(ax, 2, left_end - 8, y, FLANK)
+    bar(ax, left_end - 8, left_end - 4, y, TAIL)
+    bar(ax, left_end - 4, left_end, y, PRIMER)
+    bar(ax, right_start, right_start + 4, y, PRIMER)
+    bar(ax, right_start + 4, right_start + 8, y, TAIL)
+    bar(ax, right_start + 8, 70, y, FLANK)
+    if right_start > left_end:
+      bar(ax, left_end, right_start, y, TEMPLATE)
+
+  read(6.3)
+  bracket(ax, 10, 62, 5.9, "kept", color=OK)
+  read(4.5)
+  outline(ax, 10, 14, 4.5, BAD, h=0.5)
+  bracket(ax, 14, 62, 4.1, "kept", color=OK)
+  read(2.7, left_end=36, right_start=36)
+  # two amplicons joined without a primer between them, each read from
+  # its primer towards the junction
+  bar(ax, 2, 6, 0.9, FLANK)
+  bar(ax, 6, 10, 0.9, TAIL)
+  bar(ax, 10, 14, 0.9, PRIMER)
+  bar(ax, 14, 58, 0.9, TEMPLATE)
+  ax.plot([36, 36], [0.62, 1.18], color="white", linewidth=1.2)
+  bar(ax, 58, 62, 0.9, PRIMER, hatch="////", edgecolor="white")
+  bar(ax, 62, 66, 0.9, TAIL)
+  bar(ax, 66, 70, 0.9, FLANK)
+  label(ax, 60, 1.38, "second copy", fontsize=6.5, color=MUTED,
+        ha="center")
+  bracket(ax, 10, 58, 0.5, "kept (here with a terminal left end)", color=OK)
+  save(fig, "keep")

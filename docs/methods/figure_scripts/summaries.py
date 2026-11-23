@@ -16,8 +16,9 @@ def sites():
   ax.bar(xs, [counts.get(x, 0) for x in xs], width=0.8, color=PRIMER)
   for first, last, best, total in ((1049, 1055, 1052, 152),
                                    (1071, 1074, 1073, 15)):
-    ax.plot([first - 0.5, last + 0.5], [-7, -7], color=INK, linewidth=2,
-            clip_on=False)
+    # the extent of the site, between the bars and the axis
+    ax.plot([first - 0.5, last + 0.5], [-4, -4], color=INK, linewidth=2,
+            solid_capstyle="butt")
     ax.text(best, counts[best] + 3, "site %d\n%d reads" % (best, total),
             ha="center", fontsize=7.5, color=INK)
   ax.annotate("more than 5 bases apart:\nanother site", xy=(1063, 2),
@@ -25,7 +26,8 @@ def sites():
               arrowprops=dict(arrowstyle="-", color=MUTED, linewidth=0.6))
   ax.set_xlabel("position of the first base after the primer")
   ax.set_ylabel("reads that start there")
-  ax.set_ylim(0, 115)
+  ax.set_ylim(-8, 115)
+  ax.set_yticks([0, 20, 40, 60, 80, 100])
   plain_axes(ax)
   fig.tight_layout()
   save(fig, "sites")

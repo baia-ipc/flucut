@@ -22,6 +22,7 @@ if __name__ == "__main__":
   reads.amplicons()
   reads.primer_forms()
   reads.split()
+  reads.keep()
   references.probe_location()
   references.junction()
   references.coverage()

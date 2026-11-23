@@ -13,7 +13,7 @@ def run_flow():
   fig, ax = canvas(6.6, 3.5, 100, 9.2)
   box(ax, 1, 99, 0.2, 9.0, color=MUTED)
   label(ax, 2.5, 8.6, "Run", fontweight="bold")
-  box(ax, 14, 55, 8.25, 8.9, "k-mer index of the references (D6)",
+  box(ax, 14, 55, 8.25, 8.9, "k-mer index of the references (D1)",
       fill=SOFT)
   box(ax, 57, 97, 8.25, 8.9, "error percentage allowed in a primer (A2)",
       fill=SOFT)
@@ -42,7 +42,7 @@ def run_flow():
                                   linewidth=0.8))
     x += 14.0
   box(ax, 30, 95, 0.7, 1.5, "internal priming sites (A15) · amplicon "
-      "lengths (A16)\ncoverage by read origin (A17) · reports (D4)",
+      "lengths (A16)\ncoverage profiles (A17) · reports (D3)",
       fill=SOFT, fontsize=7)
   save(fig, "run_flow")
 

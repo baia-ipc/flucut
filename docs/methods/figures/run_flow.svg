@@ -227,7 +227,7 @@ z
     <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1c2530" x="16.3944" y="20.704212" transform="rotate(-0 16.3944 20.704212)">Run</text>
    </g>
    <g id="text_2">
-    <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #1c2530" x="165.41712" y="21.245709" transform="rotate(-0 165.41712 21.245709)">k-mer index of the references (D6)</text>
+    <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #1c2530" x="165.41712" y="21.245709" transform="rotate(-0 165.41712 21.245709)">k-mer index of the references (D1)</text>
    </g>
    <g id="text_3">
     <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #1c2530" x="363.33792" y="21.245709" transform="rotate(-0 363.33792 21.245709)">error percentage allowed in a primer (A2)</text>
@@ -324,7 +324,7 @@ L 366.558726 155.785652
    </g>
    <g id="text_15">
     <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #1c2530" transform="translate(203.742312 217.56985)">internal priming sites (A15) · amplicon lengths (A16)</text>
-    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #1c2530" transform="translate(218.777 225.971764)">coverage by read origin (A17) · reports (D4)</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; fill: #1c2530" transform="translate(230.263563 225.971764)">coverage profiles (A17) · reports (D3)</text>
    </g>
   </g>
  </g>

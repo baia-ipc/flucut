@@ -56,6 +56,12 @@ def adapt_markdown(app, docname, source):
             m.group(0))
   text = re.sub(r"(?m)^```\n[A-Z][A-Z0-9_]*\(.*?^```$", keep_together,
                 text, flags=re.S)
+  # the analysis of running time of a section does not begin at the
+  # very end of a page: its first lines stay with its heading
+  text = text.replace(
+    "**Running time and memory.**",
+    "```{raw} latex\n\\Needspace{110pt}\n```\n\n"
+    "**Running time and memory.**")
   # a document which is not part of the PDF: its name, not a link
   text = re.sub(r"\[(methods_\w+\.md)\]\(\1\)", r"`\1`", text)
   source[0] = text
