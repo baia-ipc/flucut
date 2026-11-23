@@ -143,7 +143,4 @@ bool primer_search_end(primer_search_t *self, const primer_t *primer,
 /* Delete a searcher (NULL is accepted) */
 void primer_search_delete(primer_search_t *self);
 
-/* Unit tests */
-void primer_search_test(void);
-
 #endif

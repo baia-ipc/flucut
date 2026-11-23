@@ -34,6 +34,7 @@
 #include "read-cover.h"
 #include "read-outputs.h"
 #include "primer-search.h"
+#include "primer-search-test.h"
 #include "primers.h"
 #include "reference.h"
 #include "report.h"
