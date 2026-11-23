@@ -7,6 +7,7 @@ from flucut_posthoc.amplicons import build_units
 from flucut_posthoc.flucut_report import on_references, read_coverage
 from flucut_posthoc.flucut_tags import (compare_read, parse_part,
                                         predicted_spans)
+from flucut_posthoc.summary import _agreement
 
 LENGTHS = {"ref": 600}
 
@@ -104,3 +105,19 @@ def test_coverage_of_the_report_of_flucut(tmp_path, reference):
     assert len(profiles["ref"]["terminal+"]) == 600
     assert profiles["ref"]["terminal+"][0] == 10
     assert profiles["ref"]["internal+"][599] == 10
+
+
+def test_scores_count_missed_and_false_primers():
+    origin = {"left": {
+        "internal": {"internal": 8, "terminal": 1, "no primer": 1},
+        "terminal": {"terminal": 90, "internal": 2, "no primer": 10},
+        "unknown": {"internal": 3, "terminal": 4},
+        "no primer": {"internal": 7, "terminal": 6}}}
+    scores = _agreement(origin)["left"]
+    assert scores["called"] == 101
+    assert scores["agree"] == 98
+    assert scores["internal_precision"] == 8 / 10
+    assert scores["internal_recall"] == 8 / 20
+    assert scores["terminal_precision"] == 90 / 102
+    assert scores["terminal_recall"] == 90 / 101
+    assert _agreement({"right": {}})["right"]["internal_recall"] is None

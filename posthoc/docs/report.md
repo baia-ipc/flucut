@@ -79,8 +79,11 @@ and the mean difference per position.
 
 - **Origin of the ends**: flucut's call for each end (terminal,
   internal, unknown, no primer) against the mapping. "Confirmed" is the
-  share of flucut's calls which the mapping agrees with; "found by
-  flucut" the share of the ends of the mapping which flucut calls so.
+  share of flucut's calls which the mapping agrees with (a call where
+  the mapping finds no primer counts against it); "found by flucut" the
+  share of the ends of the mapping which flucut calls so (an end which
+  flucut leaves unknown, or where it finds no primer, counts against
+  it).
 - **Position of the ends**: how far flucut's position is from that of
   the mapping. A reference of flucut which lacks bases at its start
   cannot give positions before its first base.

@@ -200,22 +200,35 @@ def _coverage(references, measured, predicted, shown, irma, lifted) -> dict:
 
 
 def _agreement(origin: dict) -> dict:
-    """Scores of the origin calls of flucut, over the ends which both
-    flucut and the mapping assign to a terminus or to the interior."""
+    """Scores of the origin calls of flucut against the mapping.
+
+    `called` and `agree` are over the ends which both assign to a
+    terminus or to the interior. Precision is over all the ends flucut
+    calls so, also where the mapping finds no primer; recall over all
+    the ends the mapping calls so, also where flucut leaves the origin
+    unknown or finds no primer."""
     scores = {}
     for end, table in origin.items():
         get = lambda said, truth: table.get(said, {}).get(truth, 0)
         tt, ti = get("terminal", "terminal"), get("terminal", "internal")
         it, ii = get("internal", "terminal"), get("internal", "internal")
-        ut, ui = get("unknown", "terminal"), get("unknown", "internal")
+        # flucut calls an origin where the mapping finds no primer
+        tn, i_n = get("terminal", "no primer"), get("internal", "no primer")
+        # the mapping calls an origin which flucut does not
+        missed_t = get("unknown", "terminal") + get("no primer", "terminal")
+        missed_i = get("unknown", "internal") + get("no primer", "internal")
         scores[end] = {
             "called": tt + ti + it + ii,
             "agree": tt + ii,
-            "internal_precision": ii / (ii + it) if ii + it else None,
-            "internal_recall": ii / (ii + ti + ui) if ii + ti + ui else None,
-            "terminal_precision": tt / (tt + ti) if tt + ti else None,
-            "terminal_recall": tt / (tt + it + ut) if tt + it + ut else None}
+            "internal_precision": _share(ii, ii + it + i_n),
+            "internal_recall": _share(ii, ii + ti + missed_i),
+            "terminal_precision": _share(tt, tt + ti + tn),
+            "terminal_recall": _share(tt, tt + it + missed_t)}
     return scores
+
+
+def _share(part: int, total: int) -> float | None:
+    return part / total if total else None
 
 
 def _flucut(counts: Counter, sites: list[dict], group: dict | None,
