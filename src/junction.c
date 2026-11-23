@@ -70,42 +70,62 @@ static void flank_costs(const search_t *s, long from, long n, long anchor,
     bool backwards, long band, long *cost, long *used) {
   const fasta_record_t *ref =
       reference_set_fasta(s->refs)->records + s->ref_index;
-  const long w = 2 * band + 1, inf = n + w;
-  long *prev, *row;
-  XMALLOC(prev, sizeof(long) * 2 * (size_t)w);
-  row = prev + w;
+  const long w = 2 * band + 1, max_ref = n + band;
+  const int inf = (int)(n + w);
+  /* the bases of the reference, in the order in which they are aligned
+     (0 where there is none: it differs from any base), and two rows of
+     the matrix, with a cell before and after each (inf: no path) */
+  char *bases;
+  int *rows;
+  XMALLOC(bases, (size_t)max_ref);
+  XMALLOC(rows, sizeof(int) * 2 * (size_t)(w + 2));
+  for (long k = 0; k < max_ref; k++) {
+    long p = backwards ? anchor - k : anchor + k;
+    bases[k] = p < 0 || (size_t)p >= ref->seq_len ? 0 : ref->seq[p];
+  }
+  int *prev = rows + 1, *row = rows + (w + 2) + 1;
+  prev[-1] = prev[w] = row[-1] = row[w] = inf;
   /* (d: bases of the reference less bases of the template, plus band) */
   for (long d = 0; d < w; d++)
-    prev[d] = d >= band ? d - band : inf;
+    prev[d] = d >= band ? (int)(d - band) : inf;
   cost[0] = 0;
   used[0] = 0;
   for (long i = 1; i <= n; i++) {
     char base = backwards ? s->seq[from + n - i] : s->seq[from + i - 1];
-    cost[i] = inf;
-    for (long d = 0; d < w; d++) {
-      long j = i + d - band;   /* bases of the reference */
-      long best = inf;
-      if (j >= 0) {
-        if (j >= 1) {
-          long p = backwards ? anchor - (j - 1) : anchor + (j - 1);
-          bool differs = p < 0 || (size_t)p >= ref->seq_len ||
-                         ref->seq[p] != base;
-          best = prev[d] + differs;
-          if (d > 0 && row[d - 1] + 1 < best)
-            best = row[d - 1] + 1;
-        }
-        if (d + 1 < w && prev[d + 1] + 1 < best)
-          best = prev[d + 1] + 1;
-      }
+    /* (j = i + d - band bases of the reference: none below <first>) */
+    long first = band > i ? band - i : 0;
+    int lowest = inf;
+    long lowest_d = first;
+    for (long d = 0; d < first; d++)
+      row[d] = inf;
+    if (i <= band) {
+      /* no base of the reference */
+      row[first] = prev[first + 1] + 1;
+      lowest = row[first];
+      first++;
+    }
+    /* (the base of the reference aligned in the cell d) */
+    const char *aligned = bases + (i - band - 1);
+    for (long d = first; d < w; d++) {
+      int best = prev[d] + (aligned[d] != base);
+      if (row[d - 1] + 1 < best)
+        best = row[d - 1] + 1;
+      if (prev[d + 1] + 1 < best)
+        best = prev[d + 1] + 1;
       row[d] = best;
-      if (best < cost[i]) {
-        cost[i] = best;
-        used[i] = j;
+      if (best < lowest) {
+        lowest = best;
+        lowest_d = d;
       }
     }
-    memcpy(prev, row, sizeof(long) * (size_t)w);
+    cost[i] = lowest;
+    used[i] = i + lowest_d - band;
+    int *swap = prev;
+    prev = row;
+    row = swap;
   }
-  free(prev);
+  free(bases);
+  free(rows);
 }
 
 /* locate the junction among the bases <from> to <to> - 1 of the
