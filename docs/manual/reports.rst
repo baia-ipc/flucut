@@ -122,7 +122,8 @@ Run overview
 missing, few reads, not matched to the references, waiting).
 
 **Tiles** with the throughput of the run: samples, subtype (and how
-many samples have each, if several), reads and bases, median read
+many samples have each, if several), reads and bases (and the reads
+processed per second of the time elapsed), median read
 length (with the N50 and the median quality), reads written, reads with
 both primers. Then the resources of the run: while it is in progress,
 the threads (``-j``) with how many are busy now (the CPU time since the
