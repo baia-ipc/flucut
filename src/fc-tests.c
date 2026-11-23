@@ -28,7 +28,7 @@
 #include "internal-matches.h"
 #include "junction.h"
 #include "logger.h"
-#include "pattern-scan.h"
+#include "pattern-scan-test.h"
 #include "placement.h"
 #include "read-agreement.h"
 #include "read-cover.h"

@@ -16,35 +16,6 @@
    it; it matches any base (it is the IUPAC code for "any base") */
 #define PAD_CHAR 'N'
 
-/*
-   The pairs of characters which edlib must treat as equal: each IUPAC
-   code with each of the bases it stands for, in both directions (a
-   degenerate base can be in the primer, e.g. R, or in the read, e.g. N,
-   which is also the padding character). Written out, so that the table
-   is a constant: it is shared by the searchers of all threads (and by
-   the location of the reads in the references, see reference.c).
-*/
-const EdlibEqualityPair iupac_equalities[] = {
-  {'R', 'A'}, {'R', 'G'},
-  {'Y', 'C'}, {'Y', 'T'},
-  {'S', 'C'}, {'S', 'G'},
-  {'W', 'A'}, {'W', 'T'},
-  {'K', 'G'}, {'K', 'T'},
-  {'M', 'A'}, {'M', 'C'},
-  {'B', 'C'}, {'B', 'G'}, {'B', 'T'},
-  {'D', 'A'}, {'D', 'G'}, {'D', 'T'},
-  {'H', 'A'}, {'H', 'C'}, {'H', 'T'},
-  {'V', 'A'}, {'V', 'C'}, {'V', 'G'},
-  {'N', 'A'}, {'N', 'C'}, {'N', 'G'}, {'N', 'T'},
-  /* N (also the padding character) with the codes of the primer: a
-     degenerate base of a primer overhanging the read is not an error */
-  {'N', 'R'}, {'N', 'Y'}, {'N', 'S'}, {'N', 'W'}, {'N', 'K'}, {'N', 'M'},
-  {'N', 'B'}, {'N', 'D'}, {'N', 'H'}, {'N', 'V'}, {'N', 'N'},
-  {'U', 'T'},
-};
-const int n_iupac_equalities =
-  (int)(sizeof(iupac_equalities) / sizeof(iupac_equalities[0]));
-
 /* the cost of a start of the alignment which is not allowed, in the
    search at an end (see primer_search_end()) */
 #define NO_START (INT_MAX / 2)

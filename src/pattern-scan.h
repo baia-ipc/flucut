@@ -16,7 +16,7 @@
    by the plain dynamic programming (one column of its matrix).
 
    The characters are compared as in the search of a primer (see
-   iupac_equalities in primer-search.h).
+   iupac.h).
 
    The scan tells where a match ends, and with how many errors
    (pattern_scan_run(), pattern_scan_best()); for the matches themselves
@@ -32,7 +32,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "primer-search.h"
 
 /* the longest pattern scanned with one machine word */
 #define PATTERN_SCAN_WORD 64
@@ -121,8 +120,5 @@ size_t pattern_scan_matches(pattern_scan_t *self, const char *seq,
 
 /* Delete a prepared pattern (NULL is accepted) */
 void pattern_scan_delete(pattern_scan_t *self);
-
-/* Unit tests */
-void pattern_scan_test(void);
 
 #endif
