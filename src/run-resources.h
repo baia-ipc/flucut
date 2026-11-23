@@ -9,7 +9,10 @@
    the number of threads busy on average: between two measures while the
    run is in progress (the current load), from the start at its end. The
    memory is the resident memory of the process now (Linux: from
-   /proc/self/statm; 0 where it cannot be read) and its peak.
+   /proc/self/statm; 0 where it cannot be read) and its peak: the greater
+   of the peak the system reports (getrusage, which it may update with a
+   delay) and the memory measured now or at an earlier measure, so that
+   the peak is never below the memory now.
 */
 
 #ifndef RUN_RESOURCES_H
@@ -28,9 +31,11 @@ typedef struct {
   size_t memory_peak;    /* peak resident memory (bytes) */
 } run_resources_t;
 
-/* the clock of a run: its start, and the previous measure */
+/* the clock of a run: its start, the previous measure, and the greatest
+   memory measured */
 typedef struct {
   double start, last_elapsed, last_cpu;
+  size_t memory_peak;
 } run_clock_t;
 
 /* Start the clock of a run (now) */

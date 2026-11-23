@@ -35,6 +35,7 @@ void run_clock_start(run_clock_t *clock) {
   clock->start = now();
   clock->last_elapsed = 0;
   clock->last_cpu = 0;
+  clock->memory_peak = 0;
 }
 
 void run_resources_measure(run_clock_t *clock, size_t threads,
@@ -55,6 +56,10 @@ void run_resources_measure(run_clock_t *clock, size_t threads,
   out->memory_peak = (size_t)u.ru_maxrss * 1024;
 #endif
   out->memory = resident_memory();
+  if (out->memory > clock->memory_peak)
+    clock->memory_peak = out->memory;
+  if (clock->memory_peak > out->memory_peak)
+    out->memory_peak = clock->memory_peak;
   clock->last_elapsed = out->elapsed;
   clock->last_cpu = out->cpu;
 }
@@ -89,5 +94,6 @@ void run_resources_test(void) {
   test_assert(r.cpu > 0);
   test_assert(r.load >= 0);
   test_assert(r.memory_peak > 0);
+  test_assert(r.memory_peak >= r.memory);
   test_assert(clock.last_elapsed == r.elapsed);
 }
