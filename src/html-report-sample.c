@@ -87,6 +87,35 @@ void sample_status_line(html_writer_t *w, const report_t *r,
   html_close(w);
 }
 
+void sample_reads_tile(html_writer_t *w, const counter_reads_t *s,
+    const run_resources_t *resources) {
+  markup_open(w, "div", "tile");
+  markup_textf(w, "div", "v", "%s", html_num(s->reads_in).s);
+  markup_textf(w, "div", "l", "reads");
+  markup_textf(w, "div", "u", "%s", sample_bases(s->bases_in).s);
+  size_t analyzed = counter_reads_analyzed(s);
+  if (analyzed > s->reads_in)
+    markup_textf(w, "div", "u", "%s more after splitting chimeric reads",
+                 html_num(analyzed - s->reads_in).s);
+  if (resources != NULL && resources->elapsed > 0)
+    markup_textf(w, "div", "u", "%s reads/s",
+                 html_num((size_t)((double)s->reads_in /
+                                   resources->elapsed + 0.5)).s);
+  html_close(w);
+}
+
+void sample_written_tile(html_writer_t *w, const counter_reads_t *s) {
+  size_t analyzed = counter_reads_analyzed(s);
+  char sub[128];
+  snprintf(sub, sizeof(sub), "%s of %s%s; %s too short",
+           html_num(s->reads_out).s, html_num(analyzed).s,
+           s->split > 0 ? " after splitting" : "",
+           html_num(analyzed > s->reads_out ? analyzed - s->reads_out :
+                    0).s);
+  markup_tile(w, "written", sub, "%s",
+              percent_text(s->reads_out, analyzed).s);
+}
+
 /* the main numbers of the sample */
 static void write_tiles(html_writer_t *w, const report_t *r,
     const counter_t *c, const qc_summary_t *qc) {
@@ -103,14 +132,9 @@ static void write_tiles(html_writer_t *w, const report_t *r,
     markup_tile(w, "subtype (closest references)", sub, "%s",
                 sample_subtype(qc).s);
   }
-  snprintf(sub, sizeof(sub), "%s", sample_bases(s->bases_in).s);
-  markup_tile(w, "reads", sub, "%s", html_num(s->reads_in).s);
+  sample_reads_tile(w, s, NULL);
   sample_length_tile(w, c);
-  /* (a read split into several amplicons counts once for each) */
-  snprintf(sub, sizeof(sub), "%s of %s reads%s", html_num(s->reads_out).s,
-           html_num(analyzed).s, s->split > 0 ? " after splitting" : "");
-  markup_tile(w, "written", sub, "%s",
-              percent_text(s->reads_out, analyzed).s);
+  sample_written_tile(w, s);
   snprintf(sub, sizeof(sub), "one %s, none %s",
            percent_text(s->n_ends[1], analyzed).s,
            percent_text(s->n_ends[0], analyzed).s);

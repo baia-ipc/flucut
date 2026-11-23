@@ -122,10 +122,17 @@ Run overview
 missing, few reads, not matched to the references, waiting).
 
 **Tiles** with the throughput of the run: samples, subtype (and how
-many samples have each, if several), reads and bases (and the reads
-processed per second of the time elapsed), median read
-length (with the N50 and the median quality), reads written, reads with
-both primers. Then the resources of the run: while it is in progress,
+many samples have each, if several), reads of the input and their bases
+(then the reads added by splitting the chimeric reads, and the reads
+processed per second of the time elapsed), median read length (with the
+N50 and the median quality), reads written (of the reads after
+splitting; the others are too short after the trimming, primer dimers
+included), reads with both primers.
+
+A read with several amplicons joined end to end (a chimeric read) is
+split into them, and each part then counts as a read: the counts after
+the reads of the input (written, primers found, origins) are of the
+reads after splitting, which can be more than those of the input. Then the resources of the run: while it is in progress,
 the threads (``-j``) with how many are busy now (the CPU time since the
 previous update divided by the time elapsed), the memory used now (with
 its peak) and the time elapsed (with the CPU time); at its end, the
@@ -226,8 +233,9 @@ apply, short remarks:
      - 50% or more of the depth of a segment
 
 **Tiles**: the subtype with the references closest to the HA and to the
-NA, the reads and bases, the median read length, the reads written, the
-reads with both primers.
+NA, the reads and bases (and the reads added by splitting), the median
+read length, the reads written (of the reads after splitting, and those
+too short), the reads with both primers.
 
 **Reads.** Two bars: the reads by primers found (both, one, none) and
 by origin (with the reads not written: too short after the trimming,

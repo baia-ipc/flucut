@@ -122,27 +122,11 @@ static void resource_tiles(html_writer_t *w, const report_t *r) {
   }
 }
 
-/* the reads of the input: their number, their bases and, with the
-   resources of the run, how many were processed per second of the time
-   elapsed (until now, or in the whole run) */
-static void reads_tile(html_writer_t *w, const report_t *r,
-    const counter_reads_t *s) {
-  markup_open(w, "div", "tile");
-  markup_textf(w, "div", "v", "%s", html_num(s->reads_in).s);
-  markup_textf(w, "div", "l", "reads");
-  markup_textf(w, "div", "u", "%s", sample_bases(s->bases_in).s);
-  if (r->resources != NULL && r->resources->elapsed > 0)
-    markup_textf(w, "div", "u", "%s reads/s",
-                 html_num((size_t)((double)s->reads_in /
-                                   r->resources->elapsed + 0.5)).s);
-  html_close(w);
-}
-
 /* the throughput of the run */
 static void write_tiles(html_writer_t *w, const report_t *r) {
   const counter_reads_t *s = counter_reads(r->total);
   size_t analyzed = counter_reads_analyzed(s), done = 0;
-  char sub[96];
+  char sub[128];
   for (size_t i = 0; i < r->n_sections; i++)
     if (r->sections[i].counts != NULL)
       done++;
@@ -154,12 +138,9 @@ static void write_tiles(html_writer_t *w, const report_t *r) {
     markup_tile(w, "samples", NULL, "%zu", r->n_sections);
   if (r->references != NULL)
     subtypes_tile(w, r);
-  reads_tile(w, r, s);
+  sample_reads_tile(w, s, r->resources);
   sample_length_tile(w, r->total);
-  snprintf(sub, sizeof(sub), "%s of %s reads%s", html_num(s->reads_out).s,
-           html_num(analyzed).s, s->split > 0 ? " after splitting" : "");
-  markup_tile(w, "written", sub, "%s",
-              percent_text(s->reads_out, analyzed).s);
+  sample_written_tile(w, s);
   snprintf(sub, sizeof(sub), "one %s, none %s",
            percent_text(s->n_ends[1], analyzed).s,
            percent_text(s->n_ends[0], analyzed).s);

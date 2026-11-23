@@ -233,8 +233,8 @@ static void across_row(html_writer_t *w, const report_t *r, size_t i,
   segment_badge(w, q);
   html_close(w);
   markup_td(w, "%s", sample_subtype(&qc).s);
-  markup_td(w, "%s", html_num(q->median_depth).s);
-  markup_td(w, "%s", html_num(q->median_full_depth).s);
+  markup_td(w, "%s\xc3\x97", html_num(q->median_depth).s);
+  markup_td(w, "%s\xc3\x97", html_num(q->median_full_depth).s);
   markup_td(w, "%s", fraction_percent_text(q->well_covered).s);
   markup_td(w, "%s", fraction_percent_text(q->covered).s);
   markup_td(w, "%s", fraction_percent_text(q->internal).s);

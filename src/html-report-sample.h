@@ -39,6 +39,19 @@ typedef struct {
 } sample_bases_t;
 sample_bases_t sample_bases(size_t bases);
 
+/* The tile of the reads of the input <s>: their number and bases, the
+   reads added by splitting the chimeric reads (those with several
+   amplicons, each part then counted as a read) and, with the
+   <resources> of the run (NULL: not shown), the reads processed per
+   second of the time elapsed */
+void sample_reads_tile(html_writer_t *w, const counter_reads_t *s,
+    const run_resources_t *resources);
+
+/* The tile of the reads written: their share of the reads after
+   splitting, and the others, too short after the trimming (primer
+   dimers included) */
+void sample_written_tile(html_writer_t *w, const counter_reads_t *s);
+
 /* The tile of the lengths of the reads of the input of <c>: the median,
    with the N50 and the median quality */
 void sample_length_tile(html_writer_t *w, const counter_t *c);
