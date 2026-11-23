@@ -29,6 +29,7 @@
 #ifndef PATTERN_SCAN_H
 #define PATTERN_SCAN_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "primer-search.h"
@@ -78,6 +79,24 @@ size_t pattern_scan_run(pattern_scan_t *self, const char *seq, size_t len,
 bool pattern_scan_best(pattern_scan_t *self, const char *seq, size_t len,
     long max_errors, bool backwards, long *n_errors, long *first,
     long *last);
+
+/* the result of pattern_scan_best(), for one of two patterns */
+typedef struct {
+  bool found;
+  long n_errors, first, last;
+} pattern_scan_best_t;
+
+/*
+   Two patterns in one pass over <seq> (length <len>): <backwards> as by
+   pattern_scan_best() reading <seq> from its last base to its first
+   (into <b>), <forwards> reading it from its first to its last (into
+   <f>), both with at most <max_errors> errors. The results are those of
+   the two calls of pattern_scan_best(); for two patterns of at most
+   PATTERN_SCAN_WORD bases it takes less time than the two calls.
+*/
+void pattern_scan_best_both(pattern_scan_t *backwards,
+    pattern_scan_t *forwards, const char *seq, size_t len, long max_errors,
+    pattern_scan_best_t *b, pattern_scan_best_t *f);
 
 /* the most matches of a pattern reported in one sequence */
 #define PATTERN_SCAN_MAX_MATCHES 32

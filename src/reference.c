@@ -299,6 +299,27 @@ static void set_reverse(reference_set_t *self, const char *probe,
   pattern_scan_set(self->scan_reverse, self->rc, len);
 }
 
+/* the match of the probe at <ref_start> of the reference <ref_index>
+   (on the other strand if <reverse>) with <n_errors> errors: stored in
+   <best> if better than it (see align_window()) */
+static void consider_match(const reference_set_t *self, size_t ref_index,
+    bool reverse, long ref_start, long n_errors, reference_hit_t *best) {
+  reference_hit_t hit = {.mapped = true, .ref_index = ref_index,
+      .ref_len = (long)self->fasta->records[ref_index].seq_len,
+      .reverse = reverse, .ref_start = ref_start, .n_errors = n_errors,
+      .ambiguous = false};
+  if (!best->mapped || hit.n_errors < best->n_errors) {
+    *best = hit;
+  } else if (hit.n_errors == best->n_errors) {
+    /* as good as the best one: nearer to the terminus, it replaces it;
+       on another reference, the probe does not tell the two apart */
+    bool ambiguous = best->ambiguous || hit.ref_index != best->ref_index;
+    if (terminus_distance(&hit) < terminus_distance(best))
+      *best = hit;
+    best->ambiguous = ambiguous;
+  }
+}
+
 /*
    Align the probe prepared by set_forward() (or, for <reverse>, by
    set_reverse()) to the positions <from> to <to> of the reference
@@ -330,20 +351,27 @@ static void align_window(reference_set_t *self, size_t ref_index,
                          ref->seq + from, (size_t)(to - from + 1),
                          max_errors, !reverse, &n_errors, &first, &last))
     return;
-  reference_hit_t hit = {.mapped = true, .ref_index = ref_index,
-                         .ref_len = (long)ref->seq_len, .reverse = reverse,
-                         .ref_start = from + (reverse ? last : first),
-                         .n_errors = n_errors, .ambiguous = false};
-  if (!best->mapped || hit.n_errors < best->n_errors) {
-    *best = hit;
-  } else if (hit.n_errors == best->n_errors) {
-    /* as good as the best one: nearer to the terminus, it replaces it;
-       on another reference, the probe does not tell the two apart */
-    bool ambiguous = best->ambiguous || hit.ref_index != best->ref_index;
-    if (terminus_distance(&hit) < terminus_distance(best))
-      *best = hit;
-    best->ambiguous = ambiguous;
-  }
+  consider_match(self, ref_index, reverse, from + (reverse ? last : first),
+                 n_errors, best);
+}
+
+/* align_window() of the probe prepared by set_forward() and by
+   set_reverse() to the whole reference <ref_index>: first on its
+   strand, then on the other one, in one pass over the reference */
+static void align_reference(reference_set_t *self, size_t ref_index,
+    long max_errors, reference_hit_t *best) {
+  const fasta_record_t *ref = self->fasta->records + ref_index;
+  pattern_scan_best_t forward, reverse;
+  pattern_scan_best_both(self->scan_forward, self->scan_reverse, ref->seq,
+                         ref->seq_len, max_errors, &forward, &reverse);
+  /* (a match on the other strand with more errors than the one on the
+     strand of the reference does not replace it) */
+  if (forward.found)
+    consider_match(self, ref_index, false, forward.first, forward.n_errors,
+                   best);
+  if (reverse.found)
+    consider_match(self, ref_index, true, reverse.last, reverse.n_errors,
+                   best);
 }
 
 /*
@@ -413,11 +441,8 @@ static void locate(reference_set_t *self, const char *probe,
   for (size_t i = 0; i < self->fasta->n_records; i++) {
     if (!ref_allowed(self, i))
       continue;
-    long to = (long)self->fasta->records[i].seq_len - 1;
-    long k = hit->mapped ? hit->n_errors : max_errors;
-    align_window(self, i, 0, to, false, k, hit);
-    k = hit->mapped ? hit->n_errors : max_errors;
-    align_window(self, i, 0, to, true, k, hit);
+    // a worse match than the best one so far is not needed
+    align_reference(self, i, hit->mapped ? hit->n_errors : max_errors, hit);
   }
 }
 

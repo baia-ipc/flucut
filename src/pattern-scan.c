@@ -135,24 +135,36 @@ static void scan_start(pattern_scan_t *self, scan_state_t *st) {
       self->col[i] = (long)i;
 }
 
+/* a step of the scan with one word: <eq>, the positions of the pattern
+   equal to the character read; into <up> and <down>, the positions of
+   the pattern at which the distance has grown, or decreased, by one
+   from the previous base of the sequence */
+static inline void word_step(uint64_t eq, uint64_t *pv, uint64_t *mv,
+    uint64_t *up, uint64_t *down) {
+  uint64_t xv = eq | *mv;
+  uint64_t xh = (((eq & *pv) + *pv) ^ *pv) | eq;
+  uint64_t ph = *mv | ~(xh | *pv);
+  uint64_t mh = *pv & xh;
+  *up = ph;
+  *down = mh;
+  ph <<= 1;
+  mh <<= 1;
+  *pv = mh | ~(xv | ph);
+  *mv = ph & xv;
+}
+
 /* read the character <c>: the distance of the pattern to the bases
    which end with it */
 static inline long scan_step(pattern_scan_t *self, scan_state_t *st,
     unsigned char c) {
   const size_t m = self->len;
   if (m <= PATTERN_SCAN_WORD) {
-    uint64_t eq = self->peq[c];
-    uint64_t xv = eq | st->mv;
-    uint64_t xh = (((eq & st->pv) + st->pv) ^ st->pv) | eq;
-    uint64_t ph = st->mv | ~(xh | st->pv);
-    uint64_t mh = st->pv & xh;
+    uint64_t up, down;
+    word_step(self->peq[c], &st->pv, &st->mv, &up, &down);
     /* (without a branch: the distance changes at about every other
        base) */
-    st->score += (long)((ph >> (m - 1)) & 1) - (long)((mh >> (m - 1)) & 1);
-    ph <<= 1;
-    mh <<= 1;
-    st->pv = mh | ~(xv | ph);
-    st->mv = ph & xv;
+    st->score += (long)((up >> (m - 1)) & 1) -
+                 (long)((down >> (m - 1)) & 1);
     return st->score;
   }
   const unsigned char *equal = self->equal + (size_t)c * m;
@@ -233,6 +245,67 @@ bool pattern_scan_best(pattern_scan_t *self, const char *seq, size_t len,
     return false;
   *n_errors = best;
   return true;
+}
+
+/* note the distance <score> at the position <j> (see
+   pattern_scan_best()); <lowest>: the lowest so far */
+static inline void note_score(long score, long j, long max_errors,
+    bool backwards, long *lowest, pattern_scan_best_t *best) {
+  if (score > *lowest)
+    return;
+  if (score < *lowest) {
+    *lowest = score;
+    best->first = best->last = j;
+  } else if (score <= max_errors) {
+    if (backwards)
+      best->first = j;
+    else
+      best->last = j;
+  }
+}
+
+void pattern_scan_best_both(pattern_scan_t *backwards,
+    pattern_scan_t *forwards, const char *seq, size_t len, long max_errors,
+    pattern_scan_best_t *b, pattern_scan_best_t *f) {
+  assert(backwards != NULL && forwards != NULL);
+  assert(seq != NULL || len == 0);
+  assert(max_errors >= 0);
+  if (backwards->len > PATTERN_SCAN_WORD ||
+      forwards->len > PATTERN_SCAN_WORD) {
+    /* (a column for each pattern: one after the other) */
+    b->found = pattern_scan_best(backwards, seq, len, max_errors, true,
+                                 &b->n_errors, &b->first, &b->last);
+    f->found = pattern_scan_best(forwards, seq, len, max_errors, false,
+                                 &f->n_errors, &f->first, &f->last);
+    return;
+  }
+  /* the two scans do not depend on each other: in one loop, the
+     processor computes them at the same time */
+  const uint64_t *eq_b = backwards->peq, *eq_f = forwards->peq;
+  /* (the last position of each pattern, as a mask: in this loop it
+     takes less time than the shift of scan_step()) */
+  const uint64_t top_b = (uint64_t)1 << (backwards->len - 1);
+  const uint64_t top_f = (uint64_t)1 << (forwards->len - 1);
+  uint64_t pv_b = ~(uint64_t)0, mv_b = 0, pv_f = ~(uint64_t)0, mv_f = 0;
+  long score_b = (long)backwards->len, score_f = (long)forwards->len;
+  long lowest_b = max_errors + 1, lowest_f = max_errors + 1;
+  pattern_scan_best_t best_b = {0}, best_f = {0};
+  for (size_t t = 0; t < len; t++) {
+    size_t j = len - 1 - t;
+    uint64_t up_b, down_b, up_f, down_f;
+    word_step(eq_b[(unsigned char)seq[j]], &pv_b, &mv_b, &up_b, &down_b);
+    word_step(eq_f[(unsigned char)seq[t]], &pv_f, &mv_f, &up_f, &down_f);
+    score_b += (long)((up_b & top_b) != 0) - (long)((down_b & top_b) != 0);
+    score_f += (long)((up_f & top_f) != 0) - (long)((down_f & top_f) != 0);
+    note_score(score_b, (long)j, max_errors, true, &lowest_b, &best_b);
+    note_score(score_f, (long)t, max_errors, false, &lowest_f, &best_f);
+  }
+  best_b.found = lowest_b <= max_errors;
+  best_b.n_errors = lowest_b;
+  best_f.found = lowest_f <= max_errors;
+  best_f.n_errors = lowest_f;
+  *b = best_b;
+  *f = best_f;
 }
 
 /*
@@ -359,7 +432,67 @@ static void check_scan(const char *pattern, const char *seq, long k) {
   pattern_scan_delete(p);
 }
 
+/* scan <seq> for <back> (backwards) and <forth> (forwards) in one pass
+   and compare with the two scans done one after the other */
+static void check_both(const char *back, const char *forth,
+    const char *seq, long k) {
+  size_t n = strlen(seq);
+  pattern_scan_t *pb = pattern_scan_new(back, strlen(back));
+  pattern_scan_t *pf = pattern_scan_new(forth, strlen(forth));
+  pattern_scan_best_t b, f, eb = {0}, ef = {0};
+  eb.found = pattern_scan_best(pb, seq, n, k, true, &eb.n_errors,
+                               &eb.first, &eb.last);
+  ef.found = pattern_scan_best(pf, seq, n, k, false, &ef.n_errors,
+                               &ef.first, &ef.last);
+  pattern_scan_best_both(pb, pf, seq, n, k, &b, &f);
+  test_assert(b.found == eb.found && f.found == ef.found &&
+      (!b.found || (b.n_errors == eb.n_errors && b.first == eb.first &&
+                    b.last == eb.last)) &&
+      (!f.found || (f.n_errors == ef.n_errors && f.first == ef.first &&
+                    f.last == ef.last)));
+  pattern_scan_delete(pb);
+  pattern_scan_delete(pf);
+}
+
+/* fill <seq> with <len> random characters of <alphabet> */
+static void random_chars(char *seq, size_t len, const char *alphabet,
+    unsigned long *state) {
+  size_t n = strlen(alphabet);
+  for (size_t i = 0; i < len; i++) {
+    *state = *state * 6364136223846793005UL + 1442695040888963407UL;
+    seq[i] = alphabet[(*state >> 33) % n];
+  }
+  seq[len] = '\0';
+}
+
+/* two patterns in one pass, against one pass for each: patterns taken
+   from the sequence (found) and random ones (found or not), of
+   different lengths, also longer than a word */
+static void both_test(void) {
+  unsigned long state = 11;
+  char back[2 * PATTERN_SCAN_WORD + 1], forth[2 * PATTERN_SCAN_WORD + 1];
+  char text[301];
+  const size_t lens[] = {1, 8, 32, 64, 65};
+  const size_t n_lens = sizeof(lens) / sizeof(lens[0]);
+  for (int rep = 0; rep < 200; rep++) {
+    size_t n = rep == 0 ? 0 : 150 + (size_t)(rep % 150);
+    random_chars(text, n, rep % 3 == 0 ? "AC" : "ACGT", &state);
+    size_t mb = lens[rep % n_lens], mf = lens[(rep / n_lens) % n_lens];
+    random_chars(back, mb, "ACGTN", &state);
+    random_chars(forth, mf, "ACGTR", &state);
+    /* (the backwards pattern is given reversed) */
+    if (rep % 2 == 0 && n > 0)
+      for (size_t i = 0; i < mb; i++)
+        back[i] = text[70 + mb - 1 - i];
+    if (rep % 4 < 2 && n > 0)
+      memcpy(forth, text + 20, mf);
+    for (long k = 0; k <= 6; k += 3)
+      check_both(back, forth, text, k);
+  }
+}
+
 void pattern_scan_test(void) {
+  both_test();
   const char *uni12 = "AGCRAAAGCAGG";
   pattern_scan_t *p = pattern_scan_new(uni12, strlen(uni12));
   pattern_scan_end_t ends[4];
