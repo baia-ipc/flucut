@@ -7,11 +7,14 @@ from collections import Counter
 import numpy as np
 
 from . import __version__
+from .agreement import origin_scores
 from .amplicons import CATEGORIES
 from .analysis import LENGTH_BIN, LENGTH_MAX, SHORT_FRACTION
+from .flucut_summary import sample_members
 from .flucut_tags import FLUCUT_CATEGORIES
-from .references import Reference
+from .references import CHOICE_READS, Reference
 from .seqio import revcomp
+from .subtype import subtype_summary
 
 SITE_DISTANCE = 5     # positions at most this far apart are one site
 MAX_SITES = 200
@@ -199,40 +202,10 @@ def _coverage(references, measured, predicted, shown, irma, lifted) -> dict:
     return out
 
 
-def _agreement(origin: dict) -> dict:
-    """Scores of the origin calls of flucut against the mapping.
-
-    `called` and `agree` are over the ends which both assign to a
-    terminus or to the interior. Precision is over all the ends flucut
-    calls so, also where the mapping finds no primer; recall over all
-    the ends the mapping calls so, also where flucut leaves the origin
-    unknown or finds no primer."""
-    scores = {}
-    for end, table in origin.items():
-        get = lambda said, truth: table.get(said, {}).get(truth, 0)
-        tt, ti = get("terminal", "terminal"), get("terminal", "internal")
-        it, ii = get("internal", "terminal"), get("internal", "internal")
-        # flucut calls an origin where the mapping finds no primer
-        tn, i_n = get("terminal", "no primer"), get("internal", "no primer")
-        # the mapping calls an origin which flucut does not
-        missed_t = get("unknown", "terminal") + get("no primer", "terminal")
-        missed_i = get("unknown", "internal") + get("no primer", "internal")
-        scores[end] = {
-            "called": tt + ti + it + ii,
-            "agree": tt + ii,
-            "internal_precision": _share(ii, ii + it + i_n),
-            "internal_recall": _share(ii, ii + ti + missed_i),
-            "terminal_precision": _share(tt, tt + ti + tn),
-            "terminal_recall": _share(tt, tt + it + missed_t)}
-    return scores
-
-
-def _share(part: int, total: int) -> float | None:
-    return part / total if total else None
-
-
 def _flucut(counts: Counter, sites: list[dict], group: dict | None,
             trimmed_input: bool) -> dict:
+    """The comparison with flucut: read by read from its tags (empty
+    without its reads), and what its summary says about the sample."""
     origin = _nested(counts, "origin")
     return {
         "reads_are_flucut_output": trimmed_input,
@@ -240,7 +213,7 @@ def _flucut(counts: Counter, sites: list[dict], group: dict | None,
         "split": {f"{f},{t}": n
                   for (f, t), n in _select(counts, "split").items()},
         "origin": origin,
-        "scores": _agreement(origin),
+        "scores": origin_scores(origin),
         "position": _nested(counts, "position"),
         "category": _nested(counts, "category"),
         "trim": _nested(counts, "trim"),
@@ -249,9 +222,7 @@ def _flucut(counts: Counter, sites: list[dict], group: dict | None,
         "sites_only_flucut": _flucut_only_sites(counts, sites)[:50],
         "predicted_on_other_references": sum(
             _select(counts, "predicted_elsewhere").values()),
-        "summary": None if group is None else {
-            "reads": group.get("reads"), "ends": group.get("ends"),
-            "short_complete": group.get("short_complete")}}
+        "summary": None if group is None else sample_members(group)}
 
 
 def _controls(counts: Counter) -> dict:
@@ -273,10 +244,11 @@ def _top(counts: Counter, name: str, fields: tuple, n: int) -> list[dict]:
 
 def build_summary(config, params, references, evidence, counts, measured,
                   predicted, clusters, irma, lifted, group, has_flucut,
-                  trimmed_input, lift, shown) -> dict:
+                  trimmed_input, lift, shown, subtypes) -> dict:
     """`predicted`: the coverage rebuilt from the tags of flucut (or
-    None); `shown`: the coverage read from its report (or None), which is
-    preferred; `lift`: the position maps of the other references."""
+    None); `shown`: the coverage of its summary (or None), which is
+    preferred; `lift`: the position maps of the other references;
+    `subtypes`: the subtype named by each reference of the set."""
     sites = _sites(counts, references, params.oligos)
     ref_entries = []
     for ref in references:
@@ -301,7 +273,6 @@ def build_summary(config, params, references, evidence, counts, measured,
         "inputs": {"reads": config.reads, "irma": config.irma,
                    "flucut_reads": config.flucut_reads,
                    "flucut_summary": config.flucut_summary,
-                   "flucut_report": config.flucut_report,
                    "references": config.references},
         "settings": {
             "primers": [{"name": o.name, "sequence": o.seq}
@@ -314,6 +285,10 @@ def build_summary(config, params, references, evidence, counts, measured,
             "short_fraction": SHORT_FRACTION},
         "references": ref_entries,
         "reference_choice": evidence,
+        "subtype": subtype_summary(
+            evidence, subtypes, ref_entries, (group or {}).get("sample"),
+            {run.label: run.read_counts for run in irma},
+            min(counts["reads"], CHOICE_READS)),
         "reads": {"total": counts["reads"], "bases": counts["bases"],
                   "classes": classes,
                   "amplicons_per_read": _nested(counts, "units_per_read"),
@@ -350,7 +325,7 @@ def build_summary(config, params, references, evidence, counts, measured,
         "complete_amplicons": _complete(counts, references, group, lift),
         "coverage": _coverage(references, measured, predicted, shown, irma,
                               lifted),
-        "predicted_coverage_from": "report" if shown is not None else
+        "predicted_coverage_from": "summary" if shown is not None else
         "tags" if predicted is not None else None,
         "offtarget": clusters,
         "irma": [{"label": run.label, "path": run.path,

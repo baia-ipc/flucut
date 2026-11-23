@@ -8,7 +8,6 @@ IRMA, once from the untrimmed reads and once from the trimmed ones:
     run1/barcode01.fastq.gz               the reads of the sequencer
     trimmed/barcode01.fastq.gz            written by flucut
     trimmed/flucut_summary.json
-    trimmed/flucut_report.html
     irma/barcode01_IRMA/                  IRMA on the untrimmed reads
     irma/barcode01_flucut_IRMA/           IRMA on the trimmed reads
 
@@ -17,7 +16,7 @@ Run:
     ./flucut-posthoc -v -j 16 -o posthoc/barcode01 \
         -i irma/barcode01_IRMA,irma/barcode01_flucut_IRMA \
         -f trimmed/barcode01.fastq.gz \
-        -s trimmed/flucut_summary.json -R trimmed/flucut_report.html \
+        -s trimmed/flucut_summary.json \
         run1/barcode01.fastq.gz
 
 `-v` reports the progress. The group of the sample in the outputs of
@@ -26,20 +25,19 @@ differ, name the group with `-g`, and the sample with `-n`.
 
 Open `posthoc/barcode01/posthoc_report.html` and read it from the top:
 
-1. **The tiles and "What the reads are"**: how many reads are influenza
-   at all. A run can be mostly amplicons of something else (the primers
-   also amplify host sequences); these are grouped under "Amplicons
-   which are not influenza", with a sequence to search in a database.
-2. **References**: which reference each segment was compared with, and
-   whether the consensus of IRMA covers it. A consensus much shorter
-   than the reference was built from genomes with a deletion; one with
-   primers inside was built from amplicons joined end to end.
-3. **Internal priming sites**: where the primers annealed inside the
-   segments, and how many reads flucut reports there.
-4. **Coverage by read origin**: the measured depth at the left, the plot
-   of flucut at the right, on the same scale.
-5. **flucut compared with the mapping**: how often flucut's call for a
-   read end is confirmed, and whether its trimming removed the primer.
+1. **The two verdicts**: whether the subtype flucut assigned is the one
+   the mapping shows, and how many checks are outside their limits (the
+   chips beside them name those checks).
+2. **Subtype**: for HA and NA, the type and the reference of the
+   mapping, of flucut and of IRMA, with the reads behind the mapping.
+3. **Agreement by measure, by segment**: every check with its value,
+   what it is a share of, and its limits. `!` and `✕` are where to look.
+4. **The sample, measured**: how many reads are influenza at all (a run
+   can be mostly amplicons of something else), what the amplicons are,
+   and the internal priming sites with the reads flucut reports there.
+5. **Segments**: one strip per segment, with the measured coverage
+   above the one flucut predicts, on the same scale.
+6. **All numbers**: open a table when you need the exact counts.
 
 ## The reads of flucut only
 
@@ -47,7 +45,7 @@ Without the untrimmed reads, give the reads written by flucut as the
 reads:
 
     ./flucut-posthoc -o posthoc/barcode01 -i irma/barcode01_flucut_IRMA \
-        -s trimmed/flucut_summary.json -R trimmed/flucut_report.html \
+        -s trimmed/flucut_summary.json \
         trimmed/barcode01.fastq.gz
 
 Their tags are compared with their mapping as above. The primers are no
@@ -63,22 +61,23 @@ Run each sample into its own directory, then make the overview:
       ./flucut-posthoc -j 32 -o posthoc/$name \
           -i irma/${name}_IRMA,irma/${name}_flucut_IRMA \
           -f trimmed/$name.fastq.gz \
-          -s trimmed/flucut_summary.json -R trimmed/flucut_report.html \
+          -s trimmed/flucut_summary.json \
           $fq
     done
     ./flucut-posthoc-overview -o posthoc posthoc/*/posthoc_summary.json
 
-`posthoc/overview.html` has one line per sample, with the main measures
-and the agreement of flucut, and links to the reports;
-`posthoc/overview.tsv` is the same table for programs.
+`posthoc/overview.html` has one line per sample: whether flucut agrees
+with the mapping, the subtype of flucut, of the mapping and of IRMA,
+the main measures and the checks, coloured by their limits, and a link
+to the report; `posthoc/overview.tsv` has the same values for programs.
 
 To compare one segment across the samples, add `--segment`:
 
     ./flucut-posthoc-overview --segment HA -o posthoc posthoc/*/posthoc_summary.json
 
-`posthoc/coverage_HA.html` then shows, for each sample, the coverage of
-HA measured from the mapping next to the one flucut predicts, on the
-same scale, and a table of how well the two agree.
+`posthoc/coverage_HA.html` then shows the strip of HA of each sample
+(numbers, coverage measured and predicted, amplicon lengths) and a
+table of how well the two depths agree.
 
 ## Your own references
 

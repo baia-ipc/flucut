@@ -1,5 +1,5 @@
-from flucut_posthoc.html import pct
-from flucut_posthoc.plots import bars
+from flucut_posthoc.html import (Markup, badge, fold, pct, stacked_bar,
+                                 table)
 
 
 def test_zero_and_all_only_when_exact():
@@ -29,6 +29,23 @@ def test_ratio_above_the_total():
 
 
 def test_bar_labels():
-    html = bars([("most", 9999, "#000"), ("few", 1, "#fff")], 10000)
-    assert "<em>&gt;99.9%</em>" in html
-    assert "<em>&lt;0.1%</em>" in html
+    html = stacked_bar("Reads", "reads", [("c-full", "most", 9999),
+                                          ("c-oth", "few", 1)])
+    assert "of 10,000 reads" in html
+    assert "most <b>&gt;99.9%</b>" in html
+    assert "few <b>&lt;0.1%</b>" in html
+    assert stacked_bar("Reads", "reads", [("c-full", "none", 0)]) == ""
+
+
+def test_badge_has_a_symbol_and_a_word():
+    assert badge("ok", "agrees") == '<span class="st ok">✓ agrees</span>'
+    assert badge("warn", "differs").count("! differs") == 1
+
+
+def test_table_cells():
+    html = table(["a", "b"], [["x<y", 1234], [Markup("<b>z</b>"), None]],
+                 groups=[("both", 2)])
+    assert "x&lt;y" in html and "1,234" in html
+    assert "<b>z</b>" in html and "<td>–</td>" in html
+    assert '<th colspan="2" class="g">both</th>' in html
+    assert fold("Title", "") == ""

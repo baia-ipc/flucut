@@ -1,13 +1,16 @@
+import json
 from collections import Counter
 
 import numpy as np
+import pytest
 
 from conftest import exact_alignment, random_seq
 from flucut_posthoc.amplicons import build_units
-from flucut_posthoc.flucut_report import on_references, read_coverage
+from flucut_posthoc.agreement import origin_scores
+from flucut_posthoc.flucut_summary import (load_group, on_references,
+                                           read_coverage)
 from flucut_posthoc.flucut_tags import (compare_read, parse_part,
                                         predicted_spans)
-from flucut_posthoc.summary import _agreement
 
 LENGTHS = {"ref": 600}
 
@@ -82,29 +85,39 @@ def test_agreement_of_a_read(reference, params):
     assert counts["trim", "terminal", "whole primer removed"] == 1
 
 
-def test_coverage_of_the_report_of_flucut(tmp_path, reference):
-    # two categories over 4 columns of a reference of 600 bases, depth 30
-    def polygon(top, base, colour):
-        xs = [46, 280, 515, 750]
-        points = [f"{x},{y}" for x, y in zip(xs, top)]
-        points += [f"{x},{y}" for x, y in zip(xs[::-1], base[::-1])]
-        return f'<polygon points="{" ".join(points)}" fill="{colour}"/>'
-
-    html = ('<h2 id="s0">sample</h2><div class="coverplot">'
-            "<b>segment 4 (HA), ref</b><svg>"
-            + polygon([160, 160, 160, 160], [160] * 4, "#cccccc")
-            + polygon([110, 110, 60, 60], [160] * 4, "#0b9e73")
-            + polygon([110, 110, 10, 10], [110, 110, 60, 60], "#e8a013")
-            + "<text>30</text><text>600</text></svg></div>")
-    path = tmp_path / "flucut_report.html"
-    path.write_text(html)
-    coverage = read_coverage(str(path), "sample")
+def test_coverage_of_the_summary_of_flucut(tmp_path, reference):
+    # two classes at 4 positions of a reference of 600 bases
+    group = {"name": "sample", "processed": True, "coverage": [{
+        "reference": "ref", "length": 600, "positions": [0, 200, 400, 599],
+        "depth": {"terminal_plus": [10, 10, 20, 20],
+                  "internal_plus": [0, 0, 10, 10],
+                  "not_located": [1, 1, 1, 1]}}]}
+    path = tmp_path / "flucut_summary.json"
+    path.write_text(json.dumps({"min_depth": 50, "groups": [
+        group, {"name": "other", "processed": True, "coverage": []}]}))
+    section = load_group(str(path), None, "run1_sample")
+    assert section["name"] == "sample" and section["min_depth"] == 50
+    with pytest.raises(ValueError):
+        load_group(str(path), "missing", "sample")
+    coverage = read_coverage(section)
     assert list(coverage["ref"]["terminal+"]) == [10, 10, 20, 20]
-    assert list(coverage["ref"]["internal+"]) == [0, 0, 10, 10]
+    assert list(coverage["ref"]["not_located"]) == [1, 1, 1, 1]
     profiles = on_references(coverage, [reference], {})
     assert len(profiles["ref"]["terminal+"]) == 600
     assert profiles["ref"]["terminal+"][0] == 10
+    assert profiles["ref"]["terminal+"][300] == 15
     assert profiles["ref"]["internal+"][599] == 10
+    assert read_coverage({"coverage": None}) == {}
+
+
+def test_coverage_on_another_reference(reference):
+    # the reference of flucut has 12 bases more at its start
+    coverage = {"other": {"positions": np.array([0., 12., 611.]),
+                          "terminal+": np.array([4., 4., 4.])}}
+    lift = {"other": ("ref", np.arange(612) - 12)}
+    profiles = on_references(coverage, [reference], lift)
+    assert profiles["ref"]["terminal+"][0] == 4
+    assert profiles["ref"]["terminal+"][599] == 4
 
 
 def test_scores_count_missed_and_false_primers():
@@ -113,11 +126,13 @@ def test_scores_count_missed_and_false_primers():
         "terminal": {"terminal": 90, "internal": 2, "no primer": 10},
         "unknown": {"internal": 3, "terminal": 4},
         "no primer": {"internal": 7, "terminal": 6}}}
-    scores = _agreement(origin)["left"]
+    scores = origin_scores(origin)["left"]
     assert scores["called"] == 101
     assert scores["agree"] == 98
     assert scores["internal_precision"] == 8 / 10
     assert scores["internal_recall"] == 8 / 20
     assert scores["terminal_precision"] == 90 / 102
     assert scores["terminal_recall"] == 90 / 101
-    assert _agreement({"right": {}})["right"]["internal_recall"] is None
+    assert scores["internal_called"] == 10
+    assert scores["internal_measured"] == 20
+    assert origin_scores({"right": {}})["right"]["internal_recall"] is None

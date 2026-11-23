@@ -14,7 +14,7 @@ from loguru import logger
 
 from .amplicons import CATEGORIES, Params
 from .analysis import BatchResult, init_worker, process_batch
-from .flucut_report import on_references, read_coverage
+from .flucut_summary import load_group, on_references, read_coverage
 from .flucut_tags import (FLUCUT_CATEGORIES, has_flucut_tags,
                           load_flucut_reads)
 from .irma import IrmaRun, lift_to_references, load_irma
@@ -25,6 +25,7 @@ from .references import (Reference, adapt_references, choose_references,
                          load_references, position_maps)
 from .report import write_report
 from .seqio import write_fasta
+from .subtype import subtype_of
 from .summary import build_summary
 
 BATCH_READS = 2000
@@ -46,7 +47,6 @@ class Config:
     flucut_reads: str | None = None
     flucut_summary: str | None = None
     flucut_group: str | None = None
-    flucut_report: str | None = None
     threads: int = 8
     minimap2: str = "minimap2"
     samtools: str = "samtools"
@@ -140,28 +140,6 @@ def _map_and_analyse(config: Config, references: list[Reference],
     return counts, measured, predicted, offtarget
 
 
-def _load_flucut_group(path: str, group: str | None, name: str
-                       ) -> dict | None:
-    """The section of a group in a JSON summary of flucut: the group
-    named, or the one whose name the sample name contains, or all reads
-    if the run had one group."""
-    with open(path) as handle:
-        data = json.load(handle)
-    groups = [g for g in data.get("groups", []) if g.get("processed")]
-    for g in groups:
-        if g["name"] == (group or name):
-            return g
-    if group is None:
-        matching = [g for g in groups if g["name"] in name
-                    or name in g["name"]]
-        if len(matching) == 1:
-            return matching[0]
-        if len(groups) <= 1:
-            return data.get("all")
-    raise ValueError(f"group {group or name!r} not found in {path}; "
-                     f"groups: {', '.join(g['name'] for g in groups)}")
-
-
 def run(config: Config) -> dict:
     """Run the analysis of one sample; returns the summary written."""
     os.makedirs(config.outdir, exist_ok=True)
@@ -190,8 +168,8 @@ def run(config: Config) -> dict:
     trimmed_input = flucut is not None and not config.flucut_reads
     group = None
     if config.flucut_summary:
-        group = _load_flucut_group(config.flucut_summary,
-                                   config.flucut_group, config.name)
+        group = load_group(config.flucut_summary, config.flucut_group,
+                           config.name)
     irma = []
     for path in config.irma:
         logger.info(f"reading the IRMA results in {path}")
@@ -203,16 +181,12 @@ def run(config: Config) -> dict:
 
     logger.info("mapping and analysing the reads")
     rows_path = os.path.join(config.outdir, "reads.tsv.gz")
-    with_flucut = flucut is not None or config.flucut_summary or \
-        config.flucut_report
+    with_flucut = flucut is not None or group is not None
     lift = position_maps(references, all_refs, config.minimap2) \
         if with_flucut else {}
     shown = None
-    if config.flucut_report:
-        shown = on_references(
-            read_coverage(config.flucut_report,
-                          config.flucut_group or config.name),
-            references, lift)
+    if group is not None and group.get("coverage"):
+        shown = on_references(read_coverage(group), references, lift)
     for ref in references:
         ref_lengths[ref.name] = ref.length
     counts, measured, predicted, offtarget = _map_and_analyse(
@@ -228,7 +202,8 @@ def run(config: Config) -> dict:
     summary = build_summary(
         config, params, references, evidence, counts, measured,
         predicted if predicted.used else None, clusters, irma, lifted,
-        group, flucut is not None, trimmed_input, lift, shown)
+        group, with_flucut, trimmed_input, lift, shown,
+        {r.name: subtype_of(r.description) for r in all_refs})
     path = os.path.join(config.outdir, "posthoc_summary.json")
     with open(path + ".tmp", "w") as handle:
         json.dump(summary, handle)

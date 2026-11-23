@@ -5,26 +5,45 @@ import json
 import os
 from html import escape
 
-from .html import STYLE, num, para, pct
+from .agreement import (depth_agreement, grade, limit_text, sample_checks,
+                        segment_rows, verdict, worst)
+from .html import (Markup, badge, card, chip, chips, heading, legend, num,
+                   page, pct, table, terms, tile, tiles, write_page)
 from .report import write_report
+from .subtype import STATUS
 
+# (key, label, the measure whose limits give the state of the cell)
 COLUMNS = [
-    ("sample", "sample"),
-    ("reads", "reads"),
-    ("influenza", "map to influenza"),
-    ("offtarget", "other amplicons"),
-    ("amplicons", "influenza amplicons"),
-    ("deletion", "with an internal deletion"),
-    ("internal", "5′ ends internally primed"),
-    ("sites", "internal priming sites"),
-    ("origin_agree", "flucut: origin calls confirmed"),
-    ("internal_confirmed", "flucut: internal calls confirmed"),
-    ("internal_found", "flucut: internal ends found"),
-    ("terminal_found", "flucut: terminal ends found"),
-    ("primer_left", "flucut: internal ends with primer bases left"),
-    ("depth_ratio", "coverage: predicted / measured"),
-    ("depth_difference", "coverage: mean difference per position"),
+    ("sample", "sample", None),
+    ("reads", "reads", None),
+    ("influenza", "map to influenza", None),
+    ("offtarget", "other amplicons", None),
+    ("amplicons", "influenza amplicons", None),
+    ("deletion", "with an internal deletion", None),
+    ("internal", "5′ ends internally primed", None),
+    ("sites", "internal priming sites", None),
+    ("origin_agree", "flucut: origin calls confirmed", "same"),
+    ("internal_confirmed", "flucut: internal calls confirmed", "confirmed"),
+    ("internal_found", "flucut: internal ends found", "found"),
+    ("terminal_found", "flucut: terminal ends found", "found"),
+    ("primer_left", "flucut: internal ends with primer bases left",
+     "primer_left"),
+    ("depth_ratio", "coverage: predicted / measured", "depth_ratio"),
+    ("depth_difference", "coverage: mean difference per position",
+     "depth_difference"),
+    ("subtype_flucut", "subtype: flucut", None),
+    ("subtype_mapping", "subtype: mapping", None),
+    ("subtype_irma", "subtype: IRMA", None),
+    ("subtype_status", "subtype of flucut: same, different, unknown", None),
 ]
+N_SHARED = 15     # columns shown as they are in the table of the page
+MEASURED = ["reads", "map to influenza", "other amplicons", "amplicons",
+            "internal deletion", "5′ ends int. primed", "sites"]
+SUBTYPE_MARKS = {"same": "same", "different": "different",
+                 "unknown": "cannot be told"}
+COMPARED = ["origins the same", "internal confirmed", "internal found",
+            "terminal found", "primer bases left", "flucut / measured",
+            "difference"]
 
 
 def _ratio(part: float, total: float) -> float | None:
@@ -59,21 +78,21 @@ def sample_row(s: dict) -> dict:
         trim = f["trim"].get("internal", {})
         row["primer_left"] = _ratio(trim.get("primer bases left", 0),
                                     sum(trim.values()))
-    agreements = [(r["length"], s["coverage"][r["name"]]["agreement"])
-                  for r in s["references"]]
-    agreements = [(n, a) for n, a in agreements if a]
-    if agreements:
-        measured = sum(n * a["measured_mean_depth"] for n, a in agreements)
-        row["depth_ratio"] = _ratio(
-            sum(n * a["predicted_mean_depth"] for n, a in agreements),
-            measured)
-        row["depth_difference"] = _ratio(
-            sum(n * a["mean_absolute_difference"] for n, a in agreements),
-            measured)
+    depth = depth_agreement(s)
+    if depth:
+        row["depth_ratio"] = depth["ratio"]
+        row["depth_difference"] = depth["difference"]
+    subtype = s.get("subtype")
+    if subtype:
+        irma = sorted({found for found in subtype["irma"].values() if found})
+        row.update(subtype_flucut=subtype["flucut"],
+                   subtype_mapping=subtype["measured"],
+                   subtype_irma=", ".join(irma) or None,
+                   subtype_status=subtype["status"])
     return row
 
 
-def _cell(key: str, value) -> str:
+def _cell(value) -> str:
     if value is None:
         return "NA"
     if isinstance(value, float):
@@ -81,57 +100,114 @@ def _cell(key: str, value) -> str:
     return str(value)
 
 
+def _write_tsv(rows: list[dict], path: str) -> None:
+    with open(path, "w") as out:
+        out.write("\t".join(key for key, _, _ in COLUMNS) + "\n")
+        for row in rows:
+            out.write("\t".join(_cell(row.get(key))
+                                for key, _, _ in COLUMNS) + "\n")
+
+
+def _line(row: dict, link: str, s: dict) -> tuple[list, str]:
+    """The line of a sample in the table, and the state of its
+    agreement."""
+    segments = segment_rows(s)
+    subtype = s.get("subtype")
+    status, _ = verdict(sample_checks(s), segments, subtype)
+    compared = [seg for seg in segments if seg["flucut"] is not None]
+    same = sum(seg["status"] == "ok" for seg in compared)
+    label = {"ok": "agrees", "na": "not compared"}.get(status, "differs")
+    cells = [Markup(f'<a href="{escape(link)}">{escape(row["sample"])}</a>'),
+             Markup(badge(status, label)),
+             Markup(badge(STATUS[subtype["status"]],
+                          SUBTYPE_MARKS[subtype["status"]]))
+             if subtype else None,
+             row.get("subtype_flucut"), row.get("subtype_mapping"),
+             row.get("subtype_irma"),
+             f"{same}/{len(compared)}" if compared else None]
+    for key, _, kind in COLUMNS[1:N_SHARED]:
+        value = row.get(key)
+        if isinstance(value, float):
+            text = pct(value, 1, 2 if value > 0.9 and kind else 1)
+        else:
+            text = num(value)
+        cells.append((text, f"sc {grade(kind, value)}")
+                     if kind and value is not None else text)
+    return cells, status
+
+
+def _page(lines: list[list], states: list[str]) -> str:
+    counts = {state: states.count(state) for state in set(states)}
+    differ = counts.get("warn", 0) + counts.get("bad", 0)
+    summary = [f'<b class="count">{len(states)} samples</b> ']
+    if counts.get("ok"):
+        summary.append(badge("ok", f"{counts['ok']} agree with flucut"))
+    if differ:
+        summary.append(badge(worst(states),
+                             f"{differ} with checks outside their limits"))
+    if counts.get("na"):
+        summary.append(chip(f"{counts['na']} not compared with flucut"))
+    headers = ["sample", "", "", "flucut", "mapping", "IRMA",
+               "segments agree"] + MEASURED + COMPARED
+    limits = [(label, limit_text(kind)) for label, (_, _, kind) in
+              zip(COMPARED, COLUMNS[8:N_SHARED])]
+    return page(
+        "flucut post-hoc: overview",
+        "<h1><small>flucut post-hoc</small>Overview</h1>",
+        heading("samples", "flucut and the mapping, by sample"),
+        chips(*summary),
+        tiles(tile(str(len(states)), "samples"),
+              tile(str(counts.get("ok", 0)), "agree in all checks",
+                   status="ok" if counts.get("ok") else ""),
+              tile(str(differ), "with checks outside their limits",
+                   status=worst(states) if differ else "")),
+        card("Samples", table(
+            headers, lines, left=2, cls="samples",
+            groups=[("", 2), ("subtype", 4), ("", 1),
+                    ("measured from the mapping", len(MEASURED)),
+                    ("flucut read ends", 5), ("flucut depth", 2)]),
+            legend([("t-ok", "within the limit"),
+                    ("t-warn", "within the wider limit"),
+                    ("t-bad", "outside"), ("t-na", "too few cases")])),
+        terms([("sample", "Links to the report of the sample, which has "
+                "every check and its limits."),
+               ("subtype", "Of flucut, of the mapping (the H of the HA "
+                "reference and the N of the NA reference the reads map "
+                "to best) and of the IRMA runs. ✓ the same for flucut "
+                "and the mapping, ✕ different, · cannot be told (too few "
+                "reads on HA or NA, or none assigned)."),
+               ("segments agree", "Segments in the same state for flucut "
+                "and the mapping, with the depth within the limits."),
+               ("measured", "Shares of the reads (map to influenza, "
+                "other amplicons), of the influenza amplicons (internal "
+                "deletion), of the 5′ ends with a primer.")]
+              + [(label, f"✓ {text}") for label, text in limits]
+              + [("read ends", "Origins the same: of the ends both call "
+                  "terminal or internal. Confirmed: of the 5′ ends flucut "
+                  "calls internal. Found: of the 5′ ends the mapping "
+                  "places there. Primer bases left: of the internally "
+                  "primed ends trimmed."),
+                 ("depth", "All segments together; difference: mean "
+                  "absolute difference per position, of the depth "
+                  "measured.")]), wide=True)
+
+
 def write_overview(summaries: list[str], outdir: str,
                    reports: bool = False) -> None:
     """Write overview.tsv and overview.html for the summaries given (the
     paths of posthoc_summary.json files); with `reports`, also write the
     report of each sample again from its summary."""
-    rows, links = [], []
+    rows, lines, states = [], [], []
     for path in summaries:
         with open(path) as handle:
             summary = json.load(handle)
-        rows.append(sample_row(summary))
         report = os.path.join(os.path.dirname(path), "posthoc_report.html")
         if reports:
             write_report(summary, report)
-        links.append(os.path.relpath(report, outdir))
-    with open(os.path.join(outdir, "overview.tsv"), "w") as out:
-        out.write("\t".join(key for key, _ in COLUMNS) + "\n")
-        for row in rows:
-            out.write("\t".join(_cell(key, row.get(key))
-                                for key, _ in COLUMNS) + "\n")
-    body = []
-    for row, link in zip(rows, links):
-        cells = []
-        for key, _ in COLUMNS:
-            value = row.get(key)
-            if key == "sample":
-                cells.append(f'<td class="l"><a href="{escape(link)}">'
-                             f"{escape(value)}</a></td>")
-            elif isinstance(value, float):
-                share = pct(value, 1, 2 if value > 0.9 else 1)
-                cells.append(f"<td>{escape(share)}</td>")
-            else:
-                cells.append(f"<td>{num(value)}</td>")
-        body.append("<tr>" + "".join(cells) + "</tr>")
-    head = "".join(f"<th>{escape(label)}</th>" for _, label in COLUMNS)
-    page = (
-        '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'
-        "<title>flucut post-hoc: overview</title>"
-        f"<style>{STYLE} th {{ white-space:normal; max-width:110px; "
-        "vertical-align:bottom; }} main {{ max-width:1500px; }}</style>"
-        "</head><body><main><h1>flucut post-hoc: overview</h1>"
-        + para("One line per sample, measured from the mapping of every "
-               "read; the name of a sample links to its report. The "
-               "columns of flucut compare its predictions with the "
-               "mapping: origin calls confirmed (of the ends flucut "
-               "calls terminal or internal, those the mapping places "
-               "there), internal calls confirmed, internal and terminal "
-               "ends found (of those of the mapping, the ones flucut "
-               "calls so), internally primed ends at which flucut left "
-               "primer bases, and its coverage plot against the depth "
-               "measured (all segments together).")
-        + f'<div class="scroll"><table><tr>{head}</tr>{"".join(body)}'
-        "</table></div></main></body></html>")
-    with open(os.path.join(outdir, "overview.html"), "w") as out:
-        out.write(page)
+        row = sample_row(summary)
+        line, status = _line(row, os.path.relpath(report, outdir), summary)
+        rows.append(row)
+        lines.append(line)
+        states.append(status)
+    _write_tsv(rows, os.path.join(outdir, "overview.tsv"))
+    write_page(os.path.join(outdir, "overview.html"), _page(lines, states))

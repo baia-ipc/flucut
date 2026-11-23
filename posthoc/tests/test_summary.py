@@ -41,28 +41,3 @@ def test_offtarget_groups():
     assert [c["sampled_reads"] for c in clusters] == [8, 2]
     assert clusters[0]["representative"] == one
     assert clusters[0]["template_length"] == 200
-
-
-def test_segment_coverage_page(tmp_path):
-    """The page of one segment has a pair of plots per sample."""
-    import json
-    from flucut_posthoc.segment_coverage import write_segment_coverage
-    paths = []
-    for name in ("one", "two"):
-        cover = {"measured": {"terminal+": [3, 4, 4, 2]},
-                 "predicted": {"terminal+": [3.0, 3.0, 4.0, 2.0]},
-                 "irma": {}, "agreement": {
-                     "measured_mean_depth": 3.25,
-                     "predicted_mean_depth": 3.0, "correlation": 0.9,
-                     "mean_absolute_difference": 0.25}}
-        summary = {"sample": name, "internal_sites": [],
-                   "references": [{"name": "r", "gene": "HA"}],
-                   "coverage": {"r": cover}}
-        path = tmp_path / f"{name}.json"
-        path.write_text(json.dumps(summary))
-        paths.append(str(path))
-    page = open(write_segment_coverage(paths, str(tmp_path), "HA")).read()
-    assert page.count('class="pair"') == 2
-    assert "one measured" in page and "two as flucut predicts" in page
-    assert open(write_segment_coverage(paths, str(tmp_path), "NA")).read() \
-        .count('class="pair"') == 0

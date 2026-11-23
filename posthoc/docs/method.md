@@ -56,14 +56,20 @@ alignment:
    terminus, bases of the read beyond the reference end are allowed for.
 6. **Coverage** (`pipeline.py`). The aligned intervals of each
    amplicon, by category.
-7. **Comparison** (`flucut_tags.py`, `flucut_report.py`, `irma.py`).
+7. **Comparison** (`flucut_tags.py`, `flucut_summary.py`, `irma.py`).
    flucut's tags are compared with the amplicons of the same read. The
    category flucut gave a read is its `ct` tag (with the strand, `fs`);
    for reads written without that tag it is worked out from the tags of
    the ends. Its
-   positions and coverage plots, given on its own references, are
+   positions and its coverage (the member `coverage` of its JSON
+   summary), given on its own references, are
    transferred to the references used here by aligning the two.
    IRMA's depth is transferred from its consensus in the same way.
+8. **Agreement** (`agreement.py`, `origins.py`, `subtype.py`). Each
+   comparison becomes a check with a share, what it is a share of, and
+   limits which give its state (✓, !, ✕). The subtype of the mapping is
+   the H of the HA reference chosen and the N of the NA reference
+   chosen; it is compared with the subtype flucut assigned.
 
 ## Chance matches
 
@@ -105,12 +111,18 @@ the simulation have more errors than R10 reads). Run it with
 - Internal priming within 10 bases of a terminus counts as terminal.
 - The reads which do not map are described (primers, groups, a typical
   sequence), not identified.
-- flucut's coverage is read from the plots of its HTML report, which
-  draw at most 704 positions per segment. Without the report it is
+- flucut's coverage is read from its JSON summary, which gives the
+  depth at up to 200 positions per segment; between them it is
+  interpolated. Without the summary it is
   rebuilt from the read tags, which lack the junctions of deletions and
   the position of the reads flucut placed by a probe from inside them
   or by their length (their category is known, from the `ct` tag, but
   they are not in the coverage).
+- A reference of flucut too different from the one chosen here to be
+  aligned with it (e.g. the other NS allele) cannot be compared: its
+  coverage and positions are left out.
+- The subtype is the one named by the closest reference of the set: a
+  subtype without a reference in the set cannot be found.
 
 ## Code
 
@@ -122,11 +134,18 @@ the simulation have more errors than R10 reads). Run it with
 | `primers.py` | primers, controls, search |
 | `amplicons.py` | alignments of a read to amplicons, ends, categories |
 | `analysis.py` | counting, in worker processes |
-| `flucut_tags.py`, `flucut_report.py` | what flucut said, read by read and in its plots |
+| `flucut_tags.py`, `flucut_summary.py` | what flucut said, read by read and in its JSON summary |
 | `irma.py` | the results of IRMA |
 | `offtarget.py` | groups of amplicons which are not influenza |
+| `subtype.py` | the subtype of the mapping, of flucut and of IRMA |
 | `summary.py` | the JSON summary |
-| `report.py`, `report_compare.py`, `plots.py`, `html.py` | the HTML report |
+| `origins.py` | the four read origins; depth and state of a segment |
+| `agreement.py` | the checks of flucut against the mapping, their limits |
+| `report.py` | the HTML report: the page and the measured sample |
+| `report_agreement.py`, `report_subtype.py` | its first part: verdicts, checks by measure and by segment, subtype |
+| `report_segments.py` | the strip of a segment |
+| `report_details.py`, `report_compare.py` | the tables shown on request; IRMA |
+| `plots.py`, `html.py`, `style.py` | plots, HTML helpers, stylesheet |
 | `overview.py` | the table of several samples |
-| `segment_coverage.py` | measured and predicted coverage of a segment: the pair of plots, and the page of one segment in several samples |
+| `segment_coverage.py` | the page of one segment in several samples |
 | `pipeline.py` | the run |

@@ -15,7 +15,7 @@ from .seqio import fastq_records, read_name
 
 # the categories of the coverage plot of flucut
 FLUCUT_CATEGORIES = ["terminal+", "terminal-", "internal+", "internal-",
-                     "no_primer", "unmapped_probe", "deletion"]
+                     "no_primer", "not_located", "deletion"]
 ENDS = (("left", "12", "fl", "ol", "ml"), ("right", "13", "fr", "or", "mr"))
 # the categories of the coverage plot (without the strand) of the values
 # of the `ct` tag which name one

@@ -22,12 +22,11 @@ Options:
                              the runs before and after flucut).
     -f --flucut-reads <fq>   Reads of the sample written by flucut, with
                              its tags: compared read by read.
-    -s --flucut-summary <f>  flucut_summary.json of the flucut run.
-    -R --flucut-report <f>   flucut_report.html of the flucut run: its
-                             coverage plots are compared with the
-                             coverage measured.
+    -s --flucut-summary <f>  flucut_summary.json of the flucut run: its
+                             counts, its amplicon lengths and its
+                             coverage by read origin are compared with
+                             those measured.
     -g --flucut-group <g>    Group of the sample in the flucut summary
-                             and report
                              [default: the group named as the sample].
     -r --references <fa>     Complete segment references
                              [default: those cached by flucut].
@@ -86,8 +85,7 @@ def flucut_posthoc(config: Config) -> None:
         if shutil.which(program) is None:
             sys.exit(f"flucut-posthoc: program not found: {program}")
     for path in [*config.reads, *config.irma, config.references,
-                 config.flucut_reads, config.flucut_summary,
-                 config.flucut_report]:
+                 config.flucut_reads, config.flucut_summary]:
         if path and not os.path.exists(path):
             sys.exit(f"flucut-posthoc: not found: {path}")
     try:
@@ -112,7 +110,6 @@ if __name__ == "__main__":
         irma=[d for d in (args["--irma"] or "").split(",") if d],
         flucut_reads=args["--flucut-reads"],
         flucut_summary=args["--flucut-summary"],
-        flucut_report=args["--flucut-report"],
         flucut_group=None if group.startswith("the group") else group,
         threads=int(args["--threads"]),
         minimap2=args["--minimap2"], samtools=args["--samtools"],

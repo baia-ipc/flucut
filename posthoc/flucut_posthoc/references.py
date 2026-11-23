@@ -29,6 +29,7 @@ TERMINUS_12 = "AGCRAAAGCAGG"
 TERMINUS_13_RC = "CCTTGTTTCTACT"
 _EQUALITIES = [("R", "A"), ("R", "G")]
 
+CHOICE_READS = 20000    # reads sampled for the choice of the references
 # the references which flucut downloads on first use
 FLUCUT_CACHE = os.path.expanduser(
     "~/.cache/flucut/flu-a-references-v1.fasta")
@@ -110,7 +111,8 @@ def write_read_sample(reads: list[str], path: str, n_reads: int) -> int:
 
 
 def choose_references(references: list[Reference], reads: list[str],
-                      minimap2: str, threads: int, n_reads: int = 20000
+                      minimap2: str, threads: int,
+                      n_reads: int = CHOICE_READS
                       ) -> tuple[list[Reference], list[dict]]:
     """For each segment, the reference to which a sample of the reads
     maps best (most matching bases); references without a segment number
@@ -204,11 +206,13 @@ def position_maps(chosen: list[Reference], references: list[Reference],
                 r += n
         aligned = np.flatnonzero(positions >= 0)
         first, last = aligned[0], aligned[-1]
+        for i in first + np.flatnonzero(positions[first:last + 1] < 0):
+            positions[i] = positions[i - 1]
+        # beyond the alignment: also before the first base of the chosen
+        # reference (negative positions)
         positions[:first] = positions[first] - np.arange(first, 0, -1)
         positions[last + 1:] = positions[last] + \
             np.arange(1, size - last)
-        for i in np.flatnonzero(positions < 0):
-            positions[i] = positions[i - 1]
         maps[name] = (to.name, positions)
     return maps
 

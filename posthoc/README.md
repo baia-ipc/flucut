@@ -36,11 +36,14 @@ flucut:
     ./flucut-posthoc -o posthoc/sample1 \
         -i irma/sample1_IRMA,irma/sample1_flucut_IRMA \
         -f trimmed/sample1.fastq.gz \
-        -s trimmed/flucut_summary.json -R trimmed/flucut_report.html \
+        -s trimmed/flucut_summary.json \
         sample1.fastq.gz
 
-Open `posthoc/sample1/posthoc_report.html`. For several samples, one
-table with links to their reports:
+Open `posthoc/sample1/posthoc_report.html`. It begins with the
+verdicts (is the subtype of flucut the one the mapping shows? which
+checks are outside their limits?), then shows each segment with the
+measured values next to those of flucut, and keeps every table folded
+below. For several samples, one table with links to their reports:
 
     ./flucut-posthoc-overview -o posthoc posthoc/*/posthoc_summary.json
 
@@ -54,8 +57,7 @@ A sample of a million reads takes about two minutes with 32 threads
 | reads before flucut (FASTQ) | argument | everything measured: their primers are the evidence |
 | IRMA output directories | `-i` | read counts, consensus, depth, which reads IRMA assembled |
 | reads written by flucut | `-f` | flucut's call for each read (its tags) |
-| `flucut_summary.json` | `-s` | flucut's counts and amplicon lengths |
-| `flucut_report.html` | `-R` | flucut's coverage plots |
+| `flucut_summary.json` | `-s` | flucut's counts, amplicon lengths, coverage by read origin, subtype and segment states |
 | segment references | `-r` | default: the set flucut downloads (`~/.cache/flucut`) |
 
 Only the reads are required. If you only have the reads written by
