@@ -47,6 +47,10 @@
    common subtype and the leading one are equally good, below it the
    first is worse; benchmark/RESULTS.md) */
 #define AUTO_REFERENCE_CLOSE_SHARE 0.5
+/* the segments which make the subtype (HA, NA): their reference is never
+   chosen after the other segments */
+#define AUTO_REFERENCE_HA 4
+#define AUTO_REFERENCE_NA 6
 /* (the help text of -e, in options.c, states these three values) */
 #define AUTO_MAX_ERRORS_LOW 0.2
 #define AUTO_MAX_ERRORS_HIGH 0.3
@@ -100,15 +104,20 @@ void auto_settings_decide(auto_settings_t *self, trimmer_config_t *config,
    A segment is clear if its reference with most votes has at least
    AUTO_REFERENCE_MIN_VOTES votes and at least AUTO_REFERENCE_MIN_SHARE
    of the votes of the segment: that reference is chosen. The other
-   segments follow the clear ones, where they can: the subtype chosen
+   segments, except the HA and the NA, follow the clear ones, where they
+   can: the subtype chosen
    in most clear segments (in case of a tie, the one with most votes in
    them) is the common subtype, and its reference is chosen
    - in a segment with too few votes;
    - in a segment without a clear lead, if it is a close contender (at
      least AUTO_REFERENCE_CLOSE_SHARE of the votes of the leading
      reference).
-   Where this does not apply (no clear segment, references without a
-   subtype, the reference of the common subtype is not close), a
+   The HA and the NA never follow: they make the subtype, which the
+   other segments do not tell (the internal genes of a reassortant are
+   often closest to references of another subtype).
+   Where this does not apply (the HA and the NA, no clear segment,
+   references without a subtype, the reference of the common subtype is
+   not close), a
    segment without a clear lead takes its reference with most votes
    (the sample is about as close to other references, and more reads
    would not change that), and for a segment with too few votes the

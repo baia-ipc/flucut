@@ -146,7 +146,9 @@ int auto_settings_common_subtype(const int *segment, const int *subtype,
    close contenders otherwise); SIZE_MAX if there is none */
 static size_t follow_common(const int *segment, const int *subtype,
     const size_t *votes, size_t n, int s, size_t best, int common) {
-  if (common < 0)
+  /* (the HA and the NA make the subtype: they are chosen by their own
+     reads only, never after the other segments) */
+  if (common < 0 || s == AUTO_REFERENCE_HA || s == AUTO_REFERENCE_NA)
     return SIZE_MAX;
   bool few = votes[best] < AUTO_REFERENCE_MIN_VOTES;
   size_t chosen = SIZE_MAX;
@@ -466,6 +468,24 @@ void auto_settings_test(void) {
                                                  allowed), 3);
     test_assert(allowed[0] && !allowed[1] && !allowed[2]);
     test_assert(allowed[3] && allowed[4] && allowed[5]);
+    /* the HA and the NA never follow: with the other segments clear
+       for subtype 1 and too few votes of their own, they keep all their
+       references */
+    const int with_internal[] = {4, 4, 4, 6, 6, 6, 7, 7, 7, 8, 8, 8};
+    const size_t own[] = {1, 0, 4, 0, 0, 0, 3, 90, 1, 0, 40, 2};
+    test_eq(auto_settings_common_subtype(with_internal, subtype, own, 12),
+            1, int, "%d");
+    test_eq_size(auto_settings_decide_references(with_internal, subtype,
+                                                 own, 12, allowed), 2);
+    test_assert(allowed[0] && allowed[1] && allowed[2]);
+    test_assert(allowed[3] && allowed[4] && allowed[5]);
+    test_assert(!allowed[6] && allowed[7] && !allowed[8]);
+    /* ... and with votes but no clear lead, they take their leader, not
+       the close reference of the common subtype */
+    const size_t lead[] = {0, 40, 50, 0, 0, 0, 3, 90, 1, 0, 40, 2};
+    auto_settings_decide_references(with_internal, subtype, lead, 12,
+                                    allowed);
+    test_assert(!allowed[0] && !allowed[1] && allowed[2]);
     /* references without a subtype do not follow */
     const int unknown[] = {0, 1, 2, 0, 1, 2, -1, -1, -1, 0, 1, 2};
     test_eq_size(auto_settings_decide_references(segment, unknown, follow,

@@ -139,7 +139,12 @@ votes and at least 60% of the votes of the segment; that reference is
 chosen. The other segments follow the clear ones where they can: a
 segment with too few votes takes the reference of the subtype chosen in
 most clear segments, and so does a segment without a clear lead, if
-that reference has at least half the votes of the leading one.
+that reference has at least half the votes of the leading one. The HA
+and the NA never follow: they make the subtype, which the other
+segments do not tell (the internal genes of a reassortant are often
+closest to references of another subtype, e.g. an H5N1 with internal
+genes of low pathogenic viruses), so they are chosen by their own reads
+only.
 Otherwise a segment without a clear lead takes its reference with most
 votes (common for the internal genes, which differ little between
 subtypes), and for a segment with too few votes the reads up to 20,000
