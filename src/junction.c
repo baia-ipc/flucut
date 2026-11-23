@@ -34,22 +34,41 @@ typedef struct {
   long tolerance;
 } search_t;
 
+/* locate the probe at <offset> of the template where it lies if it
+   continues the flank of diagonal <flank>; false if it is not there */
+static bool probe_on_flank(const search_t *s, long offset, long flank,
+    reference_hit_t *hit) {
+  size_t len = (size_t)(s->len - offset);
+  if (len > (size_t)s->probe_len)
+    len = (size_t)s->probe_len;
+  /* (the first base of the probe within the tolerance of its expected
+     position, and room for the rest of it, with its insertions) */
+  long expected = flank + offset;
+  reference_set_locate_within(s->refs, s->seq + offset, len, s->ref_index,
+      false, expected - s->tolerance,
+      expected + s->tolerance + 2 * (long)len, hit);
+  if (!hit->mapped)
+    return false;
+  long distance = hit->ref_start - expected;
+  return distance >= -s->tolerance && distance <= s->tolerance;
+}
+
 /* the flank of the probe at <offset> of the template; <diagonal>: that
-   of the probe, if it belongs to a flank */
+   of the probe, if it belongs to a flank. The probe is aligned only
+   where the two flanks would have it: of two matches, the one with
+   fewer errors, then that of the left flank */
 static flank_t probe_flank(const search_t *s, long offset, long *diagonal) {
-  reference_hit_t hit;
-  reference_set_locate_in(s->refs, s->seq + offset,
-      (size_t)(s->len - offset), s->ref_index, false, &hit);
-  if (!hit.mapped)
+  reference_hit_t left, right;
+  bool on_left = probe_on_flank(s, offset, s->left_diagonal, &left);
+  bool on_right = probe_on_flank(s, offset, s->right_diagonal, &right);
+  if (!on_left && !on_right)
     return FLANK_NONE;
-  long d = hit.ref_start - offset;
-  long from_left = d - s->left_diagonal, from_right = d - s->right_diagonal;
-  if (from_left < 0) from_left = -from_left;
-  if (from_right < 0) from_right = -from_right;
-  if (from_left > s->tolerance && from_right > s->tolerance)
-    return FLANK_NONE;
-  *diagonal = d;
-  return from_left <= from_right ? FLANK_LEFT : FLANK_RIGHT;
+  if (on_left && (!on_right || left.n_errors <= right.n_errors)) {
+    *diagonal = left.ref_start - offset;
+    return FLANK_LEFT;
+  }
+  *diagonal = right.ref_start - offset;
+  return FLANK_RIGHT;
 }
 
 /* the greatest share of the bases of a template which may differ from
