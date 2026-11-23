@@ -578,7 +578,8 @@ A segment is clear if its leading reference has at least 20 votes and
 60% of the votes of the segment (lines 15–19): it takes that reference
 (line 26). A segment that is not clear follows the subtype chosen by
 most clear segments (lines 20–22), if one of its plausible references
-has that subtype (lines 27–31). Otherwise it takes the reference with
+has that subtype (lines 27–31); the HA and the NA never follow, as
+they make the subtype (line 29). Otherwise it takes the reference with
 most votes (lines 32–33) or, with too few votes, keeps all its
 references (line 34). If a segment has too few votes, the count is
 extended once, to up to 20,000 reads (lines 7–8).
@@ -589,8 +590,8 @@ When a segment has several references (e.g. one per subtype, as in the
 built-in set), a readset is classified against one of them only: the
 one closest to its reads. Each segment is chosen by its own reads, since
 a reassortant is closest to references of different subtypes in
-different segments; a segment whose reads do not single out a
-reference follows the segments that are clear.
+different segments; a segment other than HA and NA whose reads do not
+single out a reference follows the segments that are clear.
 
 ![Votes for the references of five segments](figures/reference_votes.svg)
 
@@ -633,7 +634,8 @@ CLOSEST_REFERENCES(file)
 27                  // possible choices of s: the close contenders; all, with too few votes
                     else possible = {R in refs[s] : votes[R] ≥ 0.5 · votes[best[s]]}
 28                      possible = refs[s] if votes[best[s]] < 20
-29                      follow = the R in possible with R.subtype == common // NIL if none
+29                      // the HA and the NA make the subtype: they never follow
+                    follow = the R in possible with R.subtype == common // NIL if none, or s is HA or NA
 30                      if follow ≠ NIL
 31                          allowed[s] = {follow} // as the clear segments
 32                      elseif votes[best[s]] ≥ 20
@@ -645,9 +647,14 @@ CLOSEST_REFERENCES(file)
 A read shorter than *P* gives no probe; a read so short that two of its
 8 probes start at the same position gives that probe once.
 
-A segment that is not clear follows the clear ones where it can. With
-too few votes any of its references is possible, so it takes the one
-of the common subtype. Without a clear lead it takes the one of the
+A segment that is not clear follows the clear ones where it can, except
+the HA and the NA. These two make the subtype, and the other segments
+do not tell it: the internal genes of a reassortant are often closest
+to references of another subtype (e.g. an H5N1 with internal genes of
+low pathogenic viruses). They are chosen by their own reads only: the
+reference with most votes, or all their references if the votes are too
+few. For the other segments, with too few votes any of their references
+is possible, so the one of the common subtype is taken. Without a clear lead it takes the one of the
 common subtype only if that reference is a close contender (at least
 half the votes of the leading one); otherwise the reference with most
 votes is used: more reads would not change the shares, and keeping
