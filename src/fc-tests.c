@@ -20,6 +20,7 @@
 #include "auto-settings.h"
 #include "qc-flags.h"
 #include "qc-summary.h"
+#include "run-resources.h"
 #include "read-metadata.h"
 #include "read-stats.h"
 #include "chimera.h"
@@ -133,6 +134,7 @@ static test_group_t test_groups[] = {
    read_metadata_test, false},
   {'d', "the search of an adaptor", adaptor_search_test,
    false},
+  {'U', "the resources used by a run", run_resources_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 

@@ -84,6 +84,44 @@ static void subtypes_tile(html_writer_t *w, const report_t *r) {
               "most frequent subtype", list, "%s", names[best]);
 }
 
+/* a size in bytes, e.g. "850 MB", "1.24 GB" */
+typedef struct { char s[24]; } memory_text_t;
+static memory_text_t memory_text(size_t bytes) {
+  memory_text_t text;
+  double b = (double)bytes;
+  if (b >= 1e9)
+    snprintf(text.s, sizeof(text.s), "%.2f GB", b / 1e9);
+  else
+    snprintf(text.s, sizeof(text.s), "%.0f MB", b / 1e6);
+  return text;
+}
+
+/* the resources of the run: while it is in progress, the threads busy
+   now (since the previous update), the memory now and the elapsed time;
+   at its end, the threads busy on average, the memory peak, the CPU
+   time and the elapsed time */
+static void resource_tiles(html_writer_t *w, const report_t *r) {
+  const run_resources_t *u = r->resources;
+  char sub[64];
+  if (r->running) {
+    snprintf(sub, sizeof(sub), "busy now: %.1f", u->load);
+    markup_tile(w, "threads", sub, "%zu", u->threads);
+    snprintf(sub, sizeof(sub), "peak %s", memory_text(u->memory_peak).s);
+    markup_tile(w, "memory", sub, "%s",
+                memory_text(u->memory > 0 ? u->memory :
+                            u->memory_peak).s);
+    snprintf(sub, sizeof(sub), "CPU time %s", run_duration_text(u->cpu).s);
+    markup_tile(w, "elapsed", sub, "%s", run_duration_text(u->elapsed).s);
+  } else {
+    snprintf(sub, sizeof(sub), "busy on average: %.1f", u->load);
+    markup_tile(w, "threads", sub, "%zu", u->threads);
+    markup_tile(w, "memory peak", NULL, "%s",
+                memory_text(u->memory_peak).s);
+    markup_tile(w, "CPU time", NULL, "%s", run_duration_text(u->cpu).s);
+    markup_tile(w, "elapsed", NULL, "%s", run_duration_text(u->elapsed).s);
+  }
+}
+
 /* the throughput of the run */
 static void write_tiles(html_writer_t *w, const report_t *r) {
   const counter_reads_t *s = counter_reads(r->total);
@@ -112,6 +150,8 @@ static void write_tiles(html_writer_t *w, const report_t *r) {
            percent_text(s->n_ends[0], analyzed).s);
   markup_tile(w, "both primers", sub, "%s",
               percent_text(s->n_ends[2], analyzed).s);
+  if (r->resources != NULL)
+    resource_tiles(w, r);
   html_close(w);
 }
 

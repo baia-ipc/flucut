@@ -146,7 +146,7 @@ static size_t write_lengths(const lengths_t *l, const fasta_t *refs,
 
 void results_write(const char *outdir, const results_group_t *groups,
     size_t n, const counter_t *total, const fasta_t *refs,
-    const run_report_t *report, bool running, Logger *logger) {
+    run_report_t *report, bool running, Logger *logger) {
   char *summary_path = path_join(outdir, RESULTS_SUMMARY_FILE);
   FILE *summary = xfopen(summary_path, REPORT_TMP_SFX, "w",
                          "summary table", logger);

@@ -43,6 +43,6 @@ void results_log_counts(const char *name, const counter_reads_t *s,
 */
 void results_write(const char *outdir, const results_group_t *groups,
     size_t n, const counter_t *total, const fasta_t *refs,
-    const run_report_t *report, bool running, Logger *logger);
+    run_report_t *report, bool running, Logger *logger);
 
 #endif

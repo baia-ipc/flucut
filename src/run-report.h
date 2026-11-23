@@ -52,9 +52,11 @@ void run_report_set_refresh(run_report_t *self, long refresh);
 
 /*
    Write the reports of the <n> <sections> (groups of input files) and
-   of the <total> counts; <running>: in a run in progress, before its end
+   of the <total> counts; <running>: in a run in progress, before its end.
+   The resources used by the run (run-resources.h) are measured at each
+   writing.
 */
-void run_report_write(const run_report_t *self,
+void run_report_write(run_report_t *self,
     const report_section_t *sections, size_t n, const counter_t *total,
     bool running, Logger *logger);
 

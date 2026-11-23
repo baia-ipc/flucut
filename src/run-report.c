@@ -19,6 +19,7 @@ struct run_report_t {
   /* the reload interval of the HTML while a run is in progress; adapted
      by the live mode (run_report_set_refresh) */
   long refresh;
+  run_clock_t clock;       /* from the creation of the report */
 };
 
 run_report_t* run_report_new(const options_t *opts, const char *version,
@@ -39,6 +40,7 @@ run_report_t* run_report_new(const options_t *opts, const char *version,
   self->dashboard_path = path_join(opts->outdir, RUN_REPORT_DASHBOARD_FILE);
   self->json_path = path_join(opts->outdir, RUN_REPORT_JSON_FILE);
   self->refresh = RUN_REPORT_REFRESH;
+  run_clock_start(&self->clock);
   return self;
 }
 
@@ -53,17 +55,23 @@ void run_report_set_refresh(run_report_t *self, long refresh) {
   self->refresh = refresh;
 }
 
-void run_report_write(const run_report_t *self,
+void run_report_write(run_report_t *self,
     const report_section_t *sections, size_t n, const counter_t *total,
     bool running, Logger *logger) {
   assert(self != NULL);
+  /* (in a run in progress, the load since the previous writing; at the
+     end, that of the whole run) */
+  run_resources_t resources;
+  run_resources_measure(&self->clock, self->opts->threads, !running,
+                        &resources);
   report_t r = {
     .version = self->version, .command_line = self->command_line,
     .options = self->opts, .scheme = self->scheme,
     .references = self->references, .sections = sections,
     .n_sections = n, .total = total, .max_errors = self->max_errors,
     .refresh = running ? self->refresh : 0, .running = running,
-    .dashboard = true, .report_file = RUN_REPORT_HTML_FILE};
+    .dashboard = true, .report_file = RUN_REPORT_HTML_FILE,
+    .resources = &resources};
   /* the dashboard follows the run and stays, in its last state, as the
      dashboard of the finished run; the report is a separate page, written
      at the end */

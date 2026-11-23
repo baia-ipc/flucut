@@ -13,6 +13,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include "run-resources.h"
 #include "counter.h"
 #include "fasta.h"
 #include "lengths.h"
@@ -61,6 +62,8 @@ typedef struct {
   const char *report_file;
   bool running;
   bool dashboard;
+  /* the resources used by the run (run-resources.h); NULL: not shown */
+  const run_resources_t *resources;
 } report_t;
 
 /* the name of an end (COUNTER_LEFT, COUNTER_RIGHT) and that of the

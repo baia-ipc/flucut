@@ -124,7 +124,13 @@ missing, few reads, not matched to the references, waiting).
 **Tiles** with the throughput of the run: samples, subtype (and how
 many samples have each, if several), reads and bases, median read
 length (with the N50 and the median quality), reads written, reads with
-both primers.
+both primers. Then the resources of the run: while it is in progress,
+the threads (``-j``) with how many are busy now (the CPU time since the
+previous update divided by the time elapsed), the memory used now (with
+its peak) and the time elapsed (with the CPU time); at its end, the
+threads with how many were busy on average, the memory peak, the total
+CPU time and the total time elapsed. These are not in the JSON summary,
+whose content does not depend on the machine.
 
 **The table of the samples**, one row each; the name links to the
 sample:
