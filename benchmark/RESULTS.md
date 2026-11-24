@@ -59,13 +59,32 @@ The reads are simulated with an internal priming site in the HA only,
 so the internal priming reported for the other segments measures what
 the references get wrong: it is 0.5% of their reads with every set.
 
-**Time and memory.** 29,035 Nanopore reads of a real run, 8 threads,
-two runs each: 2.27 and 2.35 s with 61 references, 2.02 and 2.51 s with
-136, 2.71 s with the 31 built from IRMA's seeds; 101.5, 103 and 97 MB.
+**Time and memory.** Counting the votes per subtype costs nothing, and
+neither does a larger set. Reads of a real Nanopore run, 8 threads,
+three runs of each combination (`benchmark/time-reference-sets.sh`),
+wall seconds and peak memory, with the vote counted per reference
+("before") and per subtype ("after"):
+
+| reads | references | before | after | peak MB |
+|---|---|---|---|---|
+| 183,380 | 61 | 3.57 | 3.51 | 70 |
+| 183,380 | 136 | 3.46 | 3.42 | 73 |
+| 183,380 | 31 (IRMA) | 3.29 | 3.22 | 70 |
+| 3,000 | 61 | 0.41 | 0.41 | 42 |
+| 3,000 | 136 | 0.45 | 0.45 | 44 |
+| 3,000 | 31 (IRMA) | 0.35 | 0.35 | 42 |
+
+The spread between the three runs of a combination is at most 0.08 s,
+so the differences between before and after are at the edge of what the
+measure resolves; where they are visible at all, the new rule is the
+faster of the two, as it drops fewer probes as ambiguous and therefore
+reaches a decision from the first 2000 reads more often.
+
 The references are restricted to one per segment after the vote, so
-only the vote and the k-mer index see the whole set: the download grows
-(74 KB for 40 records, 113 KB for 61, 248 KB for 136), the run does
-not.
+only the vote and the k-mer index see the whole set: going from 61 to
+136 records costs 3 MB of memory and no time at the scale of a full
+run. What does grow is the download (74 KB for 40 records, 113 KB for
+61, 248 KB for 136).
 
 ## 2026-11-21: the choice of the reference of each segment
 
