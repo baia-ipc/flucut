@@ -5,9 +5,9 @@ then the tables with every number, shown on request."""
 from html import escape
 
 from .agreement import depth_limits, sample_checks, segment_rows
-from .html import (badge, card, chip, chips, heading, key_values, more,
-                   note, num, page, pct, stacked_bar, table, tile, tiles,
-                   write_page)
+from .html import (badge, card, chip, chips, key_values, more,
+                   note, num, page, pct, section, stacked_bar, table, tile,
+                   tiles, write_page)
 from .origins import MEASURED_ORIGIN, ORIGINS, origin_counts
 from .report_agreement import agreement_section
 from .report_compare import flucut_details, irma_card, irma_details
@@ -212,13 +212,14 @@ def write_report(s: dict, path: str) -> None:
     body = [_head(s)]
     if s["flucut"]:
         body.append(agreement_section(s, checks))
-    body += [heading("sample", "The sample, measured"),
-             _flags(s, segment_rows(s)), _tiles(s),
-             "" if s["flucut"] else subtype_card(s),
-             f'<div class="cols">{_reads_card(s)}<div>{_sites_card(s)}'
-             f'{irma_card(s)}</div></div>', segments_card(s),
-             heading("details", "All numbers"), measured_details(s)]
-    if s["flucut"]:
-        body.append(flucut_details(s))
-    body += [irma_details(s), terms_table(s)]
+    body += [section("sample", "The sample, measured",
+                     _flags(s, segment_rows(s)), _tiles(s),
+                     "" if s["flucut"] else subtype_card(s),
+                     f'<div class="cols">{_reads_card(s)}<div>'
+                     f'{_sites_card(s)}{irma_card(s)}</div></div>',
+                     segments_card(s)),
+             section("details", "All numbers", measured_details(s),
+                     flucut_details(s) if s["flucut"] else "",
+                     irma_details(s), open_=False),
+             terms_table(s)]
     write_page(path, page(f"flucut post-hoc: {s['sample']}", *body))

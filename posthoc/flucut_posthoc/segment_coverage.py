@@ -6,7 +6,7 @@ import json
 import os
 
 from .agreement import depth_limits, segment_rows
-from .html import (Markup, badge, card, heading, note, page, pct, table,
+from .html import (Markup, badge, card, note, page, pct, section, table,
                    terms, write_page)
 from .report_segments import segment_strip, strips_head
 
@@ -52,13 +52,13 @@ def write_segment_coverage(summaries: list[str], outdir: str,
     title = f"flucut post-hoc: {gene} in all samples"
     parts = [f"<h1><small>flucut post-hoc</small>{gene} in all samples</h1>"]
     if lines:
-        parts += [heading("agreement", "flucut and the mapping"),
-                  card("Depth of flucut and depth measured", table(
-                      ["sample", "", "measured", "flucut",
-                       "flucut / measured", "difference per position",
-                       "correlation"], lines, left=2,
-                      groups=[("", 2), ("mean depth", 2),
-                              ("depth along the segment", 3)]))]
+        parts.append(section(
+            "agreement", "flucut and the mapping",
+            card("Depth of flucut and depth measured", table(
+                ["sample", "", "measured", "flucut", "flucut / measured",
+                 "difference per position", "correlation"], lines,
+                left=2, groups=[("", 2), ("mean depth", 2),
+                                ("depth along the segment", 3)]))))
     parts.append(card(f"{gene} by sample",
                       strips_head(with_flucut, min_depth), *strips))
     if missing:

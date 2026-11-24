@@ -5,7 +5,7 @@ from html import escape
 
 from .agreement import (END_LABELS, Check, limit_text, segment_rows,
                         verdict)
-from .html import (Markup, badge, card, chip, chips, heading, note, pct,
+from .html import (Markup, badge, card, chip, chips, note, pct, section,
                    table, tile, tiles)
 from .origins import STATE_LABELS, STATE_STATUS
 from .report_subtype import subtype_badge, subtype_card, subtype_chips
@@ -155,8 +155,7 @@ def agreement_section(s: dict, checks: list[Check]) -> str:
     if not checks and all(row["flucut"] is None for row in rows):
         return ""
     subtype = s.get("subtype")
-    parts = [heading("agreement", "flucut and the mapping"),
-             chips(subtype_badge(subtype), *subtype_chips(subtype)),
+    parts = [chips(subtype_badge(subtype), *subtype_chips(subtype)),
              _verdict(checks, rows, subtype), _tiles(checks, rows)]
     if s["flucut"].get("reads_are_flucut_output"):
         parts.append(note(
@@ -167,6 +166,6 @@ def agreement_section(s: dict, checks: list[Check]) -> str:
         parts.append(note(
             "Without the reads written by flucut, only its summary is "
             "compared: the depth and the amplicon lengths."))
-    return "".join(parts) + subtype_card(s, verdict=False) \
-        + _measures(checks) \
-        + _segments(rows)
+    return section("agreement", "flucut and the mapping", *parts,
+                   subtype_card(s, verdict=False), _measures(checks),
+                   _segments(rows))

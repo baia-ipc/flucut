@@ -5,6 +5,10 @@ dark themes). It goes from the verdicts to the details: read the top,
 and open the rest when you need it. The page explains its own terms in
 "Terms used in this page", at its end.
 
+Each section and each box folds: click its title (▾ open, ▸ folded). The
+sections open at the start, except "All numbers"; a link to a part of
+the page opens the folded parts around it.
+
 Conventions:
 
 - **measured** is what the mapping shows; **flucut** (or predicted) is
@@ -86,7 +90,7 @@ same and the depth is within its limits.
 
 ## All numbers
 
-Every table, folded: references, ends of the amplicons, primer search
+Folded at the start. Every table, folded too: references, ends of the amplicons, primer search
 (errors, chance matches measured with control sequences, bases before
 the primers), internal priming sites with the template under the
 primer, complete amplicons, amplicons by category, internal deletions,

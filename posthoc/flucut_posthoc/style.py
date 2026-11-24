@@ -28,6 +28,23 @@ h1 small { font-size:0.5em; font-weight:700; letter-spacing:0.35em;
 h2 { font-size:1.3em; margin:1.6em 0 0.4em; padding-top:0.5em;
   border-top:2px solid var(--accent); color:var(--brand); }
 h3 { margin:0 0 8px; font-size:1em; color:var(--brand); }
+details.sec { margin-top:1.6em; padding-top:0.5em;
+  border-top:2px solid var(--accent); }
+details.sec > summary h2 { display:inline; margin:0; padding:0;
+  border:0; }
+details.card > summary h3 { display:inline; margin:0; }
+details.sec > summary, details.card > summary { list-style:none;
+  font-size:1em; color:inherit; user-select:none; margin:0 0 8px; }
+details.sec > summary::-webkit-details-marker,
+details.card > summary::-webkit-details-marker { display:none; }
+details.sec > summary::before, details.card > summary::before {
+  content:"\\25b8"; color:var(--accent); display:inline-block;
+  width:1.1em; }
+details.sec[open] > summary::before,
+details.card[open] > summary::before { content:"\\25be"; }
+details.card:not([open]) > summary { margin:0; }
+details.sec > summary:hover h2,
+details.card > summary:hover h3 { text-decoration:underline; }
 h4 { margin:12px 0 2px; font-size:0.9em; }
 a { color:var(--primary); }
 .sub { color:var(--ink2); margin:0; font-size:0.9em; }
@@ -156,5 +173,6 @@ svg .said { fill:none; stroke:var(--ink); stroke-width:1.2;
 @media (max-width:900px) {
   .cols, .seghead, .seg { grid-template-columns:minmax(0,1fr); }
   .seghead { display:none; } }
-@media print { .card, .seg { break-inside:avoid; } }
+@media print { .card, .seg { break-inside:avoid; }
+  details > summary::before { display:none; } }
 """

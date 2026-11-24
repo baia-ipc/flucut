@@ -7,8 +7,8 @@ from html import escape
 
 from .agreement import (depth_agreement, grade, limit_text, sample_checks,
                         segment_rows, verdict, worst)
-from .html import (Markup, badge, card, chip, chips, heading, legend, num,
-                   page, pct, table, terms, tile, tiles, write_page)
+from .html import (Markup, badge, card, chip, chips, legend, num, page,
+                   pct, section, table, terms, tile, tiles, write_page)
 from .report import write_report
 from .subtype import STATUS
 
@@ -154,21 +154,21 @@ def _page(lines: list[list], states: list[str]) -> str:
     return page(
         "flucut post-hoc: overview",
         "<h1><small>flucut post-hoc</small>Overview</h1>",
-        heading("samples", "flucut and the mapping, by sample"),
-        chips(*summary),
-        tiles(tile(str(len(states)), "samples"),
-              tile(str(counts.get("ok", 0)), "agree in all checks",
-                   status="ok" if counts.get("ok") else ""),
-              tile(str(differ), "with checks outside their limits",
-                   status=worst(states) if differ else "")),
-        card("Samples", table(
-            headers, lines, left=2, cls="samples",
-            groups=[("", 2), ("subtype", 4), ("", 1),
-                    ("measured from the mapping", len(MEASURED)),
-                    ("flucut read ends", 5), ("flucut depth", 2)]),
-            legend([("t-ok", "within the limit"),
-                    ("t-warn", "within the wider limit"),
-                    ("t-bad", "outside"), ("t-na", "too few cases")])),
+        section("samples", "flucut and the mapping, by sample",
+            chips(*summary),
+            tiles(tile(str(len(states)), "samples"),
+                  tile(str(counts.get("ok", 0)), "agree in all checks",
+                       status="ok" if counts.get("ok") else ""),
+                  tile(str(differ), "with checks outside their limits",
+                       status=worst(states) if differ else "")),
+            card("Samples", table(
+                headers, lines, left=2, cls="samples",
+                groups=[("", 2), ("subtype", 4), ("", 1),
+                        ("measured from the mapping", len(MEASURED)),
+                        ("flucut read ends", 5), ("flucut depth", 2)]),
+                legend([("t-ok", "within the limit"),
+                        ("t-warn", "within the wider limit"),
+                        ("t-bad", "outside"), ("t-na", "too few cases")]))),
         terms([("sample", "Links to the report of the sample, which has "
                 "every check and its limits."),
                ("subtype", "Of flucut, of the mapping (the H of the HA "
