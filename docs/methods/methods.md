@@ -413,10 +413,17 @@ taken for the primer and the read cut there.
 `src/reference.c`, `src/builtin-references.c`. The references decide the
 trimming mode; there is no separate option.
 
-- Default: a built-in set of complete segments (with UTRs) of H1N1
-  pdm09, H3N2, H5N1, H7N9 and H9N2, eight segments each, 40 records,
-  downloaded once from NCBI (efetch) and cached under
-  `$XDG_CACHE_HOME/flucut` or `~/.cache/flucut`.
+- Default: a built-in set of complete segments (with UTRs), downloaded
+  once from NCBI (efetch) and cached under `$XDG_CACHE_HOME/flucut` or
+  `~/.cache/flucut`. It holds the HA of every subtype (H1 to H16), the
+  NA of every subtype (N1 to N9) and the other six segments of isolates
+  of several subtypes: the subtype of a sample is read from its HA and
+  its NA, while the other segments differ little between subtypes
+  (D7).
+- The set named by the key `references` of the configuration file
+  (`$XDG_CONFIG_HOME/flucut/config`, else `~/.config/flucut/config`),
+  if there is one, instead of the built-in set: for instance a set
+  built from the seed sequences of IRMA (D7). `src/user-config.c`.
 - `-r <file>`: a FASTA file of the user.
 - `-r off`: no references.
 
@@ -676,7 +683,7 @@ would otherwise go to the first reference tried). Only probes from
 stretches where the references differ decide.
 
 How often. In the first 20,000 reads of two H5N1 samples, against the
-built-in set of five subtypes, 27–66% of the located probes of each
+a set of five subtypes of every segment, 27–66% of the located probes of each
 segment other than HA matched several references (over half in PB2, PB1
 and NP), and under 0.1% of those of HA. HA, NA and M were clear for
 H5N1 in both samples, PB1 for H7N9, and NS for H7N9 in one: the common
@@ -3611,6 +3618,116 @@ Their running time and memory are given in A17.
 
 ---
 
+## D7. Assembly of a reference set
+
+A reference of flucut must be a **complete segment**: it must begin with
+the conserved 5' terminus of the segments of influenza A
+(`AGCRAAAGCAGG`, the target of Uni12) and end with the conserved 3'
+terminus (`CCTTGTTTCTACT`, the reverse complement of Uni13), because a
+read end is called terminal by its distance to the end of the reference
+(A9, D5). It must also say, in its FASTA description, which segment it
+is (`segment <n>`, or a gene name) and, for the choice of the reference
+(A3), which subtype (`(H5N1)`).
+
+Two procedures assemble such a set.
+
+**Searching records.** `scripts/find_builtin_references.py` queries the
+nucleotide database of NCBI for each segment and subtype: the organism,
+the gene, every complete subtype the request covers (a search for `N8`
+alone finds nothing, as the records name `H1N8` to `H16N8`), the title
+`complete cds` and a narrow length range, which leaves out most records
+holding the coding sequence alone. The GenBank record of each candidate
+is then read, and a record is kept only if it is influenza A, is the
+segment asked for, carries the subtype in its description, is at least
+as long as a complete segment, has no ambiguous base, is a natural
+isolate (a description holding `chimeric`, `synthetic`, `recombinant`,
+`vaccine`, `mutant`, `unverified`, `construct` or `cloning vector` is
+refused) and begins and ends with the two termini, one mismatch
+allowed. Complete termini are rare: most records of the databases are
+coding sequences.
+
+For several records of one subtype, the search is repeated in each
+window of publication dates (before 2005, 2005–2014, 2015–2020, from
+2021), and the records kept are taken from the windows in turn and,
+within a window, of a host and place not taken yet. Without the
+windows the records of a subtype published last are often one
+submission of one place and host, which would leave the lineages of the
+other decades out. The date of collection is not a search field of the
+database, while the date of publication follows it closely enough.
+
+**Building references from coding sequences.** The seeds an assembler
+works with, such as those of a module of IRMA
+(`IRMA_RES/modules/<module>/reference/consensus.fasta`), hold the coding
+sequence alone and cannot be used as they are: the start of a segment
+in the reads would lie inside the reference, and genuine segment
+termini would be classified as internal priming. BUILD_REFERENCE
+attaches to a seed the untranslated regions of a complete record of the
+same segment and subtype.
+
+> **Source:** `scripts/irma_references.py`,
+> `scripts/find_builtin_references.py`
+
+BEST_MATCH(*D*, *x*, *from*, *to*) is the position in *D*[*from*:*to*]
+where *x* matches with fewest mismatches, without gaps, NIL if more
+than 30% of its bases differ everywhere. `subtype(D) ~ subtype` holds
+when the H of the donor equals the H of an HA seed, or its N the N of
+an NA seed; a seed of a segment other than HA and NA matches every
+donor of its segment.
+
+```
+BUILD_REFERENCE(seed, donors, segment, subtype)
+    // the untranslated regions of a donor around the coding sequence of a seed
+ 1  for each donor D of donors with segment(D) == segment and subtype(D) ~ subtype
+ 2      (head, tail) = (NIL, NIL)
+ 3      for each offset o of ⟨0, 15, 30, 60, 120, 240⟩ while head == NIL
+ 4          h = BEST_MATCH(D, seed[o + 1 : o + 32], 1, 300 + o)
+ 5          head = h − o if h ≠ NIL
+ 6      for each offset o of ⟨0, 15, 30, 60, 120, 240⟩ while tail == NIL
+ 7          e = BEST_MATCH(D, seed[|seed| − o − 31 : |seed| − o], |D| − 300 − o − 32, |D|)
+ 8          tail = e + 32 + o if e ≠ NIL
+ 9      if head == NIL or tail == NIL or head ≥ tail
+10          continue    // the coding sequence is not in this donor
+11      R = D[1 : head − 1] · seed · D[tail : |D|]
+12      if R begins with the 5' terminus and ends with the 3' terminus
+13          return (R, D)
+14  return NIL
+```
+
+The ends of the seed are matched in the donor (lines 3–8), the bases of
+the donor before and after them are the untranslated regions, and the
+result is the seed between them (line 11). The first 32 bases of a
+coding sequence can differ too much between two viruses (the signal
+peptide of the HA), and a base inserted or deleted among them shifts an
+ungapped match, so the windows further inside the seed are tried in
+turn until one matches (lines 3 and 6). The termini are checked on the
+result, not on the donor (line 12): a seed which already holds part of
+an untranslated region leaves few bases of the donor at that end. A
+donor whose ends cannot be placed is passed over for the next one of
+the same subtype (line 10).
+
+The donor must share the **subtype** of an HA or NA seed, not only its
+segment: the untranslated regions of a segment are nearly the same in
+every influenza A virus, but their length is subtype-specific. In the
+records of the built-in set the 5' untranslated region of the HA is 17
+bases in H14, 19 in H4, H8, H10 and H12, 28 in H5, 29 in H1 and H3, and
+43 in H2; the first 32 bases of two references of the same segment and
+different subtypes agree in 96–98% of their bases in the six segments
+other than HA and NA, and in 61–79% in those two, which is the
+difference in length. A donor of another subtype would put the start of
+the coding sequence at the wrong distance from the terminus, inside the
+probe of a terminal read.
+
+A reference built this way is not a record of a database: its coding
+sequence and its untranslated regions come from two different viruses.
+Its description and the table written beside it name both sources. It
+serves to classify the read ends, never as a reference for an assembly.
+
+**Running time and memory.** BUILD_REFERENCE aligns a 32-base window at
+up to 300 positions of a donor, for the two ends and up to six windows
+each: *O*(*n* · *P* · *w*) for *n* donors tried, window length *P* = 32
+and *w* = 300 positions, which is some milliseconds per seed. The
+memory is that of the seeds and the donors, some hundreds of kilobytes.
+
 # E. Parameters and limits
 
 ## E1. Parameters and constants
@@ -3657,7 +3774,11 @@ constant of the source code that holds each.
   primers. No demultiplexing, assembly or variant calling.
 - Kept termini are primer sequence, not measured virus sequence.
 - The classification needs complete-segment references of the right
-  subtype; the built-in set covers five subtypes.
+  subtype. The built-in set holds one reference of every HA and NA
+  subtype, which is not always enough: where the lineages of a subtype
+  lie decades apart, a sample can be closer to the reference of another
+  subtype, and is then named after it (measured on simulated reads: a
+  human H2N2 of 1957 named H5, `benchmark/RESULTS.md`).
 - Coverage profiles, placement and junctions come from probes and from
   short alignments around them, not from a full alignment of each read.
 - An end located from inside the read keeps the origin "unknown" for the
