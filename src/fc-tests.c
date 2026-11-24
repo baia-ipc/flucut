@@ -46,6 +46,7 @@
 #include "segments.h"
 #include "terminus-matches.h"
 #include "trimmer.h"
+#include "user-config.h"
 
 /* the directory for temporary files (-T; NULL: a new one, see
    make_tmpdir()) */
@@ -135,6 +136,7 @@ static test_group_t test_groups[] = {
   {'d', "the search of an adaptor", adaptor_search_test,
    false},
   {'U', "the resources used by a run", run_resources_test, false},
+  {'c', "the configuration file", user_config_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 

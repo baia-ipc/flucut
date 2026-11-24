@@ -215,6 +215,26 @@ all 3672 decisions of the study.
 | `votes` | whether a leading reference with few votes is the one which leads with all the reads |
 | `termini` | the bases each reference lacks at its ends, and the accuracy with it |
 
+### Naming the subtype of a sample
+
+flucut names the subtype of a sample after the references it chooses
+for the HA and the NA, so a sample whose HA or NA is far from every
+reference of its own subtype is named after another one.
+`subtype_calls.py` measures how often that happens: it simulates one
+sample per genome and error rate, runs flucut against the references,
+and compares the subtype reported with the subtype of the genome. The
+HA and the NA are counted separately, as they are chosen separately.
+
+    python3 benchmark/subtype_calls.py work/genomes \
+        benchmark/reference_choice_genomes.tsv \
+        ~/.cache/flucut/flu-a-references-v2.fasta bin/flucut \
+        work/subtypes 8 200
+
+(the last two arguments are the samples simulated at a time and the
+reads per segment). `subtype_calls.tsv` holds a line per genome and
+error rate: the subtype reported, the references chosen for the HA and
+the NA with their subtypes, and whether the H and the N are right.
+
 ### Mixed samples
 
 A segment whose votes are split has two causes which the votes alone do

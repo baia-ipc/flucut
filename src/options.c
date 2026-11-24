@@ -66,7 +66,8 @@ enum {
   "                          classified as terminal or internally primed,\n" \
   "                          the conserved termini are then kept at the\n" \
   "                          terminal ends (complete segment ends) and the\n" \
-  "                          whole primer removed elsewhere. Default: a\n" \
+  "                          whole primer removed elsewhere. Default: the\n" \
+  "                          set of the configuration file, else a\n" \
   "                          built-in flu A set, downloaded on first use.\n" \
   "                          -r off: no references (every primer removed)\n" \
   "   -e, --max-errors <x>   errors allowed in a primer: a number of\n" \

@@ -215,6 +215,7 @@ test_resume: $(BINDIR)/flucut
 # python3 -I tests/test-fetch-references.py --live)
 test_scripts:
 	@python3 -I tests/test-fetch-references.py
+	@python3 -I tests/test-irma-references.py
 
 # (a static pattern rule: the implicit rules are not searched for the
 # phony targets)

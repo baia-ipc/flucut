@@ -7,7 +7,8 @@ which NCBI uses (segment 7 by M1/M2, segment 8 by NS1/NEP/NS2, as
 MP[Gene] and NS[Gene] match no RefSeq record), and the --subtype and
 --refseq-only terms are kept; and, with a simulated server, that a
 request answered by HTTP 429 (too many requests) is retried with
-backoff, honoring Retry-After, and that other errors are not retried.
+backoff, that a 5xx error (a busy server or a failed gateway) is
+retried as well, and that a 4xx error is not.
 
 With --live, also downloads the RefSeq references of all eight
 segments from NCBI (network access required, through HTTPS_PROXY if
@@ -110,7 +111,8 @@ def with_opener(fr, opener, url="https://example.org/"):
 
 
 def test_retry(fr):
-  """The retries of the requests answered by HTTP 429."""
+  """The retries of the requests answered by HTTP 429 or by a 5xx
+  error, and the 4xx errors which are not retried."""
   n = len(fr.RETRY_WAITS)
   result, waits = with_opener(fr, FakeOpener([429, 429]))
   check(result == b"ok" and waits == fr.RETRY_WAITS[:2],
@@ -127,11 +129,21 @@ def test_retry(fr):
   check(waits == [fr.MAX_RETRY_WAIT], "Retry-After 9999: waits %r" % waits)
   result, waits = with_opener(fr, FakeOpener([429], retry_after="soon"))
   check(waits == fr.RETRY_WAITS[:1], "Retry-After soon: waits %r" % waits)
-  opener = FakeOpener([500])
+  opener = FakeOpener([502])
+  result, waits = with_opener(fr, opener)
+  check(result == b"ok" and waits == fr.RETRY_WAITS[:1]
+        and opener.calls == 2,
+        "502 once: result %r, waits %r" % (result, waits))
+  opener = FakeOpener([500] * (n + 1))
   result, waits = with_opener(fr, opener)
   check(isinstance(result, urllib.error.HTTPError) and result.code == 500
+        and waits == fr.RETRY_WAITS and opener.calls == n + 1,
+        "500 always: result %r, waits %r" % (result, waits))
+  opener = FakeOpener([404])
+  result, waits = with_opener(fr, opener)
+  check(isinstance(result, urllib.error.HTTPError) and result.code == 404
         and waits == [] and opener.calls == 1,
-        "500: result %r, waits %r" % (result, waits))
+        "404: result %r, waits %r" % (result, waits))
 
 
 def test_live(fr):

@@ -37,9 +37,10 @@ Options
    unsure). There is no separate option to choose the mode
    (:doc:`how_it_works`). Three forms:
 
-   * **default** (no ``-r``): the built-in reference set (complete
-     segments of several influenza A subtypes), downloaded on first use
-     (:doc:`internal_priming`);
+   * **default** (no ``-r``): the set named by the key ``references`` of
+     the configuration file, if there is one (:doc:`irma`), else the
+     built-in reference set (complete segments of several influenza A
+     subtypes), downloaded on first use (:doc:`internal_priming`);
    * ``-r <file>``: that FASTA file of segment references;
    * ``-r off``: no references, every primer-derived base removed.
    The messages and reports name a reference with its segment when its

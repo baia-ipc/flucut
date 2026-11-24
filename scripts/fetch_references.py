@@ -133,11 +133,14 @@ def http_get(url):
       with opener.open(req, timeout=TIMEOUT) as resp:
         return resp.read()
     except urllib.error.HTTPError as err:
-      if err.code != 429 or attempt == len(RETRY_WAITS):
+      # 429: asked too often; 5xx: the server is busy or a gateway of
+      # it failed (502, 503), which a repeated request usually passes
+      if (err.code != 429 and err.code < 500) or \
+         attempt == len(RETRY_WAITS):
         raise
       wait = max(RETRY_WAITS[attempt], retry_after(err.headers))
-      log("HTTP 429 (too many requests), retrying in %d s (%d/%d)"
-          % (wait, attempt + 1, len(RETRY_WAITS)))
+      log("HTTP %d, retrying in %d s (%d/%d)"
+          % (err.code, wait, attempt + 1, len(RETRY_WAITS)))
       time.sleep(wait)
     except (urllib.error.URLError, ConnectionError, TimeoutError) as err:
       # the server closes the connection of a client which asks too

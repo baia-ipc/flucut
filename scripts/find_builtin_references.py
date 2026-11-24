@@ -10,7 +10,8 @@ sequence would turn genuine segment termini into internal priming.
 
 For each segment and subtype asked for, this script searches NCBI
 nuccore, reads the GenBank record of each candidate and keeps the
-first one which:
+first one (or, with --per-subtype, several, spread over the hosts,
+places and decades found) which:
 
   * is the requested segment of influenza A virus,
   * carries the requested subtype in its description,
@@ -38,6 +39,10 @@ Example commands:
   # the eight segments of a subtype (e.g. to add it to the built-in set)
   python3 scripts/find_builtin_references.py --segment all \\
       --subtype H5N8 --output references/h5n8.tsv
+
+  # several HA references of a subtype, of different lineages
+  python3 scripts/find_builtin_references.py --segment HA \\
+      --subtype H5 --per-subtype 4 --max 200 --output references/h5.tsv
 
   # the eight segments of one isolate, searched by its name
   python3 scripts/find_builtin_references.py --segment all \\
@@ -72,6 +77,15 @@ SEGMENT_NUMBER = {name: i for i, name in enumerate(SEGMENTS, 1)}
 # trusted, recognised by their description.
 EXCLUDED = ("chimeric", "synthetic", "recombinant", "vaccine", "mutant",
             "unverified", "construct", "cloning vector")
+
+# The windows of the date of publication searched for each segment and
+# subtype when several records are wanted (--per-subtype), so that the
+# records of every decade can be reached (see find()). The date of
+# collection is not a search field of the nucleotide database, while
+# the date of publication follows it closely enough to spread the
+# candidates over the lineages.
+WINDOWS = [("1900", "2004"), ("2005", "2014"), ("2015", "2020"),
+           ("2021", "2100")]
 
 TERMINUS_5 = "AGCAAAAGCAGG"
 TERMINUS_3 = "CCTTGTTTCTACT"
@@ -108,6 +122,11 @@ def parse_args():
                       "alone, which are the majority for some subtypes")
   p.add_argument("--max", dest="max_seqs", type=int, default=60,
                  help="candidates looked at per segment (default: 60)")
+  p.add_argument("--per-subtype", type=int, default=1,
+                 help="records kept for each segment and subtype "
+                      "(default: 1); several cover the lineages of a "
+                      "subtype, as one record cannot: they are spread "
+                      "over the hosts, places and decades found")
   p.add_argument("--output", default="",
                  help="provenance table (TSV); the accessions go to stdout")
   p.add_argument("--api-key", default="",
@@ -149,13 +168,19 @@ def cds_span(record):
 
 
 def collection_year(record):
-  """The year in the strain name of the description (A/.../2024(H5N1)),
-  or 0."""
+  """The year of the strain name of the description, which is its last
+  field (A/duck/Cambodia/X/2024(H5N1)), or 0. Two digits
+  (A/swine/Belgium/1/83) are read as 19xx above 25 and as 20xx below
+  it; the fields before the last are isolate numbers, not years."""
   text = record.findtext("GBSeq_definition") or ""
-  for part in text.split("/"):
-    year = part.split("(")[0].strip()
-    if len(year) == 4 and year.isdigit() and 1900 < int(year) < 2100:
-      return int(year)
+  found = re.search(r"A/([^()]+?)\(", text)
+  if not found:
+    return 0
+  year = found.group(1).split("/")[-1].strip()
+  if len(year) == 4 and year.isdigit() and 1900 < int(year) < 2100:
+    return int(year)
+  if len(year) == 2 and year.isdigit():
+    return 1900 + int(year) if int(year) > 25 else 2000 + int(year)
   return 0
 
 
@@ -229,23 +254,61 @@ def utr_lengths(record):
   return (span[0] - 1, length - span[1]) if span else (0, 0)
 
 
-def find(segment, subtype, args):
-  """The first record of the segment and subtype which can be a
-  reference, as (accession, description, length, UTRs), or None."""
+def strain_origin(definition):
+  """The host and the place of the strain name of a description
+  (A/duck/Cambodia/X/2022(H5N1) gives duck and Cambodia; a human strain
+  has no host field: A/Cambodia/X/2023). Empty where the name does not
+  read that way."""
+  found = re.search(r"A/([^()]+?)\(H\d+N\d+\)", definition)
+  if not found:
+    return ("", "")
+  parts = [p.strip().lower() for p in found.group(1).split("/")]
+  if len(parts) < 3:
+    return ("", "")
+  return ("human", parts[0]) if len(parts) == 3 else (parts[0], parts[1])
+
+
+def spread(groups, wanted):
+  """Up to <wanted> records of the candidate groups (one group per
+  window of publication dates), as different from each other as the
+  descriptions tell: one record of each group in turn, and within a
+  group one of a host and place not taken yet."""
+  chosen, seen = [], set()
+  while len(chosen) < wanted:
+    before = len(chosen)
+    for group in groups:
+      if len(chosen) >= wanted:
+        break
+      pick = next((r for r in group if r not in chosen and
+                   strain_origin(r[1]) not in seen), None)
+      if pick is None:
+        pick = next((r for r in group if r not in chosen), None)
+      if pick is not None:
+        chosen.append(pick)
+        seen.add(strain_origin(pick[1]))
+    if len(chosen) == before:   # every group is exhausted
+      break
+  return chosen
+
+
+def candidates(segment, subtype, args, window, wanted):
+  """The records of the segment and subtype collected in one time
+  window which can be references, and why the others cannot."""
   # the length range leaves out most records which hold the coding
   # sequence alone, without the UTRs (the check of the record decides)
   shortest = args.min_length or MIN_LENGTH[segment]
   terms = ["Influenza A virus[Organism]", gene_term(segment),
            subtype_query(subtype), "complete cds[Title]",
            f"{shortest}:{shortest + 400}[SLEN]"]
+  if window:
+    terms.append(f'("{window[0]}"[PDAT] : "{window[1]}"[PDAT])')
   if args.strain:
     terms.append(f'"{args.strain}"')
   uids = esearch(" AND ".join(terms), args.max_seqs, args.api_key)
   if not uids:
-    log(f"{segment} {subtype}: no record found")
-    return None
+    return [], {}
   time.sleep(SLEEP_WITH_KEY if args.api_key else SLEEP_NO_KEY)
-  refused = {}
+  refused, found = {}, []
   for batch in [uids[i:i + 20] for i in range(0, len(uids), 20)]:
     for record in efetch_genbank(batch, args.api_key):
       accession = record.findtext("GBSeq_primary-accession") or ""
@@ -254,14 +317,37 @@ def find(segment, subtype, args):
       if problems:
         refused[version] = "; ".join(problems)
         continue
-      return (version, record.findtext("GBSeq_definition") or "",
-              int(record.findtext("GBSeq_length") or 0),
-              utr_lengths(record))
+      found.append((version, record.findtext("GBSeq_definition") or "",
+                    int(record.findtext("GBSeq_length") or 0),
+                    utr_lengths(record), collection_year(record)))
+    if len(found) >= 4 * wanted:
+      break
     time.sleep(SLEEP_WITH_KEY if args.api_key else SLEEP_NO_KEY)
-  log(f"{segment} {subtype}: none of the {len(uids)} candidates is a "
-      f"complete segment; e.g. "
-      + "; ".join(f"{k}: {v}" for k, v in list(refused.items())[:3]))
-  return None
+  return found, refused
+
+
+def find(segment, subtype, args, wanted=1):
+  """Up to <wanted> records of the segment and subtype which can be
+  references, each as (accession, description, length, UTRs, year); the
+  records kept are spread over the hosts, places and decades found.
+
+  For several records the search is repeated in each window of WINDOWS:
+  the records of a subtype published last are often one submission of
+  one place and host, which would leave the lineages of the other
+  decades out."""
+  windows = WINDOWS if wanted > 1 else [None]
+  groups, refused = [], {}
+  for window in windows:
+    part, why = candidates(segment, subtype, args, window, wanted)
+    groups.append(part)
+    refused.update(why)
+  found = [r for group in groups for r in group]
+  if not found:
+    log(f"{segment} {subtype}: no candidate is a complete segment"
+        + ("; e.g. " + "; ".join(f"{k}: {v}"
+                                 for k, v in list(refused.items())[:3])
+           if refused else ""))
+  return spread(groups, wanted)
 
 
 def main():
@@ -275,13 +361,14 @@ def main():
   rows = []
   for subtype in args.subtype.split(","):
     for segment in segments:
-      found = find(segment, subtype.strip(), args)
-      if found:
-        accession, definition, length, (utr5, utr3) = found
+      for found in find(segment, subtype.strip(), args, args.per_subtype):
+        accession, definition, length, (utr5, utr3), year = found
+        host, place = strain_origin(definition)
         log(f"{segment} {subtype}: {accession} ({length} bases, UTRs "
-            f"{utr5} and {utr3})")
+            f"{utr5} and {utr3}, {host or '?'} {place or '?'} "
+            f"{year or '?'})")
         rows.append((subtype.strip(), segment, accession, definition,
-                     length, utr5, utr3))
+                     length, utr5, utr3, host, place, year))
   for subtype in args.subtype.split(","):
     picked = [r[2] for r in rows if r[0] == subtype.strip()]
     print(f"/* {subtype.strip()} */")
@@ -289,12 +376,15 @@ def main():
   if args.output:
     with open(args.output, "w") as handle:
       handle.write("subtype\tsegment\taccession\tdescription\tlength\t"
-                   "utr5\tutr3\tfetched\n")
+                   "utr5\tutr3\thost\tplace\tyear\tfetched\n")
       for row in rows:
         handle.write("\t".join(str(v) for v in row) + f"\t{fetched}\n")
     log(f"provenance written to {args.output}")
-  if len(rows) < len(segments) * len(args.subtype.split(",")):
-    sys.exit("not every segment and subtype was found")
+  missing = [(s.strip(), g) for s in args.subtype.split(",")
+             for g in segments
+             if not any(r[0] == s.strip() and r[1] == g for r in rows)]
+  if missing:
+    sys.exit("not found: " + ", ".join(f"{g} {s}" for s, g in missing))
 
 
 if __name__ == "__main__":

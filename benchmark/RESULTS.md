@@ -1,5 +1,41 @@
 # Results
 
+## 2026-11-24: naming the subtype, and the references built from IRMA's seeds
+
+Whether flucut names the subtype of a sample correctly, measured on
+simulated reads of the 17 genomes which are not in the built-in set
+(`benchmark/README.md`, "naming the subtype of a sample"), at the error
+rates 4, 8 and 12%: 51 samples of 1600 reads (200 per segment). The
+genomes cover the subtypes H1 to H3, H5, H7, H9 and H10 with N1, N2,
+N6, N7, N8 and N9, hosts from poultry to horses, every continent but
+Africa, and the years 1934 to 2017.
+
+Two reference sets were compared: the built-in set (61 records of NCBI,
+`src/builtin-references.c`) and one built from the 39 seed sequences of
+IRMA 1.4.0 (module FLU) by `scripts/irma_references.py`, which attaches
+to each seed the untranslated regions of a record of the same segment
+and subtype (31 references; the 8 seeds of influenza B are left out).
+
+| reference set | records | named correctly | ends not located | internal priming outside the HA |
+|---|---|---|---|---|
+| built-in | 61 | 48 of 51 | 0.161 | 0.005 |
+| IRMA seeds, untranslated regions attached | 31 | 51 of 51 | 0.168 | 0.006 |
+
+The three samples the built-in set names wrongly are the same genome at
+the three error rates: the human H2N2 of 1957, whose HA is named H5.
+Its only H2 reference in the set is an avian one of 2023, and H2 and H5
+are sister clades, so the 1957 human HA is closer to the H5 reference
+than to it. The N is right in all 51 samples with either set.
+
+The reads are simulated with an internal priming site in the HA only,
+so the internal priming reported for the other segments (0.5 and 0.6%
+of their reads) is what the references get wrong, and the ends not
+located are those whose origin flucut leaves undetermined. Both are
+the same for the two sets: attaching untranslated regions of another
+virus to a coding sequence does not cost accuracy at the read ends,
+which is what the references are there for. One reference per subtype
+is what costs it, when a subtype holds lineages decades apart.
+
 ## 2026-11-21: the choice of the reference of each segment
 
 Which reference flucut picks for a segment (`src/auto-settings.h`:

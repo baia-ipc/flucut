@@ -122,6 +122,13 @@ cached (under ``$XDG_CACHE_HOME/flucut`` or ``~/.cache/flucut``), so later
 runs do not download it again. If it cannot be downloaded (no network, no
 ``curl``), flucut warns and runs without references.
 
+Another set can be made the default without ``-r`` on every run: the key
+``references`` of the configuration file
+(``$XDG_CONFIG_HOME/flucut/config``, else ``~/.config/flucut/config``)
+names a FASTA file to use instead of the built-in set, for instance one
+built from the seed sequences of IRMA
+(:doc:`irma`). ``-r <file>`` and ``-r off`` still override it.
+
 Each barcode (a different sample) is classified against one reference
 of each segment: the one closest to its reads. Each segment is chosen
 by its own reads, so that a reassortant gets, for each segment, the

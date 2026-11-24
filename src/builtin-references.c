@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include "file.h"
 #include "builtin-references.h"
+#include "user-config.h"
 
 /*
    The accessions of the built-in set: complete segments of influenza A
@@ -120,6 +121,19 @@ const char* builtin_references_path(Logger *logger) {
   if (override != NULL && override[0] != '\0')
     return override;
   static char path[4096];
+  /* a set of the configuration file, e.g. one built from the seeds of
+     IRMA by scripts/irma_references.py (see user-config.h) */
+  const char *configured = user_config_value("references", logger);
+  if (configured != NULL) {
+    snprintf(path, sizeof(path), "%s", configured);
+    if (file_ok(path)) {
+      lprintf(logger, LOG_INFO, "references of the configuration file: "
+              "%s\n", path);
+      return path;
+    }
+    lprintf(logger, LOG_WARN, "the references of the configuration file "
+            "(%s) are not there; using the built-in set\n", path);
+  }
   const char *dir = cache_dir();
   if (dir == NULL) {
     lprintf(logger, LOG_WARN, "no cache directory (set XDG_CACHE_HOME or "

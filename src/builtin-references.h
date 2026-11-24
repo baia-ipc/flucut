@@ -12,7 +12,10 @@
    (no network, no curl): the caller then runs without references.
 
    The environment variable FLUCUT_BUILTIN_REFERENCES overrides the set
-   with a local file (no download), for offline use and the tests.
+   with a local file (no download), for offline use and the tests, and
+   the key "references" of the configuration file names a set to use
+   instead of it (see user-config.h), for instance one built from the
+   seed sequences of IRMA.
 */
 
 #ifndef BUILTIN_REFERENCES_H
