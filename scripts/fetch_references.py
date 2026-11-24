@@ -119,8 +119,9 @@ def http_get(url):
   urllib automatically honors HTTPS_PROXY / https_proxy via the
   default opener's ProxyHandler, which reads
   urllib.request.getproxies(). We build an opener explicitly from
-  those proxies so the behavior is clear and testable. On HTTP 429
-  the request is retried with backoff (see RETRY_WAITS).
+  those proxies so the behavior is clear and testable. On HTTP 429, on
+  a connection closed by the server and on a timeout, the request is
+  retried with backoff (see RETRY_WAITS).
   """
   proxies = urllib.request.getproxies()
   handler = urllib.request.ProxyHandler(proxies)
@@ -137,6 +138,15 @@ def http_get(url):
       wait = max(RETRY_WAITS[attempt], retry_after(err.headers))
       log("HTTP 429 (too many requests), retrying in %d s (%d/%d)"
           % (wait, attempt + 1, len(RETRY_WAITS)))
+      time.sleep(wait)
+    except (urllib.error.URLError, ConnectionError, TimeoutError) as err:
+      # the server closes the connection of a client which asks too
+      # often, and a request can also time out
+      if attempt == len(RETRY_WAITS):
+        raise
+      wait = RETRY_WAITS[attempt]
+      log("the request failed (%s), retrying in %d s (%d/%d)"
+          % (err, wait, attempt + 1, len(RETRY_WAITS)))
       time.sleep(wait)
 
 

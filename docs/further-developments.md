@@ -92,13 +92,18 @@ support the trimming; they are not the purpose of the program.
   (`benchmark/simulate.py`, HA-only internal site) matches. Still possible:
   a per-segment, per-primer (Uni12 and Uni13) table to back the claim with
   numbers rather than prose, and other subtypes (so far only H5N1).
-- **Choice of the references for a run**: done. A built-in set of complete
-  segments of several subtypes (H1N1, H3N2, H5N1, H7N9, H9N2) is the
-  default, downloaded on first use and cached; each barcode is classified
-  against the reference of each segment closest to its reads (chosen
-  from a sample of them, segment by segment). Still
-  possible: more subtypes (more avian), a packaged copy for offline
-  installs, and a check that the unclassified ends stay rare.
+- **Choice of the references for a run**: done. A built-in set of
+  complete segments is the default, downloaded on first use and cached;
+  each barcode is classified against the reference of each segment
+  closest to its reads (chosen from a sample of them, segment by
+  segment). It covers the HA of every subtype (H1 to H16), the NA of
+  every subtype (N1 to N9) and the other six segments of six subtypes,
+  and every reference begins and ends with the conserved termini
+  (`scripts/find_builtin_references.py` searches NCBI for such records).
+  Still possible: a packaged copy for offline installs, a check that the
+  unclassified ends stay rare, and estimating the position of the
+  terminus in each reference from the reads, so that a reference without
+  its UTRs (the seed sequences of IRMA, say) can be used as well.
 - **Start contexts**: group the reads by the bases which follow the 5'
   primer and rank the groups; a second reference-free cross-check, next
   to the length check (`lengths.tsv`), for the report.

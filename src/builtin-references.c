@@ -9,29 +9,53 @@
 #include "builtin-references.h"
 
 /*
-   The accessions of the built-in set: one complete segment (with the
-   UTRs) per segment (PB2, PB1, PA, HA, NP, NA, MP, NS) of each subtype,
-   from NCBI; each is verified to carry its subtype in its description.
-   Updating this list requires a new BUILTIN_REFERENCES_VERSION (the cache
-   file is named after it, so an old cache is not reused).
+   The accessions of the built-in set: complete segments of influenza A
+   from NCBI, the HA of every subtype (H1 to H16), the NA of every
+   subtype (N1 to N9) and the other six segments of isolates of several
+   subtypes. Each one begins and ends with the conserved termini of the
+   segments (the targets of the Uni12 and Uni13 primers), so that the
+   ends of the reads at a segment terminus are recognised as such, and
+   each carries its subtype in its description. The script
+   find_builtin_references.py in scripts/ searches NCBI for records
+   which fulfil this and writes the list below. The subtype of a
+   sample is the subtype of the HA and of the NA its reads are closest
+   to, so every subtype needs its own reference; the other segments
+   differ little between subtypes, and several isolates cover their
+   diversity. Updating this list requires a
+   new BUILTIN_REFERENCES_VERSION (the cache file is named after it, so
+   an old cache is not reused).
 */
-#define BUILTIN_REFERENCES_VERSION "v1"
+#define BUILTIN_REFERENCES_VERSION "v2"
 static const char *const BUILTIN_ACCESSIONS =
-  /* H1N1 (pdm09) */
-  "QB169385.1,QB169376.1,QB169383.1,QB169386.1,"
-  "QB169381.1,QB169363.1,QB230774.1,QB169382.1,"
+  /* the HA of each subtype, H1 to H16 */
+  "QB342831.1,QB057580.1,QB367364.1,QB139075.1,"
+  "PV571614.1,QB057598.1,OL782158.1,PZ231346.1,"
+  "QB023536.1,QB024178.1,QB023748.1,QB024967.1,"
+  "PV450481.1,OP144199.1,QB024617.1,QB024068.1,"
+  /* the NA of each subtype, N1 to N9 */
+  "QB024910.1,QB367366.1,QB023727.1,PZ229867.1,"
+  "QB024743.1,QB024853.1,QB024172.1,QB025125.1,"
+  "QB057582.1,"
+  /* the other segments (PB2, PB1, PA, NP, MP, NS) of isolates of
+     different subtypes, years and hosts */
+  /* H1N1 */
+  "QB367363.1,QB367331.1,QB342828.1,QB367360.1,"
+  "QB367357.1,QB367329.1,"
   /* H3N2 */
-  "QB100355.1,QB100356.1,QB100316.1,QB100352.1,"
-  "QB100304.1,QB100340.1,QB100350.1,QB211866.1,"
+  "QB367355.1,QB367354.1,PZ944660.1,QB367352.1,"
+  "QB367365.1,QB367367.1,"
   /* H5N1 */
-  "QB222556.1,QB222557.1,QB222558.1,QB222559.1,"
-  "QB222560.1,QB222561.1,QB222562.1,QB222563.1,"
+  "PQ064247.4,PZ598243.1,PZ598252.1,PZ599870.1,"
+  "QB332476.1,QB024702.1,"
+  /* H5N8 */
+  "PV410901.1,EU743133.2,PV410903.1,EU743131.2,"
+  "PZ598696.1,PZ599841.1,"
   /* H7N9 */
-  "PQ756676.1,PQ756677.1,PQ756673.1,PQ756680.1,"
-  "PQ756675.1,OQ820951.1,PQ756678.1,PQ756679.1,"
+  "PQ756676.1,PQ756677.1,PQ756673.1,PQ756675.1,"
+  "PQ756678.1,PQ756679.1,"
   /* H9N2 */
-  "QB023906.1,QB023903.1,QB023392.1,QB001843.1,"
-  "QB023389.1,QB024010.1,QB214291.1,QB215583.1";
+  "QB023906.1,PZ768253.1,ON328346.1,PZ768255.1,"
+  "QB214291.1,QB215690.1";
 
 #define NCBI_EFETCH \
   "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"

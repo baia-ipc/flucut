@@ -110,8 +110,13 @@ The built-in references
 -----------------------
 
 By default (no ``-r``) flucut classifies the reads against a **built-in
-reference set**: complete segments, with the UTRs, of several influenza A
-subtypes (H1N1, H3N2, H5N1, H7N9, H9N2). It is not shipped with the
+reference set**: complete segments of influenza A, each beginning and
+ending with the conserved termini, so that a read end at a segment
+terminus is recognised as such. It holds the HA of every subtype (H1 to
+H16), the NA of every subtype (N1 to N9) and the other six segments of
+isolates of several subtypes (H1N1, H3N2, H5N1, H5N8, H7N9, H9N2): the
+subtype of a sample is read from its HA and NA, while the other segments
+differ little between subtypes. It is not shipped with the
 program; it is downloaded from NCBI on the first run that needs it and
 cached (under ``$XDG_CACHE_HOME/flucut`` or ``~/.cache/flucut``), so later
 runs do not download it again. If it cannot be downloaded (no network, no
