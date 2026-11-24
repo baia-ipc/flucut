@@ -1,9 +1,12 @@
 # (c) 2026 Giorgio Gonnella
 """The rule of flucut for the reference of each segment, from the votes.
 
-A copy of auto_settings_decide_references() (src/auto-settings.c) whose
-three constants can be changed, to see what other values would choose
-from the votes of a run: min_votes (AUTO_REFERENCE_MIN_VOTES),
+A copy of auto_settings_decide_references() (src/auto-settings.c),
+which chooses the subtype of a segment by the votes of all the
+references of each subtype together and then the reference with most
+votes in it, whose three constants can be changed, to see what other
+values would choose from the votes of a run: min_votes
+(AUTO_REFERENCE_MIN_VOTES),
 min_share (AUTO_REFERENCE_MIN_SHARE) and close_share
 (AUTO_REFERENCE_CLOSE_SHARE; None: the common subtype is never
 followed where a reference leads without a clear lead).
@@ -21,10 +24,41 @@ def leader(votes):
   return best
 
 
-def is_clear(votes, min_votes, min_share):
+def subtype_votes(votes, subtype):
+  """The votes of each subtype of a segment, its references counted
+  together; empty if no reference of the segment has a subtype."""
+  out = {}
+  for ref, n in votes.items():
+    if subtype.get(ref) is not None:
+      out[subtype[ref]] = out.get(subtype[ref], 0) + n
+  return out
+
+
+def subtype_leader(votes, subtype):
+  """The subtype with most votes and its votes, (None, 0) if the
+  references have no subtype."""
+  totals = subtype_votes(votes, subtype)
+  if not totals:
+    return (None, 0)
+  best = max(sorted(totals), key=lambda s: totals[s])
+  return (best, totals[best])
+
+
+def choice(votes, subtype, min_votes, min_share):
+  """The reference to use for a segment, the votes of its lead and
+  whether the lead is clear: the reference with most votes of the
+  subtype with most votes (the lineages of a subtype share its votes),
+  or the one with most votes where the references have no subtype."""
   best = leader(votes)
-  return (votes[best] >= min_votes and
-          votes[best] >= min_share * sum(votes.values()))
+  lead, lead_votes = subtype_leader(votes, subtype)
+  if lead is None:
+    return (best, votes[best],
+            votes[best] >= min_votes and
+            votes[best] >= min_share * sum(votes.values()))
+  of_lead = {r: n for r, n in votes.items() if subtype.get(r) == lead}
+  return (leader(of_lead), lead_votes,
+          lead_votes >= min_votes and
+          lead_votes >= min_share * sum(votes.values()))
 
 
 def common_subtype(segments, subtype, min_votes, min_share):
@@ -32,9 +66,9 @@ def common_subtype(segments, subtype, min_votes, min_share):
   in them; then: of the first segment), None if no segment is clear."""
   chosen = {}
   for s, votes in sorted(segments.items()):
-    if is_clear(votes, min_votes, min_share):
-      best = leader(votes)
-      chosen[s] = (subtype[best], votes[best])
+    pick, lead_votes, clear = choice(votes, subtype, min_votes, min_share)
+    if clear:
+      chosen[s] = (subtype[pick], lead_votes)
   common, common_key = None, (0, 0)
   for s in sorted(chosen):
     same = [v for st, v in chosen.values() if st == chosen[s][0]]
@@ -55,10 +89,11 @@ def decide(segments, subtype, min_votes=20, min_share=0.6,
   result = {}
   for s, votes in segments.items():
     best = leader(votes)
-    if is_clear(votes, min_votes, min_share):
-      result[s] = (best, "clear")
+    pick, lead_votes, clear = choice(votes, subtype, min_votes, min_share)
+    if clear:
+      result[s] = (pick, "clear")
       continue
-    few = votes[best] < min_votes
+    few = lead_votes < min_votes
     follow = None
     for ref, n in votes.items():
       # (the HA and the NA, segments 4 and 6, never follow)
@@ -74,5 +109,5 @@ def decide(segments, subtype, min_votes=20, min_share=0.6,
     elif few:
       result[s] = (None, "none")
     else:
-      result[s] = (best, "leader")
+      result[s] = (pick, "leader")
   return result

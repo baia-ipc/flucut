@@ -1,42 +1,77 @@
 # Results
 
-## 2026-11-24: naming the subtype, and the references built from IRMA's seeds
+## 2026-11-24: the subtype named, the references of each subtype and the votes
 
-Whether flucut names the subtype of a sample correctly, measured on
-simulated reads of the 17 genomes which are not in the built-in set
-(`benchmark/README.md`, "naming the subtype of a sample"), at the error
-rates 4, 8 and 12%: 51 samples of 1600 reads (200 per segment). The
-genomes cover the subtypes H1 to H3, H5, H7, H9 and H10 with N1, N2,
-N6, N7, N8 and N9, hosts from poultry to horses, every continent but
-Africa, and the years 1934 to 2017.
+flucut names the subtype of a sample after the references it chooses
+for the HA and the NA. Two panels of simulated reads measure how often
+that name is right (`benchmark/README.md`, "naming the subtype of a
+sample"), at the error rates 4, 8 and 12%:
 
-Two reference sets were compared: the built-in set (61 records of NCBI,
-`src/builtin-references.c`) and one built from the 39 seed sequences of
-IRMA 1.4.0 (module FLU) by `scripts/irma_references.py`, which attaches
-to each seed the untranslated regions of a record of the same segment
-and subtype (31 references; the 8 seeds of influenza B are left out).
+- the 17 genomes of the reference-choice study (`reference_choice_
+  genomes.tsv`): subtypes H1 to H3, H5, H7, H9 and H10 with six NA
+  subtypes, hosts from poultry to horses, 1934 to 2017, every continent
+  but Africa;
+- 16 genomes which cover every HA subtype (H1 to H16) and every NA
+  subtype (N1 to N9) (`subtype_panel_genomes.tsv`): the HA of one
+  subtype and the NA of one subtype with the internal genes of
+  A/Puerto Rico/8/1934, a combination put together for the measure.
+  None of their HA and NA records is in the built-in set, and each was
+  collected in another place, host or decade than the references of its
+  subtype.
 
-| reference set | records | named correctly | ends not located | internal priming outside the HA |
-|---|---|---|---|---|
-| built-in | 61 | 48 of 51 | 0.161 | 0.005 |
-| IRMA seeds, untranslated regions attached | 31 | 51 of 51 | 0.168 | 0.006 |
+Three reference sets: one record per HA and NA subtype (61 records),
+four per subtype (136 records, of different decades, hosts and places)
+and the 31 references built from the 39 seed sequences of IRMA 1.4.0
+(module FLU) by `scripts/irma_references.py`, which attaches to each
+seed the untranslated regions of a record of the same segment and
+subtype (the 8 seeds of influenza B are left out, as the primer scheme
+is that of influenza A). The votes of the references of a subtype
+are counted together before the reference is chosen within it
+(`src/auto-settings.c`), which is what makes several references per
+subtype work at all:
 
-The three samples the built-in set names wrongly are the same genome at
-the three error rates: the human H2N2 of 1957, whose HA is named H5.
-Its only H2 reference in the set is an avian one of 2023, and H2 and H5
-are sister clades, so the 1957 human HA is closer to the H5 reference
-than to it. The N is right in all 51 samples with either set.
+| references per subtype | records | votes counted | 17 genomes (51) | every subtype (48) | ends not located |
+|---|---|---|---|---|---|
+| one | 61 | per reference | 48 | 44 | 0.161 |
+| one | 61 | per subtype | 48 | 45 | 0.157 |
+| four | 136 | per reference | 48 | 44 | 0.156 |
+| four | 136 | per subtype | **51** | **46** | **0.131** |
+| from IRMA's seeds | 31 | per subtype | **51** | **48** | 0.148 |
+
+Counting the votes per reference, four references of a subtype are
+worse than one: in an H13 sample they shared 178 votes (95, 61, 15 and
+7) while the single H16 reference led with 153, and 371 of the 899
+located probes were dropped as ambiguous because several H13 references
+matched them equally well. Counting them together, and not calling a
+probe ambiguous when the references matching it equally are of one
+segment and subtype, turns both around: the same sample gives 506 votes
+for H13 against 248 for H16.
+
+What the set of four per subtype fixes: the human H2N2 of 1957, named
+H5 with one reference per subtype at all three error rates (H2 and H5
+are sister clades, and the single H2 reference was a recent avian one),
+and the H6 of a Chinese goose, named H5, H9 or H10. Two samples of the
+panel of every subtype are still named wrongly, each at one error rate
+only (H2 at 12%, H13 at 4%). The references chosen are also closer: the
+read ends whose origin cannot be determined fall from 16.1% to 13.1%.
 
 The reads are simulated with an internal priming site in the HA only,
-so the internal priming reported for the other segments (0.5 and 0.6%
-of their reads) is what the references get wrong, and the ends not
-located are those whose origin flucut leaves undetermined. Both are
-the same for the two sets: attaching untranslated regions of another
-virus to a coding sequence does not cost accuracy at the read ends,
-which is what the references are there for. One reference per subtype
-is what costs it, when a subtype holds lineages decades apart.
+so the internal priming reported for the other segments measures what
+the references get wrong: it is 0.5% of their reads with every set.
+
+**Time and memory.** 29,035 Nanopore reads of a real run, 8 threads,
+two runs each: 2.27 and 2.35 s with 61 references, 2.02 and 2.51 s with
+136, 2.71 s with the 31 built from IRMA's seeds; 101.5, 103 and 97 MB.
+The references are restricted to one per segment after the vote, so
+only the vote and the k-mer index see the whole set: the download grows
+(74 KB for 40 records, 113 KB for 61, 248 KB for 136), the run does
+not.
 
 ## 2026-11-21: the choice of the reference of each segment
+
+(Measured with the votes counted per reference, before they were
+counted per subtype; the tables of the constants and of the termini
+below do not depend on that.)
 
 Which reference flucut picks for a segment (`src/auto-settings.h`:
 `AUTO_REFERENCE_CLOSE_SHARE`, `AUTO_REFERENCE_MIN_VOTES`,

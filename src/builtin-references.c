@@ -20,23 +20,46 @@
    find_builtin_references.py in scripts/ searches NCBI for records
    which fulfil this and writes the list below. The subtype of a
    sample is the subtype of the HA and of the NA its reads are closest
-   to, so every subtype needs its own reference; the other segments
-   differ little between subtypes, and several isolates cover their
-   diversity. Updating this list requires a
+   to, so every subtype needs references of its own: several of them,
+   as the lineages of one subtype can lie decades apart and one record
+   does not stand for all of them (the votes of the references of a
+   subtype are counted together, see auto-settings.h). The other
+   segments differ little between subtypes, and several isolates cover
+   their diversity. Updating this list requires a
    new BUILTIN_REFERENCES_VERSION (the cache file is named after it, so
    an old cache is not reused).
 */
-#define BUILTIN_REFERENCES_VERSION "v2"
+#define BUILTIN_REFERENCES_VERSION "v3"
 static const char *const BUILTIN_ACCESSIONS =
-  /* the HA of each subtype, H1 to H16 */
-  "QB342831.1,QB057580.1,QB367364.1,QB139075.1,"
-  "PV571614.1,QB057598.1,OL782158.1,PZ231346.1,"
-  "QB023536.1,QB024178.1,QB023748.1,QB024967.1,"
-  "PV450481.1,OP144199.1,QB024617.1,QB024068.1,"
-  /* the NA of each subtype, N1 to N9 */
-  "QB024910.1,QB367366.1,QB023727.1,PZ229867.1,"
-  "QB024743.1,QB024853.1,QB024172.1,QB025125.1,"
-  "QB057582.1,"
+  /* the HA of each subtype, H1 to H16: four references of each,
+     of different decades, hosts and places, as the lineages of a
+     subtype can lie decades apart */
+  /* H1 */ "QB342831.1,AF091316.1,KC894804.1,MF872838.1,"
+  /* H2 */ "QB057580.1,KM213380.1,MG280380.1,KM885170.1,"
+  /* H3 */ "QB367364.1,KP202378.1,MF872855.1,KP202377.1,"
+  /* H4 */ "QB139075.1,GU066568.1,KX530513.2,GU066567.1,"
+  /* H5 */ "PV571614.1,MN037415.1,MH276986.1,MW132374.1,"
+  /* H6 */ "QB057598.1,MF575311.1,MW110064.1,MW110056.1,"
+  /* H7 */ "OL782158.1,AY338460.1,MF978398.1,AY338459.1,"
+  /* H8 */ "PZ231346.1,MG280398.1,MK995833.1,PZ229869.1,"
+  /* H9 */ "QB023536.1,KP100808.1,MN037524.1,KC821026.2,"
+  /* H10 */ "QB024178.1,GQ404728.2,KT887402.1,MG280186.1,"
+  /* H11 */ "QB023748.1,JN798212.2,MT818622.1,KF542875.1,"
+  /* H12 */ "QB024967.1,JX566034.1,MT818624.1,MT407041.1,"
+  /* H13 */ "PV450481.1,KP033522.1,MF575207.1,KJ372720.1,"
+  /* H14 */ "OP144199.1,KJ195668.1,MK928228.1,JN696316.2,"
+  /* H15 */ "QB024617.1,MF147992.1,MF147328.1,MF146641.1,"
+  /* H16 */ "QB024068.1,MK192316.1,MH158642.1,MZ015712.1,"
+  /* the NA of each subtype, N1 to N9, likewise */
+  /* N1 */ "QB024910.1,MF872852.1,QB342833.1,MW132361.1,"
+  /* N2 */ "QB367366.1,KC894807.1,MN037526.1,KC345623.1,"
+  /* N3 */ "QB023727.1,AY611526.1,KF885677.1,MW081048.1,"
+  /* N4 */ "PZ229867.1,MG280500.1,MG280039.1,PP829796.1,"
+  /* N5 */ "QB024743.1,M24740.1,MW132387.1,MT818788.1,"
+  /* N6 */ "QB024853.1,MW186789.1,MF575219.1,QB023868.1,"
+  /* N7 */ "QB024172.1,MW325955.1,MT406971.1,MK913511.1,"
+  /* N8 */ "QB025125.1,KP202376.1,MW132362.1,KP202374.1,"
+  /* N9 */ "QB057582.1,KF824506.1,MT773562.1,KF824505.1,"
   /* the other segments (PB2, PB1, PA, NP, MP, NS) of isolates of
      different subtypes, years and hosts */
   /* H1N1 */

@@ -1,0 +1,30 @@
+# Genomes simulated to measure the subtype flucut names
+# (benchmark/README.md, "naming the subtype of a sample"). Each one
+# carries the HA of one subtype and the NA of one subtype, so that the
+# 16 HA subtypes and the 9 NA subtypes are all covered, with the
+# internal genes of A/Puerto Rico/8/1934 (H1N1, RefSeq): a combination
+# put together here, not a sequenced isolate, which is what the
+# measure needs, as only the HA and the NA decide the subtype named.
+# None of the HA and NA records is in the built-in reference set, and
+# each was collected in another place, host or decade than the
+# references of its subtype. Accessions: segments 1 to 8 (PB2, PB1,
+# PA, HA, NP, NA, M, NS), GenBank/RefSeq nucleotide; all of them begin
+# with the Uni12 terminus and end with the Uni13 terminus, which
+# fetch_genomes.py checks.
+label	strain	subtype	accessions	why
+h1n1	HA of swine/Netherlands/12/85	H1N1	NC_002023.1,NC_002021.1,NC_002022.1,AF091317.1,NC_002019.1,MW132333.1,NC_002016.1,NC_002020.1	H1 of swine netherlands 1985, N1 of elephant seal california 2019
+h2n2	HA of Anas platyrhynchos/Belgium/11127/2016	H2N2	NC_002023.1,NC_002021.1,NC_002022.1,MT406897.1,NC_002019.1,MF872827.1,NC_002016.1,NC_002020.1	H2 of anas platyrhynchos belgium 2016, N2 of swine spain 2016
+h3n3	HA of swine/Iowa/0404FEB-AU/2026	H3N3	NC_002023.1,NC_002021.1,NC_002022.1,QB367348.1,NC_002019.1,KJ195678.1,NC_002016.1,NC_002020.1	H3 of swine iowa 2026, N3 of blue-winged teal guatemala 2011
+h4n4	HA of mallard/Moscow/4771/2012	H4N4	NC_002023.1,NC_002021.1,NC_002022.1,MF673543.1,NC_002019.1,MN253909.1,NC_002016.1,NC_002020.1	H4 of mallard moscow 2012, N4 of mallard minnesota 2016
+h5n5	HA of mallard/California/SL06B72H5/2018	H5N5	NC_002023.1,NC_002021.1,NC_002022.1,MW132176.1,NC_002019.1,QB024483.1,NC_002016.1,NC_002020.1	H5 of mallard california 2018, N5 of mallard alberta 1984
+h6n6	HA of goose/Guangdong/10.21_SZBJ001-O/2016	H6N6	NC_002023.1,NC_002021.1,NC_002022.1,MW110048.1,NC_002019.1,MF399059.1,NC_002016.1,NC_002020.1	H6 of goose guangdong 2016, N6 of duck guangxi 2013
+h7n7	HA of turkey/Indiana/1403-1/2016	H7N7	NC_002023.1,NC_002021.1,NC_002022.1,MN037423.1,NC_002019.1,MN253549.1,NC_002016.1,NC_002020.1	H7 of turkey indiana 2016, N7 of mallard oregon 2016
+h8n8	HA of blue-winged teal/Guatemala/CIP049-I_H118-64/2014	H8N8	NC_002023.1,NC_002021.1,NC_002022.1,MK327766.1,NC_002019.1,MW132345.1,NC_002016.1,NC_002020.1	H8 of blue-winged teal guatemala 2014, N8 of mallard california 2018
+h9n9	HA of ruddy turnstone/Delaware/1044/2002	H9N9	NC_002023.1,NC_002021.1,NC_002022.1,MN037498.1,NC_002019.1,MW109562.1,NC_002016.1,NC_002020.1	H9 of ruddy turnstone delaware 2002, N9 of environment jiangxi 2017
+h10n1	HA of common goldeneye/Wisconsin/16OS4147/2016	H10N1	NC_002023.1,NC_002021.1,NC_002022.1,MG280191.1,NC_002019.1,MW132333.1,NC_002016.1,NC_002020.1	H10 of common goldeneye wisconsin 2016, N1 of elephant seal california 2019
+h11n1	HA of Blue-winged Teal/North Carolina/AH0114676I.4.A/2016	H11N1	NC_002023.1,NC_002021.1,NC_002022.1,MT818621.1,NC_002019.1,MW132333.1,NC_002016.1,NC_002020.1	H11 of blue-winged teal north carolina 2016, N1 of elephant seal california 2019
+h12n1	HA of Mallard/Alberta/589/1981	H12N1	NC_002023.1,NC_002021.1,NC_002022.1,QB024165.1,NC_002019.1,MW132333.1,NC_002016.1,NC_002020.1	H12 of mallard alberta 1981, N1 of elephant seal california 2019
+h13n1	HA of environment/Valparaiso/P11/2017	H13N1	NC_002023.1,NC_002021.1,NC_002022.1,MH346972.1,NC_002019.1,MW132333.1,NC_002016.1,NC_002020.1	H13 of environment valparaiso 2017, N1 of elephant seal california 2019
+h14n1	HA of blue-winged teal/Guatemala/CIP049-I_H117-143/2013	H14N1	NC_002023.1,NC_002021.1,NC_002022.1,MK327758.1,NC_002019.1,MW132333.1,NC_002016.1,NC_002020.1	H14 of blue-winged teal guatemala 2013, N1 of elephant seal california 2019
+h15n1	HA of mallard duck/Sweden/139579/2012	H15N1	NC_002023.1,NC_002021.1,NC_002022.1,MF145850.1,NC_002019.1,MW132333.1,NC_002016.1,NC_002020.1	H15 of mallard duck sweden 2012, N1 of elephant seal california 2019
+h16n1	HA of kelp gull/Chile/C10798/2016	H16N1	NC_002023.1,NC_002021.1,NC_002022.1,MH134913.1,NC_002019.1,MW132333.1,NC_002016.1,NC_002020.1	H16 of kelp gull chile 2016, N1 of elephant seal california 2019

@@ -112,11 +112,16 @@ The built-in references
 By default (no ``-r``) flucut classifies the reads against a **built-in
 reference set**: complete segments of influenza A, each beginning and
 ending with the conserved termini, so that a read end at a segment
-terminus is recognised as such. It holds the HA of every subtype (H1 to
-H16), the NA of every subtype (N1 to N9) and the other six segments of
-isolates of several subtypes (H1N1, H3N2, H5N1, H5N8, H7N9, H9N2): the
-subtype of a sample is read from its HA and NA, while the other segments
-differ little between subtypes. It is not shipped with the
+terminus is recognised as such. It holds four references of the HA of
+every subtype (H1 to H16), four of the NA of every subtype (N1 to N9)
+and the other six segments of isolates of several subtypes (H1N1, H3N2,
+H5N1, H5N8, H7N9, H9N2): the subtype of a sample is read from its HA
+and NA, while the other segments differ little between subtypes. The
+four references of a subtype are of different decades, hosts and
+places, because the lineages of one subtype can lie decades apart and a
+single record does not stand for all of them: with one reference per
+subtype, a human H2N2 of 1957 is named H5, whose reference is closer to
+it than a recent avian H2 (``benchmark/RESULTS.md``). It is not shipped with the
 program; it is downloaded from NCBI on the first run that needs it and
 cached (under ``$XDG_CACHE_HOME/flucut`` or ``~/.cache/flucut``), so later
 runs do not download it again. If it cannot be downloaded (no network, no
@@ -142,13 +147,23 @@ internal priming.
 
 The choice is made from the first 2000 reads of the first file of the
 barcode. Eight probes are taken along each read and located in the
-references. A probe votes for the reference it is located in, unless
-another reference matches it as well: such a probe tells nothing, and
-does not vote.
+references. A probe votes for the reference it is located in, unless a reference of
+another segment or subtype matches it as well: such a probe tells
+nothing, and does not vote. Several references of one segment and
+subtype which match it equally well do not stop it from voting: it
+still says which subtype it belongs to, and the match kept stands for
+all of them.
 
-A segment is clear if its reference with most votes has at least 20
-votes and at least 60% of the votes of the segment; that reference is
-chosen. The other segments follow the clear ones where they can: a
+The subtype of a segment is decided first, by the votes of all its
+references of each subtype together, and then the reference within it:
+the one with most votes. Counting the subtype first matters where a
+subtype has several references, as its lineages share its votes, and a
+single reference of another subtype would otherwise lead with fewer
+votes than they have between them.
+
+A segment is clear if the subtype with most votes has at least 20 votes
+and at least 60% of the votes of the segment; its reference with most
+votes is chosen. The other segments follow the clear ones where they can: a
 segment with too few votes takes the reference of the subtype chosen in
 most clear segments, and so does a segment without a clear lead, if
 that reference has at least half the votes of the leading one. The HA
@@ -157,9 +172,9 @@ segments do not tell (the internal genes of a reassortant are often
 closest to references of another subtype, e.g. an H5N1 with internal
 genes of low pathogenic viruses), so they are chosen by their own reads
 only.
-Otherwise a segment without a clear lead takes its reference with most
-votes (common for the internal genes, which differ little between
-subtypes), and for a segment with too few votes the reads up to 20,000
+Otherwise a segment without a clear lead takes the reference with most
+votes of its leading subtype (common for the internal genes, which
+differ little between subtypes), and for a segment with too few votes the reads up to 20,000
 are used as well; if it still has too few, it keeps all its references.
 The messages (``-v``) give the reference chosen for each segment, with
 its votes and how it was chosen, and how often the probes of one read

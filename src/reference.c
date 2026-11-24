@@ -299,6 +299,14 @@ static void set_reverse(reference_set_t *self, const char *probe,
   pattern_scan_set(self->scan_reverse, self->rc, len);
 }
 
+/* whether two references are of the same segment and of the same
+   subtype (false if either has no subtype in its description) */
+static bool same_subtype(const reference_set_t *self, size_t a, size_t b) {
+  int subtype = reference_index_subtype(self->index, a);
+  return subtype >= 0 && subtype == reference_index_subtype(self->index, b)
+         && self->index->segment[a] == self->index->segment[b];
+}
+
 /* the match of the probe at <ref_start> of the reference <ref_index>
    (on the other strand if <reverse>) with <n_errors> errors: stored in
    <best> if better than it (see align_window()) */
@@ -312,8 +320,15 @@ static void consider_match(const reference_set_t *self, size_t ref_index,
     *best = hit;
   } else if (hit.n_errors == best->n_errors) {
     /* as good as the best one: nearer to the terminus, it replaces it;
-       on another reference, the probe does not tell the two apart */
-    bool ambiguous = best->ambiguous || hit.ref_index != best->ref_index;
+       on a reference of another segment or subtype, the probe does not
+       tell the two apart. Two references of one segment and subtype
+       (the lineages of a subtype) are not told apart either, but the
+       probe does say which subtype it belongs to, which is what the
+       choice of the reference needs: it is not ambiguous, and the
+       match kept stands for both. */
+    bool ambiguous = best->ambiguous ||
+        (hit.ref_index != best->ref_index &&
+         !same_subtype(self, hit.ref_index, best->ref_index));
     if (terminus_distance(&hit) < terminus_distance(best))
       *best = hit;
     best->ambiguous = ambiguous;

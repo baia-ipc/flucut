@@ -227,8 +227,23 @@ HA and the NA are counted separately, as they are chosen separately.
 
     python3 benchmark/subtype_calls.py work/genomes \
         benchmark/reference_choice_genomes.tsv \
-        ~/.cache/flucut/flu-a-references-v2.fasta bin/flucut \
+        ~/.cache/flucut/flu-a-references-v3.fasta bin/flucut \
         work/subtypes 8 200
+
+`subtype_panel_genomes.tsv` is a second table of genomes for the same
+measure, which covers every HA subtype (H1 to H16) and every NA subtype
+(N1 to N9): the HA of one subtype and the NA of one subtype with the
+internal genes of A/Puerto Rico/8/1934, a combination put together for
+the measure, as only the HA and the NA decide the subtype named. None
+of its HA and NA records is in the built-in set. It is fetched and used
+like the other one:
+
+    python3 -I benchmark/fetch_genomes.py \
+        benchmark/subtype_panel_genomes.tsv work/panel
+    python3 benchmark/subtype_calls.py work/panel \
+        benchmark/subtype_panel_genomes.tsv \
+        ~/.cache/flucut/flu-a-references-v3.fasta bin/flucut \
+        work/panel_subtypes 8 200
 
 (the last two arguments are the samples simulated at a time and the
 reads per segment). `subtype_calls.tsv` holds a line per genome and

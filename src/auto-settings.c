@@ -94,27 +94,104 @@ static size_t segment_best(const int *segment, const size_t *votes, size_t n,
   return best;
 }
 
-/* whether the segment whose reference with most votes has <best_votes>
-   of the <total> votes is clear */
+/* whether the segment whose leading subtype (or reference, where the
+   references have none) has <best_votes> of the <total> votes of the
+   segment is clear */
 static bool segment_is_clear(size_t best_votes, size_t total) {
   return best_votes >= AUTO_REFERENCE_MIN_VOTES &&
          auto_settings_clear_lead(best_votes, total);
+}
+
+/* The subtype with most votes among the references of the segment <s>,
+   and its votes (in <lead_votes>): the votes of the references of a
+   subtype are counted together, as several references of one subtype
+   (its lineages of different decades, hosts and places) share them,
+   and one reference of another subtype would otherwise lead with
+   fewer. -1 if no reference of the segment has a subtype; the votes of
+   the references without one are left out of <lead_votes>. */
+static int segment_subtype_lead(const int *segment, const int *subtype,
+    const size_t *votes, size_t n, int s, size_t *lead_votes) {
+  int lead = -1;
+  *lead_votes = 0;
+  if (subtype == NULL)
+    return -1;
+  for (size_t i = 0; i < n; i++) {
+    if (segment[i] != s || subtype[i] < 0)
+      continue;
+    size_t sum = 0;
+    for (size_t j = 0; j < n; j++)
+      if (segment[j] == s && subtype[j] == subtype[i])
+        sum += votes[j];
+    if (lead < 0 || sum > *lead_votes) {
+      lead = subtype[i];
+      *lead_votes = sum;
+    }
+  }
+  return lead;
+}
+
+/* the reference with most votes among those of the segment <s> with the
+   subtype <sub> (of references with as many votes, the first),
+   SIZE_MAX if there is none */
+static size_t subtype_best(const int *segment, const int *subtype,
+    const size_t *votes, size_t n, int s, int sub) {
+  size_t best = SIZE_MAX;
+  for (size_t i = 0; i < n; i++) {
+    if (segment[i] != s || subtype[i] != sub)
+      continue;
+    if (best == SIZE_MAX || votes[i] > votes[best])
+      best = i;
+  }
+  return best;
+}
+
+/* The reference to use for the segment <s>: the one with most votes
+   among those of the subtype with most votes in the segment, or the
+   one with most votes where the references have no subtype. The
+   subtype decides first, because the lineages of one subtype share the
+   votes of their subtype and one reference of another subtype would
+   otherwise lead with fewer.
+
+   <lead> and <lead_votes> take the subtype and its votes (the
+   reference's own votes where there is no subtype), <total> the votes
+   of the segment and <clear> whether the lead is clear (see
+   segment_is_clear()). SIZE_MAX if the segment has fewer than two
+   references. */
+static size_t segment_choice(const int *segment, const int *subtype,
+    const size_t *votes, size_t n, int s, int *lead, size_t *lead_votes,
+    size_t *total, bool *clear) {
+  size_t n_refs;
+  size_t best = segment_best(segment, votes, n, s, &n_refs, total);
+  *lead = -1;
+  *lead_votes = 0;
+  *clear = false;
+  if (best == SIZE_MAX || n_refs < 2)
+    return SIZE_MAX;
+  *lead = segment_subtype_lead(segment, subtype, votes, n, s, lead_votes);
+  if (*lead < 0) {
+    *lead_votes = votes[best];
+    *clear = segment_is_clear(votes[best], *total);
+    return best;
+  }
+  *clear = segment_is_clear(*lead_votes, *total);
+  return subtype_best(segment, subtype, votes, n, s, *lead);
 }
 
 int auto_settings_common_subtype(const int *segment, const int *subtype,
     const size_t *votes, size_t n) {
   if (subtype == NULL)
     return -1;
-  /* the subtype and the votes of the reference chosen in each clear
-     segment */
+  /* the subtype of each clear segment and its votes there */
   int chosen[SEGMENTS_N + 1];
   size_t chosen_votes[SEGMENTS_N + 1];
   for (int s = 1; s <= SEGMENTS_N; s++) {
-    size_t n_refs, total;
-    size_t best = segment_best(segment, votes, n, s, &n_refs, &total);
-    bool clear = n_refs >= 2 && segment_is_clear(votes[best], total);
-    chosen[s] = clear ? subtype[best] : -1;
-    chosen_votes[s] = clear ? votes[best] : 0;
+    int lead = -1;
+    size_t lead_votes = 0, total;
+    bool clear = false;
+    size_t pick = segment_choice(segment, subtype, votes, n, s, &lead,
+                                 &lead_votes, &total, &clear);
+    chosen[s] = pick != SIZE_MAX && clear ? lead : -1;
+    chosen_votes[s] = pick != SIZE_MAX && clear ? lead_votes : 0;
   }
   /* the subtype of most clear segments; then the one with most votes in
      them; then the one of the first segment */
@@ -175,16 +252,20 @@ size_t auto_settings_decide_references(const int *segment,
     size_t best = segment_best(segment, votes, n, s, &n_refs, &total);
     if (n_refs < 2)
       continue;
-    size_t chosen = best;
-    if (!segment_is_clear(votes[best], total)) {
-      /* as the clear segments, if possible; otherwise the reference
-         with most votes, as more reads would not change the shares;
-         with too few votes there is no choice */
+    int lead = -1;
+    size_t lead_votes = 0, unused;
+    bool clear = false;
+    size_t chosen = segment_choice(segment, subtype, votes, n, s, &lead,
+                                   &lead_votes, &unused, &clear);
+    if (!clear) {
+      /* as the clear segments, if possible; otherwise the reference of
+         the leading subtype, as more reads would not change the
+         shares; with too few votes there is no choice */
       size_t follow = follow_common(segment, subtype, votes, n, s, best,
                                     common);
       if (follow != SIZE_MAX) {
         chosen = follow;
-      } else if (votes[best] < AUTO_REFERENCE_MIN_VOTES) {
+      } else if (lead_votes < AUTO_REFERENCE_MIN_VOTES) {
         undecided++;
         continue;
       }
@@ -266,9 +347,19 @@ static void log_references(const trimmer_config_t *config, const char *file,
               n_reads, ambiguous[s], n_refs);
       continue;
     }
-    /* how it was chosen: by its own votes, or as the clear segments */
+    /* how it was chosen: by the votes of its subtype in this segment,
+       or as the clear segments */
+    int lead = -1;
+    size_t lead_votes = 0, of_segment;
+    bool clear = false;
+    segment_choice(segment, subtype, votes, fa->n_records, s, &lead,
+                   &lead_votes, &of_segment, &clear);
     const char *how = "";
-    if (!segment_is_clear(votes[best], total)) {
+    char subtype_votes[128] = "";
+    if (lead >= 0 && lead_votes > votes[chosen])
+      snprintf(subtype_votes, sizeof(subtype_votes),
+               ", %zu for its subtype", lead_votes);
+    if (!clear) {
       if (common >= 0 && subtype[chosen] == common)
         how = votes[best] < AUTO_REFERENCE_MIN_VOTES ?
               "; too few probes: the subtype of the clear segments" :
@@ -277,9 +368,10 @@ static void log_references(const trimmer_config_t *config, const char *file,
         how = "; about as close to other references";
     }
     lprintf(logger, LOG_INFO, "reference of %s for %s: %s (%zu of %zu "
-            "probes of the first %zu reads; %zu more match several "
+            "probes of the first %zu reads%s; %zu more match several "
             "references)%s\n", name, file, fa->records[chosen].name,
-            votes[chosen], total, n_reads, ambiguous[s], how);
+            votes[chosen], total, n_reads, subtype_votes, ambiguous[s],
+            how);
   }
 }
 
@@ -427,6 +519,32 @@ void auto_settings_test(void) {
                                                  7, allowed), 0);
     test_assert(allowed[0] && !allowed[1] && !allowed[2]);
     test_assert(allowed[3] && !allowed[4]);
+  }
+  /* the votes of the references of a subtype are counted together:
+     segment 4 has four references of the subtype 0 and one of the
+     subtype 1, which leads among the references but not among the
+     subtypes */
+  {
+    const int segment[] = {4, 4, 4, 4, 4};
+    const int subtype[] = {0, 0, 0, 0, 1};
+    const size_t votes[] = {95, 61, 15, 7, 153};
+    bool allowed[5];
+    test_eq_size(auto_settings_decide_references(segment, subtype, votes,
+                                                 5, allowed), 0);
+    /* the subtype 0 has 178 votes of the 331 of the segment: it is
+       clear, and its reference with most votes is chosen */
+    test_assert(allowed[0] && !allowed[1] && !allowed[2] && !allowed[3]);
+    test_assert(!allowed[4]);
+    /* with the votes of the subtype 1 above the share, it is chosen */
+    const size_t other[] = {30, 20, 10, 5, 200};
+    test_eq_size(auto_settings_decide_references(segment, subtype, other,
+                                                 5, allowed), 0);
+    test_assert(!allowed[0] && allowed[4]);
+    /* no subtype above the share: the reference with most votes */
+    const size_t split[] = {60, 40, 0, 0, 110};
+    test_eq_size(auto_settings_decide_references(segment, subtype, split,
+                                                 5, allowed), 0);
+    test_assert(!allowed[0] && allowed[4]);
   }
   /* segments without a clear choice follow the clear ones: three
      subtypes (0, 1, 2) with a reference each in the segments 4, 6, 7

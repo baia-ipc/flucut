@@ -415,11 +415,13 @@ trimming mode; there is no separate option.
 
 - Default: a built-in set of complete segments (with UTRs), downloaded
   once from NCBI (efetch) and cached under `$XDG_CACHE_HOME/flucut` or
-  `~/.cache/flucut`. It holds the HA of every subtype (H1 to H16), the
-  NA of every subtype (N1 to N9) and the other six segments of isolates
-  of several subtypes: the subtype of a sample is read from its HA and
-  its NA, while the other segments differ little between subtypes
-  (D7).
+  `~/.cache/flucut`. It holds four references of the HA of every
+  subtype (H1 to H16), four of the NA of every subtype (N1 to N9) and
+  the other six segments of isolates of several subtypes: the subtype
+  of a sample is read from its HA and its NA, while the other segments
+  differ little between subtypes (D7). The four references of a subtype
+  are of different decades, hosts and places, as the lineages of one
+  subtype can lie decades apart.
 - The set named by the key `references` of the configuration file
   (`$XDG_CONFIG_HOME/flucut/config`, else `~/.config/flucut/config`),
   if there is one, instead of the built-in set: for instance a set
@@ -579,16 +581,24 @@ The reference of a segment is chosen by counting, over probes taken from
 the reads, which reference each probe matches best. From each of the
 first 2000 reads, eight probes of 32 bases, evenly spaced along the
 read, are located in the references by their 10-mer seeds (lines 9–13).
-A located probe is one vote for its reference; an ambiguous probe, which
-another reference matches with as few errors, is not counted (line 14).
-A segment is clear if its leading reference has at least 20 votes and
-60% of the votes of the segment (lines 15–19): it takes that reference
-(line 26). A segment that is not clear follows the subtype chosen by
-most clear segments (lines 20–22), if one of its plausible references
-has that subtype (lines 27–31); the HA and the NA never follow, as
-they make the subtype (line 29). Otherwise it takes the reference with
-most votes (lines 32–33) or, with too few votes, keeps all its
-references (line 34). If a segment has too few votes, the count is
+A located probe is one vote for its reference; an ambiguous probe,
+which a reference of another segment or subtype matches with as few
+errors, is not counted (line 14). References of one segment and subtype
+which match it equally well do not make it ambiguous: the probe says
+which subtype it belongs to, and the match kept stands for all of them.
+The subtype of a segment is decided before the reference, by the votes
+of all its references of each subtype together (line 17): a subtype
+whose lineages share its votes would otherwise lose to a single
+reference of another subtype with fewer votes than they have between
+them. A segment is clear if its leading subtype has at least 20 votes
+and 60% of the votes of the segment (line 19), and the reference chosen
+in it is the one with most votes of that subtype (lines 18 and 26). A
+segment that is not clear follows the subtype chosen by most clear
+segments (lines 21–22), if one of its plausible references has that
+subtype (lines 27–31); the HA and the NA never follow, as they make the
+subtype (line 29). Otherwise it takes the reference of its leading
+subtype (lines 32–33) or, with too few votes, keeps all its references
+(line 34). If a segment has too few votes, the count is
 extended once, to up to 20,000 reads (lines 7–8).
 
 > **Source:** `src/auto-settings.c`
@@ -624,29 +634,33 @@ CLOSEST_REFERENCES(file)
 13                      hr = LOCATE_SEEDED(r[o + 1:o + P]) // finds where probe lies in ref (→ A10)
                         // hr.ambiguous = another reference matches as well
 14                      INC(votes[hr.ref]) if hr ≠ NIL and not hr.ambiguous
-15              // clear segments: the leading ref has ≥ 20 and ≥ 60% of the segment's votes
+15              // the subtype of a segment: the votes of its references counted together
                 clear = ∅
 16              for each segment s in undecided_segments
-17                  best[s] = argmax(votes[refs[s]]) // at a tie: the first
-18                  total = sum(votes[refs[s]])
-19                  clear = clear ∪ {s} if votes[best[s]] ≥ 20 and votes[best[s]] ≥ 0.6 · total
+17                  lead[s] = argmax(subtype X of refs[s], sum(votes[R] : R.subtype == X))
+18                  pick[s] = argmax(votes[R] : R in refs[s], R.subtype == lead[s])
+                    best[s] = argmax(votes[refs[s]]) // the leading reference, at a tie: the first
+                    lead_votes = sum(votes[R] : R in refs[s], R.subtype == lead[s])
+                    total = sum(votes[refs[s]])
+                    // with references without a subtype: pick[s] = best[s], lead_votes = votes[best[s]]
+19                  clear = clear ∪ {s} if lead_votes ≥ 20 and lead_votes ≥ 0.6 · total
 20              // common: the subtype chosen in most clear segments (NIL if none is clear)
                 n_clear = [0, 0, 0, ...] // for each subtype
-21              INC(n_clear[best[s].subtype]) for each s in clear
+21              INC(n_clear[lead[s]]) for each s in clear
 22              common = argmax(n_clear) if clear ≠ ∅ else NIL // at a tie: most votes
 23              too_few = 0
 24              for each segment s in undecided_segments
 25                  if s in clear
-26                      allowed[s] = {best[s]}
+26                      allowed[s] = {pick[s]}
 27                  // possible choices of s: the close contenders; all, with too few votes
                     else possible = {R in refs[s] : votes[R] ≥ 0.5 · votes[best[s]]}
-28                      possible = refs[s] if votes[best[s]] < 20
+28                      possible = refs[s] if lead_votes < 20
 29                      // the HA and the NA make the subtype: they never follow
                     follow = the R in possible with R.subtype == common // NIL if none, or s is HA or NA
 30                      if follow ≠ NIL
 31                          allowed[s] = {follow} // as the clear segments
-32                      elseif votes[best[s]] ≥ 20
-33                          allowed[s] = {best[s]} // no clear lead: most votes
+32                      elseif lead_votes ≥ 20
+33                          allowed[s] = {pick[s]} // no clear lead: the leading subtype
 34                      else INC(too_few) // s keeps all its references
 35  return allowed
 ```
@@ -3774,11 +3788,10 @@ constant of the source code that holds each.
   primers. No demultiplexing, assembly or variant calling.
 - Kept termini are primer sequence, not measured virus sequence.
 - The classification needs complete-segment references of the right
-  subtype. The built-in set holds one reference of every HA and NA
-  subtype, which is not always enough: where the lineages of a subtype
-  lie decades apart, a sample can be closer to the reference of another
-  subtype, and is then named after it (measured on simulated reads: a
-  human H2N2 of 1957 named H5, `benchmark/RESULTS.md`).
+  subtype. The built-in set holds four references of every HA and NA
+  subtype, of different decades, hosts and places, which is not always
+  enough: a sample of a lineage none of them is close to can be named
+  after the reference of another subtype (`benchmark/RESULTS.md`).
 - Coverage profiles, placement and junctions come from probes and from
   short alignments around them, not from a full alignment of each read.
 - An end located from inside the read keeps the origin "unknown" for the
