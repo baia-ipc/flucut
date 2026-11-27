@@ -6,12 +6,17 @@
    The span of a read on a reference is [start, start + template length)
    on the plus strand, anchored at whichever end mapped (see amplicon.h:
    the mapped probe positions and the kept length), or else where the
-   read was placed by a probe from inside it (placement.h), or, for a
-   complete amplicon whose probes did not map, the whole segment of its
-   length (if its length tells which segment it is: within 80 bases of
-   that of a reference, and not as near to a reference of another
-   segment). This is an overview from the classification, not a
-   base-by-base mapping: it ignores indels.
+   read was placed by a probe from inside it (placement.h). This is an
+   overview from the classification, not a base-by-base mapping: it
+   ignores indels.
+
+   A complete amplicon (a primer at both ends) none of whose probes
+   mapped is not placed on a segment: nothing in the references says
+   which segment it belongs to. Its length may still be that of a
+   segment (within 80 bases of that of a reference, and not as near to a
+   reference of another segment); that alone does not establish the
+   segment, so such a read is counted apart (READ_CATEGORY_UNPLACED) and
+   draws no depth anywhere.
 
    The class of a read (COVER_*) is the origin of its 5' (left) end and
    its strand. A read with both ends mapped much farther apart than its
@@ -21,7 +26,7 @@
 
    The classes are those of the coverage plot of the report
    (counter_coverage()). The category of a read (READ_CATEGORY_*) merges
-   them into the four kinds of reads told apart in the output: the tag
+   them into the five kinds of reads told apart in the output: the tag
    ct of the records, and the files of the --by-category option (see
    trimmer.h).
 */
@@ -54,12 +59,18 @@ enum { COVER_TERMINAL_PLUS,   /* started at a segment end, plus strand */
 enum { READ_CATEGORY_FULL,      /* a full template (terminal, any strand) */
        READ_CATEGORY_INTERNAL,  /* internal priming (any strand) */
        READ_CATEGORY_DELETION,  /* an internal deletion */
+       READ_CATEGORY_UNPLACED,  /* a complete amplicon of the length of a
+                                   segment, on no segment of the
+                                   references */
        READ_CATEGORY_OTHER,     /* no 5' primer, or not located */
        READ_N_CATEGORIES };
 
 /* where a read lies on its reference */
 typedef struct {
-  bool located;       /* false: the other fields are not set */
+  bool located;       /* false: only <by_length> is set */
+  /* not located, and a complete amplicon whose length is that of a
+     segment: READ_CATEGORY_UNPLACED */
+  bool by_length;
   size_t cover;       /* COVER_* */
   size_t ref;         /* the index of the reference */
   /* the span [from, to), 0-based on the plus strand; it is not clamped
@@ -72,9 +83,9 @@ typedef struct {
 /*
    Locate the read analyzed as <a> on the references <refs> (NULL: none,
    no read is then located); <set>: the reference set of the analysis,
-   whose restrictions to some references and to a segment hold for a read
-   placed by its length (NULL: none); false, with <cover>-><located>
-   false, if the read cannot be located
+   whose restrictions to some references and to a segment hold for the
+   length match of a complete amplicon (NULL: none); false, with
+   <cover>-><located> false, if the read cannot be located
 */
 bool read_cover_locate(const fasta_t *refs, const reference_set_t *set,
     const amplicon_t *a, read_cover_t *cover);
@@ -82,7 +93,7 @@ bool read_cover_locate(const fasta_t *refs, const reference_set_t *set,
 /* The category (READ_CATEGORY_*) of a read */
 size_t read_cover_category(const read_cover_t *cover);
 
-/* The name of a category: full, internal, deletion, other */
+/* The name of a category: full, internal, deletion, unplaced, other */
 const char* read_category_name(size_t category);
 
 /* Unit tests */

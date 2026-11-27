@@ -48,6 +48,10 @@ typedef struct {
   /* the reads written, by category (READ_CATEGORY_*, see read-cover.h);
      without references all are READ_CATEGORY_OTHER */
   size_t written[READ_N_CATEGORIES];
+  /* reads placed on a segment of the references, from a probe that
+     mapped at an end or from inside the read (read-cover.h): the reads
+     the references describe; 0 without references */
+  size_t placed;
   /* reads not written, as shorter than the minimum length after the
      trimming (dimers included) */
   size_t too_short;

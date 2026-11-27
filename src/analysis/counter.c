@@ -140,6 +140,7 @@ void counter_merge(counter_t *self, const counter_t *other) {
   s->cut += o->cut;
   s->adapter_start += o->adapter_start;
   s->adapter_end += o->adapter_end;
+  s->placed += o->placed;
   for (size_t e = 0; e < COUNTER_N_ENDS; e++) {
     for (size_t i = 0; i < 3; i++)
       s->origin[e][i] += o->origin[e][i];
@@ -193,8 +194,8 @@ static void count_end(counter_t *self, const amplicon_end_t *end,
 }
 
 /* the counts of counter_reads_t, in the order of the files of counts:
-   12 single counts, n_ends, origin, written */
-#define N_SINGLE_COUNTS 12
+   13 single counts, n_ends, origin, written */
+#define N_SINGLE_COUNTS 13
 #define N_READ_COUNTS (N_SINGLE_COUNTS + 3 + COUNTER_N_ENDS * 3 + \
                        READ_N_CATEGORIES)
 
@@ -202,7 +203,7 @@ static void read_counts(counter_reads_t *r, size_t *out[N_READ_COUNTS]) {
   size_t *single[N_SINGLE_COUNTS] = {&r->reads_in, &r->bases_in,
       &r->reads_out, &r->bases_out, &r->too_short, &r->dimers, &r->minus,
       &r->with_internal, &r->split, &r->adapter_start, &r->adapter_end,
-      &r->cut};
+      &r->cut, &r->placed};
   size_t n = 0;
   for (size_t i = 0; i < N_SINGLE_COUNTS; i++)
     out[n++] = single[i];
@@ -216,7 +217,7 @@ static void read_counts(counter_reads_t *r, size_t *out[N_READ_COUNTS]) {
   assert(n == N_READ_COUNTS);
 }
 
-#define COUNTS_HEADER "flucut-counts 4"
+#define COUNTS_HEADER "flucut-counts 6"
 
 void counter_save(const counter_t *self, FILE *file) {
   assert(self != NULL);
@@ -442,6 +443,8 @@ void counter_add_located_read(counter_t *self, const amplicon_t *a,
     s->adapter_end++;
   count_end(self, &a->left, COUNTER_LEFT);
   count_end(self, &a->right, COUNTER_RIGHT);
+  if (cover->located)
+    s->placed++;
   count_cover(self, cover);
   count_length(self, a);
 }
@@ -787,6 +790,8 @@ void counter_test(void) {
   test_eq_size(r->too_short, 1);
   test_eq_size(r->origin[COUNTER_LEFT][ORIGIN_INTERNAL], 2);
   test_eq_size(r->origin[COUNTER_RIGHT][ORIGIN_TERMINAL], 2);
+  /* both reads were placed on a reference by their ends */
+  test_eq_size(r->placed, 2);
   test_eq_size(counter_primer(c, COUNTER_LEFT, 1), 2);
   test_eq_size(counter_primer(c, COUNTER_LEFT, 0), 0);
   test_eq_size(counter_primer(c, COUNTER_RIGHT, 0), 2);
@@ -812,6 +817,7 @@ void counter_test(void) {
   counter_merge(sum, c);
   counter_merge(sum, c);
   test_eq_size(counter_reads(sum)->reads_in, 4);
+  test_eq_size(counter_reads(sum)->placed, 4);
   test_eq_size(counter_primer(sum, COUNTER_LEFT, 1), 4);
   test_eq_size(counter_sites(sum, 1, COUNTER_LEFT)[7], 4);
   test_eq_size(lengths_count(counter_lengths(sum), 1, 10), 2);
@@ -826,6 +832,7 @@ void counter_test(void) {
   test_assert(counter_load(loaded, f));
   test_eq_size(counter_reads(loaded)->reads_in, 8);
   test_eq_size(counter_reads(loaded)->written[READ_CATEGORY_INTERNAL], 4);
+  test_eq_size(counter_reads(loaded)->placed, 8);
   test_eq_size(counter_reads(loaded)->origin[COUNTER_LEFT][ORIGIN_INTERNAL],
                8);
   test_eq_size(counter_primer(loaded, COUNTER_LEFT, 1), 8);

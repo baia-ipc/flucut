@@ -106,6 +106,11 @@ void qc_flags(const counter_reads_t *s, const qc_summary_t *qc, bool refs,
   if (qc->not_located >= QC_NOT_LOCATED)
     add(out, "not_located", "%.0f%% of the read ends not located in the "
         "references", 100 * qc->not_located);
+  if (analyzed > 0 &&
+      (double)s->placed < QC_FLAGS_PLACED * (double)analyzed)
+    add(out, "few_influenza_reads", "only %.1f%% of the reads placed on a "
+        "segment: most of the reads are of something else",
+        100.0 * (double)s->placed / (double)analyzed);
   add_segments(out, qc, "internal_priming", "of depth internally primed",
                internal_share, QC_FLAGS_INTERNAL);
   add_segments(out, qc, "internal_deletions",
@@ -125,6 +130,7 @@ void qc_flags_test(void) {
   /* enough reads, all with primers and located: no flag */
   s.reads_in = 5000;
   s.n_ends[2] = 5000;
+  s.placed = 5000;
   s.origin[COUNTER_LEFT][ORIGIN_TERMINAL] = 5000;
   qc_flags(&s, &qc, true, NULL, NULL, &flags);
   test_eq_size(flags.n, 0);
@@ -217,5 +223,19 @@ void qc_flags_test(void) {
   for (size_t i = 0; i < 200; i++)
     subtype_reads_add(&subtypes, segment, number, i < 199 ? h5 : h3, 2);
   qc_flags(&s, &qc, true, NULL, &subtypes, &flags);
+  test_eq_size(flags.n, 0);
+  /* few of the reads placed on a segment: the sample is mostly
+     something else. Without references nothing is said */
+  memset(&qc, 0, sizeof(qc));
+  s.placed = 1500;
+  qc_flags(&s, &qc, true, NULL, NULL, &flags);
+  test_eq_size(flags.n, 0);
+  s.placed = 65;
+  qc_flags(&s, &qc, true, NULL, NULL, &flags);
+  test_eq_size(flags.n, 1);
+  test_eq_str(flags.flags[0].key, "few_influenza_reads");
+  test_eq_str(flags.flags[0].text, "only 1.3% of the reads placed on a "
+              "segment: most of the reads are of something else");
+  qc_flags(&s, &qc, false, NULL, NULL, &flags);
   test_eq_size(flags.n, 0);
 }

@@ -169,21 +169,26 @@ Illumina: trim with `flucut -p illumina` and assemble with the paired
 
 ## Output by category
 
-- with `--by-category`, four files per sample are written instead of
-  `<name>.fastq.gz`, one for each category of reads (the colours of the
-  coverage plot of the report)
+- with `--by-category`, five files per sample are written instead of
+  `<name>.fastq.gz`, one for each category of reads
 - here is the list of files:
   | file | reads |
   |---|---|
   | `<name>.full.fastq.gz` | full templates: the amplicon started at a segment end |
   | `<name>.internal.fastq.gz` | internal priming: it started inside the segment |
   | `<name>.deletion.fastq.gz` | internal deletions: the two ends of a segment joined |
+  | `<name>.unplaced.fastq.gz` | complete amplicons the references place on no segment |
   | `<name>.other.fastq.gz` | no 5' primer, or not located on the references |
+- the first three are the colours of the coverage plot of the report: a
+  read is written there only if the references say which segment it is.
+  A read with a primer at both ends whose probes did not map goes to
+  `unplaced`, even where its length is that of a segment, so that
+  `<name>.full.fastq.gz` holds influenza reads only
 - command line example
   ```
   flucut --by-category -o trimmed barcode01/
   ```
-- the four files together hold the same reads as `<name>.fastq.gz`
+- the five files together hold the same reads as `<name>.fastq.gz`
   would.
 - this option needs the references, i.e. it is incompatible with `-r off`
 
@@ -242,7 +247,7 @@ read which was split, see below); with references also
 `ol`/`or` (origin of the end: terminal, internal or unknown),
 `ml`/`mr` (where the bases after the primer mapped:
 reference:position:strand) and `ct` (the category of the read: `full`,
-`internal`, `deletion` or `other`, see below).
+`internal`, `deletion`, `unplaced` or `other`, see below).
 
 ## Advanced user and developer options
 

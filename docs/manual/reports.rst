@@ -82,14 +82,16 @@ A few conventions hold everywhere:
   more of the read ends not matched to the references (e.g. a sample
   which is not influenza A). In the live mode it is grey as long as
   reads are still being added.
-* **Reads have one of four origins**, always in the same colours: *full
+* **Reads have one of five origins**, always in the same colours: *full
   template* (blue: the amplicon started at an end of the segment),
   *internally primed* (magenta: it started inside the segment), *internal
   deletion* (violet: the two ends of the read lie much farther apart on
   the segment than the read is long, as in defective interfering
-  genomes) and *other* (grey: no 5' primer, or not located). They are
-  the categories of the ``ct`` tag and of ``--by-category``
-  (:ref:`reads-by-category`).
+  genomes), *not placed* (brown: a complete amplicon which the
+  references place on no segment) and *other* (grey: no 5' primer, or
+  not located). They are the categories of the ``ct`` tag and of
+  ``--by-category`` (:ref:`reads-by-category`). Only the first three
+  draw depth on a segment; the coverage plots have three colours.
 * **Every percentage names what it is a share of** (of the reads after
   splitting, of the depth of a segment, of the read ends).
 * ``0.0%`` and ``100.0%`` mean exactly none and exactly all: a share
@@ -227,6 +229,12 @@ apply, short remarks:
        allows
    * - N% of the read ends not located in the references
      - 50% or more
+   * - only N% of the reads placed on a segment: most of the reads are
+       of something else
+     - fewer than 30% of the reads placed on a segment of the
+       references; the sample holds little of what the references
+       describe (e.g. few influenza reads among reads of something
+       else)
    * - HA 36% of depth internally primed
      - 10% or more of the depth of a segment
    * - PB2 90% of depth from reads with an internal deletion

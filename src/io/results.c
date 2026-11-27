@@ -22,8 +22,9 @@ static void summary_header(FILE *f) {
         "left_internal\t"
         "left_unknown\tright_terminal\tright_internal\tright_unknown\t"
         "short_complete\tout_full\tout_internal\tout_deletion\t"
-        "out_other\tcleavage_site\tcleavage_reads\tcleavage_support\t"
-        "cleavage_control\tcleavage_multibasic\tcleavage_verdict\n", f);
+        "out_unplaced\tout_other\tcleavage_site\tcleavage_reads\t"
+        "cleavage_support\tcleavage_control\tcleavage_multibasic\t"
+        "cleavage_verdict\n", f);
 }
 
 /* the cleavage site of the haemagglutinin read from the reads

@@ -97,3 +97,16 @@ Many reads without primers (``no_end`` in ``summary.tsv``)
    were already trimmed (e.g. by the basecaller), or the error rate of
    the reads is higher than ``-e`` allows (with ``-e auto``, see the rate
    measured in the report).
+
+``only N% of the reads placed on a segment`` (remark on a sample)
+   Few of the reads could be placed on a segment of the references, so
+   most of them are of something else: another organism, nucleic acid
+   of the host, or an amplification which did not give the expected
+   amplicons. What the report says about the segments, the coverage and
+   the subtype of such a sample rests on the few reads that were placed.
+   The reads with a primer at both ends which were not placed are
+   counted as ``unplaced`` (:ref:`reads-by-category`) and are written to
+   ``<name>.unplaced.fastq.gz`` by ``--by-category``, so
+   ``<name>.full.fastq.gz`` holds influenza reads only. If the sample
+   should be influenza, check that the references cover its subtype and
+   its type (``--virus``).

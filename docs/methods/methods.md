@@ -2228,15 +2228,17 @@ origin. COVER represents each read as one span on its reference, from
 the position of one end to that of the other, without aligning its
 bases. The span is taken from the best information available: both ends
 (lines 9–11); one end and the length of the read (lines 12–16 and
-24–32); a probe from inside the read (lines 34–36); or, for a complete
-amplicon that was not located, the only reference of a fitting length
-(lines 38–41). Otherwise the read is not drawn (line 42). The category
-is the origin of the 5′ end of the amplicon: terminal, internal or
-without primer (lines 17–23, 33 and 37). A read with an internal
-deletion is drawn as two spans, one for each flank, in a category of its
-own (lines 43–48); the others go to their category, by strand (lines
-49–51). An internal priming site shows in the coverage plot as a step in
-the depth of the internal category.
+24–32); or a probe from inside the read (lines 34–36). A complete
+amplicon that was not located draws nothing, even when exactly one
+reference has a fitting length: the length does not say which segment
+the read is, so the read is counted apart, as *not placed* (line 39).
+Any other read that was not located is not drawn either (line 40). The
+category is the origin of the 5′ end of the amplicon: terminal,
+internal or without primer (lines 17–23, 33 and 37). A read with an
+internal deletion is drawn as two spans, one for each flank, in a
+category of its own (lines 41–46); the others go to their category, by
+strand (lines 47–49). An internal priming site shows in the coverage
+plot as a step in the depth of the internal category.
 
 > **Source:** `count_cover` in `src/analysis/counter.c`
 
@@ -2288,20 +2290,18 @@ COVER(rs, a)
 38  elseif a.left has a primer and a.right has a primer and span > 0
             and exactly one reference R has |length(R) − span| ≤ 80,
             the next nearest being at least 80 further
-39      from = 1
-40      to = length(R)
-41      c = TERMINAL
-42  else return // not drawn
-43  if both and a.junction ≠ NIL // is the template much shorter than its span? (→ A14)
-44      // ADD_SPAN: one more span of a category on from:to of R (→ D6)
+39      return UNPLACED // of the length of a segment, on none: not drawn
+40  else return // not drawn
+41  if both and a.junction ≠ NIL // is the template much shorter than its span? (→ A14)
+42      // ADD_SPAN: one more span of a category on from:to of R (→ D6)
         ADD_SPAN(rs, R, DELETION, from, a.junction.left_end)
-45      ADD_SPAN(rs, R, DELETION, a.junction.right_start, to)
-46  elseif both and DELETION_EXPECTED(span, to − from + 1)
-47      ADD_SPAN(rs, R, DELETION, from, from + ⌊ span / 2 ⌋ − 1)
-48      ADD_SPAN(rs, R, DELETION, to − ⌈span / 2⌉ + 1, to)
-49  elseif c == NO_PRIMER
-50      ADD_SPAN(rs, R, c, from, to)
-51  else ADD_SPAN(rs, R, c with the strand of the read (+ or −), from, to)
+43      ADD_SPAN(rs, R, DELETION, a.junction.right_start, to)
+44  elseif both and DELETION_EXPECTED(span, to − from + 1)
+45      ADD_SPAN(rs, R, DELETION, from, from + ⌊ span / 2 ⌋ − 1)
+46      ADD_SPAN(rs, R, DELETION, to − ⌈span / 2⌉ + 1, to)
+47  elseif c == NO_PRIMER
+48      ADD_SPAN(rs, R, c, from, to)
+49  else ADD_SPAN(rs, R, c with the strand of the read (+ or −), from, to)
 ```
 
 The depth of category `c` at position `x` is the number of spans begun
@@ -2315,6 +2315,10 @@ close it is.
 | internal +, internal − | internally primed, by strand |
 | no 5′ primer | a fragment of unknown origin |
 | internal deletion | covers only its two flanks, up to the junction (or half the template at each end if the junction was not found) |
+
+A read that is *not placed* has no category here: it draws no depth. It
+is counted in the reads of the sample and written to its own file by
+`--by-category`.
 
 On ten Nanopore samples the coverage profiles were compared with those
 from full alignments (part B; `notes/coverage_inner_ends`).
@@ -3561,7 +3565,8 @@ adds one analysed part of a read: reads and bases in and out (lines
 1–5), how many primers were found (lines 6–7), strand, dimers, matches
 inside and adapters (lines 8–12), the origin and the primer of each end
 (lines 13–15), and the three summaries kept per position or length:
-sites, lengths and coverage profiles (lines 16–18).
+sites, lengths and coverage profiles (lines 16–18). Line 19 counts the
+reads the references place on a segment.
 
 > **Source:** `src/analysis/counter.c`
 
@@ -3572,7 +3577,7 @@ INIT_COUNTS(rs)
    // sets the statistics of the readset rs to zero, before its first read
 1  set every counter of rs to 0: reads_in, bases_in, reads_out, bases_out, too_short,
            primers_found[0:2], minus_strand, dimers, with_internal, adapter_start,
-           adapter_end, origin[side, origin], primer_used[side, primer]
+           adapter_end, placed, origin[side, origin], primer_used[side, primer]
 2  if refs ≠ NIL
 3      for each reference R of refs
 4          // starts of internally primed ends, per position
@@ -3613,6 +3618,8 @@ UPDATE_COUNTS(rs, a, part, keep)
     COUNT_LENGTH(rs, a)
 18  // add span of the read to the coverage profile of its category (→ A17)
     COVER(rs, a)           if refs ≠ NIL
+19  // reads the references place on a segment: COVER drew a span for them
+    INC(rs.placed)         if refs ≠ NIL and COVER drew the read
 ```
 
 Their running time and memory are given with FLUCUT_RUN, in A1.
@@ -3642,8 +3649,9 @@ WRITE_RECORD(out, part, a)
 strand; `fl`, `fr` primer found at each end; `tl`, `tr` bases removed at
 the start and at the end; `ni` primer-like matches inside; `a5`, `a3`
 adapter kit removed; `ol`, `or` origin of each end; `ml`, `mr` where its
-probe mapped (reference:position:strand); `sp` part k/n of a split
-read. The sequence and its orientation are not changed.
+probe mapped (reference:position:strand); `ct` the category of the read
+(full template, internal priming, internal deletion, not placed, other);
+`sp` part k/n of a split read. The sequence and its orientation are not changed.
 
 ```
 WRITE_REPORTS(rs)
@@ -3697,6 +3705,15 @@ segment gives:
 | internally primed | share of the depth in the two internal categories |
 | internal deletion | share of the depth in the deletion category |
 | complete amplicons, short | amplicons with both primers; of them, the share shorter than 90% of the reference |
+
+The sample also carries short remarks on what deserves attention: fewer
+than 1000 reads, no primer in 20% or more of the reads, half or more of
+the read ends not located, a segment with 10% or more of its depth
+internally primed or 50% or more from reads with an internal deletion, a
+cleavage site the reads do not settle, and fewer than 30% of the reads
+placed on a segment. The last one says that the references describe
+little of the sample: its reads are mostly something else, and its
+segments, coverage and subtype rest on the few that are not.
 
 The subtype of the sample is the H of the reference of its HA and the N
 of the reference of its NA. If the references of the segments found
@@ -3968,7 +3985,7 @@ constant of the source code that holds each.
 | `AMPLICON_INNER_PROBES` | probes to locate an end from inside | 4 |
 | `INNER_MAX_*` | skipped bases: most differences, continuing / at the terminus | 30%, 40% |
 | `INNER_TERMINUS_*` | terminus searched for a short flank | 8 bases before to 21 after the first base |
-| `COVER_LENGTH_TOLERANCE` | complete amplicon placed by its length | within 80 bases |
+| `COVER_LENGTH_TOLERANCE` | the length of a complete amplicon is that of one segment | within 80 bases |
 | `PLACEMENT_N_PROBES` | placement probes | 3 |
 | `REPORT_SITE_GAP` | site merging distance | 5 |
 | `LENGTHS_*` | length bins, short threshold | 10 bases, 90% of the reference |

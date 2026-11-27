@@ -139,11 +139,14 @@ def _reads_card(s: dict) -> str:
         [(f"c-{key}", label, counts[key]) for key, label in order]))
     written = summary.get("written_by_category")
     if written:
-        names = {"full": "full", "int": "internal", "del": "deletion",
-                 "oth": "other"}
+        # a complete amplicon flucut places on no segment ("unplaced")
+        # is one of its other reads here
+        names = {"full": ("full",), "int": ("internal",),
+                 "del": ("deletion",), "oth": ("unplaced", "other")}
         parts.append(stacked_bar(
             "Reads by origin, flucut", "reads after splitting",
-            [(f"c-{key}", label, written.get(names[key], 0))
+            [(f"c-{key}", label,
+              sum(written.get(n, 0) for n in names[key]))
              for key, label in order]
             + [("c-nw", "not written", said.get("too_short", 0))]))
     primers = amplicons["primers"]

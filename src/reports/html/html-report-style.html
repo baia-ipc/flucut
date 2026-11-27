@@ -2,17 +2,19 @@
 <!-- report: the style of flucut, over that of the page. Colors: those of -->
 <!-- the logo (navy #03215A, orange-red #F84A2A, blue #0A72F5), lighter -->
 <!-- in the dark theme; the origins of the reads (c-full, c-int, c-del, -->
-<!-- c-oth) have their own hues, never those of the states (ok, warn, -->
-<!-- bad), which always come with a symbol or a word -->
+<!-- c-unp, c-oth) have their own hues, never those of the states -->
+<!-- (ok, warn, bad), which always come with a symbol or a word -->
 <style>
   :root { --primary: #0a72f5; --accent: #f84a2a; --brand: #03215a;
-    --full: #2a78d6; --int: #d55181; --del: #6250d6; --oth: #b9b8b2;
+    --full: #2a78d6; --int: #d55181; --del: #6250d6; --unp: #9a7b4f;
+    --oth: #b9b8b2;
     --short: #8a8983; --p1: #86b6ef; --s1: #256abf; --s2: #86b6ef;
     --ok: #0ca30c; --warn: #c98500; --bad: #d03b3b;
     --okbg: #e3f4e3; --warnbg: #fdf0d0; --badbg: #f9e1e1; --nabg: #ecebe7; }
   @media (prefers-color-scheme: dark) {
     :root { --primary: #4d9bff; --accent: #ff6b4f; --brand: #9cc2ff;
-      --full: #3987e5; --int: #d55181; --del: #9085e9; --oth: #6d6b66;
+      --full: #3987e5; --int: #d55181; --del: #9085e9; --unp: #b08f5e;
+      --oth: #6d6b66;
       --short: #a3a199; --p1: #1c5cab; --s1: #3987e5; --s2: #184f95;
       --ok: #0ca30c; --warn: #fab219; --bad: #e66767;
       --okbg: #17361a; --warnbg: #3d3115; --badbg: #432020; --nabg: #33322f; }
@@ -76,6 +78,7 @@
   i.c-full, i.c-p2 { background: var(--full); }
   i.c-int { background: var(--int); }
   i.c-del { background: var(--del); }
+  i.c-unp { background: var(--unp); }
   i.c-oth { background: var(--oth); }
   i.c-p1 { background: var(--p1); }
   i.c-s1 { background: var(--s1); }

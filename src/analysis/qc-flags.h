@@ -25,6 +25,13 @@
    reads, from reads with an internal deletion */
 #define QC_FLAGS_INTERNAL 0.1
 #define QC_FLAGS_DELETION 0.5
+/* below this share of the reads placed on a segment of the references
+   (counter.h), the references describe only a small part of the sample:
+   most of its reads are of something else. Chosen from 104 Nanopore
+   samples of the multisegment RT-PCR, where the share has median 0.986
+   and is 0.62 or more in all but the two samples whose reads are
+   largely not influenza (0.014 and 0.16) */
+#define QC_FLAGS_PLACED 0.3
 
 #define QC_FLAGS_MAX 8
 #define QC_FLAGS_TEXT_SIZE 160

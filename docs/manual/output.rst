@@ -54,8 +54,8 @@ tag      meaning
          plus strand)
 ``mr``   the same for the right end
 ``ct``   with ``-r``: the category of the read: ``full``,
-         ``internal``, ``deletion`` or ``other`` (see
-         :ref:`reads-by-category`)
+         ``internal``, ``deletion``, ``unplaced`` or ``other``
+         (see :ref:`reads-by-category`)
 ``sp``   ``<k>/<n>``: the record is part ``k`` of the ``n`` parts of a
          read which contained several amplicons (see below)
 ``jf``   ``<k>/2``: the record is flank ``k`` of a read cut at the
@@ -79,10 +79,10 @@ one record for each read.
 Reads by category
 -----------------
 
-With references, each read written belongs to one of four categories,
-given by its ``ct`` tag. They are the groups of the coverage plot of the
-HTML report (:doc:`reports`), which describes how the reads are told
-apart:
+With references, each read written belongs to one of five categories,
+given by its ``ct`` tag. The first three are the groups of the coverage
+plot of the HTML report (:doc:`reports`), which describes how the reads
+are told apart:
 
 ============ ========================================== ================
 ``ct``       reads                                      in the plot
@@ -94,15 +94,27 @@ apart:
 ``deletion`` internal deletions: the two ends of a      internal
              segment joined, e.g. defective             deletion
              interfering genomes                        (purple)
+``unplaced`` complete amplicons (a primer at both ends) not shown
+             which the references place on no segment
 ``other``    reads without a 5' primer (fragments of    grey, or not
              unknown origin), and reads which could     shown
              not be located on the references
 ============ ========================================== ================
 
+The first three categories need a segment: the probe after a primer, or
+a probe found inside the read, must map to a reference. A read with a
+primer at both ends whose probes did not map is ``unplaced``, even when
+its length is that of a segment: a length is not an identification, so
+such a read is counted apart and draws no depth on any segment. In a
+sample of influenza these reads are few; in a sample whose reads are
+mostly something else they are the bulk, and keeping them out of
+``full`` is what keeps the full-template class, the coverage plot and
+``<name>.full.fastq.gz`` free of reads that are not influenza.
+
 The category describes where the amplicon started (its 5' end), on
 either strand; the strand is in the ``fs`` tag.
 
-``--by-category`` writes the reads of each input to four files, one for
+``--by-category`` writes the reads of each input to five files, one for
 each category, instead of ``<name>.fastq.gz``::
 
    flucut --by-category -o trimmed barcode01/
@@ -110,16 +122,27 @@ each category, instead of ``<name>.fastq.gz``::
    trimmed/barcode01.full.fastq.gz
    trimmed/barcode01.internal.fastq.gz
    trimmed/barcode01.deletion.fastq.gz
+   trimmed/barcode01.unplaced.fastq.gz
    trimmed/barcode01.other.fastq.gz
 
-All four files are always written; one without reads is an empty gzip
+All five files are always written; one without reads is an empty gzip
 file. In each file the reads are in the order of the input, and together
-the four files contain the same reads as ``<name>.fastq.gz`` would. The
+the five files contain the same reads as ``<name>.fastq.gz`` would. The
 parts of a split read are each written to the file of their own
 category. The tables and the reports have one part for each input, not
 for each file; the reads of each file are counted in the columns
-``out_full``, ``out_internal``, ``out_deletion`` and ``out_other`` of
-``summary.tsv``.
+``out_full``, ``out_internal``, ``out_deletion``, ``out_unplaced`` and
+``out_other`` of ``summary.tsv``.
+
+.. note::
+
+   The categories describe reads of whole amplicons, with a primer at
+   each end. On fragmented reads without primers (paired Illumina data
+   of the kind flucut is not built for) the primer search matches by
+   chance: on the simulated datasets of DIPScan flucut reported a
+   primer in about 20% of the reads and internal priming in about 15%,
+   and a few reads per sample (at most 105 of about a million) were
+   called ``deletion`` away from any junction.
 
 .. _cut-deletions:
 
@@ -194,7 +217,7 @@ One line for each input, tab-separated, with a header:
      - with ``-r``: the left and right ends found, by origin; ``NA`` without references
    * - ``short_complete``
      - with ``-r``: complete amplicons shorter than 90% of their reference; ``NA`` without references
-   * - ``out_full``, ``out_internal``, ``out_deletion``, ``out_other``
+   * - ``out_full``, ``out_internal``, ``out_deletion``, ``out_unplaced``, ``out_other``
      - with ``-r``: the reads written, by category (:ref:`reads-by-category`); their sum is ``reads_out``; ``NA`` without references
 
 lengths.tsv

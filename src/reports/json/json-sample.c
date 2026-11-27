@@ -87,6 +87,10 @@ void json_sample_write(json_writer_t *w, const report_t *r,
   json_count_member(w, "segments_found", qc.n_found);
   json_count_member(w, "segments_complete", qc.n_complete);
   json_share_member(w, "ends_not_located", qc.not_located);
+  const counter_reads_t *reads = counter_reads(c);
+  size_t analyzed = counter_reads_analyzed(reads);
+  json_share_member(w, "reads_placed", analyzed == 0 ? 0 :
+                    (double)reads->placed / (double)analyzed);
   write_subtype_reads(w, c);
   json_member(w, "flags");
   fputc('[', f);

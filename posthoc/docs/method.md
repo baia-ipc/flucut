@@ -116,8 +116,10 @@ the simulation have more errors than R10 reads). Run it with
   interpolated. Without the summary it is
   rebuilt from the read tags, which lack the junctions of deletions and
   the position of the reads flucut placed by a probe from inside them
-  or by their length (their category is known, from the `ct` tag, but
-  they are not in the coverage).
+  (their category is known, from the `ct` tag, but they are not in the
+  coverage). A read flucut places on no segment (`ct` `unplaced`: a
+  complete amplicon whose probes did not map) has no position and draws
+  no depth in either method.
 - A reference of flucut too different from the one chosen here to be
   aligned with it (e.g. the other NS allele) cannot be compared: its
   coverage and positions are left out.

@@ -20,15 +20,15 @@ static long length_distance(const fasta_t *refs, size_t i, long span) {
   return d < 0 ? -d : d;
 }
 
-/* the reference whose length is nearest to <span> (a complete amplicon's
-   template length), among those considered by <set> (NULL: all); -1 if
-   none is within LENGTH_TOLERANCE, or if a reference of another segment
-   is too close in length to tell the two apart (e.g. PB2 and PB1; the
-   references of a segment, e.g. of several subtypes, have similar
-   lengths: the nearest is taken). A reference of unknown segment is
-   taken as a segment of its own */
+/* whether the length <span> of a complete amplicon is that of one
+   segment, among the references considered by <set> (NULL: all): false
+   if no reference is within LENGTH_TOLERANCE, or if a reference of
+   another segment is too close in length to tell the two apart (e.g.
+   PB2 and PB1; the references of a segment, e.g. of several subtypes,
+   have similar lengths). A reference of unknown segment is taken as a
+   segment of its own */
 #define LENGTH_TOLERANCE 80
-static long segment_by_length(const fasta_t *refs,
+static bool length_of_one_segment(const fasta_t *refs,
     const reference_set_t *set, long span) {
   long best = -1, best_d = LONG_MAX;
   for (size_t i = 0; i < refs->n_records; i++) {
@@ -41,7 +41,7 @@ static long segment_by_length(const fasta_t *refs,
     }
   }
   if (best < 0 || best_d > LENGTH_TOLERANCE)
-    return -1;
+    return false;
   int segment = ref_segment(refs, (size_t)best);
   for (size_t i = 0; i < refs->n_records; i++) {
     if (i == (size_t)best || (set != NULL && !reference_set_allows(set, i)))
@@ -49,9 +49,9 @@ static long segment_by_length(const fasta_t *refs,
     if (segment != 0 && ref_segment(refs, i) == segment)
       continue;
     if (length_distance(refs, i, span) - best_d < LENGTH_TOLERANCE)
-      return -1;   /* ambiguous */
+      return false;   /* ambiguous */
   }
-  return best;
+  return true;
 }
 
 /* the distance of the 5' end of the amplicon of a placed read from the
@@ -183,7 +183,7 @@ bool read_cover_locate(const fasta_t *refs, const reference_set_t *set,
      found from inside the read (see amplicon.h) */
   const reference_hit_t *lp = amplicon_end_position(l),
                         *rp = amplicon_end_position(r);
-  long span = (long)amplicon_kept_length(a), ref;
+  long span = (long)amplicon_kept_length(a);
   bool both = false;
   if (lp != NULL) {
     both = rp != NULL && rp->ref_index == lp->ref_index;
@@ -192,16 +192,15 @@ bool read_cover_locate(const fasta_t *refs, const reference_set_t *set,
     locate_by_right(a, rp, span, cover);
   } else if (a->placement.found) {
     locate_by_placement(a, span, cover);
-  } else if (l->found && r->found && span > 0 &&
-             (ref = segment_by_length(refs, set, span)) >= 0) {
-    /* a complete amplicon whose probe did not map (e.g. a noisy read
-       start): placed over the whole segment of its length, as terminal */
-    cover->ref = (size_t)ref;
-    cover->from = 0;
-    cover->to = (long)refs->records[ref].seq_len;
-    cover->cover = primed_cover(false, a->strand == STRAND_MINUS);
   } else {
-    return false;   /* not located and not placeable by length */
+    /* nothing in the references places the read. A complete amplicon
+       (both primers found, e.g. with a noisy read start) whose length
+       is that of one segment is noted as such: the length alone does
+       not say which segment it is, so the read is counted apart and
+       covers nothing */
+    cover->by_length = l->found && r->found && span > 0 &&
+                       length_of_one_segment(refs, set, span);
+    return false;
   }
   if (both && (a->junction.found ||
                junction_expected(span, cover->to - cover->from)))
@@ -213,7 +212,7 @@ bool read_cover_locate(const fasta_t *refs, const reference_set_t *set,
 size_t read_cover_category(const read_cover_t *cover) {
   assert(cover != NULL);
   if (!cover->located)
-    return READ_CATEGORY_OTHER;
+    return cover->by_length ? READ_CATEGORY_UNPLACED : READ_CATEGORY_OTHER;
   switch (cover->cover) {
     case COVER_TERMINAL_PLUS:
     case COVER_TERMINAL_MINUS:
@@ -230,7 +229,7 @@ size_t read_cover_category(const read_cover_t *cover) {
 
 const char* read_category_name(size_t category) {
   static const char *const names[READ_N_CATEGORIES] = {
-      "full", "internal", "deletion", "other"};
+      "full", "internal", "deletion", "unplaced", "other"};
   assert(category < READ_N_CATEGORIES);
   return names[category];
 }
@@ -272,19 +271,25 @@ void read_cover_test(void) {
   fasta_t refs = {recs, 2};
   read_cover_t c;
   test_eq_str(read_category_name(READ_CATEGORY_FULL), "full");
+  test_eq_str(read_category_name(READ_CATEGORY_INTERNAL), "internal");
+  test_eq_str(read_category_name(READ_CATEGORY_DELETION), "deletion");
+  test_eq_str(read_category_name(READ_CATEGORY_UNPLACED), "unplaced");
   test_eq_str(read_category_name(READ_CATEGORY_OTHER), "other");
+  test_eq_size(READ_N_CATEGORIES, 5);
   /* no references, or nothing located: other */
   amplicon_t a = test_amplicon(300);
   test_assert(!read_cover_locate(NULL, NULL, &a, &c));
   test_eq_size(read_cover_category(&c), READ_CATEGORY_OTHER);
   test_assert(!read_cover_locate(&refs, NULL, &a, &c));
   test_eq_size(read_cover_category(&c), READ_CATEGORY_OTHER);
-  /* a complete amplicon of the length of a segment: a full template */
+  /* a complete amplicon of the length of a segment, on no segment of
+     the references: unplaced, and it covers nothing */
   a = test_amplicon(1050);
-  test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_FULL);
-  test_eq_size(c.ref, 1);
+  test_assert(!read_cover_locate(&refs, NULL, &a, &c));
+  test_eq_size(read_cover_category(&c), READ_CATEGORY_UNPLACED);
+  test_assert(!c.located);
   test_eq_long(c.from, 0);
-  test_eq_long(c.to, 1000);
+  test_eq_long(c.to, 0);
   /* not if its length is too far from that of any segment, or as near
      to that of two */
   a = test_amplicon(1100);
@@ -296,10 +301,13 @@ void read_cover_test(void) {
   /* unless they are of the same segment: the nearest */
   close[0].description = "A/x/1/2000(H1N1) segment 4";
   close[1].description = "A/y/2/2001(H3N2) segment 4";
-  test_eq_size(test_category(&close_refs, &a, &c), READ_CATEGORY_FULL);
-  test_eq_size(c.ref, 1);
+  test_eq_size(test_category(&close_refs, &a, &c), READ_CATEGORY_UNPLACED);
   close[1].description = "A/y/2/2001(H3N2) segment 6";
   test_eq_size(test_category(&close_refs, &a, &c), READ_CATEGORY_OTHER);
+  /* one primer only, whatever its length: other */
+  a = test_amplicon(1050);
+  a.right.found = false;
+  test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_OTHER);
   /* both ends mapped, as far apart as the template: full, by strand */
   a = test_amplicon(2000);
   test_map(&a.left, 0, ORIGIN_TERMINAL);

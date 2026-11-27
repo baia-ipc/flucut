@@ -294,3 +294,19 @@
   one is seen in every run down to 5% of the reads, in three runs of
   four at 2% and in one of three at 1%, with no remark on any of the 528
   HA and 648 NA samples holding one subtype
+- a complete amplicon whose ends were not located is no longer placed on
+  the segment of its length, as a length does not say which segment a
+  read is; it has a category of its own, "unplaced" (the ct tag, the
+  file <name>.unplaced.fastq.gz of --by-category, the column
+  out_unplaced of summary.tsv, written_by_category in the JSON summary),
+  and draws no depth, so that the full-template class, the coverage plot
+  and the segment states hold only the reads the references place on a
+  segment; in a sample of which little is influenza these reads are the
+  bulk: in one of the 104 validation samples 93,547 of them, 93.6% of
+  its full-template class, left that class, and the depth drawn fell
+  from 12 times the depth measured by mapping to about the measured one
+- a sample whose reads the references describe only in small part is
+  flagged in the run overview and in the JSON summary ("only N% of the
+  reads placed on a segment: most of the reads are of something else"),
+  below 30% of the reads placed; the share itself is in the JSON summary
+  (reads_placed)
