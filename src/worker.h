@@ -62,6 +62,10 @@ void worker_init(worker_t *w, const trimmer_config_t *config,
    set before processing a group (see reference_set_restrict) */
 void worker_restrict_references(worker_t *w, const bool *allowed);
 
+/* Search only the primers of the types <types>, see
+   amplicon_analyzer_restrict_virus */
+void worker_restrict_virus(worker_t *w, virus_set_t types);
+
 /* Free the memory of a worker */
 void worker_free(worker_t *w);
 

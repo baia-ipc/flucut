@@ -14,6 +14,7 @@
 #include "primers.h"
 #include "reference.h"
 #include "segments.h"
+#include "strutils.h"
 #include "virus.h"
 #include "test.h"
 
@@ -35,21 +36,42 @@ struct reference_index_t {
 
 /*
    The lineage of influenza B in a FASTA description: "Victoria" or
-   "Yamagata" where one of them is named (also as B/Vic and B/Yam), and
-   "B" where none is, so that the references of influenza B are one
-   group where their lineage is not known. Never NULL.
+   "Yamagata" where the description says so ("Victoria lineage",
+   "lineage Yamagata"), and "B" where it does not, so that the
+   references whose lineage is not known are one group. Never NULL.
+
+   The word alone is not enough: Victoria and Yamagata are also the
+   places of the strain names B/Victoria/2/87 and B/Yamagata/16/88,
+   which name the lineages after them, and a virus of either lineage
+   isolated in Victoria or in Yamagata carries that place in its name.
+   Most records do not say which lineage they are, so most references
+   of influenza B are the group "B": the lineage of a sample is better
+   called downstream, from its assembled HA.
 */
 static char* parse_lineage(const char *desc) {
-  static const struct { const char *word; const char *name; } lineages[] = {
-    {"victoria", "Victoria"}, {"yamagata", "Yamagata"},
-    {"B/Vic", "Victoria"}, {"B/Yam", "Yamagata"},
-  };
-  size_t n = sizeof(lineages) / sizeof(lineages[0]);
-  for (size_t i = 0; i < n && desc != NULL; i++) {
-    size_t len = strlen(lineages[i].word);
-    for (const char *p = desc; *p != '\0'; p++)
-      if (strncasecmp(p, lineages[i].word, len) == 0)
-        return xstrdup(lineages[i].name);
+  static const char *const names[] = {"Victoria", "Yamagata"};
+  static const char key[] = "lineage";
+  const size_t key_len = sizeof(key) - 1;
+  for (size_t i = 0; i < 2 && desc != NULL; i++) {
+    size_t len = strlen(names[i]);
+    for (const char *p = desc; (p = strcasestr(p, names[i])) != NULL;
+         p += len) {
+      /* "<name> lineage" or "lineage <name>" (any separators between) */
+      const char *after = p + len;
+      while (*after == ' ' || *after == '-' || *after == '_')
+        after++;
+      if (strncasecmp(after, key, key_len) == 0)
+        return xstrdup(names[i]);
+      if (p - desc >= (long)key_len + 1) {
+        const char *before = p - 1;
+        while (before > desc &&
+               (*before == ' ' || *before == '-' || *before == '_'))
+          before--;
+        if (before - desc >= (long)key_len - 1 &&
+            strncasecmp(before - key_len + 1, key, key_len) == 0)
+          return xstrdup(names[i]);
+      }
+    }
   }
   return xstrdup("B");
 }
@@ -677,6 +699,29 @@ static void test_locate(reference_index_t *ix, bool exhaustive,
 }
 
 void reference_test(void) {
+  /* the group of a reference: the subtype for influenza A, the lineage
+     for influenza B, and "B" where no lineage is named */
+  char group[32];
+  test_assert(reference_description_subtype("Influenza A virus "
+      "(A/Cambodia/1/2023(H5N1)) segment 4", group, sizeof(group)));
+  test_eq_str(group, "H5N1");
+  test_assert(reference_description_subtype("Influenza B virus "
+      "(B/Brisbane/60/2008) segment 4", group, sizeof(group)));
+  test_eq_str(group, "B");
+  test_assert(reference_description_subtype("Influenza B virus "
+      "(B/Phuket/3073/2013) Yamagata lineage, segment 4", group,
+      sizeof(group)));
+  test_eq_str(group, "Yamagata");
+  test_assert(reference_description_subtype("Influenza B virus, "
+      "lineage Victoria, segment 6", group, sizeof(group)));
+  test_eq_str(group, "Victoria");
+  /* the place of a strain name is not a lineage */
+  test_assert(reference_description_subtype("Influenza B virus "
+      "(B/Victoria/504/2000) segment 4", group, sizeof(group)));
+  test_eq_str(group, "B");
+  /* a record of influenza A without a subtype has no group */
+  test_assert(!reference_description_subtype("Influenza A virus "
+      "(A/Hong Kong/1/68) segment 4", group, sizeof(group)));
   enum { REF_LEN = 1000, PROBE = 30 };
   unsigned long state = 42;
   char ref0[REF_LEN + 1], ref1[REF_LEN + 1], probe[64];

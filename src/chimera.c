@@ -29,6 +29,12 @@ chimera_finder_t* chimera_finder_new(const scheme_t *scheme,
   return self;
 }
 
+void chimera_finder_restrict_virus(chimera_finder_t *self,
+    virus_set_t types) {
+  assert(self != NULL);
+  terminus_matches_restrict_virus(self->termini, types);
+}
+
 void chimera_finder_use_references(chimera_finder_t *self,
     reference_set_t *refs) {
   assert(self != NULL);

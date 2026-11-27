@@ -29,6 +29,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "scheme.h"
+#include "virus.h"
 
 /* the most errors allowed in a match of a terminus */
 #define TERMINUS_MATCHES_MAX_ERRORS 2
@@ -72,6 +73,15 @@ size_t terminus_matches_find(terminus_matches_t *self, const char *seq,
 */
 long terminus_matches_primer_bound(terminus_matches_t *self,
     const char *seq, size_t len, const terminus_match_t *m);
+
+/*
+   Search only the termini of the primers of the types <types> (see
+   virus.h): the termini of the other type are not in the reads of a
+   sample of this one, and the short terminus of influenza A matches
+   inside a sequence by chance.
+*/
+void terminus_matches_restrict_virus(terminus_matches_t *self,
+    virus_set_t types);
 
 /* Delete a prepared search (NULL is accepted) */
 void terminus_matches_delete(terminus_matches_t *self);

@@ -13,11 +13,11 @@ nuccore, reads the GenBank record of each candidate and keeps the
 first one (or, with --per-subtype, several, spread over the hosts,
 places and decades found) which:
 
-  * is the requested segment of influenza A virus,
-  * carries the requested subtype in its description,
-  * begins and ends with the conserved termini of the segments of
-    influenza A (the targets of the Uni12 and Uni13 primers), so that
-    it covers the segment from end to end,
+  * is the requested segment of the requested type of influenza,
+  * carries the requested subtype in its description (influenza A),
+  * begins and ends with the conserved termini of the segments of its
+    type (the targets of the universal primers), so that it covers the
+    segment from end to end,
   * is not shorter than --min-length, has no ambiguous bases and is a
     natural isolate (see EXCLUDED and --exclude).
 
@@ -48,6 +48,11 @@ Example commands:
   python3 scripts/find_builtin_references.py --segment all \\
       --subtype H5N1 --strain "A/Cambodia" --from-year 2023 \\
       --output references/h5n1_cambodia.tsv
+
+  # the eight segments of a strain of influenza B (which has no
+  # subtypes: the strain names the lineage)
+  python3 scripts/find_builtin_references.py --virus b --segment all \\
+      --strain "B/Phuket/3073/2013" --output references/b_phuket.tsv
 """
 
 import argparse
@@ -61,11 +66,8 @@ from datetime import datetime, timezone
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 
 from fetch_references import (  # noqa: E402
-  SEGMENTS, SLEEP_NO_KEY, SLEEP_WITH_KEY, esearch, eutils_url, gene_term,
-  http_get, log)
-
-# The number of each segment in the records of NCBI ("segment 4").
-SEGMENT_NUMBER = {name: i for i, name in enumerate(SEGMENTS, 1)}
+  SEGMENTS, SLEEP_NO_KEY, SLEEP_WITH_KEY, esearch, eutils_url, http_get,
+  log)
 
 # The conserved termini of every segment of influenza A, on the strand
 # the records are deposited on: the 5' end is the target of the Uni12
@@ -87,24 +89,55 @@ EXCLUDED = ("chimeric", "synthetic", "recombinant", "vaccine", "mutant",
 WINDOWS = [("1900", "2004"), ("2005", "2014"), ("2015", "2020"),
            ("2021", "2100")]
 
-TERMINUS_5 = "AGCAAAAGCAGG"
-TERMINUS_3 = "CCTTGTTTCTACT"
 ONE_OFF = 1
 
-# Shortest plausible complete segment, by segment (the coding sequence
-# plus the UTRs; a record below this is a fragment).
-MIN_LENGTH = {"PB2": 2300, "PB1": 2290, "PA": 2190, "HA": 1700,
-              "NP": 1520, "NA": 1420, "MP": 990, "NS": 860}
+# What differs between the two types of influenza: the organism of the
+# records, the number each type gives its segments (influenza B numbers
+# PB1 1 and PB2 2), the conserved termini on the strand the records are
+# deposited on (the 3' terminus of influenza B has two forms, one of
+# which every record must end with), the shortest plausible complete
+# segment (the coding sequence plus the UTRs; a record below this is a
+# fragment) and the genes NCBI annotates the segments with.
+VIRUS = {
+  "a": {
+    "organism": "Influenza A virus",
+    "numbers": {"PB2": 1, "PB1": 2, "PA": 3, "HA": 4,
+                "NP": 5, "NA": 6, "MP": 7, "NS": 8},
+    "terminus_5": ["AGCAAAAGCAGG"],
+    "terminus_3": ["CCTTGTTTCTACT"],
+    "min_length": {"PB2": 2300, "PB1": 2290, "PA": 2190, "HA": 1700,
+                   "NP": 1520, "NA": 1420, "MP": 990, "NS": 860},
+    "genes": {"MP": ["M1", "M2"], "NS": ["NS1", "NEP", "NS2"]},
+  },
+  "b": {
+    "organism": "Influenza B virus",
+    "numbers": {"PB1": 1, "PB2": 2, "PA": 3, "HA": 4,
+                "NP": 5, "NA": 6, "MP": 7, "NS": 8},
+    "terminus_5": ["AGCAGAAGC"],
+    "terminus_3": ["TGTTTCTACT", "TGTTACTACT"],
+    # (the complete segments of B/Lee/1940 are 2368, 1882, 1841, 1557,
+    # 1191 and 1096 bases long; a record of the coding sequence alone
+    # is some 30 to 100 bases shorter and is left out by these)
+    "min_length": {"PB2": 2350, "PB1": 2350, "PA": 2240, "HA": 1830,
+                   "NP": 1800, "NA": 1520, "MP": 1150, "NS": 1050},
+    # segment 6 of influenza B encodes NA and NB, segment 7 M1 and BM2
+    "genes": {"MP": ["M1", "BM2"], "NS": ["NS1", "NEP"],
+              "NA": ["NA", "NB"]},
+  },
+}
 
 
 def parse_args():
   p = argparse.ArgumentParser(
-    description="Find complete segment references of influenza A.")
+    description="Find complete segment references of influenza.")
+  p.add_argument("--virus", default="a", choices=sorted(VIRUS),
+                 help="type of influenza: a (default) or b; influenza B "
+                      "has no subtypes, so --subtype is not used for it")
   p.add_argument("--segment", default="HA",
                  help="comma-separated segment names (%s) or 'all' "
                       "(default: HA)"
                  % ", ".join(SEGMENTS))
-  p.add_argument("--subtype", required=True,
+  p.add_argument("--subtype", default="",
                  help="comma-separated subtypes, e.g. H5N8 or H1,H2,H3; "
                       "a subtype of the HA (H5) or of the NA (N8) alone "
                       "is allowed")
@@ -184,6 +217,37 @@ def collection_year(record):
   return 0
 
 
+def gene_term(virus, segment):
+  """The esearch term selecting the records of the genes of a segment,
+  e.g. HA[Gene], or (M1[Gene] OR BM2[Gene]) for the MP of influenza B.
+
+  NCBI annotates some segments by the names of their genes rather than
+  of the segment, and the genes differ between the types (see VIRUS).
+  """
+  genes = VIRUS[virus]["genes"].get(segment)
+  if genes is None:
+    return "%s[Gene]" % segment
+  return "(%s)" % " OR ".join("%s[Gene]" % g for g in genes)
+
+
+def strain_query(strain):
+  """The esearch term narrowing the search to a strain name.
+
+  A whole strain name as a phrase ("B/Phuket/3073/2013") matches no
+  record: the words of the name are indexed one by one. The place of
+  the name is searched instead, which is distinctive enough to leave
+  few candidates; the check of each record then requires the whole name
+  in its description.
+  """
+  parts = [p.strip() for p in strain.split("/") if p.strip()]
+  if parts and len(parts[0]) == 1:   # the type: A/... or B/...
+    parts = parts[1:]
+  place = next((p for p in parts if any(c.isalpha() for c in p)), "")
+  if not place:
+    return "%s[All Fields]" % strain
+  return '"%s"[All Fields]' % place if " " in place else place
+
+
 def subtypes_of(subtype):
   """The complete subtypes a request covers: H5N8 itself, H5 every H5N*,
   N8 every H*N8 (the records of NCBI name the complete subtype, so a
@@ -208,15 +272,25 @@ def subtype_query(subtype):
 
 def check(record, segment, subtype, args):
   """The reasons why the record cannot be a reference (none: it can)."""
+  virus = VIRUS[args.virus]
   out = []
   definition = record.findtext("GBSeq_definition") or ""
   length = int(record.findtext("GBSeq_length") or 0)
   sequence = (record.findtext("GBSeq_sequence") or "").upper()
-  if "Influenza A virus" not in (record.findtext("GBSeq_organism") or ""):
-    out.append("not influenza A virus")
-  if f"segment {SEGMENT_NUMBER[segment]}" not in definition:
-    out.append(f"not segment {SEGMENT_NUMBER[segment]}")
-  if not any(t in definition for t in subtype_terms(subtype)):
+  if virus["organism"] not in (record.findtext("GBSeq_organism") or ""):
+    out.append("not %s" % virus["organism"].lower())
+  number = virus["numbers"][segment]
+  numbered = re.search(r"segment (\d+)", definition)
+  if numbered and int(numbered.group(1)) != number:
+    out.append(f"segment {numbered.group(1)}, not {number}")
+  elif not numbered and segment not in definition.upper().split():
+    # (the records which do not number their segment name their gene,
+    # e.g. "polymerase PB1 (PB1) gene"; the search is by gene as well)
+    if not any(g in definition.upper()
+               for g in virus["genes"].get(segment, [segment])):
+      out.append(f"neither segment {number} nor its gene in the "
+                 f"description")
+  if subtype and not any(t in definition for t in subtype_terms(subtype)):
     out.append(f"subtype {subtype} not in the description")
   if args.strain and args.strain.lower() not in definition.lower():
     out.append(f"{args.strain} not in the description")
@@ -226,20 +300,39 @@ def check(record, segment, subtype, args):
       out.append(f"{word} in the description")
   if args.from_year and collection_year(record) < args.from_year:
     out.append(f"collected before {args.from_year}")
-  if length < MIN_LENGTH[segment]:
+  if length < virus["min_length"][segment]:
     out.append(f"{length} bases: shorter than a complete segment")
   if sequence and set(sequence) - set("ACGT"):
     out.append("ambiguous bases")
   if not sequence:
     out.append("no sequence in the record")
   else:
-    if mismatches(sequence[:len(TERMINUS_5)], TERMINUS_5) > ONE_OFF:
-      out.append(f"begins with {sequence[:len(TERMINUS_5)]}, not with the "
-                 f"conserved terminus {TERMINUS_5}")
-    if mismatches(sequence[-len(TERMINUS_3):], TERMINUS_3) > ONE_OFF:
-      out.append(f"ends with {sequence[-len(TERMINUS_3):]}, not with the "
-                 f"conserved terminus {TERMINUS_3}")
+    begin = terminus_problem(sequence, virus["terminus_5"], True)
+    if begin:
+      out.append(begin)
+    end = terminus_problem(sequence, virus["terminus_3"], False)
+    if end:
+      out.append(end)
   return out
+
+
+def terminus_problem(sequence, termini, at_start):
+  """Why the sequence does not begin (or end) with one of the conserved
+  termini of its type; empty where it does. A terminus with more than
+  one form (the 3' terminus of influenza B) is matched by its closest
+  form."""
+  best, found = None, ""
+  for terminus in termini:
+    edge = sequence[:len(terminus)] if at_start else \
+      sequence[-len(terminus):]
+    n = mismatches(edge, terminus)
+    if best is None or n < best:
+      best, found = n, edge
+  if best <= ONE_OFF:
+    return ""
+  where = "begins" if at_start else "ends"
+  return (f"{where} with {found}, not with the conserved terminus "
+          + " or ".join(termini))
 
 
 def mismatches(text, motif):
@@ -257,9 +350,11 @@ def utr_lengths(record):
 def strain_origin(definition):
   """The host and the place of the strain name of a description
   (A/duck/Cambodia/X/2022(H5N1) gives duck and Cambodia; a human strain
-  has no host field: A/Cambodia/X/2023). Empty where the name does not
-  read that way."""
-  found = re.search(r"A/([^()]+?)\(H\d+N\d+\)", definition)
+  has no host field: A/Cambodia/X/2023; the strain names of influenza B
+  read the same way, after B/). Empty where the name does not read that
+  way."""
+  found = re.search(r"A/([^()]+?)\(H\d+N\d+\)", definition) or \
+    re.search(r"\(B/([^()]+?)\)", definition)
   if not found:
     return ("", "")
   parts = [p.strip().lower() for p in found.group(1).split("/")]
@@ -296,14 +391,17 @@ def candidates(segment, subtype, args, window, wanted):
   window which can be references, and why the others cannot."""
   # the length range leaves out most records which hold the coding
   # sequence alone, without the UTRs (the check of the record decides)
-  shortest = args.min_length or MIN_LENGTH[segment]
-  terms = ["Influenza A virus[Organism]", gene_term(segment),
-           subtype_query(subtype), "complete cds[Title]",
+  virus = VIRUS[args.virus]
+  shortest = args.min_length or virus["min_length"][segment]
+  terms = ["%s[Organism]" % virus["organism"],
+           gene_term(args.virus, segment), "complete cds[Title]",
            f"{shortest}:{shortest + 400}[SLEN]"]
+  if subtype:
+    terms.append(subtype_query(subtype))
   if window:
     terms.append(f'("{window[0]}"[PDAT] : "{window[1]}"[PDAT])')
   if args.strain:
-    terms.append(f'"{args.strain}"')
+    terms.append(strain_query(args.strain))
   uids = esearch(" AND ".join(terms), args.max_seqs, args.api_key)
   if not uids:
     return [], {}
@@ -343,7 +441,7 @@ def find(segment, subtype, args, wanted=1):
     refused.update(why)
   found = [r for group in groups for r in group]
   if not found:
-    log(f"{segment} {subtype}: no candidate is a complete segment"
+    log(f"{segment} {subtype or 'B'}: no candidate is a complete segment"
         + ("; e.g. " + "; ".join(f"{k}: {v}"
                                  for k, v in list(refused.items())[:3])
            if refused else ""))
@@ -359,19 +457,21 @@ def main():
       sys.exit(f"unknown segment: {segment}")
   fetched = datetime.now(timezone.utc).strftime("%Y-%m-%d")
   rows = []
-  for subtype in args.subtype.split(","):
+  subtypes = [s for s in args.subtype.split(",") if s.strip()] or [""]
+  for subtype in subtypes:
     for segment in segments:
       for found in find(segment, subtype.strip(), args, args.per_subtype):
         accession, definition, length, (utr5, utr3), year = found
         host, place = strain_origin(definition)
-        log(f"{segment} {subtype}: {accession} ({length} bases, UTRs "
+        log(f"{segment} {subtype or args.virus.upper()}: {accession} "
+            f"({length} bases, UTRs "
             f"{utr5} and {utr3}, {host or '?'} {place or '?'} "
             f"{year or '?'})")
         rows.append((subtype.strip(), segment, accession, definition,
                      length, utr5, utr3, host, place, year))
-  for subtype in args.subtype.split(","):
+  for subtype in subtypes:
     picked = [r[2] for r in rows if r[0] == subtype.strip()]
-    print(f"/* {subtype.strip()} */")
+    print(f"/* {subtype.strip() or args.strain or args.virus.upper()} */")
     print(",".join(picked))
   if args.output:
     with open(args.output, "w") as handle:
@@ -380,7 +480,7 @@ def main():
       for row in rows:
         handle.write("\t".join(str(v) for v in row) + f"\t{fetched}\n")
     log(f"provenance written to {args.output}")
-  missing = [(s.strip(), g) for s in args.subtype.split(",")
+  missing = [(s.strip(), g) for s in subtypes
              for g in segments
              if not any(r[0] == s.strip() and r[1] == g for r in rows)]
   if missing:

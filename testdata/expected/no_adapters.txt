@@ -36,9 +36,9 @@ adapters	all	1700	6
   "running": false,
   "command": "bin/flucut -o OUTDIR -r off --adapters none testdata/adapters.fastq",
   "scheme": {
-    "name": "uni12-mbt13",
-    "left": ["uni12r"],
-    "right": ["mbtuni-13"]
+    "name": "uni12-mbt13+ibv-ga2",
+    "left": ["uni12r", "b-pbs-unif", "b-pa-unif", "b-hana-unif", "b-np-unif", "b-m-uni3f", "b-mg-uni3f", "b-ns-uni3f"],
+    "right": ["mbtuni-13", "b-pbs-unir", "b-pa-unir", "b-hana-unir", "b-np-unir", "b-m-uni3r", "b-ns-uni3r"]
   },
   "trim_policy": "primer",
   "references": null,
@@ -87,8 +87,8 @@ adapters	all	1700	6
     "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
     "sample": null,
     "primers": {
-      "left": {"uni12r": 6},
-      "right": {"mbtuni-13": 8}
+      "left": {"uni12r": 6, "b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 0, "b-np-unif": 0, "b-m-uni3f": 0, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
+      "right": {"mbtuni-13": 8, "b-pbs-unir": 0, "b-pa-unir": 0, "b-hana-unir": 0, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
     },
     "ends": null,
     "internal_sites": null,
@@ -125,8 +125,8 @@ adapters	all	1700	6
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
       "sample": null,
       "primers": {
-        "left": {"uni12r": 6},
-        "right": {"mbtuni-13": 8}
+        "left": {"uni12r": 6, "b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 0, "b-np-unif": 0, "b-m-uni3f": 0, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
+        "right": {"mbtuni-13": 8, "b-pbs-unir": 0, "b-pa-unir": 0, "b-hana-unir": 0, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
       },
       "ends": null,
       "internal_sites": null,

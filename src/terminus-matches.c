@@ -35,12 +35,17 @@ typedef struct {
      suffix at the start of an amplicon, their prefix at the end of one */
   oligo_t *primers;
   size_t n_primers;
+  /* the types of influenza whose primers have this terminus */
+  virus_set_t types;
 } pattern_t;
 
 struct terminus_matches_t {
   pattern_t *patterns;
   size_t n_patterns;
   size_t max_primers;  /* room in the primers of each pattern */
+  /* the types of influenza whose termini are searched (see
+     terminus_matches_restrict_virus) */
+  virus_set_t types;
   primer_search_t *search;
 };
 
@@ -112,10 +117,14 @@ static void add_terminus(terminus_matches_t *self, const primer_t *p,
   XMALLOC(rc_terminus, p->terminus_len + 1);
   primers_reverse_complement(p->seq, p->seq_len, rc);
   primers_reverse_complement(terminus, p->terminus_len, rc_terminus);
-  add_primer(add_pattern(self, terminus, p->terminus_len, start,
-                         max_errors), p->seq, p->seq_len, max_errors);
-  add_primer(add_pattern(self, rc_terminus, p->terminus_len, !start,
-                         max_errors), rc, p->seq_len, max_errors);
+  pattern_t *forward = add_pattern(self, terminus, p->terminus_len, start,
+                                   max_errors);
+  add_primer(forward, p->seq, p->seq_len, max_errors);
+  forward->types |= VIRUS_SET_OF(p->virus);
+  pattern_t *reverse = add_pattern(self, rc_terminus, p->terminus_len,
+                                   !start, max_errors);
+  add_primer(reverse, rc, p->seq_len, max_errors);
+  reverse->types |= VIRUS_SET_OF(p->virus);
   free(rc);
   free(rc_terminus);
 }
@@ -128,6 +137,7 @@ terminus_matches_t* terminus_matches_new(const scheme_t *scheme,
   self->max_primers = scheme->n_left + scheme->n_right;
   XMALLOC(self->patterns, sizeof(pattern_t) * 2 * self->max_primers);
   self->n_patterns = 0;
+  self->types = VIRUS_SET_BOTH;
   /* (the primers of the right end are stored as they are found at the
      end of an amplicon, see scheme.h) */
   for (size_t i = 0; i < scheme->n_left; i++)
@@ -136,6 +146,12 @@ terminus_matches_t* terminus_matches_new(const scheme_t *scheme,
     add_terminus(self, scheme->right + i, false, max_errors);
   self->search = primer_search_new();
   return self;
+}
+
+void terminus_matches_restrict_virus(terminus_matches_t *self,
+    virus_set_t types) {
+  assert(self != NULL);
+  self->types = types;
 }
 
 void terminus_matches_delete(terminus_matches_t *self) {
@@ -194,7 +210,8 @@ size_t terminus_matches_find(terminus_matches_t *self, const char *seq,
   terminus_match_t candidates[MAX_CANDIDATES];
   size_t n_candidates = 0, n = 0;
   for (size_t i = 0; i < self->n_patterns; i++)
-    pattern_matches(self, i, seq, len, candidates, &n_candidates);
+    if ((self->patterns[i].types & self->types) != 0)
+      pattern_matches(self, i, seq, len, candidates, &n_candidates);
   qsort(candidates, n_candidates, sizeof(terminus_match_t), compare_quality);
   for (size_t i = 0; i < n_candidates && n < TERMINUS_MATCHES_MAX; i++) {
     const terminus_match_t *c = candidates + i;

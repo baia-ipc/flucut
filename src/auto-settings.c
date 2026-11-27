@@ -314,6 +314,23 @@ static void vote(reference_set_t *refs, const int *segment, const char *seq,
   read_agreement_add(agreement, segment, read_votes, n_read_votes);
 }
 
+virus_set_t auto_settings_reference_types(const trimmer_config_t *config,
+    const bool *allowed) {
+  assert(config != NULL);
+  if (config->index == NULL)
+    return VIRUS_SET_BOTH;
+  const fasta_t *fa = reference_index_fasta(config->index);
+  virus_set_t types = 0;
+  for (size_t i = 0; i < fa->n_records; i++) {
+    if (allowed != NULL && !allowed[i])
+      continue;
+    const char *description = fa->records[i].description;
+    types |= VIRUS_SET_OF(description == NULL ? VIRUS_A :
+                          virus_type_of_description(description));
+  }
+  return types == 0 ? VIRUS_SET_BOTH : types;
+}
+
 /* the description of a reference of the segment <s>, for the numbering
    of its type in the messages (NULL if there is none) */
 static const char* segment_description(const fasta_t *fa,

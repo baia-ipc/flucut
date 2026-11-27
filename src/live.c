@@ -53,6 +53,9 @@ typedef struct {
      chosen yet, and whether each is considered (NULL: all) */
   bool references_chosen;
   bool *allowed;
+  /* the types of influenza of those references: the primers searched
+     in its reads (see auto_settings_reference_types) */
+  virus_set_t virus;
 } live_group_t;
 
 static bool is_done(const live_group_t *st, const char *path) {
@@ -171,6 +174,7 @@ static live_group_t* get_group(live_t *w, const char *name) {
   st->counts = counter_new(w->scheme, w->refs);
   st->references_chosen = false;   /* from its first file (process_file) */
   st->allowed = NULL;
+  st->virus = VIRUS_SET_BOTH;
   if (opts->resume)
     load_state(opts, st, w->logger);
   if (st->n_done == 0)
@@ -283,10 +287,13 @@ static void process_file(live_t *w, live_group_t *st, const char *path,
   if (!st->references_chosen) {
     st->allowed = auto_settings_choose_references(w->config, path,
                                                   w->logger);
+    st->virus = auto_settings_reference_types(w->config, st->allowed);
     st->references_chosen = true;
   }
-  for (size_t t = 0; t < opts->threads; t++)
+  for (size_t t = 0; t < opts->threads; t++) {
     worker_restrict_references(workers + t, st->allowed);
+    worker_restrict_virus(workers + t, st->virus);
+  }
   read_outputs_open(st->output, st->n_done > 0, w->logger);
   worker_process_file(workers, opts->threads, path, st->output,
                       w->file_counts, w->logger);

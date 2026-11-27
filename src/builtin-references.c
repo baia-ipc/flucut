@@ -30,7 +30,7 @@
    an old cache is not reused).
 */
 #define BUILTIN_REFERENCES_VERSION "v3"
-static const char *const BUILTIN_ACCESSIONS =
+static const char *const BUILTIN_ACCESSIONS_A =
   /* the HA of each subtype, H1 to H16: four references of each,
      of different decades, hosts and places, as the lineages of a
      subtype can lie decades apart */
@@ -81,6 +81,39 @@ static const char *const BUILTIN_ACCESSIONS =
   "QB023906.1,PZ768253.1,ON328346.1,PZ768255.1,"
   "QB214291.1,QB215690.1";
 
+/*
+   The accessions of the built-in set of influenza B, found the same
+   way (scripts/find_builtin_references.py --virus b). Influenza B has
+   no subtypes: its diversity is two lineages, Victoria and Yamagata,
+   which the records rarely name, so the set holds four references of
+   each segment instead, of different places and decades, and the
+   reference of each segment closest to the reads of a sample is chosen
+   from them as for influenza A. Every record begins and ends with the
+   conserved termini of influenza B, which are shorter than those of
+   influenza A and continue into bases which differ between the
+   segments (see primers.h): a reference without them would turn the
+   ends of the reads at a segment terminus into internal priming.
+   Updating this list requires a new BUILTIN_REFERENCES_B_VERSION.
+*/
+#define BUILTIN_REFERENCES_B_VERSION "v1"
+static const char *const BUILTIN_ACCESSIONS_B =
+  /* PB2 (segment 2 of influenza B) */
+  "AF005737.1,AY504607.1,MN700020.1,PX491242.1,"
+  /* PB1 (its segment 1) */
+  "AY504608.1,MN700019.1,PZ093196.1,JX513083.1,"
+  /* PA */
+  "AF005738.1,KC866602.1,MN700021.1,PV226097.1,"
+  /* HA */
+  "EF626636.1,KX058884.1,PZ093207.1,PX494198.1,"
+  /* NP */
+  "MN700018.1,PX491246.1,EF626639.1,KC866605.1,"
+  /* NA */
+  "FJ766841.1,PZ093225.1,JQ396216.1,PX363335.1,"
+  /* MP */
+  "KC866607.1,MT040797.1,QB377036.1,KX351448.1,"
+  /* NS */
+  "KC866608.1,KM654633.1,PX363337.1,KC866606.1";
+
 #define NCBI_EFETCH \
   "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
 
@@ -107,16 +140,17 @@ static bool file_ok(const char *path) {
   return stat(path, &st) == 0 && S_ISREG(st.st_mode) && st.st_size > 0;
 }
 
-/* download the accessions to <path> (via curl, which honors HTTPS_PROXY);
-   false on failure */
-static bool download(const char *path, Logger *logger) {
+/* download the accessions <accessions> to <path> (via curl, which
+   honors HTTPS_PROXY); false on failure */
+static bool download(const char *path, const char *accessions,
+    Logger *logger) {
   size_t n = strlen(path) + 16;
   char *tmp_path = malloc(n);
   if (tmp_path == NULL)
     return false;
   snprintf(tmp_path, n, "%s.part", path);
   char *cmd;
-  size_t cmd_size = strlen(BUILTIN_ACCESSIONS) + strlen(tmp_path) + 512;
+  size_t cmd_size = strlen(accessions) + strlen(tmp_path) + 512;
   cmd = malloc(cmd_size);
   if (cmd == NULL) {
     free(tmp_path);
@@ -125,7 +159,7 @@ static bool download(const char *path, Logger *logger) {
   snprintf(cmd, cmd_size,
       "curl -sSf --retry 3 --retry-delay 2 -o '%s' "
       "'%s?db=nuccore&id=%s&rettype=fasta&retmode=text'",
-      tmp_path, NCBI_EFETCH, BUILTIN_ACCESSIONS);
+      tmp_path, NCBI_EFETCH, accessions);
   lprintf(logger, LOG_PHASE,
           "Downloading the built-in reference set (first use)...\n");
   int status = system(cmd);
@@ -139,7 +173,34 @@ static bool download(const char *path, Logger *logger) {
   return ok;
 }
 
-const char* builtin_references_path(Logger *logger) {
+/*
+   The accessions of the set of the types <set> (both types: those of
+   influenza A and then those of influenza B, in one download), and the
+   name of its cache file; the accessions are returned and <name> is
+   filled. The caller frees the result.
+*/
+static char* set_accessions(virus_set_t set, char *name, size_t size) {
+  bool a = virus_set_has(set, VIRUS_A), b = virus_set_has(set, VIRUS_B);
+  size_t n = (a ? strlen(BUILTIN_ACCESSIONS_A) : 0) +
+             (b ? strlen(BUILTIN_ACCESSIONS_B) : 0) + 2;
+  char *accessions = malloc(n);
+  if (accessions == NULL)
+    return NULL;
+  snprintf(accessions, n, "%s%s%s", a ? BUILTIN_ACCESSIONS_A : "",
+           a && b ? "," : "", b ? BUILTIN_ACCESSIONS_B : "");
+  if (a && b)
+    snprintf(name, size, "flu-ab-references-%s-%s.fasta",
+             BUILTIN_REFERENCES_VERSION, BUILTIN_REFERENCES_B_VERSION);
+  else if (b)
+    snprintf(name, size, "flu-b-references-%s.fasta",
+             BUILTIN_REFERENCES_B_VERSION);
+  else
+    snprintf(name, size, "flu-a-references-%s.fasta",
+             BUILTIN_REFERENCES_VERSION);
+  return accessions;
+}
+
+const char* builtin_references_path(virus_set_t set, Logger *logger) {
   const char *override = getenv("FLUCUT_BUILTIN_REFERENCES");
   if (override != NULL && override[0] != '\0')
     return override;
@@ -164,12 +225,19 @@ const char* builtin_references_path(Logger *logger) {
             "(use -r <file>, or -r off)\n");
     return NULL;
   }
-  snprintf(path, sizeof(path), "%s/flu-a-references-%s.fasta", dir,
-           BUILTIN_REFERENCES_VERSION);
-  if (file_ok(path))
+  char name[64];
+  char *accessions = set_accessions(set, name, sizeof(name));
+  if (accessions == NULL)
+    return NULL;
+  snprintf(path, sizeof(path), "%s/%s", dir, name);
+  if (file_ok(path)) {
+    free(accessions);
     return path;
+  }
   xmakedirs(dir, logger);
-  if (download(path, logger))
+  bool ok = download(path, accessions, logger);
+  free(accessions);
+  if (ok)
     return path;
   lprintf(logger, LOG_WARN, "could not download the built-in references "
           "(no network, or curl missing); running without references "

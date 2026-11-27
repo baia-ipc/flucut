@@ -39,6 +39,10 @@ void worker_init(worker_t *w, const trimmer_config_t *config,
   }
 }
 
+void worker_restrict_virus(worker_t *w, virus_set_t types) {
+  trimmer_restrict_virus(w->trimmer, types);
+}
+
 void worker_restrict_references(worker_t *w, const bool *allowed) {
   trimmer_restrict_references(w->trimmer, allowed);
 }

@@ -44,9 +44,9 @@ reads	not_located	1700	5
   "running": false,
   "command": "bin/flucut -o OUTDIR --segment PA -r testdata/ref-ha-pa.fasta testdata/reads.fastq",
   "scheme": {
-    "name": "uni12-mbt13",
-    "left": ["uni12r"],
-    "right": ["mbtuni-13"]
+    "name": "uni12-mbt13+ibv-ga2",
+    "left": ["uni12r", "b-pbs-unif", "b-pa-unif", "b-hana-unif", "b-np-unif", "b-m-uni3f", "b-mg-uni3f", "b-ns-uni3f"],
+    "right": ["mbtuni-13", "b-pbs-unir", "b-pa-unir", "b-hana-unir", "b-np-unir", "b-m-uni3r", "b-ns-uni3r"]
   },
   "trim_policy": "terminus",
   "references": {
@@ -112,8 +112,8 @@ reads	not_located	1700	5
       ]
     },
     "primers": {
-      "left": {"uni12r": 11},
-      "right": {"mbtuni-13": 10}
+      "left": {"uni12r": 11, "b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 0, "b-np-unif": 0, "b-m-uni3f": 0, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
+      "right": {"mbtuni-13": 10, "b-pbs-unir": 0, "b-pa-unir": 0, "b-hana-unir": 0, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
     },
     "ends": {
       "left": {"terminal": 0, "internal": 1, "unknown": 10},
@@ -170,8 +170,8 @@ reads	not_located	1700	5
         ]
       },
       "primers": {
-        "left": {"uni12r": 11},
-        "right": {"mbtuni-13": 10}
+        "left": {"uni12r": 11, "b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 0, "b-np-unif": 0, "b-m-uni3f": 0, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
+        "right": {"mbtuni-13": 10, "b-pbs-unir": 0, "b-pa-unir": 0, "b-hana-unir": 0, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
       },
       "ends": {
         "left": {"terminal": 0, "internal": 1, "unknown": 10},

@@ -128,6 +128,10 @@ void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
    see amplicon_analyzer_restrict_references */
 void trimmer_restrict_references(trimmer_t *self, const bool *allowed);
 
+/* Search only the primers of the types <types>, see
+   amplicon_analyzer_restrict_virus */
+void trimmer_restrict_virus(trimmer_t *self, virus_set_t types);
+
 /* Delete (NULL is accepted) */
 void trimmer_delete(trimmer_t *self);
 

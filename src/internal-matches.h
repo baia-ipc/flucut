@@ -22,6 +22,7 @@
 #include <stddef.h>
 #include "amplicon.h"
 #include "scheme.h"
+#include "virus.h"
 
 typedef struct internal_matches_t internal_matches_t;
 
@@ -40,6 +41,16 @@ internal_matches_t* internal_matches_new(const scheme_t *scheme,
 */
 size_t internal_matches_find(internal_matches_t *self, const char *seq,
     long from, long to, amplicon_match_t *matches);
+
+/*
+   Search only the primers of the types <types> (see virus.h): the
+   primers of the other type were not in the reaction of a sample of
+   this one, and the short primers of influenza A match inside a
+   sequence by chance, which would be reported as sites of internal
+   priming.
+*/
+void internal_matches_restrict_virus(internal_matches_t *self,
+    virus_set_t types);
 
 /* Delete a prepared search (NULL is accepted) */
 void internal_matches_delete(internal_matches_t *self);

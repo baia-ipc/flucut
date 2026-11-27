@@ -181,6 +181,7 @@
 #include "primer-search.h"
 #include "reference.h"
 #include "scheme.h"
+#include "virus.h"
 
 /* what is removed at the conserved ends (see above) */
 typedef enum {
@@ -329,6 +330,18 @@ void amplicon_analyzer_use_adapters(amplicon_analyzer_t *self,
    Without references it has no effect */
 void amplicon_analyzer_restrict_references(amplicon_analyzer_t *self,
     const bool *allowed);
+
+/*
+   Search only the primers of the types <types> (see virus.h). A scheme
+   can hold the primers of both types, for a run which may contain
+   samples of either; the type of a sample is read from the references
+   its reads were located in, and its reads are then analyzed with the
+   primers of that type alone: the primers of the other type were not
+   in its reaction, searching them is slower, and the short primers of
+   influenza A match inside a sequence by chance.
+*/
+void amplicon_analyzer_restrict_virus(amplicon_analyzer_t *self,
+    virus_set_t types);
 
 /* Delete an analyzer (NULL is accepted) */
 void amplicon_analyzer_delete(amplicon_analyzer_t *self);

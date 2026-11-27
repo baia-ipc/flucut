@@ -20,6 +20,9 @@ struct internal_matches_t {
      prepared pattern and the errors allowed */
   pattern_scan_t **scans;
   long *max_errors;
+  /* the types of influenza whose primers are searched (see
+     internal_matches_restrict_virus) */
+  virus_set_t types;
 };
 
 internal_matches_t* internal_matches_new(const scheme_t *scheme,
@@ -29,6 +32,7 @@ internal_matches_t* internal_matches_new(const scheme_t *scheme,
   XMALLOC(self, sizeof(internal_matches_t));
   size_t n = scheme->n_left + scheme->n_right;
   self->scheme = scheme;
+  self->types = VIRUS_SET_BOTH;
   XMALLOC(self->scans, sizeof(pattern_scan_t*) * n);
   XMALLOC(self->max_errors, sizeof(long) * n);
   for (size_t i = 0; i < n; i++) {
@@ -40,6 +44,12 @@ internal_matches_t* internal_matches_new(const scheme_t *scheme,
                           right_max_errors[i - scheme->n_left];
   }
   return self;
+}
+
+void internal_matches_restrict_virus(internal_matches_t *self,
+    virus_set_t types) {
+  assert(self != NULL);
+  self->types = types;
 }
 
 void internal_matches_delete(internal_matches_t *self) {
@@ -84,6 +94,11 @@ size_t internal_matches_find(internal_matches_t *self, const char *seq,
   amplicon_match_t candidates[MAX_CANDIDATES];
   size_t n_candidates = 0, n = 0;
   for (size_t i = 0; i < sc->n_left + sc->n_right; i++) {
+    bool left = i < sc->n_left;
+    const primer_t *primer = left ? sc->left + i :
+                             sc->right + (i - sc->n_left);
+    if (!virus_set_has(self->types, primer->virus))
+      continue;
     pattern_match_t found[PATTERN_SCAN_MAX_MATCHES];
     size_t n_found = pattern_scan_matches(self->scans[i], seq + from,
         (size_t)(to - from), self->max_errors[i], found);

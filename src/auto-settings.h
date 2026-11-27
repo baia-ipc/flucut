@@ -27,6 +27,7 @@
 #include "options.h"
 #include "report.h"
 #include "trimmer.h"
+#include "virus.h"
 
 #define AUTO_MAX_ERRORS_READS 1000
 /* the choice of the reference of each segment for a group (see
@@ -131,6 +132,18 @@ void auto_settings_decide(auto_settings_t *self, trimmer_config_t *config,
 */
 bool* auto_settings_choose_references(const trimmer_config_t *config,
     const char *file, Logger *logger);
+
+/*
+   The types of influenza of the references <allowed> (all of them if
+   <allowed> is NULL, see auto_settings_choose_references()), read from
+   their descriptions: the type of a sample, where the references
+   chosen for it are all of one type. Its reads are then analyzed with
+   the primers of that type alone (see
+   amplicon_analyzer_restrict_virus). Both types where the references
+   are of both or where there are none.
+*/
+virus_set_t auto_settings_reference_types(const trimmer_config_t *config,
+    const bool *allowed);
 
 /*
    The decision of auto_settings_choose_references(), from the votes:

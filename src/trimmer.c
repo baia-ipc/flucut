@@ -63,6 +63,12 @@ trimmer_t* trimmer_new(const trimmer_config_t *config) {
   return self;
 }
 
+void trimmer_restrict_virus(trimmer_t *self, virus_set_t types) {
+  amplicon_analyzer_restrict_virus(self->analyzer, types);
+  if (self->chimera != NULL)
+    chimera_finder_restrict_virus(self->chimera, types);
+}
+
 void trimmer_restrict_references(trimmer_t *self, const bool *allowed) {
   amplicon_analyzer_restrict_references(self->analyzer, allowed);
 }

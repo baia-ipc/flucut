@@ -107,6 +107,16 @@ static void delete_group_outputs(read_outputs_t **outputs, size_t n) {
   free(outputs);
 }
 
+/* say which primers are searched for a sample, where the scheme holds
+   the primers of both types and its references are of one of them */
+static void log_sample_virus(virus_set_t types, const char *name,
+    Logger *logger) {
+  if (types != VIRUS_SET_BOTH)
+    lprintf(logger, LOG_INFO, "%s: influenza %s (from its references): "
+            "its primers alone are searched\n", name,
+            virus_set_name(types));
+}
+
 /* log the scheme (verbose) */
 static void log_scheme(const scheme_t *scheme, Logger *logger) {
   lprintf(logger, LOG_INFO, "Scheme %s: left", scheme->name);
@@ -151,8 +161,14 @@ static void trim_group(const options_t *opts, const trimmer_config_t *config,
   if (g->n_files > 0) {
     bool *allowed = auto_settings_choose_references(config, g->files[0],
                                                     logger);
-    for (size_t t = 0; t < opts->threads; t++)
+    /* the type of the sample, from the references chosen for it: its
+       reads are trimmed with the primers of that type alone */
+    virus_set_t types = auto_settings_reference_types(config, allowed);
+    log_sample_virus(types, g->name, logger);
+    for (size_t t = 0; t < opts->threads; t++) {
       worker_restrict_references(workers + t, allowed);
+      worker_restrict_virus(workers + t, types);
+    }
     free(allowed);
   }
   for (size_t j = 0; j < g->n_files; j++) {
@@ -275,11 +291,12 @@ int main(int argc, char *argv[]) {
     banner_print(stderr);
   scheme_t *scheme = scheme_new_builtin(opts.scheme, logger);
   log_scheme(scheme, logger);
-  /* the references: -r off none; -r <file> the user's; the default a
-     built-in flu A set, downloaded on first use (builtin-references.h) */
+  /* the references: -r off none; -r <file> the user's; the default the
+     built-in set of the types expected (--virus), downloaded on first
+     use (builtin-references.h) */
   const char *ref_path = opts.references_off ? NULL :
       opts.references != NULL ? opts.references :
-      builtin_references_path(logger);
+      builtin_references_path(opts.virus, logger);
   fasta_t *refs = ref_path == NULL ? NULL : fasta_read(ref_path, logger);
   /* the reports show the actual path used (the built-in cache, or the
      user's file) */

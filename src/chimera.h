@@ -62,6 +62,7 @@
 #include <stddef.h>
 #include "reference.h"
 #include "scheme.h"
+#include "virus.h"
 
 /* the greatest number of parts a read is split into (the last part is
    whatever is left of the read) */
@@ -101,6 +102,13 @@ chimera_finder_t* chimera_finder_new(const scheme_t *scheme,
 
 /* Use the references <refs> (see above); <refs> must exist as long as
    the finder is used, and belongs to the thread of the finder */
+/*
+   Search only the termini of the primers of the types <types> (see
+   amplicon_analyzer_restrict_virus)
+*/
+void chimera_finder_restrict_virus(chimera_finder_t *self,
+    virus_set_t types);
+
 void chimera_finder_use_references(chimera_finder_t *self,
     reference_set_t *refs);
 

@@ -35,6 +35,9 @@ struct amplicon_analyzer_t {
   primer_search_t *search;
   /* the search of the primers inside the read */
   internal_matches_t *internal;
+  /* the types of influenza whose primers are searched (see
+     amplicon_analyzer_restrict_virus) */
+  virus_set_t types;
   /* the reverse complement of the read */
   char *rc;
   size_t rc_cap;
@@ -161,9 +164,11 @@ amplicon_analyzer_t* amplicon_analyzer_new(const scheme_t *scheme,
   self->search = primer_search_new();
   self->internal = internal_matches_new(scheme, self->left_max_errors,
                                         self->right_max_errors);
+  self->types = VIRUS_SET_BOTH;
   self->rc = NULL;
   self->rc_cap = 0;
   self->refs = NULL;
+  self->ref_segment = NULL;
   self->terminal_window = 0;
   self->probe = NULL;
   self->adapters = NULL;
@@ -198,6 +203,13 @@ void amplicon_analyzer_use_references(amplicon_analyzer_t *self,
   }
 }
 
+void amplicon_analyzer_restrict_virus(amplicon_analyzer_t *self,
+    virus_set_t types) {
+  assert(self != NULL);
+  self->types = types;
+  internal_matches_restrict_virus(self->internal, types);
+}
+
 void amplicon_analyzer_restrict_references(amplicon_analyzer_t *self,
     const bool *allowed) {
   if (self->refs != NULL)
@@ -225,19 +237,25 @@ void amplicon_analyzer_delete(amplicon_analyzer_t *self) {
 
 /*
    Whether <hit> is better than <best> as the primer of an end of a read:
-   at the left end (<left>) the one ending first, at the right end the
-   one starting last (the primer which started the amplicon is the
-   outermost one: a primer-like sequence further inside is template);
-   then the one with fewer errors, then the longer one. For a match
-   inside the read (<end>: false), the one with fewer errors, then the
-   longer one.
+   the one which reaches furthest out (the one starting first at the
+   left end, ending last at the right end), as the primer which started
+   the amplicon is the outermost one and a primer-like sequence further
+   inside is template; then the one with fewer errors, then the longer
+   one. For a match inside the read (<end>: false), the one with fewer
+   errors, then the longer one.
+
+   The comparison is of the outer edge of the match, not of its inner
+   edge: the primers of a scheme need not be equally long (those of
+   influenza B are 20 to 28 bases), and the inner edge would prefer the
+   shortest primer at an end to the one which really started the
+   amplicon, however many errors that costs.
 */
 static bool better_hit(const primer_hit_t *hit, const primer_hit_t *best,
     bool end, bool left) {
-  if (end && hit->end != best->end && left)
-    return hit->end < best->end;
-  if (end && hit->start != best->start && !left)
-    return hit->start > best->start;
+  if (end && left && hit->start != best->start)
+    return hit->start < best->start;
+  if (end && !left && hit->end != best->end)
+    return hit->end > best->end;
   if (hit->n_errors != best->n_errors)
     return hit->n_errors < best->n_errors;
   return hit->end - hit->start > best->end - best->start;
@@ -283,10 +301,13 @@ static void search_end(amplicon_analyzer_t *self, const primer_t *primers,
   out->found = false;
   out->variant = 0;
   out->origin = ORIGIN_UNKNOWN;
+  out->keep_terminus = false;
   out->ref.mapped = false;
   bool end = partial_left || partial_right;
   size_t stride = self->max_primer_len + 1;
   for (size_t i = 0; i < n; i++) {
+    if (!virus_set_has(self->types, primers[i].virus))
+      continue;
     primer_hit_t hit;
     bool found = end ?
         search_primer_end(self, primers + i, seq, len, partial_left,
@@ -329,6 +350,7 @@ static void search_layout(amplicon_analyzer_t *self, const char *seq,
   /* the primer must begin within the window */
   if (out->left.found && out->left.hit.start > left_window)
     out->left.found = false;
+    out->left.keep_terminus = false;
   /* the right primer is searched after the left one, so that the two
      primers found belong to the same amplicon */
   long after_left = out->left.found ? out->left.hit.end + 1 : 0;
@@ -339,6 +361,7 @@ static void search_layout(amplicon_analyzer_t *self, const char *seq,
   out->right.found = false;
   out->right.variant = 0;
   out->right.origin = ORIGIN_UNKNOWN;
+  out->right.keep_terminus = false;
   out->right.ref.mapped = false;
   if (right_from < (long)len) {
     search_end(self, sc->right, self->right_max_errors, self->right_skip,
