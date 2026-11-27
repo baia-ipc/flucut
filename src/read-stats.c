@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <pthread.h>
 #include <string.h>
 #include "read-stats.h"
 #include "test.h"
@@ -9,20 +10,18 @@
 /* the error probability of each quality character (Phred+33) */
 #define N_QUAL_CHARS 94
 static double error_probability[N_QUAL_CHARS];
-static bool probabilities_ready = false;
+static pthread_once_t probabilities_once = PTHREAD_ONCE_INIT;
 
-/* (set once, to the same values by any thread) */
+/* (set once, by the first thread which needs them) */
 static void init_probabilities(void) {
   for (int q = 0; q < N_QUAL_CHARS; q++)
     error_probability[q] = pow(10.0, -q / 10.0);
-  probabilities_ready = true;
 }
 
 /* the quality of a read with the qualities <qual>: the Phred score of the
    mean error probability of its bases */
 static double read_quality(const char *qual, size_t len) {
-  if (!probabilities_ready)
-    init_probabilities();
+  pthread_once(&probabilities_once, init_probabilities);
   double sum = 0;
   for (size_t i = 0; i < len; i++) {
     int q = qual[i] - '!';
