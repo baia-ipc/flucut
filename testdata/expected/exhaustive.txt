@@ -27,8 +27,8 @@ md5: c2564aa8ccbcf94f0ec1b5718799ed0d
 @left_only simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	ct:Z:full	tl:i:0	tr:i:0
 512 AGCAAAAGCAGGGGA...TACAGGAGTATGAGA
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other
-reads	12	12635	10	12391	10	1	1	2	1	2	0	0	8	2	1	7	2	1	4	7	2	0	1
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict
+reads	12	12635	10	12391	10	1	1	2	1	2	0	0	8	2	1	7	2	1	4	7	2	0	1	NVPARSSR	5	0.8000	0.8000	0.0000	too few reads
 == lengths.tsv ==
 output	group	length	reads
 reads	NC_004908.1	20	1
@@ -118,6 +118,30 @@ reads	NC_004908.1	1700	5
         {"segment": 8, "gene": "NS", "state": "missing"}
       ]
     },
+    "cleavage_site": {
+      "chemistry": "unknown",
+      "reads_searched": 8,
+      "reads": 5,
+      "distinct_motifs": 2,
+      "distinct_sites": 2,
+      "motif": "AACGTGCCTGCTAGATCAAGTAGA",
+      "protein": "NVPARSSR",
+      "motif_reads": 4,
+      "support": 0.8000,
+      "multibasic_share": 0.0000,
+      "control_reads": 10,
+      "control_support": 0.8000,
+      "reads_disagree_beside_the_site": false,
+      "basic_residues": 2,
+      "reads_as": "monobasic",
+      "reference_site": "NVPARSSR",
+      "disagrees_with_reference": false,
+      "verdict": "too few reads",
+      "sites": [
+        {"protein": "NVPARSSR", "motif": "AACGTGCCTGCTAGATCAAGTAGA", "reads": 4, "share": 0.8000, "reads_as": "monobasic"},
+        {"protein": "DVHARPSR", "motif": "GACGTGCATGCGAGACCAAGTAGA", "reads": 1, "share": 0.2000, "reads_as": "monobasic"}
+      ]
+    },
     "primers": {
       "left": {"uni12r": 11, "b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 0, "b-np-unif": 0, "b-m-uni3f": 0, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
       "right": {"mbtuni-13": 10, "b-pbs-unir": 0, "b-pa-unir": 0, "b-hana-unir": 0, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
@@ -184,6 +208,30 @@ reads	NC_004908.1	1700	5
           {"segment": 8, "gene": "NS", "state": "missing"}
         ]
       },
+      "cleavage_site": {
+        "chemistry": "unknown",
+        "reads_searched": 8,
+        "reads": 5,
+        "distinct_motifs": 2,
+        "distinct_sites": 2,
+        "motif": "AACGTGCCTGCTAGATCAAGTAGA",
+        "protein": "NVPARSSR",
+        "motif_reads": 4,
+        "support": 0.8000,
+        "multibasic_share": 0.0000,
+        "control_reads": 10,
+        "control_support": 0.8000,
+        "reads_disagree_beside_the_site": false,
+        "basic_residues": 2,
+        "reads_as": "monobasic",
+        "reference_site": "NVPARSSR",
+        "disagrees_with_reference": false,
+        "verdict": "too few reads",
+        "sites": [
+          {"protein": "NVPARSSR", "motif": "AACGTGCCTGCTAGATCAAGTAGA", "reads": 4, "share": 0.8000, "reads_as": "monobasic"},
+          {"protein": "DVHARPSR", "motif": "GACGTGCATGCGAGACCAAGTAGA", "reads": 1, "share": 0.2000, "reads_as": "monobasic"}
+        ]
+      },
       "primers": {
         "left": {"uni12r": 11, "b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 0, "b-np-unif": 0, "b-m-uni3f": 0, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
         "right": {"mbtuni-13": 10, "b-pbs-unir": 0, "b-pa-unir": 0, "b-hana-unir": 0, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
@@ -211,6 +259,7 @@ reads	NC_004908.1	1700	5
 </html>
 <h2>reads</h2>
 <h3>Reads</h3>
+<h3>HA cleavage site</h3>
 <h3>Internal priming sites</h3>
 <h3>Bases by segment</h3>
 <h3>Segments</h3>

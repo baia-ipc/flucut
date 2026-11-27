@@ -25,6 +25,8 @@ struct counter_t {
   lengths_t *lengths;
   read_stats_t *stats;
   read_metadata_t metadata;
+  /* the cleavage site of the haemagglutinin read from the reads */
+  cleavage_counts_t cleavage;
 };
 
 /* the index in cover[r] of the start (side 0) or end (side 1) count of
@@ -89,6 +91,7 @@ void counter_clear(counter_t *self) {
   lengths_clear(self->lengths);
   read_stats_clear(self->stats);
   read_metadata_clear(&self->metadata);
+  cleavage_counts_clear(&self->cleavage);
 }
 
 /* the counts of the sites of the reference <r> (allocated at its first
@@ -136,6 +139,7 @@ void counter_merge(counter_t *self, const counter_t *other) {
     for (size_t v = 0; v < self->n_variants[e]; v++)
       self->variants[e][v] += other->variants[e][v];
   }
+  cleavage_counts_merge(&self->cleavage, &other->cleavage);
   if (self->refs != NULL)
     for (size_t r = 0; r < self->refs->n_records; r++) {
       if (other->sites[r] == NULL)
@@ -260,6 +264,7 @@ void counter_save(const counter_t *self, FILE *file) {
       if (n > 0)
         fprintf(file, "length %zu %zu %zu\n", g, b, n);
     }
+  cleavage_counts_save(&self->cleavage, file);
   read_stats_save(self->stats, file);
   read_metadata_save(&self->metadata, file);
   fputs("end\n", file);
@@ -332,6 +337,8 @@ static bool load_line(counter_t *self, char *line, bool *ended) {
     *ended = true;
     return true;
   }
+  if (strncmp(line, "cleavage", 8) == 0)
+    return cleavage_counts_load_line(&self->cleavage, line);
   if (line[0] == 'r')
     return read_stats_load_line(self->stats, line);
   if (line[0] == 'm')
@@ -460,6 +467,32 @@ void counter_add_written(counter_t *self, size_t len, size_t category,
   self->reads.reads_out++;
   self->reads.bases_out += len;
   read_stats_add(self->stats, READ_STATS_WRITTEN, len, qual);
+}
+
+void counter_set_cleavage_reference(counter_t *self, const char *aa) {
+  assert(self != NULL);
+  cleavage_counts_set_reference(&self->cleavage, aa);
+}
+
+void counter_add_cleavage_searched(counter_t *self) {
+  assert(self != NULL);
+  cleavage_counts_searched(&self->cleavage);
+}
+
+void counter_add_cleavage(counter_t *self, const char *nt) {
+  assert(self != NULL);
+  cleavage_counts_add(&self->cleavage, nt);
+}
+
+void counter_add_cleavage_control(counter_t *self, size_t i,
+    const char *nt) {
+  assert(self != NULL);
+  cleavage_counts_add_control(&self->cleavage, i, nt);
+}
+
+const cleavage_counts_t* counter_cleavage(const counter_t *self) {
+  assert(self != NULL);
+  return &self->cleavage;
 }
 
 const read_stats_t* counter_read_stats(const counter_t *self) {

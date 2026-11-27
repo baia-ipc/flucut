@@ -9,6 +9,16 @@
 #include "segments.h"
 #include "test.h"
 
+void report_cleavage(const report_t *r, const counter_t *c,
+    cleavage_result_t *out) {
+  assert(r != NULL);
+  assert(c != NULL);
+  const read_metadata_t *m = counter_metadata(c);
+  cleavage_result_of(counter_cleavage(c),
+      cleavage_chemistry(r->options->illumina, m->values[READ_METADATA_MODEL]),
+      out);
+}
+
 const char* report_end_name(size_t end) {
   assert(end < COUNTER_N_ENDS);
   return end == COUNTER_LEFT ? "left" : "right";

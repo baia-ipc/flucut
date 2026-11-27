@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "run-resources.h"
+#include "cleavage-site.h"
 #include "counter.h"
 #include "fasta.h"
 #include "lengths.h"
@@ -69,6 +70,15 @@ typedef struct {
 /* the name of an end (COUNTER_LEFT, COUNTER_RIGHT) and that of the
    origin of a read end (end_origin_t) */
 const char* report_end_name(size_t end);
+
+/*
+   What the reads of <c> say about the cleavage site of the
+   haemagglutinin (cleavage-site.h), judged as the data of the run: the
+   platform from the options of <r> and the chemistry from the
+   basecalling model in the titles of the reads
+*/
+void report_cleavage(const report_t *r, const counter_t *c,
+    cleavage_result_t *out);
 const char* report_origin_name(end_origin_t origin);
 
 /* the read ends at positions at most this far apart are one internal

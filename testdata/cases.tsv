@@ -14,6 +14,7 @@ run_directory	-r off testdata/fastq_pass
 adapters	-r off testdata/adapters.fastq
 no_adapters	-r off --adapters none testdata/adapters.fastq
 illumina	-r off -p illumina testdata/reads.fastq
+illumina_references	-r testdata/ref-ha.fasta -p illumina testdata/reads.fastq
 no_split	-r off --no-split testdata/reads.fastq
 # two references, HA and PA (segment 3); the reads are of the HA: with
 # --segment HA they are classified as with both references; with

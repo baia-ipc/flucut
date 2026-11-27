@@ -319,6 +319,15 @@ int main(int argc, char *argv[]) {
     index = reference_index_new(refs);
   }
   check_segment(&opts, refs, logger);
+  /* the cleavage site of the haemagglutinin is read from the reads
+     (cleavage-site.h); it needs an HA reference which contains the
+     fusion peptide */
+  cleavage_anchors_t *cleavage = cleavage_anchors_new(refs, index, logger);
+  if (cleavage != NULL)
+    lprintf(logger, LOG_INFO,
+            "the cleavage site of the HA will be read from the reads "
+            "(%zu HA references with the fusion peptide)\n",
+            cleavage_anchors_n(cleavage));
   auto_settings_t autos;
   auto_settings_init(&autos, &opts);
   trimmer_config_t config = {.scheme = scheme,
@@ -331,6 +340,7 @@ int main(int argc, char *argv[]) {
       .probe_error_rate = opts.probe_error_rate,
       .terminal_window = opts.terminal_window,
       .adapters = opts.adapters, .min_length = opts.min_length,
+      .illumina = opts.illumina, .cleavage = cleavage,
       .tags = opts.tags, .split = opts.split,
       .by_category = opts.by_category};
   run_report_t *report = run_report_new(&opts, VERSION, scheme, refs, argc,
@@ -341,6 +351,7 @@ int main(int argc, char *argv[]) {
   else
     trim_groups(&opts, &config, &autos, scheme, refs, report, logger);
   run_report_delete(report);
+  cleavage_anchors_delete(cleavage);
   auto_settings_free(&autos);
   reference_index_delete(index);
   fasta_delete(refs);

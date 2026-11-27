@@ -17,6 +17,7 @@
 #include "adapters.h"
 #include "adaptor-search.h"
 #include "amplicon.h"
+#include "anchor-site.h"
 #include "auto-settings.h"
 #include "qc-flags.h"
 #include "qc-summary.h"
@@ -24,6 +25,8 @@
 #include "read-metadata.h"
 #include "read-stats.h"
 #include "chimera.h"
+#include "cleavage-site.h"
+#include "codons.h"
 #include "counter.h"
 #include "fasta.h"
 #include "lengths.h"
@@ -126,6 +129,10 @@ static test_group_t test_groups[] = {
   {'o', "the output files of a group", run_read_outputs_test, false},
   {'S', "the recognition of the segments", segments_test, false},
   {'B', "the type of the virus, A or B", virus_test, false},
+  {'k', "the genetic code", codons_test, false},
+  {'E', "the anchor of a site inside a read", anchor_site_test, false},
+  {'H', "the cleavage site of the haemagglutinin in the reads",
+   cleavage_site_test, false},
   {'A', "the search of the adapters", adapters_test, false},
   {'u', "the automatic settings", auto_settings_test, false},
   {'G', "the agreement of the probes of a read", read_agreement_test,
@@ -170,22 +177,19 @@ void parseargs(int argc, char *argv[], Logger **logger) {
     COMMON_OPTS_STR "T:";
   size_t len = strlen(optstring);
   for (size_t i = 0; i < N_TEST_GROUPS; i++) {
-    /* The letter of a test group must be free: one which another
-       option already uses (-q, -v, -L, ... of the common options, or
-       -T) would select the group instead, and one used twice would
-       select both. This is checked at every run, not with assert,
-       which the release build leaves out: a letter taken silently
-       turned "fc-tests -q" into a run of one group. */
+    /* The letter of a test group must be its own: not one of the
+       options every program has (-q, -v, -D, -L, -h, -V, -T), and not
+       one already taken by another group, or it would select the wrong
+       group or none. Checked here and not with assert(), so that it is
+       checked in every build and a table which cannot work is a plain
+       error rather than a silent surprise. */
     if (strchr(optstring, test_groups[i].option) != NULL) {
-      fprintf(stderr, "the letter -%c of the test group \"%s\" is "
-              "already used by another option or group\n",
-              test_groups[i].option, test_groups[i].description);
+      fprintf(stderr, "%s: the letter '%c' of the test group \"%s\" is "
+              "already an option\n", argv[0], test_groups[i].option,
+              test_groups[i].description);
       exit(EXIT_FAILURE);
     }
-    if (len + 1 >= sizeof(optstring)) {
-      fputs("too many test groups for the option string\n", stderr);
-      exit(EXIT_FAILURE);
-    }
+    assert(len + 1 < sizeof(optstring));
     optstring[len++] = test_groups[i].option;
     optstring[len] = '\0';
   }

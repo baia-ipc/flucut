@@ -27,6 +27,7 @@ and every option.
    primers
    how_it_works
    internal_priming
+   cleavage_site
    output
    reports
    live

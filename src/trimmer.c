@@ -28,6 +28,9 @@ struct trimmer_t {
   reference_set_t *refs;
   adapters_t *adapters;
   strbuf_t title;
+  /* the cleavage site of the HA reference of the sample being trimmed
+     (NULL: not read), set by trimmer_restrict_references() */
+  const cleavage_reference_t *cleavage;
 };
 
 trimmer_t* trimmer_new(const trimmer_config_t *config) {
@@ -41,6 +44,8 @@ trimmer_t* trimmer_new(const trimmer_config_t *config) {
   self->chimera = config->split ?
       chimera_finder_new(config->scheme, config->max_errors,
                          config->window) : NULL;
+  /* every reference allowed until a sample restricts them */
+  self->cleavage = cleavage_anchors_chosen(config->cleavage, NULL);
   self->refs = NULL;
   if (config->references != NULL) {
     assert(config->index != NULL);
@@ -71,6 +76,7 @@ void trimmer_restrict_virus(trimmer_t *self, virus_set_t types) {
 
 void trimmer_restrict_references(trimmer_t *self, const bool *allowed) {
   amplicon_analyzer_restrict_references(self->analyzer, allowed);
+  self->cleavage = cleavage_anchors_chosen(self->config->cleavage, allowed);
 }
 
 void trimmer_delete(trimmer_t *self) {
@@ -174,6 +180,45 @@ static void make_title(trimmer_t *self, const char *title, size_t title_len,
    of <batch>, the part <part> (from 1) of <n_parts>; the record is
    appended to the buffer of <out> of its category, or to the only one
    (see trimmer_n_outputs()) */
+/*
+   Read the cleavage site of the haemagglutinin out of a read
+   (cleavage-site.h). Which reads are read differs between the
+   platforms, because what reaches the site differs:
+
+   - reads of whole amplicons (Nanopore) reach the site only when they
+     are full templates, as the internally primed ones begin just after
+     it and the genomes with an internal deletion have removed it; they
+     are located on a reference, so only those on the HA reference of
+     the sample are searched;
+   - a read of a fragment (Illumina) which covers the site carries no
+     primer, so it has no category and is not located at all: every read
+     is searched, and the anchor itself says which ones cover the site.
+*/
+static void read_cleavage_site(trimmer_t *self, const char *seq, size_t len,
+    const read_cover_t *cover, size_t category, counter_t *counts) {
+  if (self->cleavage == NULL)
+    return;
+  if (!self->config->illumina &&
+      !(cover->located && cover->ref == self->cleavage->anchor.ref &&
+        category == READ_CATEGORY_FULL))
+    return;
+  counter_set_cleavage_reference(counts, self->cleavage->aa);
+  counter_add_cleavage_searched(counts);
+  /* one search of the anchor per read; the site and the control
+     windows are then read from either side of the match */
+  anchor_hit_t hit;
+  if (!anchor_find(&self->cleavage->anchor, seq, len,
+                   self->config->probe_error_rate, &hit))
+    return;
+  char window[CLEAVAGE_SITE_NT + 1];
+  if (anchor_bases_before(&hit, seq, len, CLEAVAGE_SITE_NT, window))
+    counter_add_cleavage(counts, window);
+  for (size_t i = 0; i < CLEAVAGE_N_CONTROLS; i++)
+    if (anchor_bases_after(&hit, seq, len, i * CLEAVAGE_SITE_NT,
+                           CLEAVAGE_SITE_NT, window))
+      counter_add_cleavage_control(counts, i, window);
+}
+
 static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
     const fastq_record_t *rec, long from, long to, size_t part,
     size_t n_parts, strbuf_t *out, counter_t *counts) {
@@ -185,6 +230,7 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
   read_cover_locate(self->config->references, self->refs, a, &cover);
   size_t category = read_cover_category(&cover);
   counter_add_located_read(counts, a, len, &cover);
+  read_cleavage_site(self, seq, len, &cover, category, counts);
   size_t kept = amplicon_kept_length(a);
   if (kept == 0 || kept < self->config->min_length) {
     counter_add_too_short(counts);
