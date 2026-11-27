@@ -36,7 +36,7 @@ Why this HA: in the Cambodian H5N1 HA sequences of GenBank (30 checked),
 the bases after the motif GLFGAIAG read `AGCTATAGCAGG`, which differs
 from the Uni12 primer `AGCRAAAGCAGG` at two positions: the R is on the
 third base of an Ala codon (silent), and the T of the Ile codon `ATA`
-becomes the A of `AAA` (Lys). This is the I348K artefact of
+becomes the A of `AAA` (Lys). This is the I351K artefact of
 `docs/internal-priming.md`, found in the public sequences. In
 KF918483.1 it is the only position with as few mismatches (2), at
 1078-1089 (1-based).

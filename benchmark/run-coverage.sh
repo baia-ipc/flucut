@@ -8,7 +8,7 @@
 # truth (substitutions, insertions, deletions; compare_consensus.py
 # --plain), its ambiguous bases, its differences at the internal priming
 # site, the N of the amended consensus (where fewer than 50 reads support
-# a base, MIN_CONS_SUPPORT of FLU-minion), and the codon of the I348K
+# a base, MIN_CONS_SUPPORT of FLU-minion), and the codon of the I351K
 # site in the majority consensus of HA.
 #
 # Usage: benchmark/run-coverage.sh <genome.fasta> <workdir> <flucut> \

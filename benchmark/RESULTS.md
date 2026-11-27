@@ -390,7 +390,7 @@ complete-segment references):
 
 (internal share = internal / (terminal + internal)). The internal
 priming is concentrated in the HA, at nt 1070-1094 of the segment (the
-Uni12-like site, the I348K codon), the same site in all three runs; the
+Uni12-like site, the I351K codon), the same site in all three runs; the
 other segments show only a few percent. `SRR36760520` is a heavily
 primed run (46% of the HA 5' ends internal).
 
@@ -642,7 +642,7 @@ the search (no adapter found). Barbell, on the same barcoded reads:
 
 The IRMA consensus of the barcoded reads trimmed with the adapter search
 is the same as before: with the elongation, 96 and 104 bases missing at
-the ends (the primers), no error, ATA at the I348K codon; without it,
+the ends (the primers), no error, ATA at the I351K codon; without it,
 219 and 276 missing, no error.
 
 Two settings were changed on the way, both found on these reads:
@@ -736,7 +736,7 @@ What this shows, on these reads:
   bases inside the primer positions. The tools which leave the adapters
   in many reads (IRMA-core, BBDuk with hdist 1, Porechop_ABI) give
   66 to 940 bases beyond the ends or errors.
-- **The I348K site.** Here the untrimmed reads give the right codon
+- **The I351K site.** Here the untrimmed reads give the right codon
   (ATA), unlike the reads without barcodes, but only by a few reads: at
   the middle base of the codon, 158 reads have T and 152 A (without
   barcodes: 137 T, 224 A). The minimap2 alignment of IRMA soft-clips
@@ -787,7 +787,7 @@ Reads (bases by their true origin, `score_reads.py`):
 (Porechop_ABI split 11 reads at primers found in their middle.)
 
 IRMA consensus, summed over the 8 segments, with the reference
-elongation (`SKIP_E=0`); the codon of the I348K site in the majority
+elongation (`SKIP_E=0`); the codon of the I351K site in the majority
 consensus. Without the elongation, every tool gives the same ends (219
 and 276 bases missing) and no error. With the elongation, the bases of
 the consensus beyond the 5' end of a segment are counted by the
@@ -814,7 +814,7 @@ and not 104, as an N appended by IRMA to segment 3 matches any base.)
 
 What this shows, on these reads:
 
-- **The consensus.** Every trimming tool removes the I348K artefact.
+- **The consensus.** Every trimming tool removes the I351K artefact.
   With the elongation, six tools give the same consensus as flucut,
   without errors and ending where the primers began: cutadapt, BBDuk
   with hdist 2, Porechop_ABI tuned, dorado trim and samtools
@@ -844,7 +844,7 @@ all N at these coverages, as it replaces with N the bases supported by
 fewer than 50 reads (`MIN_CONS_SUPPORT=50`), whatever the trimming.
 
 Differences from the truth (substitutions, insertions and deletions,
-summed over the 8 segments) and the codon of the I348K site:
+summed over the 8 segments) and the codon of the I351K site:
 
 | reads per segment | seed | untrimmed | flucut | cutadapt | IRMA-core w70 |
 |---|---|---|---|---|---|
@@ -915,7 +915,7 @@ Reads (bases by their true origin, see `score_reads.py`):
 | IRMA-core, window 70 | 3200 | 0 | 130 | 13152 | 22890 | 660 |
 
 IRMA consensus, summed over the 8 segments (`_elong`: with the
-reference elongation); the codon of the I348K site in the majority
+reference elongation); the codon of the I351K site in the majority
 consensus of HA:
 
 | run | missing 5' | missing 3' | beyond 5' | beyond 3' | errors | ambiguous | codon |
@@ -942,13 +942,13 @@ What this shows, on these reads:
   reads (its 12-mers need an exact or one-mismatch match, which
   Nanopore errors often break): with the elongation its consensus has
   errors, and with window 40 it extends into flanks. Every trimming
-  tool removes the I348K artefact: the primer bases left at the site
+  tool removes the I351K artefact: the primer bases left at the site
   (1105 of 2698 at most) stay a minority.
 - **The reads**: cutadapt removes 80 times as many template bases as
   flucut (102408 against 1280): its non-anchored 5' primer cuts
   wherever Uni12 matches with 2 errors, also deep inside a read; 166
   reads lose more than 50 bases each, among them 21 complete HA reads
-  cut at the I348K site (about 1100 bases each), and reads of PA, PB1
+  cut at the I351K site (about 1100 bases each), and reads of PA, PB1
   and PB2. With 400 reads per segment this does not change the
   consensus; it reduces the coverage, which matters at low coverage
   and for the frequencies of the variants (not measured yet).
@@ -1046,7 +1046,7 @@ Runs: `raw` (untrimmed), `flucut` (default trimming), `notags` (the same
 with `--no-tags`), `terminus` (`--trim terminus -r` the genome); each
 with FLU-minion as it is and with `SKIP_E=0` (`_elong`).
 
-### The I348K site
+### The I351K site
 
 The codon of the site in the plain (majority) consensus of HA:
 

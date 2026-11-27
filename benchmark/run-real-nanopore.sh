@@ -1,7 +1,7 @@
 #!/bin/bash
 # (c) 2026 Giorgio Gonnella
 #
-# The I348K artefact in a public Nanopore run of H5N1 whose HA consensus
+# The I351K artefact in a public Nanopore run of H5N1 whose HA consensus
 # in GenBank has AAA (Lys) at the codon of the Uni12-like site (the
 # Nanopore counterpart of benchmark/run-real-illumina.sh; the reads are
 # whole amplicons, single-end, so the default platform of flucut applies

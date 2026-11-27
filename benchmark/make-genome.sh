@@ -8,7 +8,7 @@
 #   sequences with both conserved termini;
 # - segment 4: the HA of A/chicken/Cambodia/X0815302/2013 (H5N1),
 #   KF918483.1, complete with both termini, which carries the Uni12-like
-#   site of the I348K artefact (see benchmark/README.md).
+#   site of the I351K artefact (see benchmark/README.md).
 #
 # The combination is constructed for the simulation (PR8 internal genes
 # with an H5 HA); it is not a sequenced isolate.

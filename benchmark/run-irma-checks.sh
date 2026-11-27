@@ -8,7 +8,7 @@
 #   terminus   flucut --trim terminus with the genome as references
 # each with IRMA FLU-minion as it is, and with the reference elongation
 # on (SKIP_E=0, suffix _elong), compared with the truth
-# (benchmark/compare_consensus.py). Also the codon of the I348K site in
+# (benchmark/compare_consensus.py). Also the codon of the I351K site in
 # the plain (majority) consensus of HA.
 #
 # Usage: benchmark/run-irma-checks.sh <genome.fasta> <workdir> <flucut> \

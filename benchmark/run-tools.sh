@@ -5,7 +5,7 @@
 # against the truth (score_reads.py), and IRMA FLU-minion assembles them,
 # as it is and with the reference elongation (SKIP_E=0); the consensus is
 # compared with the truth (compare_consensus.py), and the codon of the
-# I348K site is read in the plain consensus of HA.
+# I351K site is read in the plain consensus of HA.
 #
 # The tools, with the configurations of benchmark/RESULTS.md (each tool
 # runs if its program is given, see below):

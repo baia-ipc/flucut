@@ -1,7 +1,7 @@
 #!/bin/bash
 # (c) 2026 Giorgio Gonnella
 #
-# The I348K artefact in a public Illumina run of H5N1 whose HA consensus
+# The I351K artefact in a public Illumina run of H5N1 whose HA consensus
 # in GenBank has AAA (Lys) at the codon of the Uni12-like site (the runs
 # were found by a scan of the public H5N1 HA records with that codon, see
 # benchmark/RESULTS.md):

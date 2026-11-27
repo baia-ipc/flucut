@@ -11,7 +11,7 @@ For the **consensus** at the internal-priming rates seen in the public
 datasets measured so far (about 2 internally primed reads per full-length
 read at the HA site), every primer-aware trimmer removes the Uni12
 footprint and IRMA then calls the correct codon: flucut, cutadapt, BBDuk,
-the IRMA-core trimmer and dorado all turn the I348K artefact (AAA, Lys)
+the IRMA-core trimmer and dorado all turn the I351K artefact (AAA, Lys)
 into the true ATA (Ile). On that outcome there is **no advantage**: if a
 pipeline only needs the consensus and already runs one of these tools, it
 gets the same answer.
@@ -165,7 +165,7 @@ measured retention; validation with IRMA at 2x/12x/20x is pending.)
   **complete-segment references, with the UTRs** (not coding sequences);
   flucut warns when the references look like coding sequences. On three
   real Nanopore runs it measured 12-46% of the HA 5' ends as internally
-  primed, at the I348K site (`RESULTS.md`).
+  primed, at the I351K site (`RESULTS.md`).
 - **Complete segment ends with references (the default when `-r` is
   given):** keep the conserved 12/13-base termini at the ends
   confidently classified as terminal, while removing the whole primer at

@@ -29,13 +29,17 @@ public databases.
 ### The case which motivated flucut
 
 In the H5N1 sequences of the Virology Unit of the Institut Pasteur du
-Cambodge, the HA segment carried an isoleucine to lysine change at amino
-acid 348: the motif at positions 348-354 read
+Cambodge, the HA segment carried an isoleucine to lysine change, I351K:
+residue 6 of HA2, at the start of the fusion peptide. The number is
+counted on the HA0 precursor from the initiator methionine (352 in the
+sequences whose cleavage site, just upstream, is one residue longer).
+The motif read
 
     GLFGAKA   instead of   GLFGAIA
 
-at nucleotides 1057-1060, `AAA` instead of `ATA`. Of 787 HA sequences
-checked, 140 carried the wrong form.
+with the codon `AAA` instead of `ATA` (nucleotides 1051-1053 of the
+coding sequence, where the residue is 351). Of 787 HA sequences checked,
+140 carried the wrong form.
 
 The cause is a region inside HA which is similar enough to the Uni12
 primer for it to anneal there. The primer carries its own `AAA` into the
