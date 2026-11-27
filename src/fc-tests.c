@@ -48,6 +48,7 @@
 #include "report.h"
 #include "scheme.h"
 #include "segments.h"
+#include "subtype-reads.h"
 #include "terminus-matches.h"
 #include "trimmer.h"
 #include "user-config.h"
@@ -136,6 +137,8 @@ static test_group_t test_groups[] = {
   {'A', "the search of the adapters", adapters_test, false},
   {'u', "the automatic settings", auto_settings_test, false},
   {'G', "the agreement of the probes of a read", read_agreement_test,
+   false},
+  {'b', "the reads of a second HA or NA subtype", subtype_reads_test,
    false},
   {'Q', "the summary of a sample by segment", qc_summary_test, false},
   {'f', "what deserves attention in a sample", qc_flags_test, false},

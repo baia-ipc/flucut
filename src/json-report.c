@@ -15,6 +15,7 @@
 #include "segments.h"
 #include "virus.h"
 #include "strutils.h"
+#include "subtype-reads.h"
 
 static void write_reads(json_writer_t *w, const counter_reads_t *s) {
   json_member(w, "reads");
@@ -427,6 +428,10 @@ static void write_summary(json_writer_t *w, const report_t *r) {
   fprintf(f, "%d", QC_MIN_DEPTH);
   json_member(w, "complete_fraction");
   fprintf(f, "%g", QC_COMPLETE_FRACTION);
+  json_member(w, "second_subtype_min_excess");
+  fprintf(f, "%g", SUBTYPE_READS_MIN_EXCESS);
+  json_member(w, "second_subtype_min_share");
+  fprintf(f, "%g", SUBTYPE_READS_MIN_SHARE);
   json_member(w, "all");
   json_open_block(w, '{');
   write_section(w, r, r->total);

@@ -27,6 +27,8 @@ struct counter_t {
   read_metadata_t metadata;
   /* the cleavage site of the haemagglutinin read from the reads */
   cleavage_counts_t cleavage;
+  /* the reads of each HA and NA subtype among the first reads */
+  subtype_reads_t subtype_reads;
 };
 
 /* the index in cover[r] of the start (side 0) or end (side 1) count of
@@ -92,6 +94,7 @@ void counter_clear(counter_t *self) {
   read_stats_clear(self->stats);
   read_metadata_clear(&self->metadata);
   cleavage_counts_clear(&self->cleavage);
+  subtype_reads_clear(&self->subtype_reads);
 }
 
 /* the counts of the sites of the reference <r> (allocated at its first
@@ -141,6 +144,7 @@ void counter_merge(counter_t *self, const counter_t *other) {
       self->variants[e][v] += other->variants[e][v];
   }
   cleavage_counts_merge(&self->cleavage, &other->cleavage);
+  subtype_reads_merge(&self->subtype_reads, &other->subtype_reads);
   if (self->refs != NULL)
     for (size_t r = 0; r < self->refs->n_records; r++) {
       if (other->sites[r] == NULL)
@@ -267,6 +271,7 @@ void counter_save(const counter_t *self, FILE *file) {
         fprintf(file, "length %zu %zu %zu\n", g, b, n);
     }
   cleavage_counts_save(&self->cleavage, file);
+  subtype_reads_save(&self->subtype_reads, file);
   read_stats_save(self->stats, file);
   read_metadata_save(&self->metadata, file);
   fputs("end\n", file);
@@ -339,6 +344,8 @@ static bool load_line(counter_t *self, char *line, bool *ended) {
     *ended = true;
     return true;
   }
+  if (strncmp(line, "subtype", 7) == 0)
+    return subtype_reads_load_line(&self->subtype_reads, line);
   if (strncmp(line, "cleavage", 8) == 0)
     return cleavage_counts_load_line(&self->cleavage, line);
   if (line[0] == 'r')
@@ -501,6 +508,17 @@ void counter_add_cleavage_control(counter_t *self, size_t i,
     const char *nt) {
   assert(self != NULL);
   cleavage_counts_add_control(&self->cleavage, i, nt);
+}
+
+void counter_set_subtype_reads(counter_t *self,
+    const subtype_reads_t *subtype_reads) {
+  assert(self != NULL);
+  self->subtype_reads = *subtype_reads;
+}
+
+const subtype_reads_t* counter_subtype_reads(const counter_t *self) {
+  assert(self != NULL);
+  return &self->subtype_reads;
 }
 
 const cleavage_counts_t* counter_cleavage(const counter_t *self) {

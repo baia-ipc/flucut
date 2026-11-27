@@ -81,6 +81,8 @@ reads-b	KX058884.1	1850	6
   "short_fraction": 0.9,
   "min_depth": 50,
   "complete_fraction": 0.9,
+  "second_subtype_min_excess": 2.5,
+  "second_subtype_min_share": 0.01,
   "all": {
     "reads": {
       "in": 13,
@@ -111,6 +113,7 @@ reads-b	KX058884.1	1850	6
       "segments_found": 1,
       "segments_complete": 0,
       "ends_not_located": 0.0870,
+      "subtype_reads": null,
       "flags": ["few_reads", "cleavage_site"],
       "segments": [
         {"segment": 2, "gene": "PB2", "state": "missing"},
@@ -207,6 +210,7 @@ reads-b	KX058884.1	1850	6
         "segments_found": 1,
         "segments_complete": 0,
         "ends_not_located": 0.0870,
+        "subtype_reads": null,
         "flags": ["few_reads", "cleavage_site"],
         "segments": [
           {"segment": 2, "gene": "PB2", "state": "missing"},

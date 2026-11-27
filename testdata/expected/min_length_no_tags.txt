@@ -68,6 +68,8 @@ reads	all	1700	5
   "short_fraction": 0.9,
   "min_depth": 50,
   "complete_fraction": 0.9,
+  "second_subtype_min_excess": 2.5,
+  "second_subtype_min_share": 0.01,
   "all": {
     "reads": {
       "in": 12,

@@ -63,6 +63,8 @@ deletion	NC_004908.1	550	2
   "short_fraction": 0.9,
   "min_depth": 50,
   "complete_fraction": 0.9,
+  "second_subtype_min_excess": 2.5,
+  "second_subtype_min_share": 0.01,
   "all": {
     "reads": {
       "in": 2,
@@ -93,6 +95,7 @@ deletion	NC_004908.1	550	2
       "segments_found": 1,
       "segments_complete": 0,
       "ends_not_located": 0.0000,
+      "subtype_reads": null,
       "flags": ["few_reads"],
       "segments": [
         {"segment": 1, "gene": "PB2", "state": "missing"},
@@ -157,6 +160,7 @@ deletion	NC_004908.1	550	2
         "segments_found": 1,
         "segments_complete": 0,
         "ends_not_located": 0.0000,
+        "subtype_reads": null,
         "flags": ["few_reads"],
         "segments": [
           {"segment": 1, "gene": "PB2", "state": "missing"},

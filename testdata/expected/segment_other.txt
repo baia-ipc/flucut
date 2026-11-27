@@ -79,6 +79,8 @@ reads	not_located	1700	5
   "short_fraction": 0.9,
   "min_depth": 50,
   "complete_fraction": 0.9,
+  "second_subtype_min_excess": 2.5,
+  "second_subtype_min_share": 0.01,
   "all": {
     "reads": {
       "in": 12,
@@ -109,6 +111,7 @@ reads	not_located	1700	5
       "segments_found": 1,
       "segments_complete": 0,
       "ends_not_located": 0.9048,
+      "subtype_reads": null,
       "flags": ["few_reads", "not_located"],
       "segments": [
         {"segment": 3, "gene": "PA", "state": "low", "reference": "QB023392.1", "length": 2224, "mean_depth": 0.0, "median_depth": 0, "median_full_depth": 0, "covered": 0.0090, "well_covered": 0.0000, "internal": 1.0000, "deletion": 0.0000, "minus_strand": 0.0000, "complete_amplicons": 1, "short_complete": 1}
@@ -170,6 +173,7 @@ reads	not_located	1700	5
         "segments_found": 1,
         "segments_complete": 0,
         "ends_not_located": 0.9048,
+        "subtype_reads": null,
         "flags": ["few_reads", "not_located"],
         "segments": [
           {"segment": 3, "gene": "PA", "state": "low", "reference": "QB023392.1", "length": 2224, "mean_depth": 0.0, "median_depth": 0, "median_full_depth": 0, "covered": 0.0090, "well_covered": 0.0000, "internal": 1.0000, "deletion": 0.0000, "minus_strand": 0.0000, "complete_amplicons": 1, "short_complete": 1}

@@ -307,10 +307,12 @@ bool auto_settings_clear_lead(size_t best_votes, size_t segment_votes) {
    see auto_settings_choose_references(); the probes which do not vote,
    as several references match them, are counted in <ambiguous>, by the
    segment <segment> of the reference found; the votes of the read are
-   added to <agreement> */
-static void vote(reference_set_t *refs, const int *segment, const char *seq,
-    size_t len, size_t *votes, size_t *ambiguous,
-    read_agreement_t *agreement) {
+   added to <agreement> and, by the HA or NA subtype <number> of the
+   references, to <subtype_reads> */
+static void vote(reference_set_t *refs, const int *segment,
+    const int *number, const char *seq, size_t len, size_t *votes,
+    size_t *ambiguous, read_agreement_t *agreement,
+    subtype_reads_t *subtype_reads) {
   size_t probe_len = reference_set_probe_len(refs);
   if (len < probe_len)
     return;
@@ -333,6 +335,8 @@ static void vote(reference_set_t *refs, const int *segment, const char *seq,
     }
   }
   read_agreement_add(agreement, segment, read_votes, n_read_votes);
+  subtype_reads_add(subtype_reads, segment, number, read_votes,
+                    n_read_votes);
 }
 
 virus_set_t auto_settings_reference_types(const trimmer_config_t *config,
@@ -452,13 +456,18 @@ static virus_set_t votes_virus(const fasta_t *fa, const size_t *votes,
 }
 
 bool* auto_settings_choose_references(const trimmer_config_t *config,
-    const char *file, virus_set_t *types, Logger *logger) {
+    const char *file, virus_set_t *types, subtype_reads_t *subtype_reads,
+    Logger *logger) {
   assert(config != NULL);
   assert(file != NULL);
   /* the types of all the references, until the votes say which one the
      sample is */
   if (types != NULL)
     *types = auto_settings_reference_types(config, NULL);
+  subtype_reads_t of_subtypes;
+  subtype_reads_clear(&of_subtypes);
+  if (subtype_reads != NULL)
+    *subtype_reads = of_subtypes;
   if (config->index == NULL)
     return NULL;
   const fasta_t *fa = reference_index_fasta(config->index);
@@ -488,6 +497,8 @@ bool* auto_settings_choose_references(const trimmer_config_t *config,
   XMALLOC(allowed, sizeof(bool) * n_refs);
   read_agreement_t agreement;
   read_agreement_init(&agreement, n_refs);
+  int *number = subtype_reads_numbers(fa, segment);
+  of_subtypes.samples = 1;
   reads_reader_t *reader = reads_reader_new(file, logger);
   fastq_batch_t batch;
   fastq_batch_init(&batch);
@@ -500,8 +511,8 @@ bool* auto_settings_choose_references(const trimmer_config_t *config,
                                           stages[stage] - n)) > 0) {
       for (size_t i = 0; i < got; i++) {
         const fastq_record_t *rec = batch.records + i;
-        vote(refs, segment, batch.data.s + rec->seq_from, rec->seq_len,
-             votes, ambiguous, &agreement);
+        vote(refs, segment, number, batch.data.s + rec->seq_from,
+             rec->seq_len, votes, ambiguous, &agreement, &of_subtypes);
       }
       n += got;
     }
@@ -520,6 +531,10 @@ bool* auto_settings_choose_references(const trimmer_config_t *config,
                  logger);
   read_agreement_log(&agreement, fa, segment, votes, file, logger);
   read_agreement_free(&agreement);
+  subtype_reads_log(&of_subtypes, file, logger);
+  if (subtype_reads != NULL)
+    *subtype_reads = of_subtypes;
+  free(number);
   bool all = true;
   for (size_t i = 0; i < n_refs; i++)
     if (!allowed[i])

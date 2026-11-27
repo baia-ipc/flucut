@@ -163,8 +163,10 @@ static void trim_group(const options_t *opts, const trimmer_config_t *config,
        located in: its reads are trimmed with the primers of that type
        alone */
     virus_set_t types;
+    subtype_reads_t subtype_reads;
     bool *allowed = auto_settings_choose_references(config, g->files[0],
-                                                    &types, logger);
+        &types, &subtype_reads, logger);
+    counter_set_subtype_reads(counts, &subtype_reads);
     log_sample_virus(types, g->name, logger);
     for (size_t t = 0; t < opts->threads; t++) {
       worker_restrict_references(workers + t, allowed);

@@ -26,6 +26,7 @@
 #include "logger.h"
 #include "options.h"
 #include "report.h"
+#include "subtype-reads.h"
 #include "trimmer.h"
 #include "virus.h"
 
@@ -134,13 +135,18 @@ void auto_settings_decide(auto_settings_t *self, trimmer_config_t *config,
    The reads are then trimmed with the primers of those types alone
    (see amplicon_analyzer_restrict_virus).
 
+   <subtype_reads>, unless NULL, is set to the reads of each HA and NA
+   subtype among the reads used (subtype-reads.h), as those of one
+   sample.
+
    Returns a new array with a value for each reference (whether it is
    considered, see reference_set_restrict), to be freed by the caller,
    or NULL if all references are considered (no segment has several
    references, or none was decided).
 */
 bool* auto_settings_choose_references(const trimmer_config_t *config,
-    const char *file, virus_set_t *types, Logger *logger);
+    const char *file, virus_set_t *types, subtype_reads_t *subtype_reads,
+    Logger *logger);
 
 /*
    The types of influenza of the references <allowed> (all of them if

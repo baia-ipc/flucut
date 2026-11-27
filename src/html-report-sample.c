@@ -8,6 +8,7 @@
 #include "html-report-reads.h"
 #include "html-report-sample.h"
 #include "html-report-segments.h"
+#include "html-report-subtypes.h"
 #include "numutils.h"
 #include "qc-flags.h"
 #include "segments.h"
@@ -77,7 +78,7 @@ void sample_status_line(html_writer_t *w, const report_t *r,
   qc_summary(r->references, c, r->options->segment, &qc);
   cleavage_result_t site;
   report_cleavage(r, c, &site);
-  qc_flags(s, &qc, refs, &site, &flags);
+  qc_flags(s, &qc, refs, &site, counter_subtype_reads(c), &flags);
   if (s->reads_in == 0 || (!refs && flags.n == 0))
     return;
   markup_open(w, "p", "chips");
@@ -442,6 +443,7 @@ void sample_write(html_writer_t *w, const report_t *r, const counter_t *c) {
   write_reads(w, r, c);
   if (r->references != NULL) {
     html_open(w, "div");
+    subtypes_write(w, c);
     write_cleavage_site(w, r, c);
     write_sites(w, r, c);
     segments_write_balance(w, &qc);

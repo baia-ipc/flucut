@@ -16,6 +16,7 @@
 #include "cleavage-site.h"
 #include "counter.h"
 #include "qc-summary.h"
+#include "subtype-reads.h"
 
 /* at least this share of the reads without a primer (e.g. the scheme is
    not that of the run, or the reads were trimmed already) */
@@ -46,9 +47,15 @@ typedef struct {
    haemagglutinin (cleavage-site.h; NULL: not read): a site which is not
    firm is pointed out here as well, so that it is seen in the run
    overview and not only in the sample.
+
+   <subtypes> are the reads of each HA and NA subtype among the first
+   reads of the sample (subtype-reads.h; NULL: not counted): reads of a
+   second subtype above the threshold are pointed out, as what was
+   observed, since their cause is not known.
 */
 void qc_flags(const counter_reads_t *s, const qc_summary_t *qc, bool refs,
-    const cleavage_result_t *site, qc_flags_t *out);
+    const cleavage_result_t *site, const subtype_reads_t *subtypes,
+    qc_flags_t *out);
 
 /* Unit tests */
 void qc_flags_test(void);

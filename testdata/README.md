@@ -32,6 +32,22 @@ It was asked for H5N1 and returned an H9N2 record; for these tests the
 subtype does not matter, but the subtype filter of the script has to be
 checked.
 
+`ref-ha-synthetic.fasta`: a **synthetic** HA of another subtype, not the
+sequence of a virus: the HA record above with 30% of its bases replaced
+at random (the first and last 30 kept), described as an H3N2, so that
+the tests have reads of two HA subtypes:
+
+    python3 -I scripts/diverged-reference.py testdata/ref-ha.fasta \
+        synthetic-h3 "Synthetic sequence for the tests (A/synthetic/1/2000(H3N2)) segment 4 hemagglutinin (HA)" \
+        > testdata/ref-ha-synthetic.fasta
+
+`ref-ha-two-subtypes.fasta`: the HA record and the synthetic one, for
+the cases `one_subtype` and `second_subtype` and for the last step of
+`tests/test-resume.sh`:
+
+    cat testdata/ref-ha.fasta testdata/ref-ha-synthetic.fasta \
+        > testdata/ref-ha-two-subtypes.fasta
+
 ## Reads
 
 `reads.fastq`: 12 reads **simulated** from the reference, not sequenced:
@@ -82,3 +98,12 @@ removed (see the script); for the cases `adapters` and `no_adapters`
 
     python3 -I scripts/add-adapters.py testdata/reads.fastq \
         > testdata/adapters.fastq
+
+`reads-two-subtypes.fastq`: the reads of `reads.fastq` and four reads
+simulated from the synthetic HA (the complete amplicons), for the case
+`second_subtype`: a sample with reads of a second HA subtype.
+
+    ( cat testdata/reads.fastq
+      python3 -I scripts/simulate-reads.py testdata/ref-ha-synthetic.fasta \
+        | head -n 16 | sed 's/ simulated$/_h3 simulated/' ) \
+        > testdata/reads-two-subtypes.fastq

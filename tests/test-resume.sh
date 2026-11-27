@@ -8,6 +8,8 @@
 # tables as a run without interruption. Then: --resume in a complete
 # output directory trims nothing and only writes the reports again; a
 # run without --resume trims everything again.
+# Last: the reads of a second HA subtype, counted at the choice of the
+# references, are reported by a resumed run as by the run itself.
 #
 # Usage: tests/test-resume.sh <flucut command> [<prefix command>]
 #
@@ -118,3 +120,26 @@ $PREFIX $FLUCUT -o $TMP/out $RUN 2> $TMP/fresh.err || \
   fail "run again without --resume: a barcode skipped"
 compare $TMP/whole $TMP/out
 echo "[OK] resume: without --resume, all trimmed again"
+
+# 6. the reads of a second HA subtype are counted where the references
+#    of a sample are chosen, and kept with its counts: --resume after a
+#    complete run reports them as the run did
+REFS=testdata/ref-ha-two-subtypes.fasta
+READS=testdata/reads-two-subtypes.fastq
+subtype_lines() {
+  grep -A 3 -e '"subtype_reads"' $1/flucut_summary.json
+  grep -e '"flags"' $1/flucut_summary.json
+}
+$PREFIX $FLUCUT -o $TMP/two -r $REFS $READS 2> $TMP/two.err || \
+  fail "two subtypes: error: $(cat $TMP/two.err)"
+subtype_lines $TMP/two > $TMP/two.before
+grep -q '"second": "H3".*"above_threshold": true' $TMP/two.before || \
+  fail "two subtypes: no reads of a second subtype reported"
+$PREFIX $FLUCUT -o $TMP/two -r $REFS --resume $READS 2> $TMP/two.err || \
+  fail "two subtypes, resumed: error: $(cat $TMP/two.err)"
+grep -q "trimmed by an earlier run, skipped" $TMP/two.err || \
+  fail "two subtypes, resumed: not skipped"
+subtype_lines $TMP/two > $TMP/two.after
+cmp -s $TMP/two.before $TMP/two.after || \
+  fail "two subtypes, resumed: the reads of a second subtype differ"
+echo "[OK] resume: reads of a second subtype kept"

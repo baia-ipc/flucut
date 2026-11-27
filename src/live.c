@@ -285,8 +285,10 @@ static void process_file(live_t *w, live_group_t *st, const char *path,
      file; the workers are shared, so the restriction is set for each
      file by its group) */
   if (!st->references_chosen) {
+    subtype_reads_t subtype_reads;
     st->allowed = auto_settings_choose_references(w->config, path,
-                                                  &st->virus, w->logger);
+        &st->virus, &subtype_reads, w->logger);
+    counter_set_subtype_reads(st->counts, &subtype_reads);
     st->references_chosen = true;
   }
   for (size_t t = 0; t < opts->threads; t++) {

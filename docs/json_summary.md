@@ -26,6 +26,7 @@ Top level:
 | `short_fraction` | number | a complete amplicon is short if shorter than this fraction of its reference (0.9) |
 | `min_depth` | integer | the depth from which a position is well covered (50) |
 | `complete_fraction` | number | a segment is complete if at least this fraction of its positions is well covered (0.9) |
+| `second_subtype_min_excess`, `second_subtype_min_share` | number | the reads of a second HA or NA subtype are above the threshold if they exceed those expected by chance by at least this number of reads (2.5: 3 reads where none is expected) and by at least this fraction (0.01) of the reads counted (see `subtype_reads` below) |
 | `all` | section | statistics of all reads |
 | `groups` | array | for each group of input files (a file given directly, a directory, or each barcode directory of a `fastq_pass` directory): `name`, `files` (number of input files), `processed` (`false`: not processed yet, then no further keys), and the keys of a section |
 
@@ -55,7 +56,7 @@ Section (statistics of a set of reads):
 | `read_lengths` | object | for the reads of the `input` and for the reads `written`: `reads`, `bases`, `min`, `max`, `mean`, `median` and `n50` (the length such that half of the bases are in reads at least that long); the median and the N50 are exact to 20 bases |
 | `read_quality` | object | for `input` and `written`: `reads` (those with qualities), `median` (of the qualities of the reads, to 1 unit) and `q10`, `q20` (the fractions of the reads with a quality of at least 10, 20); the quality of a read is the Phred score of the mean error probability of its bases; `null` for reads without qualities |
 | `sequencing` | object | what the titles of the reads say about the run: `flow_cell`, `run`, `basecall_model`, `sample`, `experiment` (the fields of MinKNOW), `instrument` (Illumina) and `start_time` (the earliest among the titles read); each a string, `"several"` if the reads differ, or `null` if not known. The title of one read in a thousand is read |
-| `sample` | object or null | with references, the sample itself: `state` (`complete`: all segments expected are complete; `partial`; `incomplete`: some are missing; `few_reads`, `not_located`: not complete, and it cannot be judged, with fewer than 1000 reads or half or more of the read ends not located), `virus` (`"A"` or `"B"`: the type of the references its reads were located in), `subtype` (string or null: the subtype for influenza A, e.g. `"H5N1"`, and `"B"` with its lineage where a reference names one, e.g. `"B/Victoria"`, for influenza B), `segments_expected`, `segments_found`, `segments_complete`, `ends_not_located` (fraction), `flags` (what deserves attention: `few_reads`, `no_primer`, `not_located`, `internal_priming`, `internal_deletions`) and `segments`: for each segment expected, `segment` (its number in the type of the sample: influenza B numbers PB1 1 and PB2 2), `gene`, `state` (`missing`, `low`, `partial`, `complete`) and, if found, `reference`, `length`, `mean_depth`, `median_depth`, `median_full_depth` (the median depth counting only the full templates, the reads whose amplicon started at a segment end), `covered` and `well_covered` (fractions of the positions with a read, with at least `min_depth` reads), `internal`, `deletion` and `minus_strand` (fractions of the depth), `complete_amplicons`, `short_complete`. Depths are estimated from the positions of the reads, not from a mapping. `null` without references |
+| `sample` | object or null | with references, the sample itself: `state` (`complete`: all segments expected are complete; `partial`; `incomplete`: some are missing; `few_reads`, `not_located`: not complete, and it cannot be judged, with fewer than 1000 reads or half or more of the read ends not located), `virus` (`"A"` or `"B"`: the type of the references its reads were located in), `subtype` (string or null: the subtype for influenza A, e.g. `"H5N1"`, and `"B"` with its lineage where a reference names one, e.g. `"B/Victoria"`, for influenza B), `segments_expected`, `segments_found`, `segments_complete`, `ends_not_located` (fraction), `subtype_reads` (the reads of each HA and NA subtype, see below), `flags` (what deserves attention: `few_reads`, `no_primer`, `not_located`, `internal_priming`, `internal_deletions`, `cleavage_site`, `second_ha_subtype`, `second_na_subtype`) and `segments`: for each segment expected, `segment` (its number in the type of the sample: influenza B numbers PB1 1 and PB2 2), `gene`, `state` (`missing`, `low`, `partial`, `complete`) and, if found, `reference`, `length`, `mean_depth`, `median_depth`, `median_full_depth` (the median depth counting only the full templates, the reads whose amplicon started at a segment end), `covered` and `well_covered` (fractions of the positions with a read, with at least `min_depth` reads), `internal`, `deletion` and `minus_strand` (fractions of the depth), `complete_amplicons`, `short_complete`. Depths are estimated from the positions of the reads, not from a mapping. `null` without references |
 | `cleavage_site` | object or null | with references and an HA reference containing the fusion peptide: the cleavage site of the haemagglutinin as the reads carry it (see `docs/cleavage-site.md`): `chemistry` (`"Illumina"`, `"R10"`, `"R9"` or `"unknown"`), `reads_searched`, `reads` (the reads the site was read from), `distinct_motifs` and `distinct_sites` (the distinct spellings and the distinct residues among those reads, the readings of single misread reads included, so large in nearly every sample), `supported_sites` (the residues carried by at least 10% of the reads and at least 2 reads: the sites the sample holds), `motif` (the 24 bases, the most frequent spelling) and `protein` (the 8 residues), `motif_reads`, `support` (fraction of `reads` carrying those residues), `multibasic_share` (fraction of the reads whose own site is multibasic), `basic_residues`, `control_reads` and `control_support` (the same reads in two windows beside the site, where the sequence is ordinary), `reads_disagree_beside_the_site`, `fusion_peptide` with `fusion_peptide_reads` and `fusion_peptide_support` (the anchor as the reads carry it) and `reference_fusion_peptide`, `reads_as` (`multibasic`, `monobasic` or `unreadable`), `reference_site` (the site of the HA reference of the sample) and `disagrees_with_reference`, `verdict` (`firm`, `confirm` or `too few reads`), and `sites`: the most frequent sites in the same reads, each `protein`, `motif`, `reads`, `share` and `reads_as`. `null` where the site was not read |
 | `primers` | object | for each end (`left`, `right`): the reads in which each primer of the scheme was found at that end, by primer name |
 | `written_by_category` | object or null | with references: the reads written, by category (the `ct` tag): `full` (full templates), `internal` (internal priming), `deletion` (internal deletions), `other` (no 5' primer, or not located); their sum is `reads.written`; `null` without references |
@@ -64,6 +65,32 @@ Section (statistics of a set of reads):
 | `short_complete` | integer or null | with references: the complete amplicons shorter than 90% of their reference (as in `summary.tsv`); `null` without references |
 | `complete_amplicons` | array | the complete amplicons (reads with the primers of both ends) of each group of the lengths with at least one amplicon: `group` (the reference to which the bases after the left primer, or else the right primer, mapped; `not_located`; or `all` without references), `reference_length` (`null` if not a reference), `amplicons`, `main_length` (start of the most frequent bin), `short` (amplicons shorter than 90% of the reference; `null` if not a reference), `short_main_length` (start of the most frequent bin of the short amplicons; `null` if none), `histogram` (the counts of the bins of the length between the primers, from 0, up to the last non-empty bin) |
 | `coverage` | array or null | with references: for each reference with located reads, the coverage by read origin, as drawn in the report: `reference`, `length`, `positions` (up to 200 positions, 0-based, evenly spaced along the reference) and `depth`, with the depth at those positions of each class of reads with reads on the reference: `terminal_plus`, `terminal_minus` (full templates, by strand), `internal_plus`, `internal_minus` (internally primed), `no_primer`, `not_located` (the two kinds of other reads) and `deletion` (internal deletions). It is estimated from the positions of the reads, not from a mapping; `null` without references |
+
+Reads of each HA and NA subtype (`sample.subtype_reads`): an object with
+the keys `ha` and `na`, each an object or `null`; `null` as a whole
+where nothing was counted (influenza B, references without subtypes or
+with one reference per segment, and `all` in a run of several samples,
+whose subtypes may differ). The counts are those of the reads from
+which the references of the sample were chosen: the first 2000 reads of
+its first file (up to 20,000 if a segment has too few probes located
+in them).
+
+| key | type | description |
+|---|---|---|
+| `leading` | string | the subtype with most probes located in its references, e.g. `"H5"` (`"N1"` for the NA) |
+| `second` | string or null | the other subtype whose reads exceed most those expected by chance; `null` if no read is of another subtype |
+| `reads` | integer | the reads with several voting probes in the gene (a probe votes if it is located in the references and no reference of another subtype matches it as well) |
+| `leading_reads`, `second_reads` | integer | of them, the reads whose probes all vote for the leading subtype, for the second one |
+| `second_expected` | number | the reads expected to be all for the second subtype if each probe voted independently of its read (a read with *k* voting probes is all for a subtype with the fraction *p* of the votes with probability *p*^*k*) |
+| `second_excess` | number | `second_reads` minus `second_expected` |
+| `second_share` | number | `second_excess` as a fraction of `reads` |
+| `above_threshold` | boolean | `second_excess` is at least `second_subtype_min_excess` and `second_share` at least `second_subtype_min_share`; the sample then has the flag `second_ha_subtype` or `second_na_subtype` |
+
+Reads of a second subtype can come from a mixed infection, from a
+contamination of the sample, or from barcode crosstalk between the
+samples of a run; the summary says what was observed, not which of them
+it is. Two viruses of one subtype are not told apart, and the other six
+segments are not looked at.
 
 For example, the internal priming sites of each group with `jq`:
 
@@ -77,3 +104,12 @@ each sample:
     jq -r '.groups[] | [.name, .sample.state, .sample.subtype,
            (.sample.segments | map(.well_covered // 0 | . * 100 | floor)
             | join(" "))] | @tsv' out/flucut_summary.json
+
+The samples with reads of a second HA subtype above the threshold:
+
+    jq -r '.groups[] | select(.sample.subtype_reads.ha.above_threshold)
+           | [.name, .sample.subtype_reads.ha.leading,
+              .sample.subtype_reads.ha.second,
+              .sample.subtype_reads.ha.second_reads,
+              .sample.subtype_reads.ha.reads] | @tsv' \
+        out/flucut_summary.json

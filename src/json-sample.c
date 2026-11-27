@@ -6,6 +6,53 @@
 #include "virus.h"
 #include "segments.h"
 #include "strutils.h"
+#include "subtype-reads.h"
+
+/* the evidence <e> in the HA or NA (<which>), as an object: the leading
+   and the second subtype with their reads, among the reads with several
+   voting probes */
+static void write_evidence(FILE *f, size_t which,
+    const subtype_reads_evidence_t *e) {
+  char letter = subtype_reads_letter(which);
+  fprintf(f, "{\"leading\": \"%c%d\", \"second\": ", letter, e->leading);
+  if (e->second != 0)
+    fprintf(f, "\"%c%d\"", letter, e->second);
+  else
+    fputs("null", f);
+  fprintf(f, ", \"reads\": %zu, \"leading_reads\": %zu, "
+          "\"second_reads\": %zu, \"second_expected\": %.2f, "
+          "\"second_excess\": %.2f, \"second_share\": %.4f, "
+          "\"above_threshold\": %s}", e->reads, e->leading_reads,
+          e->second_reads, e->second_expected, e->second_excess,
+          e->second_share, e->above_threshold ? "true" : "false");
+}
+
+/* the member "subtype_reads": the reads of each HA and NA subtype among
+   the first reads of the sample (subtype-reads.h); null where there is
+   nothing to say */
+static void write_subtype_reads(json_writer_t *w, const counter_t *c) {
+  static const char *const keys[] = {"ha", "na"};
+  subtype_reads_evidence_t e[SUBTYPE_READS_N_SEGMENTS];
+  bool any = false;
+  for (size_t which = 0; which < SUBTYPE_READS_N_SEGMENTS; which++) {
+    subtype_reads_evidence(counter_subtype_reads(c), which, e + which);
+    any = any || e[which].known;
+  }
+  json_member(w, "subtype_reads");
+  if (!any) {
+    fputs("null", w->f);
+    return;
+  }
+  json_open_block(w, '{');
+  for (size_t which = 0; which < SUBTYPE_READS_N_SEGMENTS; which++) {
+    json_member(w, keys[which]);
+    if (e[which].known)
+      write_evidence(w->f, which, e + which);
+    else
+      fputs("null", w->f);
+  }
+  json_close_block(w, '}', false);
+}
 
 void json_sample_write(json_writer_t *w, const report_t *r,
     const counter_t *c) {
@@ -24,7 +71,8 @@ void json_sample_write(json_writer_t *w, const report_t *r,
   qc_summary(r->references, c, r->options->segment, &qc);
   cleavage_result_t site;
   report_cleavage(r, c, &site);
-  qc_flags(counter_reads(c), &qc, true, &site, &flags);
+  qc_flags(counter_reads(c), &qc, true, &site, counter_subtype_reads(c),
+           &flags);
   json_open_block(w, '{');
   json_member(w, "state");
   fprintf(f, "\"%s\"", states[qc.status]);
@@ -39,6 +87,7 @@ void json_sample_write(json_writer_t *w, const report_t *r,
   json_count_member(w, "segments_found", qc.n_found);
   json_count_member(w, "segments_complete", qc.n_complete);
   json_share_member(w, "ends_not_located", qc.not_located);
+  write_subtype_reads(w, c);
   json_member(w, "flags");
   fputc('[', f);
   bool first = true;

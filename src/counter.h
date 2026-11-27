@@ -36,6 +36,7 @@
 #include "read-metadata.h"
 #include "read-stats.h"
 #include "scheme.h"
+#include "subtype-reads.h"
 
 /* the ends of an amplicon */
 enum { COUNTER_LEFT, COUNTER_RIGHT, COUNTER_N_ENDS };
@@ -151,6 +152,15 @@ void counter_add_cleavage_fusion(counter_t *self, const char *nt);
 
 /* The motifs of the cleavage site read from the reads */
 const cleavage_counts_t* counter_cleavage(const counter_t *self);
+
+/*
+   The reads of each HA and NA subtype among the first reads of the
+   sample (subtype-reads.h): set once for a sample, from the reads its
+   references were chosen from
+*/
+void counter_set_subtype_reads(counter_t *self,
+    const subtype_reads_t *subtype_reads);
+const subtype_reads_t* counter_subtype_reads(const counter_t *self);
 
 /* The lengths and qualities of the reads, and the metadata of the run */
 const read_stats_t* counter_read_stats(const counter_t *self);
