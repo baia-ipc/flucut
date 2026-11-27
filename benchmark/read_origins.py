@@ -55,8 +55,8 @@ def main():
         label, everything["reads"]["in"], everything["reads"]["written"],
         left["terminal"], left["internal"], left["unknown"], share,
         sample.get("subtype", "NA"),
-        ha[0]["reference"] if ha else "NA",
-        ha[0]["internal"] if ha else "NA", site,
+        ha[0].get("reference", "NA") if ha else "NA",
+        ha[0].get("internal", "NA") if ha else "NA", site,
         sites[0]["reads"] if sites else 0]))
 
 
