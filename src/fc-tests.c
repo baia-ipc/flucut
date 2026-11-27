@@ -114,7 +114,7 @@ static test_group_t test_groups[] = {
    false},
   {'J', "the junction of a read with an internal deletion",
    junction_test, false},
-  {'V', "the category of a read, from where it lies on its reference",
+  {'O', "the category of a read, from where it lies on its reference",
    read_cover_test, false},
   {'e', "the matches of the conserved termini in a read",
    terminus_matches_test, false},
@@ -135,15 +135,15 @@ static test_group_t test_groups[] = {
   {'u', "the automatic settings", auto_settings_test, false},
   {'G', "the agreement of the probes of a read", read_agreement_test,
    false},
-  {'q', "the summary of a sample by segment", qc_summary_test, false},
+  {'Q', "the summary of a sample by segment", qc_summary_test, false},
   {'f', "what deserves attention in a sample", qc_flags_test, false},
-  {'L', "the lengths and qualities of the reads", read_stats_test, false},
+  {'y', "the lengths and qualities of the reads", read_stats_test, false},
   {'M', "the metadata of the run in the titles of the reads",
    read_metadata_test, false},
   {'d', "the search of an adaptor", adaptor_search_test,
    false},
   {'U', "the resources used by a run", run_resources_test, false},
-  {'c', "the configuration file", user_config_test, false},
+  {'Y', "the configuration file", user_config_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 
@@ -175,8 +175,18 @@ void parseargs(int argc, char *argv[], Logger **logger) {
     COMMON_OPTS_STR "T:";
   size_t len = strlen(optstring);
   for (size_t i = 0; i < N_TEST_GROUPS; i++) {
-    /* the test options must not be used by other options */
-    assert(strchr(optstring, test_groups[i].option) == NULL);
+    /* The letter of a test group must be its own: not one of the
+       options every program has (-q, -v, -D, -L, -h, -V, -T), and not
+       one already taken by another group, or it would select the wrong
+       group or none. Checked here and not with assert(), so that it is
+       checked in every build and a table which cannot work is a plain
+       error rather than a silent surprise. */
+    if (strchr(optstring, test_groups[i].option) != NULL) {
+      fprintf(stderr, "%s: the letter '%c' of the test group \"%s\" is "
+              "already an option\n", argv[0], test_groups[i].option,
+              test_groups[i].description);
+      exit(EXIT_FAILURE);
+    }
     assert(len + 1 < sizeof(optstring));
     optstring[len++] = test_groups[i].option;
     optstring[len] = '\0';
