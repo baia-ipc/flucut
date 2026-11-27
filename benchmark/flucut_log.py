@@ -10,7 +10,8 @@ import re
 
 CHOICE = re.compile(
     r"reference of segment (\d) .*?: (\S+) \((\d+) of (\d+) probes of the "
-    r"first (\d+) reads; (\d+) more match several references\)(?:; (.*))?$")
+    r"first (\d+) reads(?:, \d+ for its subtype)?; (\d+) more match several "
+    r"references\)(?:; (.*))?$")
 NOT_CHOSEN = re.compile(
     r"reference of segment (\d) .*?: not chosen, too few probes \((\d+)\)")
 VOTES = re.compile(r"votes of segment (\d) .*: (\S+) (\d+)$")
