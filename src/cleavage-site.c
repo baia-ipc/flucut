@@ -221,6 +221,7 @@ void cleavage_counts_merge(cleavage_counts_t *self,
   self->overflow += other->overflow;
   for (size_t i = 0; i < CLEAVAGE_N_CONTROLS; i++) {
     self->control[i].overflow += other->control[i].overflow;
+    self->control[i].reads += other->control[i].overflow;
     for (size_t k = 0; k < other->control[i].n; k++)
       control_add(self->control + i, other->control[i].entries[k].aa,
                   other->control[i].entries[k].reads);
@@ -229,6 +230,7 @@ void cleavage_counts_merge(cleavage_counts_t *self,
     cleavage_counts_set_reference(self, other->reference_aa,
                                   other->reference_fusion);
   self->fusion.overflow += other->fusion.overflow;
+  self->fusion.reads += other->fusion.overflow;
   for (size_t k = 0; k < other->fusion.n; k++)
     control_add(&self->fusion, other->fusion.entries[k].aa,
                 other->fusion.entries[k].reads);
@@ -276,7 +278,9 @@ bool cleavage_counts_load_line(cleavage_counts_t *self, char *line) {
     size_t i = strtoull(line + 22, &rest, 10);
     if (i >= CLEAVAGE_N_CONTROLS)
       return false;
-    self->control[i].overflow += strtoull(rest, NULL, 10);
+    size_t n = strtoull(rest, NULL, 10);
+    self->control[i].overflow += n;
+    self->control[i].reads += n;
     return true;
   }
   if (strncmp(line, "cleavage-control ", 17) == 0) {
@@ -293,7 +297,9 @@ bool cleavage_counts_load_line(cleavage_counts_t *self, char *line) {
     return true;
   }
   if (strncmp(line, "cleavage-fusion-over ", 21) == 0) {
-    self->fusion.overflow += strtoull(line + 21, NULL, 10);
+    size_t n = strtoull(line + 21, NULL, 10);
+    self->fusion.overflow += n;
+    self->fusion.reads += n;
     return true;
   }
   if (strncmp(line, "cleavage-fusion ", 16) == 0) {
