@@ -99,8 +99,8 @@ def decide(segments, subtype, min_votes=20, min_share=0.6,
       # (the HA and the NA, segments 4 and 6, never follow)
       if subtype[ref] != common or common is None or s in (4, 6):
         continue
-      if not few and (close_share is None or
-                      n < close_share * votes[best]):
+      if votes[best] >= min_votes and (close_share is None or
+                                       n < close_share * votes[best]):
         continue
       if follow is None or n > votes[follow]:
         follow = ref
