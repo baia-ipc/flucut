@@ -112,7 +112,7 @@ static test_group_t test_groups[] = {
    false},
   {'J', "the junction of a read with an internal deletion",
    junction_test, false},
-  {'W', "the category of a read, from where it lies on its reference",
+  {'O', "the category of a read, from where it lies on its reference",
    read_cover_test, false},
   {'e', "the matches of the conserved termini in a read",
    terminus_matches_test, false},
@@ -132,13 +132,13 @@ static test_group_t test_groups[] = {
    false},
   {'Q', "the summary of a sample by segment", qc_summary_test, false},
   {'f', "what deserves attention in a sample", qc_flags_test, false},
-  {'Y', "the lengths and qualities of the reads", read_stats_test, false},
+  {'y', "the lengths and qualities of the reads", read_stats_test, false},
   {'M', "the metadata of the run in the titles of the reads",
    read_metadata_test, false},
   {'d', "the search of an adaptor", adaptor_search_test,
    false},
   {'U', "the resources used by a run", run_resources_test, false},
-  {'N', "the configuration file", user_config_test, false},
+  {'Y', "the configuration file", user_config_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 
