@@ -69,7 +69,7 @@ def table(header, rows):
 
 def thresholds(stats):
   """The highest statistic of the samples of one strain, by segment."""
-  highest = collections.defaultdict(float)
+  highest = collections.defaultdict(lambda: float("-inf"))
   for (_, minor, _), segments in stats.items():
     if minor == "none":
       for s, values in segments.items():
