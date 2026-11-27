@@ -43,7 +43,7 @@ support the trimming; they are not the purpose of the program.
 
 - **Real runs, next**: three real H5N1 Nanopore runs and one Illumina run
   are done (`benchmark/RESULTS.md`); still to do are the other 7 Illumina
-  SRA runs whose GenBank HA consensus has the I348K codon, with
+  SRA runs whose GenBank HA consensus has the I351K codon, with
   `run-real-illumina.sh` generalised.
 - **Paired Illumina reads**: R1 and R2 are trimmed as two inputs; a
   read too short is dropped from one file only (IRMA accepted it on
@@ -55,7 +55,7 @@ support the trimming; they are not the purpose of the program.
 - **Where flucut trims better than a generic trimmer** (first results
   in `benchmark/RESULTS.md`): the consensus of cutadapt is the same on
   the simulated reads; cutadapt removes 80 times as much template (its
-  5' primer matches inside the reads, e.g. at the I348K site); the
+  5' primer matches inside the reads, e.g. at the I351K site); the
   IRMA-core trimmer leaves many primers. To measure where the template
   matters: low coverage, variant frequencies.
 
@@ -117,7 +117,7 @@ support the trimming; they are not the purpose of the program.
 - **Is it only HA?** (influenza A) Measured on real data: three H5N1 Nanopore runs and
   one Illumina run (`benchmark/RESULTS.md`) were classified against the
   references of all eight segments. The internal priming is concentrated
-  in the HA, at the Uni12-like site (nt 1070-1094, the I348K codon), the
+  in the HA, at the Uni12-like site (nt 1070-1094, the I351K codon), the
   same site in all three Nanopore runs; the other segments show only a few
   percent. So on this material it is essentially HA, and the simulation
   (`benchmark/simulate.py`, HA-only internal site) matches. Still possible:
