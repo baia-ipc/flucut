@@ -95,9 +95,11 @@ def segment_reference(summary, gene):
 def false_internal(summary):
   """The share of the reads of the segments other than the HA which
   flucut reports as internally primed: the simulation primes inside the
-  HA only, so these are read ends the references place wrongly."""
-  shares = [s.get("internal", 0.0) for s in summary.get("segments", [])
-            if not s.get("gene", "").startswith("HA")]
+  HA only, so these are read ends the references place wrongly. A
+  segment flucut did not find has no "internal" share and is left out,
+  rather than counted as 0."""
+  shares = [s["internal"] for s in summary.get("segments", [])
+            if not s.get("gene", "").startswith("HA") and "internal" in s]
   return round(sum(shares) / len(shares), 4) if shares else ""
 
 
