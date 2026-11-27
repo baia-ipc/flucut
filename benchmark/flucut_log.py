@@ -13,7 +13,8 @@ CHOICE = re.compile(
     r"first (\d+) reads(?:, \d+ for its subtype)?; (\d+) more match several "
     r"references\)(?:; (.*))?$")
 NOT_CHOSEN = re.compile(
-    r"reference of segment (\d) .*?: not chosen, too few probes \((\d+)\)")
+    r"reference of segment (\d) .*?: not chosen, too few probes \((\d+)\) "
+    r"in the first \d+ reads \((\d+) more match several references\)")
 VOTES = re.compile(r"votes of segment (\d) .*: (\S+) (\d+)$")
 AGREEMENT = re.compile(
     r"probes within a read of segment (\d) .*: (\d+) reads with several "
@@ -49,7 +50,9 @@ def parse(text):
       continue
     m = NOT_CHOSEN.search(line)
     if m:
-      entry(m.group(1))["total"] = int(m.group(2))
+      e = entry(m.group(1))
+      e["total"] = int(m.group(2))
+      e["ambiguous"] = int(m.group(3))
       continue
     m = AGREEMENT.search(line)
     if m:
