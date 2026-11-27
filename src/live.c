@@ -286,8 +286,7 @@ static void process_file(live_t *w, live_group_t *st, const char *path,
      file by its group) */
   if (!st->references_chosen) {
     st->allowed = auto_settings_choose_references(w->config, path,
-                                                  w->logger);
-    st->virus = auto_settings_reference_types(w->config, st->allowed);
+                                                  &st->virus, w->logger);
     st->references_chosen = true;
   }
   for (size_t t = 0; t < opts->threads; t++) {

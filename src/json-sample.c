@@ -3,6 +3,7 @@
 #include "json-sample.h"
 #include "qc-flags.h"
 #include "qc-summary.h"
+#include "virus.h"
 #include "segments.h"
 #include "strutils.h"
 
@@ -25,6 +26,8 @@ void json_sample_write(json_writer_t *w, const report_t *r,
   json_open_block(w, '{');
   json_member(w, "state");
   fprintf(f, "\"%s\"", states[qc.status]);
+  json_member(w, "virus");
+  fprintf(f, "\"%s\"", virus_type_name(qc.virus));
   json_member(w, "subtype");
   if (qc.subtype[0] != '\0')
     fputs_json_string(qc.subtype, f);
@@ -49,8 +52,11 @@ void json_sample_write(json_writer_t *w, const report_t *r,
     if (!qc_expects(&qc, s))
       continue;
     json_member(w, NULL);
-    fprintf(f, "{\"segment\": %d, \"gene\": \"%s\", \"state\": \"%s\"", s,
-            segments_gene(s), segment_states[q->status]);
+    /* (the segment number of the type of the sample: influenza B
+       numbers PB1 1 and PB2 2, see segments.h) */
+    fprintf(f, "{\"segment\": %d, \"gene\": \"%s\", \"state\": \"%s\"",
+            segments_number(s, qc.virus), segments_gene(s),
+            segment_states[q->status]);
     if (q->found) {
       fputs(", \"reference\": ", f);
       fputs_json_string(r->references->records[q->ref].name, f);

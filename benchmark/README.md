@@ -43,9 +43,11 @@ KF918483.1 it is the only position with as few mismatches (2), at
 
 ### The reads
 
-`simulate.py` simulates amplicons of the default scheme of flucut (the
-degenerate untailed Uni12 primer and the tailed Uni13 primer), 400 reads
-per segment by default. A share of the HA reads (default 0.6) starts at
+`simulate.py` simulates amplicons of the default scheme of flucut for
+the type of the genome (`--virus`): for influenza A the degenerate
+untailed Uni12 primer and the tailed Uni13 primer, the same in every
+segment; for influenza B the pair of the IBV-GA2 cocktail designed for
+each segment. 400 reads per segment by default. A share of the HA reads (default 0.6) starts at
 the internal site with the bases of the primer. Each read gets an
 orientation, random flanking bases (0-40 at each end, standing for
 adapter and barcode remnants: random, not a real adapter), sometimes a
@@ -55,6 +57,12 @@ each read (mean 4%). 1% of the full amplicons are primer dimers. The R
 of Uni12 is A or G at random in each read. All of these are modelling
 choices, not measured properties of a run. The origin of each base of
 each read is written to `truth.tsv.gz`.
+
+With `--wrong-pair-share` (influenza B), a share of the amplicons began
+at the terminus of their segment but were primed by the pair of other
+segments: their primer bases are not the sequence of that segment, and
+flucut has to remove all of them. The evaluation of influenza B
+(`../influenza_b_evaluation/`) measures that.
 
 With `--joined-share`, a share of the reads is two amplicons joined end
 to end (the second one of any segment, each in its own orientation,

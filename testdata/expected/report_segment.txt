@@ -52,8 +52,8 @@ reads	NC_004908.1	1700	5
   "references": {
     "file": "testdata/ref-ha-pa.fasta",
     "sequences": [
-      {"name": "NC_004908.1", "length": 1714, "segment": 4, "gene": "HA"},
-      {"name": "QB023392.1", "length": 2224, "segment": 3, "gene": "PA"}
+      {"name": "NC_004908.1", "length": 1714, "virus": "A", "segment": 4, "gene": "HA"},
+      {"name": "QB023392.1", "length": 2224, "virus": "A", "segment": 3, "gene": "PA"}
     ]
   },
   "settings": {
@@ -101,6 +101,7 @@ reads	NC_004908.1	1700	5
     "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
     "sample": {
       "state": "few_reads",
+      "virus": "A",
       "subtype": "H9N?",
       "segments_expected": 8,
       "segments_found": 1,
@@ -166,6 +167,7 @@ reads	NC_004908.1	1700	5
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
       "sample": {
         "state": "few_reads",
+        "virus": "A",
         "subtype": "H9N?",
         "segments_expected": 8,
         "segments_found": 1,

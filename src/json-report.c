@@ -13,6 +13,7 @@
 #include "json-writer.h"
 #include "qc-summary.h"
 #include "segments.h"
+#include "virus.h"
 #include "strutils.h"
 
 static void write_reads(json_writer_t *w, const counter_reads_t *s) {
@@ -248,14 +249,18 @@ static void write_parameters(json_writer_t *w, const report_t *r) {
       json_member(w, NULL);
       fputs("{\"name\": ", f);
       fputs_json_string(r->references->records[i].name, f);
-      int segment = segments_of_description(
-          r->references->records[i].description);
-      fprintf(f, ", \"length\": %zu, \"segment\": ",
-              r->references->records[i].seq_len);
+      const char *description = r->references->records[i].description;
+      int segment = segments_of_description(description);
+      fprintf(f, ", \"length\": %zu, \"virus\": \"%s\", \"segment\": ",
+              r->references->records[i].seq_len,
+              virus_type_name(virus_type_of_description(description)));
       if (segment == 0)
         fputs("null, \"gene\": null}", f);
       else
-        fprintf(f, "%d, \"gene\": \"%s\"}", segment,
+        /* (the number of the segment in the type of the reference) */
+        fprintf(f, "%d, \"gene\": \"%s\"}",
+                segments_number(segment,
+                    virus_type_of_description(description)),
                 segments_gene(segment));
     }
     json_close_block(w, ']', false);

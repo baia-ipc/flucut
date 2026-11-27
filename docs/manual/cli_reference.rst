@@ -24,9 +24,25 @@ Options
 ``-o, --outdir <dir>``
    The output directory, created if needed. Default: ``flucut-output``.
 
+``--virus <a|b|both>``
+   The types of influenza the run may hold (:doc:`primers`): ``a``,
+   ``b`` or ``both`` (default). It chooses the primers searched and the
+   built-in references used; the type of each sample is then read from
+   the references its reads were located in, and its reads are trimmed
+   with the primers of that type alone. Give a single type for a run
+   which holds one, to search fewer primers and download one reference
+   set::
+
+      flucut --virus b -o trimmed fastq_pass
+
+   It also sets the numbering of a segment given by its number to that
+   of the type (influenza B numbers PB1 1 and PB2 2); a gene name means
+   the same in both.
+
 ``-s, --scheme <name>``
-   The primer scheme (:doc:`primers`): ``uni12-mbt13`` (default),
-   ``mbt`` or ``uni``.
+   The primer scheme (:doc:`primers`): ``uni12-mbt13+ibv-ga2``,
+   ``uni12-mbt13``, ``ibv-ga2``, ``mbt`` or ``uni``. Default: the
+   scheme of ``--virus``.
 
 ``-r, --references <file>``
    The references against which each read end is classified as terminal or
@@ -40,7 +56,8 @@ Options
    * **default** (no ``-r``): the set named by the key ``references`` of
      the configuration file, if there is one (:doc:`irma`), else the
      built-in reference set (complete segments of several influenza A
-     subtypes), downloaded on first use (:doc:`internal_priming`);
+     subtypes and of influenza B, following ``--virus``), downloaded on
+     first use (:doc:`internal_priming`);
    * ``-r <file>``: that FASTA file of segment references;
    * ``-r off``: no references, every primer-derived base removed.
    The messages and reports name a reference with its segment when its
@@ -148,8 +165,9 @@ These options are used with ``--references``.
 
 ``--segment <s>``
    Classify the read ends against the references of one segment only,
-   given by its number (``1`` to ``8``) or its gene (e.g. ``HA``, in any
-   case). For runs which contain one segment alone, e.g. an HA
+   given by its number (``1`` to ``8``, in the numbering of ``--virus``)
+   or its gene (e.g. ``HA``, in any case, which means the same in both
+   types). For runs which contain one segment alone, e.g. an HA
    amplicon::
 
       flucut --segment HA -o trimmed fastq_pass

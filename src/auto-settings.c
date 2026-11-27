@@ -403,10 +403,41 @@ static void log_references(const trimmer_config_t *config, const char *file,
   }
 }
 
+/*
+   The type of the sample from the votes: the type of the references in
+   which the probes were located, when it has at least
+   AUTO_VIRUS_SHARE of the votes; both types otherwise (a sample of
+   both, or too few votes to tell), so that the primers of both are
+   searched when it is not clear which one it is.
+*/
+static virus_set_t votes_virus(const fasta_t *fa, const size_t *votes,
+    size_t n) {
+  size_t by_type[VIRUS_N_TYPES] = {0}, total = 0;
+  for (size_t i = 0; i < n; i++) {
+    if (votes[i] == 0)
+      continue;
+    const char *description = fa->records[i].description;
+    virus_type_t type = description == NULL ? VIRUS_A :
+                        virus_type_of_description(description);
+    by_type[type] += votes[i];
+    total += votes[i];
+  }
+  if (total == 0)
+    return VIRUS_SET_BOTH;
+  for (int type = 0; type < VIRUS_N_TYPES; type++)
+    if ((double)by_type[type] >= AUTO_VIRUS_SHARE * (double)total)
+      return VIRUS_SET_OF((virus_type_t)type);
+  return VIRUS_SET_BOTH;
+}
+
 bool* auto_settings_choose_references(const trimmer_config_t *config,
-    const char *file, Logger *logger) {
+    const char *file, virus_set_t *types, Logger *logger) {
   assert(config != NULL);
   assert(file != NULL);
+  /* the types of all the references, until the votes say which one the
+     sample is */
+  if (types != NULL)
+    *types = auto_settings_reference_types(config, NULL);
   if (config->index == NULL)
     return NULL;
   const fasta_t *fa = reference_index_fasta(config->index);
@@ -462,6 +493,8 @@ bool* auto_settings_choose_references(const trimmer_config_t *config,
   fastq_batch_free(&batch);
   reads_reader_delete(reader);
   reference_set_delete(refs);
+  if (types != NULL)
+    *types = votes_virus(fa, votes, n_refs);
   log_references(config, file, segment, subtype, votes, ambiguous, allowed, n,
                  logger);
   read_agreement_log(&agreement, fa, segment, votes, file, logger);

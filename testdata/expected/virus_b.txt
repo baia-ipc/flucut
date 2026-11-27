@@ -54,8 +54,8 @@ reads-b	KX058884.1	1850	6
   "references": {
     "file": "testdata/ref-b-ha-mp.fasta",
     "sequences": [
-      {"name": "KX058884.1", "length": 1885, "segment": 4, "gene": "HA"},
-      {"name": "KC866607.1", "length": 1189, "segment": 7, "gene": "M"}
+      {"name": "KX058884.1", "length": 1885, "virus": "B", "segment": 4, "gene": "HA"},
+      {"name": "KC866607.1", "length": 1189, "virus": "B", "segment": 7, "gene": "M"}
     ]
   },
   "settings": {
@@ -103,6 +103,7 @@ reads-b	KX058884.1	1850	6
     "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
     "sample": {
       "state": "few_reads",
+      "virus": "B",
       "subtype": "B",
       "segments_expected": 8,
       "segments_found": 1,
@@ -110,8 +111,8 @@ reads-b	KX058884.1	1850	6
       "ends_not_located": 0.0870,
       "flags": ["few_reads"],
       "segments": [
-        {"segment": 1, "gene": "PB2", "state": "missing"},
-        {"segment": 2, "gene": "PB1", "state": "missing"},
+        {"segment": 2, "gene": "PB2", "state": "missing"},
+        {"segment": 1, "gene": "PB1", "state": "missing"},
         {"segment": 3, "gene": "PA", "state": "missing"},
         {"segment": 4, "gene": "HA", "state": "low", "reference": "KX058884.1", "length": 1885, "mean_depth": 8.0, "median_depth": 8, "median_full_depth": 6, "covered": 0.9846, "well_covered": 0.0000, "internal": 0.1524, "deletion": 0.0000, "minus_strand": 0.2026, "complete_amplicons": 10, "short_complete": 4},
         {"segment": 5, "gene": "NP", "state": "missing"},
@@ -168,6 +169,7 @@ reads-b	KX058884.1	1850	6
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
       "sample": {
         "state": "few_reads",
+        "virus": "B",
         "subtype": "B",
         "segments_expected": 8,
         "segments_found": 1,
@@ -175,8 +177,8 @@ reads-b	KX058884.1	1850	6
         "ends_not_located": 0.0870,
         "flags": ["few_reads"],
         "segments": [
-          {"segment": 1, "gene": "PB2", "state": "missing"},
-          {"segment": 2, "gene": "PB1", "state": "missing"},
+          {"segment": 2, "gene": "PB2", "state": "missing"},
+          {"segment": 1, "gene": "PB1", "state": "missing"},
           {"segment": 3, "gene": "PA", "state": "missing"},
           {"segment": 4, "gene": "HA", "state": "low", "reference": "KX058884.1", "length": 1885, "mean_depth": 8.0, "median_depth": 8, "median_full_depth": 6, "covered": 0.9846, "well_covered": 0.0000, "internal": 0.1524, "deletion": 0.0000, "minus_strand": 0.2026, "complete_amplicons": 10, "short_complete": 4},
           {"segment": 5, "gene": "NP", "state": "missing"},

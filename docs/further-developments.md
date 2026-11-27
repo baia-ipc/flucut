@@ -10,6 +10,21 @@ support the trimming; they are not the purpose of the program.
 
 ## Next
 
+- **Influenza B on a sequenced sample**: implemented and tested on
+  simulated reads and on the reference records of the eight segments
+  (`../influenza_b_evaluation/`); still to do is a real run. It would
+  show how often the primer is not found at an end (the main source of
+  the primer bases left in the simulation) and whether influenza B has
+  internal priming at all.
+- **The kept terminus against the reference**: at an end classified as
+  terminal, the bases kept are taken from the primer alignment alone.
+  Where a sibling primer of a cocktail matches better than the one
+  which primed (the right-end primers of the PB1/PB2 pair and of the
+  PA pair of influenza B differ by one base), the bases kept can be
+  those of the other primer. Comparing the kept bases with the
+  reference, as the extension of the alignment described under "Reads
+  cut too deep" would, would catch it.
+
 - **Real runs, next**: three real H5N1 Nanopore runs and one Illumina run
   are done (`benchmark/RESULTS.md`); still to do are the other 7 Illumina
   SRA runs whose GenBank HA consensus has the I348K codon, with
@@ -83,7 +98,7 @@ support the trimming; they are not the purpose of the program.
 
 ## Trimming and detection
 
-- **Is it only HA?** Measured on real data: three H5N1 Nanopore runs and
+- **Is it only HA?** (influenza A) Measured on real data: three H5N1 Nanopore runs and
   one Illumina run (`benchmark/RESULTS.md`) were classified against the
   references of all eight segments. The internal priming is concentrated
   in the HA, at the Uni12-like site (nt 1070-1094, the I348K codon), the
@@ -126,7 +141,8 @@ support the trimming; they are not the purpose of the program.
   tables (see below).
 - **User-defined schemes** (YAML): the tail, the adapter and the
   barcodes can be changed; the conserved termini cannot, as they are the
-  binding sites on the segments.
+  binding sites on the segments. A user-defined primer would also need
+  the segments it binds, as the primers of influenza B have.
 
 ## Illumina (second phase)
 

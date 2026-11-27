@@ -48,6 +48,9 @@
    common subtype and the leading one are equally good, below it the
    first is worse; benchmark/RESULTS.md) */
 #define AUTO_REFERENCE_CLOSE_SHARE 0.5
+/* the share of the votes a type must have for the sample to be taken
+   for that type alone (see auto_settings_choose_references) */
+#define AUTO_VIRUS_SHARE 0.9
 /* the segments which make the subtype (HA, NA): their reference is never
    chosen after the other segments */
 #define AUTO_REFERENCE_HA 4
@@ -125,13 +128,19 @@ void auto_settings_decide(auto_settings_t *self, trimmer_config_t *config,
    reads up to AUTO_REFERENCE_MORE_READS are used as well; if it still
    has too few, it keeps all its references. The choices are reported.
 
+   <types>, unless NULL, is set to the types of influenza of the sample:
+   the type of the references most probes were located in, where it has
+   at least AUTO_VIRUS_SHARE of the votes, and both types otherwise.
+   The reads are then trimmed with the primers of those types alone
+   (see amplicon_analyzer_restrict_virus).
+
    Returns a new array with a value for each reference (whether it is
    considered, see reference_set_restrict), to be freed by the caller,
    or NULL if all references are considered (no segment has several
    references, or none was decided).
 */
 bool* auto_settings_choose_references(const trimmer_config_t *config,
-    const char *file, Logger *logger);
+    const char *file, virus_set_t *types, Logger *logger);
 
 /*
    The types of influenza of the references <allowed> (all of them if

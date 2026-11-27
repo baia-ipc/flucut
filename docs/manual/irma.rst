@@ -8,6 +8,13 @@ configuration for Nanopore reads:
 
    IRMA FLU-minion trimmed/barcode01.fastq.gz sample01
 
+The same module assembles both types: the ``FLU`` module of IRMA (and
+its ``FLU-minion`` configuration) holds the seeds of the eight segments
+of influenza B next to those of influenza A, and names its outputs
+``B_HA``, ``B_MP`` and so on. It numbers the segments of influenza B in
+their own numbering, as flucut does (PB1 is segment 1), and it does not
+say which lineage a sample is, as it has one seed per segment.
+
 What was checked
 ----------------
 
@@ -95,7 +102,8 @@ HA and of the NA (the 5' untranslated region of the HA is 17 bases in
 H14 and 43 in H2), which is why the donor of an HA or NA seed must be of
 its subtype: a donor of another subtype would place the start of the
 coding sequence at the wrong distance from the terminus. The seeds of
-influenza B are left out, as the primer scheme is that of influenza A.
+influenza B are left out: a set built this way is used in place of the
+built-in set of influenza A, which is what the script covers.
 
 On simulated reads of 17 genomes outside the built-in set (subtypes H1
 to H3, H5, H7, H9 and H10 with six NA subtypes, hosts from poultry to

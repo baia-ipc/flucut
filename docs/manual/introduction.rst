@@ -4,9 +4,11 @@ Introduction
 What flucut does
 ----------------
 
-The whole genome of influenza A is often sequenced from a multisegment
-RT-PCR: two universal primers, Uni12 and Uni13, bind the conserved
-termini of the eight segments and amplify all of them in one reaction.
+The whole genome of influenza is often sequenced from a multisegment
+RT-PCR: universal primers bind the conserved termini of the eight
+segments and amplify all of them in one reaction. For influenza A they
+are two, Uni12 and Uni13; for influenza B, whose termini are shorter,
+they are a cocktail of six pairs (:doc:`primers`).
 The bases of a read which lie under a primer come from the primer, not
 from the virus: a difference between the virus and the primer at such a
 position is overwritten. flucut removes these bases from the reads,
@@ -24,7 +26,8 @@ For each read, flucut:
   found and removed;
 - with reference sequences of the segments, tells whether each end of
   the read is at a terminus of a segment or at an interior position
-  (internal priming), and reports it.
+  (internal priming), and reports it; it also tells, from those
+  references, whether a sample is influenza A or influenza B.
 
 Why it is needed
 ----------------
@@ -49,8 +52,9 @@ What it does not do
   directory written by the basecaller).
 - It does not assemble the segments or call variants: that is the work
   of IRMA or another assembler.
-- It knows the primers of the influenza A multisegment RT-PCR
-  (:doc:`primers`); other amplicon schemes are not supported.
+- It knows the primers of the multisegment RT-PCR of influenza A and of
+  influenza B (:doc:`primers`); other amplicon schemes are not
+  supported.
 
 Platforms
 ---------

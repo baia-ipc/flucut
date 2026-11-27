@@ -2,7 +2,8 @@
 
 This is the problem flucut is built around. It is described here in one
 place, because it drives the default settings, the reports and the
-benchmark.
+benchmark. It is a problem of influenza A; what influenza B does
+instead is at the end.
 
 ## The artefact
 
@@ -90,6 +91,30 @@ trimming the references are optional, and only measure internal
 priming. The same classification runs on both ends and against
 all eight segments, so whether internal priming happens outside HA, or
 with the Uni13 primer, is measured on the data rather than assumed.
+
+### Influenza B: the primer of another segment
+
+The primers of influenza B raise a different form of the same problem.
+Its conserved termini are 9 and 10 bases, too short for a specific
+primer, so each primer of the IBV-GA2 cocktail reaches five or eight
+bases further in, into untranslated bases which only a few segments
+share; the cocktail is six pairs for the eight segments.
+
+The bases such a primer writes into a read are therefore the template
+only at an end of a segment it was designed for. At an end of any other
+segment they are the primer's own sequence, exactly as at an internally
+primed end, and are removed: flucut keeps the bases of a primer at an
+end only where the read was located in a segment that primer binds.
+
+Keeping only the 9 or 10 universal bases there is not possible: the
+bases which differ between the segments lie between the template and
+the universal terminus, so what is kept at an end is either the whole
+stretch of segment sequence under the primer or none of it.
+
+Whether influenza B also has an internal priming site of the kind the
+HA of influenza A has is not known: its primers are longer and tailed,
+so a chance match inside a segment is far less likely. flucut measures
+it the same way, from the data.
 
 ### A primer is only searched near the ends of a read
 

@@ -1,19 +1,29 @@
 # (c) 2026 Giorgio Gonnella
-"""Simulate reads of the influenza A multisegment RT-PCR, with a truth.
+"""Simulate reads of the influenza multisegment RT-PCR, with a truth.
 
 The reads are simulated from a complete genome (the eight segments with
 their conserved termini; see benchmark/README.md for the one used), as
-amplicons of the default scheme of flucut: the degenerate untailed Uni12
-primer (AGCRAAAGCAGG) at the start of each segment, the tailed Uni13
-primer (mbtuni-13) at its end. The bases under a primer come from the
-primer, not from the segment: in particular the R of Uni12 is A or G at
-random in each read, whatever the segment has.
+amplicons of the default scheme of flucut for the type of the genome
+(--virus).
+
+For influenza A (the default) both primers are the same in every
+segment: the degenerate untailed Uni12 primer (AGCRAAAGCAGG) at the
+start of each segment and the tailed Uni13 primer (mbtuni-13) at its
+end. For influenza B the primers are the IBV-GA2 cocktail, whose six
+pairs each serve one or two segments, so the pair of a segment is the
+one designed for it; each of its primers is a 5' tail and then the
+bases of the segment at that end.
+
+The bases under a primer come from the primer, not from the segment: in
+particular the R of Uni12 is A or G at random in each read, whatever
+the segment has.
 
 Internal priming: in the HA segment (the record with "segment 4" in its
-header), the position most similar to the Uni12 primer (fewest
-mismatches, without gaps; found in the sequence, not chosen) is used as
-an internal priming site: a share of the HA reads start there
-with the bases of the primer, which replace those of the template.
+header; "segment 4" is the HA of both types), the position most similar
+to the primer of the left end (fewest mismatches, without gaps; found
+in the sequence, not chosen) is used as an internal priming site: a
+share of the HA reads start there with the bases of the primer, which
+replace those of the template.
 
 With --barcodes, each amplicon gets the native barcoding adapter of
 Oxford Nanopore (flank, barcode, flank: sequences of Dorado) of one of
@@ -35,8 +45,11 @@ Outputs, in <outdir>:
                    dimer, broken, joined), orientation, the origin of each of
                    its bases (a string as long as the read: f flank,
                    including the barcoding adapters,
-                   t primer tail, p primer bases at a terminus, i primer
-                   bases at the internal site, T template), the
+                   t primer tail, p primer bases at a terminus which
+                   are the sequence of the segment there, i primer
+                   bases which are not (at the internal priming site,
+                   or of a primer of other segments, see
+                   --wrong-pair-share), T template), the
                    barcode (or none), and the number of amplicons in
                    the read (2 if joined)
   genome.fasta     the truth (a copy of the input genome)
@@ -68,6 +81,40 @@ import re
 UNI12 = "AGCRAAAGCAGG"
 MBT_TAIL = "ACGCGTGATC"
 UNI13 = "AGTAGAAACAAGG"
+
+# The primers of each segment, by type of influenza: the primer of the
+# left end of an amplicon and the primer of its right end, each as it is
+# ordered (5' -> 3'), with the length of its 5' tail (the rest is the
+# sequence of the segment at that end). They are the primers built into
+# flucut, see src/primers.h.
+#
+# Influenza A has one pair for every segment; the pairs of influenza B
+# (the IBV-GA2 cocktail) each serve one or two segments, and the
+# segments are numbered in the numbering of their type (influenza B
+# numbers PB1 1 and PB2 2). The M segment of influenza B has two
+# primers of the left end in the cocktail; the first is used here.
+PRIMERS = {
+  "a": {n: ((UNI12, 0), (MBT_TAIL + UNI13, len(MBT_TAIL)))
+        for n in range(1, 9)},
+  "b": {
+      1: (("GGGGGGAGCAGAAGCGGAGC", 6),
+          ("CCGGGTTATTAGTAGAAACACGAGC", 10)),       # PB1
+      2: (("GGGGGGAGCAGAAGCGGAGC", 6),
+          ("CCGGGTTATTAGTAGAAACACGAGC", 10)),       # PB2
+      3: (("GGGGGGAGCAGAAGCGGTGC", 6),
+          ("CCGGGTTATTAGTAGAAACACGTGC", 10)),       # PA
+      4: (("GGGGGGAGCAGAAGCAGAGC", 6),
+          ("CCGGGTTATTAGTAGTAACAAGAGC", 10)),       # HA
+      5: (("GGGGGGAGCAGAAGCACAGC", 6),
+          ("CCGGGTTATTAGTAGAAACAACAGC", 10)),       # NP
+      6: (("GGGGGGAGCAGAAGCAGAGC", 6),
+          ("CCGGGTTATTAGTAGTAACAAGAGC", 10)),       # NA
+      7: (("GGGGGGAGCAGAAGCACGCACTT", 6),
+          ("CCGGGTTATTAGTAGAAACAACGCACTT", 10)),    # M
+      8: (("GGGGGGAGCAGAAGCAGAGGATT", 6),
+          ("CCGGGTTATTAGTAGTAACAAGAGGATT", 10)),    # NS
+  },
+}
 # the native barcoding adapters of Oxford Nanopore (flank, barcode,
 # flank), as defined in Dorado (utils/barcode_kits.cpp, commit e72f149,
 # quoted in src/kits/kits.rs of Barbell 0.3.3): NB01 to NB04
@@ -148,22 +195,54 @@ def add_errors(seq, labels, rate, rng):
   return "".join(out), "".join(out_labels)
 
 
-def amplicon(name, seq, is_ha, site, internal_share, rc13, rng):
+def pair_of(primers, number):
+  """The primers of a segment, as (left, left_labels, right,
+  right_labels, left_segment_len, right_segment_len): the left primer as
+  it starts a read of the plus strand, the right one as it ends it (its
+  reverse complement), each with the origin of each of its bases (t
+  tail, p the sequence of the segment)."""
+  (left, left_tail), (right, right_tail) = primers[number]
+  left_labels = "t" * left_tail + "p" * (len(left) - left_tail)
+  # the right primer as it is found at the end of a read: its tail is
+  # then at the end, its segment bases at the start
+  right_labels = "p" * (len(right) - right_tail) + "t" * right_tail
+  return (left, left_labels, revcomp(right), right_labels,
+          len(left) - left_tail, len(right) - right_tail)
+
+
+def amplicon(name, seq, is_ha, site, internal_share, pair, rng,
+             wrong_pair=None, wrong_pair_share=0.0):
   """One amplicon of the segment <seq>, as (sequence, labels, kind): full,
-  or started at the internal site <site> (a share of those of HA), or a
-  primer dimer; possibly with a start or an end inside a primer, or broken
-  in the middle."""
-  rc13_labels = "p" * len(UNI13) + "t" * len(MBT_TAIL)
-  p12 = resolve(UNI12, rng)
+  or started at the internal site <site> (a share of those of HA), or
+  primed at the segment terminus by the pair of other segments
+  (<wrong_pair>, a share), or a primer dimer; possibly with a start or
+  an end inside a primer, or broken in the middle."""
+  left, left_primer_labels, rc13, rc13_labels, left_len, right_len = pair
+  p12 = resolve(left, rng)
   kind = "full"
   r = rng.random()
+  # (the share of the amplicons primed by the pair of other segments is
+  # drawn only where there is one, so that a simulation without them
+  # draws exactly the numbers it drew before)
+  wrong = wrong_pair_share > 0 and wrong_pair is not None and \
+      rng.random() < wrong_pair_share
   if is_ha and r < internal_share:
     kind = "internal"
-    body = seq[site + len(UNI12):len(seq) - len(UNI13)]
+    body = seq[site + left_len:len(seq) - right_len]
     left_labels = "i" * len(p12)
+  elif wrong:
+    # the amplicon began at the terminus of this segment, but was
+    # primed by the pair of other segments: the bases of that primer
+    # are not the sequence of this segment there
+    other_left, _, other_rc13, _, _, _ = wrong_pair
+    kind = "wrong_pair"
+    p12 = resolve(other_left, rng)
+    body = seq[left_len:len(seq) - right_len]
+    left_labels = "i" * len(p12)
+    rc13, rc13_labels = other_rc13, "i" * len(other_rc13)
   else:
-    body = seq[len(UNI12):len(seq) - len(UNI13)]
-    left_labels = "p" * len(p12)
+    body = seq[left_len:len(seq) - right_len]
+    left_labels = left_primer_labels
     if rng.random() < 0.01:
       kind = "dimer"
       body = ""
@@ -189,9 +268,13 @@ def amplicon(name, seq, is_ha, site, internal_share, rc13, rng):
 
 def main():
   parser = argparse.ArgumentParser(
-      description="Simulate Uni12/Uni13 amplicon reads with a truth.")
+      description="Simulate amplicon reads of influenza with a truth.")
   parser.add_argument("genome")
   parser.add_argument("outdir")
+  parser.add_argument(
+      "--virus", default="a", choices=sorted(PRIMERS),
+      help="the type of influenza the genome is, which chooses the "
+           "primers of each segment (default: a)")
   parser.add_argument("--reads-per-segment", type=int, default=400)
   parser.add_argument(
       "--internal-share", type=float, default=0.6,
@@ -225,6 +308,13 @@ def main():
       help="share of the reads which are two amplicons joined end to end, "
            "the second one of any segment (default 0: none)")
   parser.add_argument(
+      "--wrong-pair-share", type=float, default=0.0,
+      help="share of the amplicons primed, at the terminus of their "
+           "segment, by the primer pair of other segments (influenza B, "
+           "whose primers are not the same in every segment): their "
+           "primer bases are not the sequence of the segment there and "
+           "must all be removed (default 0: none)")
+  parser.add_argument(
       "--read-prefix", default="",
       help="a prefix of the read names (default: none)")
   args = parser.parse_args()
@@ -248,11 +338,21 @@ def main():
     raise SystemExit("one HA record (\"segment 4\" in its header) is "
                      "needed in the genome")
   ha_name, ha_seq = ha[0]
-  dist, site = best_site(UNI12, ha_seq, 50, args.first_site)
+  primers = PRIMERS[args.virus]
+  missing = [n for n in sorted(set(numbers.values())) if n not in primers]
+  if missing:
+    raise SystemExit("no primers of influenza %s for segment %s"
+                     % (args.virus.upper(), missing[0]))
+  # the internal priming site: the position of the HA most similar to
+  # the primer of its left end, without its tail
+  ha_left, ha_left_tail = primers[4][0]
+  ha_primer = ha_left[ha_left_tail:]
+  dist, site = best_site(ha_primer, ha_seq, 50, args.first_site)
   with open(os.path.join(args.outdir, "site.tsv"), "w") as f:
     f.write("segment\tstart\treplaced\tprimer\tmismatches\n")
     f.write("%s\t%d\t%s\t%s\t%d\n"
-            % (ha_name, site, ha_seq[site:site + len(UNI12)], UNI12, dist))
+            % (ha_name, site, ha_seq[site:site + len(ha_primer)],
+               ha_primer, dist))
   with open(os.path.join(args.outdir, "genome.fasta"), "w") as f:
     for _, seq, header in genome:
       f.write(">%s\n%s\n" % (header, seq))
@@ -262,21 +362,44 @@ def main():
       for b in range(args.barcodes):
         f.write(">NB%02d\n%s\n" % (b + 1,
                                     NB_FRONT + NB_BARCODES[b] + NB_REAR))
-  rc13 = revcomp(MBT_TAIL + UNI13)
+  # (the primers of influenza A are the same for every segment, so a
+  # record whose header does not number its segment can still be
+  # simulated; those of influenza B cannot)
+  pairs = {}
+  for name, _ in segments:
+    number = numbers.get(name)
+    if number is None:
+      if args.virus != "a":
+        raise SystemExit("the header of %s does not say which segment it "
+                         "is, which the primers of influenza %s need"
+                         % (name, args.virus.upper()))
+      number = 1
+    pairs[name] = pair_of(primers, number)
+    numbers.setdefault(name, number)
+  # for --wrong-pair-share: for each segment, the pair of a segment
+  # whose primers differ from its own (none where every pair is the
+  # same, as in influenza A)
+  wrong_pairs = {}
+  for name, _ in segments:
+    other = next((p for n, p in pairs.items()
+                  if p[0] != pairs[name][0]), None)
+    if other is not None:
+      wrong_pairs[name] = other
   records = []
   n = 0
   for name, seq in segments:
     for k in range(segment_reads.get(numbers.get(name),
                                      args.reads_per_segment)):
-      amp, labels, kind = amplicon(name, seq, name == ha_name, site,
-                                   args.internal_share, rc13, rng)
+      amp, labels, kind = amplicon(
+          name, seq, name == ha_name, site, args.internal_share,
+          pairs[name], rng, wrong_pairs.get(name), args.wrong_pair_share)
       n_amplicons = 1
       if args.joined_share > 0 and rng.random() < args.joined_share:
         # a second amplicon, of any segment, joined to the first one: each
         # in its own orientation, 0 to 20 other bases between them
         other, other_seq = rng.choice(segments)
-        amp2, labels2, _ = amplicon(other, other_seq, False, site, 0.0, rc13,
-                                    rng)
+        amp2, labels2, _ = amplicon(other, other_seq, False, site, 0.0,
+                                    pairs[other], rng)
         if rng.random() < 0.5:
           amp, labels = revcomp(amp), labels[::-1]
         if rng.random() < 0.5:

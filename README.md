@@ -8,21 +8,23 @@
 
 # flucut
 
-Primer trimming for influenza A whole-genome sequencing.
+Primer trimming for influenza whole-genome sequencing.
 
-flucut removes the primer-derived bases from the reads of the influenza A
-multisegment RT-PCR with the universal Uni12/Uni13 primers, before the
-assembly of the segments (e.g. with IRMA). It is not specific to a
-sequencing platform: the error rates are parameters (the defaults are
-those of Oxford Nanopore reads), and Illumina reads are handled as well.
+flucut removes the primer-derived bases from the reads of the influenza
+multisegment RT-PCR, before the assembly of the segments (e.g. with
+IRMA): the universal Uni12/Uni13 primers for influenza A, the IBV-GA2
+cocktail for influenza B. It is not specific to a sequencing platform:
+the error rates are parameters (the defaults are those of Oxford
+Nanopore reads), and Illumina reads are handled as well.
 
 ## Why
 
 The universal primers bind the conserved termini of the segments, which
-are the same in all eight segments and in all subtypes. The bases of a
-read which lie under a primer therefore come from the primer and not
-from the template: a difference between the template and the primer at
-such a position is overwritten, and a variant seen there is an artefact.
+in influenza A are the same in all eight segments and in all subtypes.
+The bases of a read which lie under a primer therefore come from the
+primer and not from the template: a difference between the template and
+the primer at such a position is overwritten, and a variant seen there
+is an artefact.
 
 The Uni12 primer is short: used without a tail it is only the twelve
 bases of the conserved terminus, with a degenerate position. A sequence
@@ -39,9 +41,9 @@ exactly or with one mismatch), so the trimming has to be done before it.
 
 ## What it does
 
-- finds the Uni12/Uni13 primers at both ends of a read and in both
-  orientations, whole or partial (a read can begin inside a primer),
-  with errors (the defaults are those of Nanopore reads);
+- finds the primers at both ends of a read and in both orientations,
+  whole or partial (a read can begin inside a primer), with errors (the
+  defaults are those of Nanopore reads);
 - removes, by position and not by difference, every primer-derived base
   (the default): this removes internal artefacts as well, as
   the primer bases of an internally primed read are at its end, like
@@ -54,8 +56,9 @@ exactly or with one mismatch), so the trimming has to be done before it.
   segments: the bases after the primer of each read are located in them,
   and a read which starts at an interior position of a segment (internally
   primed) loses its whole primer, the others only the tail. By default the
-  references are a **built-in flu A set** (complete segments of several
-  subtypes), downloaded from NCBI on first use and cached; `-r <file>`
+  references are a **built-in set** (complete segments of several
+  influenza A subtypes and of influenza B), downloaded from NCBI on
+  first use and cached; `-r <file>`
   uses your own instead, and `-r off` turns references off (every
   primer-derived base removed). With several references of a segment
   (e.g. of several subtypes), each barcode is classified against the
@@ -81,10 +84,39 @@ The conserved termini and the primers built into flucut are those of the
 publications, quoted and not derived; each sequence is documented with
 its source in `src/primers.h`. The built-in schemes are:
 
-- `uni12-mbt13` (the default): the untailed degenerate Uni12 primer and
-  the tailed Uni13 primer, the combination used in practice;
-- `mbt`: the tailed primers of the multisegment RT-PCR;
-- `uni`: the conserved termini used as primers, without a tail.
+- `uni12-mbt13+ibv-ga2` (the default): the primers of both types
+  together, for a run which may hold samples of either;
+- `uni12-mbt13`: the untailed degenerate Uni12 primer and the tailed
+  Uni13 primer, the combination used in practice for influenza A;
+- `ibv-ga2`: the universal IBV-GA2 primer cocktail of influenza B
+  (Zhou et al. 2014), six pairs for the eight segments;
+- `mbt`: the tailed primers of the multisegment RT-PCR of influenza A;
+- `uni`: the conserved termini of influenza A used as primers, without
+  a tail.
+
+## Influenza A and influenza B
+
+`--virus a|b|both` says which types a run may hold (`both` by default).
+It chooses the primers searched and the references used; the type of
+each sample is then read from the references its reads were located in,
+and its reads are trimmed with the primers of that type alone, so a run
+of influenza A costs the same as before.
+
+Influenza B differs in three ways which flucut handles:
+
+- its conserved termini are shorter (9 and 10 bases), too short for a
+  specific primer, so its primers reach five or eight bases further in,
+  into bases which are shared by a few segments at a time. Each primer
+  therefore binds only some segments, and its bases are kept at an end
+  only when the read was located in one of them; at an end of any other
+  segment they are the primer's own sequence and the whole primer is
+  removed;
+- it numbers PB1 1 and PB2 2, the other way round from influenza A.
+  flucut reads and writes the numbers of the type; the gene names (`HA`,
+  `PB1`, ...) mean the same in both;
+- it has no subtypes. A sample of influenza B is reported as `B`, and
+  as `B/Victoria` or `B/Yamagata` only where the description of the
+  reference chosen says which lineage it is (most records do not).
 
 ## Usage
 
@@ -308,12 +340,17 @@ the included one).
 ## State
 
 Early development. Implemented and tested: the built-in primers and
-schemes, the search of the primers (degenerate bases, partial primers
-at the read ends), the trimming of a read, the classification of the
-read ends against references, and the command line program with its
-gzipped FASTQ output, summary table, HTML report and JSON summary, the
-groups of input files (MinKNOW barcode directories), the worker
-threads, the adapter search, `-e auto` and the live mode.
+schemes of influenza A and of influenza B, the search of the primers
+(degenerate bases, partial primers at the read ends), the trimming of a
+read, the classification of the read ends against references, and the
+command line program with its gzipped FASTQ output, summary table, HTML
+report and JSON summary, the groups of input files (MinKNOW barcode
+directories), the worker threads, the adapter search, `-e auto` and the
+live mode.
+
+Influenza B is implemented and tested on simulated reads and on the
+reference records of the eight segments; it has not yet been run on a
+sequenced influenza B sample.
 
 ## License
 

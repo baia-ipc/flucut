@@ -159,11 +159,12 @@ static void trim_group(const options_t *opts, const trimmer_config_t *config,
      file), so the other references of a segment, e.g. of other
      subtypes, do not match it spuriously */
   if (g->n_files > 0) {
+    /* the type of the sample, from the references its reads were
+       located in: its reads are trimmed with the primers of that type
+       alone */
+    virus_set_t types;
     bool *allowed = auto_settings_choose_references(config, g->files[0],
-                                                    logger);
-    /* the type of the sample, from the references chosen for it: its
-       reads are trimmed with the primers of that type alone */
-    virus_set_t types = auto_settings_reference_types(config, allowed);
+                                                    &types, logger);
     log_sample_virus(types, g->name, logger);
     for (size_t t = 0; t < opts->threads; t++) {
       worker_restrict_references(workers + t, allowed);
