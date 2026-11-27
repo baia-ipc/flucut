@@ -196,6 +196,7 @@ static void write_cleavage_site(json_writer_t *w, const report_t *r,
   json_count_member(w, "reads", s.reads);
   json_count_member(w, "distinct_motifs", s.distinct);
   json_count_member(w, "distinct_sites", s.distinct_proteins);
+  json_count_member(w, "supported_sites", s.supported_proteins);
   json_member(w, "motif");
   if (!s.found) {
     fputs("null", f);

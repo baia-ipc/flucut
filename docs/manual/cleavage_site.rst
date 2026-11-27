@@ -147,6 +147,17 @@ Two numbers beside the majority are often more useful than it:
   does not read like the HA reference chosen for that sample, flucut
   says so and never calls the result firm.
 
+How many sites the reads hold is the number of **supported sites**: the
+residues carried by at least 10% of the reads (and at least 2 reads).
+The number of distinct residues seen in the reads (``distinct_sites`` in
+the JSON summary) and of distinct spellings (``distinct_motifs``) is not
+that: a read with an error has a reading of its own, so both count the
+errors of single reads and are large in nearly every sample. Measured on
+the 104 Nanopore samples below, 10% leaves one site in 89 samples and
+two or three in 13, most of them holding a second haemagglutinin; at 5%
+or less the errors that recur in the same sample, one residue wrong in
+5 to 13% of the reads, are counted too.
+
 Where it is reported
 --------------------
 
@@ -216,6 +227,7 @@ Example
 
    reads it was read from        6,977 of 9,588 searched
    reads with these residues     4,524 (64.8%)
+   sites in at least 10% of the reads  1
    reads with a multibasic site  92.3%
    reads agreeing beside the site 87.7% of 13,410
    chemistry                     R10
@@ -232,13 +244,14 @@ A sample holding the reads of a second haemagglutinin instead reads
 
    reads it was read from        65 of 950 searched
    reads with these residues     41 (63.1%)
+   sites in at least 10% of the reads  2
    reads with a multibasic site  30.8%
    reads agreeing beside the site 61.7% of 128
    chemistry                     R10
    fusion peptide in the reads   GLFGAIAG (96.9% of 65)
    reference: site and peptide   LREKRRKR, GLFGAIAG
 
-   the 5 sites in these reads
+   the 5 most frequent sites in these reads
      NVPSRSSR  41  63.1%  monobasic
      QKERRRKR   9  13.8%  multibasic
      LRERRRKR   3   4.6%  multibasic

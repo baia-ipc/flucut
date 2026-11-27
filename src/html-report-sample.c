@@ -339,6 +339,11 @@ static void write_cleavage_site(html_writer_t *w, const report_t *r,
             percent_text(site.motif_reads, site.reads).s);
   html_close(w);
   markup_open_row(w);
+  markup_td(w, "sites in at least %d%% of the reads",
+            (int)(CLEAVAGE_MIN_SITE_SHARE * 100.0 + 0.5));
+  markup_td(w, "%s", html_num(site.supported_proteins).s);
+  html_close(w);
+  markup_open_row(w);
   markup_td(w, "reads with a multibasic site");
   markup_td(w, "%s", percent_text(
       (size_t)(site.multibasic_share * (double)site.reads + 0.5),
@@ -376,9 +381,9 @@ static void write_cleavage_site(html_writer_t *w, const report_t *r,
   }
   html_close(w);   /* table */
   if (site.n_top > 1) {
-    char summary[80];
-    snprintf(summary, sizeof(summary), "the %zu sites in these reads",
-             site.n_top);
+    char summary[96];
+    snprintf(summary, sizeof(summary),
+             "the %zu most frequent sites in these reads", site.n_top);
     markup_details_start(w, summary);
     html_open(w, "table");
     markup_header_row(w, "site", "reads", "% of reads", "reads as", NULL);

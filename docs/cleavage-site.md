@@ -124,6 +124,14 @@ more useful than it:
   shares, and when the majority does not read like the HA reference
   chosen for that sample, flucut says so and never calls the result
   firm.
+- the number of **supported sites**: the residues carried by at least
+  10% of the reads and at least 2 reads (`CLEAVAGE_MIN_SITE_SHARE` and
+  `CLEAVAGE_MIN_SITE_READS`). It is the number to read for "how many
+  haemagglutinins": a read with an error has a reading of its own, so the
+  number of distinct residues seen (`distinct_sites` in the JSON) and of
+  distinct spellings (`distinct_motifs`) counts the errors of single
+  reads, and is above 1 in nearly every sample (103 of 104 here, median
+  80).
 
 ## Where the numbers come from
 
@@ -161,6 +169,26 @@ the site, so dividing one by the other cancels the signal. In the R10
 samples the ratio is actually *higher* in the frameshifted ones (0.92)
 than in the readable ones (0.77). The two measurements are worth more
 apart than as a quotient.
+
+**The share for a supported site.** Over the same 104 samples, the number
+of sites carried by at least 2 reads and a share of the reads is:
+
+| share | 0 | 1 | 2 | 3 | 4 | 5 or more |
+|---|---|---|---|---|---|---|
+| 1% | 1 | 1 | 7 | 6 | 3 | 86 |
+| 5% | 1 | 30 | 53 | 17 | 3 | 0 |
+| 10% | 2 | 89 | 11 | 2 | 0 | 0 |
+
+At 1% almost every sample has the five sites listed, and at 5% seven in
+ten have more than one: errors of one residue (the first residue of the
+site wrong, say) recur in the same sample at 5 to 13% of the reads. At
+10% the 13 samples with more than one site are, for 12 of them, the ones
+whose second site is the monobasic `NVPSRSSR` beside a multibasic site,
+among them 6 of the 7 samples whose majority does not read like the
+reference; the other one has a second site that is an error recurring
+in several samples (11% of its reads). The rule is a reading aid: it
+picks out the samples with a second site well enough to look at them,
+not to prove a second virus; the sites and their reads are in `sites`.
 
 The thresholds remain the numbers of one laboratory's runs. They are a
 starting point: a laboratory whose runs differ should look at the

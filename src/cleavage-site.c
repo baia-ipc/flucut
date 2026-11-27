@@ -350,6 +350,17 @@ static size_t reading_of(const char *aa) {
   return basic_run(aa) >= 4 ? CLEAVAGE_MULTIBASIC : CLEAVAGE_MONOBASIC;
 }
 
+/* the readings carried by enough of the reads to be more than errors */
+static size_t supported_readings(const cleavage_motif_t *proteins, size_t n,
+    size_t reads) {
+  size_t supported = 0;
+  for (size_t i = 0; i < n; i++)
+    if (proteins[i].reads >= CLEAVAGE_MIN_SITE_READS &&
+        (double)proteins[i].reads >= CLEAVAGE_MIN_SITE_SHARE * (double)reads)
+      supported++;
+  return supported;
+}
+
 void cleavage_result_of(const cleavage_counts_t *counts, size_t chemistry,
     cleavage_result_t *out) {
   assert(counts != NULL);
@@ -400,6 +411,7 @@ void cleavage_result_of(const cleavage_counts_t *counts, size_t chemistry,
     }
   }
   out->distinct_proteins = n;
+  out->supported_proteins = supported_readings(proteins, n, out->reads);
   /* the most frequent ones, most frequent first; among equally frequent
      residues the first in alphabetical order, so that the result does
      not depend on the order of the reads */
@@ -557,6 +569,8 @@ static void test_counts(void) {
   test_eq_size(r.motif_reads, 90);
   test_eq_size(r.distinct, 3);
   test_eq_size(r.distinct_proteins, 2);
+  /* both readings are carried by at least a tenth of the reads */
+  test_eq_size(r.supported_proteins, 2);
   test_eq_size(r.basic, 5);
   test_eq_size(r.reading, CLEAVAGE_MULTIBASIC);
   test_eq_size(r.verdict, CLEAVAGE_FIRM);
@@ -623,6 +637,46 @@ static void test_counts(void) {
   test_eq_size(c.n_motifs, 4);
   cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
   test_eq_size(r.motif_reads, 95);
+}
+
+/* a reading of the site carried by many reads and by a share of them,
+   and readings carried by one read each: the raw counts include the
+   single reads, the count of supported readings does not */
+static void test_supported_readings(void) {
+  cleavage_counts_t c;
+  cleavage_counts_clear(&c);
+  add_n(&c, HPAI_NT, 60);
+  add_n(&c, LPAI_NT, 30);
+  /* ten reads with a base of their own changed in the first 10 codon
+     positions after the first: ten spellings, one read each */
+  char err[CLEAVAGE_SITE_NT + 1];
+  for (size_t i = 0; i < 10; i++) {
+    memcpy(err, HPAI_NT, sizeof(err));
+    err[3 + i] = err[3 + i] == 'T' ? 'C' : 'T';
+    add_n(&c, err, 1);
+  }
+  cleavage_result_t r;
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_size(r.reads, 100);
+  test_eq_size(r.distinct, 12);
+  /* the readings of the single reads are counted here ... */
+  test_assert(r.distinct_proteins > 3);
+  /* ... and not here: the two readings of the sample */
+  test_eq_size(r.supported_proteins, 2);
+  test_eq_str(r.top[0].aa, "QRERRRKR");
+  test_eq_size(r.top[1].reads, 30);
+
+  /* a reading carried by two reads, below the share, is not supported;
+     at the share it is */
+  cleavage_counts_t d;
+  cleavage_counts_clear(&d);
+  add_n(&d, HPAI_NT, 98);
+  add_n(&d, LPAI_NT, 2);
+  cleavage_result_of(&d, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_size(r.supported_proteins, 1);
+  add_n(&d, LPAI_NT, 10);
+  cleavage_result_of(&d, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_size(r.supported_proteins, 2);
 }
 
 /* the control windows: reads which agree at the site but nowhere else
@@ -796,6 +850,7 @@ static void test_chemistry(void) {
 
 void cleavage_site_test(void) {
   test_counts();
+  test_supported_readings();
   test_control();
   test_fusion();
   test_readings();

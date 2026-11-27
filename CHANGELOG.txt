@@ -263,3 +263,8 @@
   chemistry); a site which is not firm raises a flag of the sample,
   carrying the reason, in the run overview and in the JSON summary.
   See docs/cleavage-site.md
+- cleavage site: supported_sites (JSON) counts the readings of the site
+  carried by at least 10% of the reads and at least 2 reads, and is
+  shown in the HTML report; distinct_sites and distinct_motifs count the
+  readings and spellings of single misread reads too (above 1 in 103 of
+  104 samples) and are documented as such

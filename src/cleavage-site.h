@@ -167,6 +167,24 @@ enum { CLEAVAGE_MULTIBASIC,  /* a run of basic residues (R, K) */
 /* the motifs listed in the reports, most frequent first */
 #define CLEAVAGE_TOP_MOTIFS 5
 
+/*
+   What the reads must reach for a reading of the site (the residues) to
+   count as a site the sample holds rather than an error of a read: the
+   share of the reads that carry it, and at least this many reads. Every
+   misread read has a reading of its own, so the number of readings seen
+   is mostly the number of errors; the readings above this share are the
+   ones worth looking at.
+
+   Chosen on 104 Nanopore samples (docs/cleavage-site.md). Errors of one
+   residue recur in the same samples at 5 to 13% of the reads, so a
+   share of 1% or 5% still counts them (86 and 20 of the 104 samples
+   have more than 4 and more than 2 readings), while at 10% most samples
+   have one reading and the others are mostly those holding a second
+   haemagglutinin.
+*/
+#define CLEAVAGE_MIN_SITE_SHARE 0.10
+#define CLEAVAGE_MIN_SITE_READS 2
+
 /* how far the motif reported can be trusted */
 enum { CLEAVAGE_FIRM,       /* enough reads agree */
        CLEAVAGE_CONFIRM,    /* the motif is the majority, but too few of
@@ -299,8 +317,14 @@ typedef struct {
   bool found;                      /* false: no read gave the site */
   size_t searched;
   size_t reads;                    /* reads the site was read from */
-  size_t distinct;                 /* distinct spellings among them */
-  size_t distinct_proteins;        /* distinct residues among them */
+  /* distinct spellings, and distinct residues, among them: both include
+     the readings of single misread reads, so they say how noisy the
+     reads are, not how many haemagglutinins they hold */
+  size_t distinct;
+  size_t distinct_proteins;
+  /* the residues carried by at least CLEAVAGE_MIN_SITE_SHARE of the
+     reads and CLEAVAGE_MIN_SITE_READS reads: the sites the sample holds */
+  size_t supported_proteins;
   char aa[CLEAVAGE_SITE_AA + 1];   /* the most frequent residues */
   char nt[CLEAVAGE_SITE_NT + 1];   /* their most frequent spelling */
   size_t motif_reads;              /* reads carrying those residues */
