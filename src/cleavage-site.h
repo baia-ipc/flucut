@@ -26,8 +26,9 @@
    ---------------------
 
    HA2 begins directly after the cleavage site with the fusion peptide
-   GLFGAIAG, which is the same in every influenza A haemagglutinin and
-   lies outside the low-complexity stretch. Those bases of the HA
+   (GLFGAIAG and a few variants, see CLEAVAGE_FUSION_PEPTIDE), which
+   every haemagglutinin has and which lies outside the low-complexity
+   stretch. Those bases of the HA
    reference are the anchor (anchor-site.h); the cleavage site is the
    CLEAVAGE_SITE_NT bases of the read immediately before it, read back
    in whole codons from the first base of HA2, so the frame is set by
@@ -63,9 +64,18 @@
 #include "logger.h"
 #include "reference.h"
 
-/* the start of HA2: the peptide which anchors the site, and the bases
-   of the anchor taken from the reference (GLFGAIAG) */
-#define CLEAVAGE_FUSION_PEPTIDE "GLFGA"
+/*
+   The start of HA2, which anchors the site, and the bases of the anchor
+   taken from the reference.
+
+   The fusion peptide is GLFGAIAG in most haemagglutinins, GIFGAIAG in
+   the H3 of horses and pigs, GLLGAIAG in some others and GFFGAIAG in
+   influenza B, so the two residues which vary are left free. The
+   pattern is found exactly once in each of the 89 HA references of the
+   reference sets flucut ships, of every subtype H1 to H16 and of
+   influenza B.
+*/
+#define CLEAVAGE_FUSION_PEPTIDE "G..GAIAG"
 #define CLEAVAGE_ANCHOR_NT 24
 
 /* the cleavage site proper: the 8 codons before HA2 */

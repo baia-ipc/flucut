@@ -30,11 +30,16 @@ size_t codons_translate(const char *seq, size_t len, char *out);
 
 /*
    The 0-based position in <seq>, of <len> bases, of the first base of
-   the first codon of <peptide>: the sequence is translated in its three
-   frames and the first frame in which the peptide occurs gives the
-   position. -1 if it occurs in none.
+   the first codon which matches <pattern>: the sequence is translated
+   in its three frames and the first frame in which the pattern occurs
+   gives the position. -1 if it occurs in none.
+
+   A '.' in the pattern matches any residue, so that a peptide which is
+   conserved at some of its positions only can still be looked for
+   (e.g. "G..GAIAG", the start of HA2 of every influenza haemagglutinin,
+   whose second and third residues differ between lineages).
 */
-long codons_find_peptide(const char *seq, size_t len, const char *peptide);
+long codons_find_peptide(const char *seq, size_t len, const char *pattern);
 
 /* Unit tests */
 void codons_test(void);

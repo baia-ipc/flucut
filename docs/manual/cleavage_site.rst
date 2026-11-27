@@ -28,10 +28,15 @@ consensus that follows can be trusted there.
 How flucut reads it
 -------------------
 
-HA2 begins directly after the cleavage site with the fusion peptide
-``GLFGAIAG``, which is the same in every influenza A haemagglutinin and
-lies outside the low-complexity stretch. flucut takes those 24 bases of
-the HA reference as an *anchor*, finds the anchor inside each read (in
+HA2 begins directly after the cleavage site with the fusion peptide,
+which every haemagglutinin has and which lies outside the
+low-complexity stretch. It reads ``GLFGAIAG`` in most of them,
+``GIFGAIAG`` in the H3 of horses and pigs, ``GLLGAIAG`` in some others
+and ``GFFGAIAG`` in influenza B, so flucut looks for the pattern
+``G..GAIAG``, leaving the two residues which vary free. The pattern
+occurs exactly once in each of the 89 HA references of the reference
+sets flucut ships, of every subtype H1 to H16 and of influenza B.
+flucut takes those 24 bases of the HA reference as an *anchor*, finds the anchor inside each read (in
 both orientations, with the error allowance of the probes), and reads
 the 24 bases immediately before the match, as the read carries them.
 
@@ -87,6 +92,15 @@ The chemistry is read from the basecalling model in the titles of the
 reads (``dna_r10.4.1_…``, ``dna_r9.4.1_…``). When the titles do not say
 it, flucut uses the R10 number and reports the chemistry as unknown.
 
+The two Nanopore numbers were measured on 104 samples of one laboratory
+and one protocol; the Illumina one follows from the error rate of an
+Illumina read rather than from a run, and is deliberately permissive.
+They are a starting point, not a constant: a laboratory whose runs
+differ should look at the support its own clean samples reach before
+trusting the line between ``firm`` and ``confirm``. Everything reported
+beside the verdict — the residues, the reads behind them, the support
+itself and the other sites found — does not depend on them.
+
 The verdict is one of
 
 ``firm``
@@ -137,6 +151,12 @@ segment and usually with a test in birds.
 It does not correct a consensus. A majority over reads which gain and
 lose bases in this stretch is itself biased towards losing them, so a
 site supported by few reads is a reason to confirm it, not an answer.
+
+It reads eight codons. That covers the basic run of every reference
+flucut ships, the longest of which is six residues, but an insert
+longer than that, as some highly pathogenic H7 carry, is shown only in
+part; the site still reads as multibasic, so only the residues printed
+are cut short.
 
 Example
 -------

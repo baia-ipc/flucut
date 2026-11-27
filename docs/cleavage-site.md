@@ -22,9 +22,14 @@ consensus that follows can be trusted there.
 
 ## Where it is read from
 
-HA2 begins directly after the cleavage site with the fusion peptide
-`GLFGAIAG`, which is the same in every influenza A haemagglutinin and
-lies outside the low-complexity stretch. flucut takes those 24 bases of
+HA2 begins directly after the cleavage site with the fusion peptide,
+which every haemagglutinin has and which lies outside the low-complexity
+stretch. It is `GLFGAIAG` in most of them, `GIFGAIAG` in the H3 of
+horses and pigs, `GLLGAIAG` in some others and `GFFGAIAG` in influenza
+B, so flucut looks for the pattern `G..GAIAG`, in which the two
+residues that vary are free. The pattern occurs exactly once in each of
+the 89 HA references of the reference sets flucut ships, of every
+subtype H1 to H16 and of influenza B. flucut takes those 24 bases of
 the HA reference as an **anchor**, finds the anchor inside each read
 (edlib, infix, both orientations, the same error allowance as the
 probes), and reads the 24 bases immediately before the match, as the
@@ -97,8 +102,11 @@ more useful than it:
 
 ## Where the numbers come from
 
-The support needed was measured on 104 Nanopore samples of avian H5N1,
-H5N2 and H9N2 (94 R10, 10 R9), with the majority taken as above:
+The two Nanopore numbers were measured; the Illumina one was not.
+
+The Nanopore numbers come from 104 samples of avian H5N1, H5N2 and
+H9N2 (94 R10, 10 R9) of one laboratory and one protocol, with the
+majority taken as above:
 
 | | R10 | R9 |
 |---|---|---|
@@ -113,6 +121,21 @@ differ at the site. The verdict above was **confirm** for 10 of them and
 **too few reads** for 2: none was called firm. Of the 94 R10 samples,
 68 were called firm.
 
+The Illumina number is **not** measured on a run: no Illumina data set
+of this kind was at hand. It follows from the error rate instead. An
+Illumina read is wrong at about one base in a thousand, so nearly every
+read spells the 24 bases correctly and a clean sample should agree far
+above 0.9; 0.60 is therefore deliberately permissive, and a sample which
+falls below it has something else wrong with it. Treat it as a bound to
+be replaced once measured, not as a calibrated threshold.
+
+Both of these are the numbers of one laboratory's runs. They are a
+starting point, not a constant of nature: a laboratory whose runs differ
+should look at the support its own clean samples reach before trusting
+the line between `firm` and `confirm`. What does not depend on them is
+everything reported beside the verdict — the residues, the reads behind
+them, the support itself and the other sites found.
+
 ## What it does not do
 
 - It does not assign a pathotype. A multibasic site is the sequence
@@ -125,6 +148,15 @@ differ at the site. The verdict above was **confirm** for 10 of them and
 - It does not tell apart the haemagglutinins of a mixed sample. It
   reports the sites it finds and their shares, and says when they
   disagree with the sample's own reference.
+- It reads 8 codons. That covers the basic run of every reference flucut
+  ships (the longest is 6 residues), but an insert longer than that, as
+  some highly pathogenic H7 carry, is shown only in part. The site still
+  reads as multibasic, so the verdict is unaffected; only the residues
+  printed are cut short.
+- `multibasic` here means the last residue is R or K and at least four
+  of the last six are: a reading aid, not the definition used by any
+  authority. Other work uses other rules, for example the pattern
+  `(R|K)[^RKH](R|K)`.
 
 ## Where it is reported
 

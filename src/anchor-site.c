@@ -130,7 +130,7 @@ bool anchor_bases_before(const anchor_t *self, const char *read,
 void anchor_site_test(void) {
   const char *ha = "ATGGAAAAA" SITE_NT FUSION_NT "TTTATAGAGGGA";
   anchor_t a;
-  test_assert(anchor_of_peptide(&a, 3, ha, strlen(ha), "GLFGA", 24));
+  test_assert(anchor_of_peptide(&a, 3, ha, strlen(ha), "G..GAIAG", 24));
   test_assert(a.found);
   test_eq_size(a.ref, 3);
   test_eq_long(a.ref_pos, 9 + (long)strlen(SITE_NT));
@@ -139,8 +139,8 @@ void anchor_site_test(void) {
   /* a peptide which is not there, and an anchor past the end */
   anchor_t b;
   test_assert(!anchor_of_peptide(&b, 0, ha, strlen(ha), "WWWWW", 24));
-  test_assert(!anchor_of_peptide(&b, 0, ha, strlen(ha), "GLFGA", 48));
-  test_assert(!anchor_of_peptide(&b, 0, ha, strlen(ha), "GLFGA", 0));
+  test_assert(!anchor_of_peptide(&b, 0, ha, strlen(ha), "G..GAIAG", 48));
+  test_assert(!anchor_of_peptide(&b, 0, ha, strlen(ha), "G..GAIAG", 0));
 
   char out[32];
   /* the read as the reference: the last 9 codons before HA2 */

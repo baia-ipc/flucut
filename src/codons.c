@@ -1,6 +1,7 @@
 /* (c) 2026 Giorgio Gonnella */
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
@@ -43,9 +44,18 @@ size_t codons_translate(const char *seq, size_t len, char *out) {
   return n;
 }
 
-long codons_find_peptide(const char *seq, size_t len, const char *peptide) {
-  assert(peptide != NULL);
-  if (seq == NULL || len < 3 || peptide[0] == '\0')
+/* whether <protein> begins with <pattern>, in which '.' is any residue */
+static bool matches(const char *protein, const char *pattern) {
+  for (size_t i = 0; pattern[i] != '\0'; i++)
+    if (protein[i] == '\0' ||
+        (pattern[i] != '.' && pattern[i] != protein[i]))
+      return false;
+  return true;
+}
+
+long codons_find_peptide(const char *seq, size_t len, const char *pattern) {
+  assert(pattern != NULL);
+  if (seq == NULL || len < 3 || pattern[0] == '\0')
     return -1;
   char *protein;
   XMALLOC(protein, len / 3 + 1);
@@ -53,10 +63,10 @@ long codons_find_peptide(const char *seq, size_t len, const char *peptide) {
   for (size_t frame = 0; frame < 3 && found < 0; frame++) {
     if (len <= frame)
       break;
-    codons_translate(seq + frame, len - frame, protein);
-    const char *hit = strstr(protein, peptide);
-    if (hit != NULL)
-      found = (long)frame + 3 * (long)(hit - protein);
+    size_t n = codons_translate(seq + frame, len - frame, protein);
+    for (size_t i = 0; i < n && found < 0; i++)
+      if (matches(protein + i, pattern))
+        found = (long)frame + 3 * (long)i;
   }
   free(protein);
   return found;
@@ -88,4 +98,19 @@ void codons_test(void) {
   test_eq_long(codons_find_peptide("AAGGACTGTTTGGGGCT", 17, "GLFGA"), 2);
   test_eq_long(codons_find_peptide("AAGGACTGTTTGGGGCT", 17, "GLFGAIAG"), -1);
   test_eq_long(codons_find_peptide(NULL, 0, "GLFGA"), -1);
+  test_eq_long(codons_find_peptide("GGACTGTTTGGGGCT", 15, ""), -1);
+  /* a '.' matches any residue: the start of HA2 is GLFGAIAG in most
+     haemagglutinins, GIFGAIAG in some H3, GLLGAIAG and, in influenza B,
+     GFFGAIAG */
+  const char *ha2 = "GGACTGTTTGGGGCTATAGCAGGC";       /* GLFGAIAG */
+  const char *h3 = "GGAATTTTTGGGGCTATAGCAGGC";        /* GIFGAIAG */
+  const char *flub = "GGATTTTTTGGGGCTATAGCAGGC";      /* GFFGAIAG */
+  test_eq_long(codons_find_peptide(ha2, 24, "G..GAIAG"), 0);
+  test_eq_long(codons_find_peptide(h3, 24, "G..GAIAG"), 0);
+  test_eq_long(codons_find_peptide(flub, 24, "G..GAIAG"), 0);
+  test_eq_long(codons_find_peptide(h3, 24, "GLFGAIAG"), -1);
+  /* the pattern must still fit entirely */
+  test_eq_long(codons_find_peptide(ha2, 21, "G..GAIAG"), -1);
+  /* a pattern of dots alone matches at the first codon */
+  test_eq_long(codons_find_peptide(ha2, 24, "..."), 0);
 }
