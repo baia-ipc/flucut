@@ -109,7 +109,7 @@ reads-b	KX058884.1	1850	6
       "segments_found": 1,
       "segments_complete": 0,
       "ends_not_located": 0.0870,
-      "flags": ["few_reads"],
+      "flags": ["few_reads", "cleavage_site"],
       "segments": [
         {"segment": 2, "gene": "PB2", "state": "missing"},
         {"segment": 1, "gene": "PB1", "state": "missing"},
@@ -203,7 +203,7 @@ reads-b	KX058884.1	1850	6
         "segments_found": 1,
         "segments_complete": 0,
         "ends_not_located": 0.0870,
-        "flags": ["few_reads"],
+        "flags": ["few_reads", "cleavage_site"],
         "segments": [
           {"segment": 2, "gene": "PB2", "state": "missing"},
           {"segment": 1, "gene": "PB1", "state": "missing"},

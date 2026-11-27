@@ -22,7 +22,9 @@ void json_sample_write(json_writer_t *w, const report_t *r,
   qc_summary_t qc;
   qc_flags_t flags;
   qc_summary(r->references, c, r->options->segment, &qc);
-  qc_flags(counter_reads(c), &qc, true, &flags);
+  cleavage_result_t site;
+  report_cleavage(r, c, &site);
+  qc_flags(counter_reads(c), &qc, true, &site, &flags);
   json_open_block(w, '{');
   json_member(w, "state");
   fprintf(f, "\"%s\"", states[qc.status]);

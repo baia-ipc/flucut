@@ -48,8 +48,28 @@ static void add_segments(qc_flags_t *out, const qc_summary_t *qc,
     add(out, key, "%s %s", text, what);
 }
 
+/* the cleavage site of the haemagglutinin, when the reads do not settle
+   it: the reason is what the reader needs, not the motif */
+static void add_cleavage(qc_flags_t *out, const cleavage_result_t *site) {
+  if (site == NULL || site->searched == 0)
+    return;
+  if (site->verdict == CLEAVAGE_TOO_FEW_READS)
+    add(out, "cleavage_site", "only %zu reads over the HA cleavage site",
+        site->reads);
+  else if (site->disagrees_with_reference)
+    add(out, "cleavage_site", "the reads over the HA cleavage site are "
+        "of more than one haemagglutinin");
+  else if (site->control_weak)
+    add(out, "cleavage_site", "the reads disagree at the HA cleavage "
+        "site and beside it (%.0f%% there)",
+        100 * site->control_support);
+  else if (site->verdict != CLEAVAGE_FIRM)
+    add(out, "cleavage_site", "%.0f%% of the reads agree on the HA "
+        "cleavage site", 100 * site->support);
+}
+
 void qc_flags(const counter_reads_t *s, const qc_summary_t *qc, bool refs,
-    qc_flags_t *out) {
+    const cleavage_result_t *site, qc_flags_t *out) {
   assert(s != NULL);
   assert(qc != NULL);
   assert(out != NULL);
@@ -72,6 +92,7 @@ void qc_flags(const counter_reads_t *s, const qc_summary_t *qc, bool refs,
                "of depth from reads with an internal deletion",
                deletion_share,
                QC_FLAGS_DELETION);
+  add_cleavage(out, site);
 }
 
 void qc_flags_test(void) {
@@ -84,15 +105,53 @@ void qc_flags_test(void) {
   s.reads_in = 5000;
   s.n_ends[2] = 5000;
   s.origin[COUNTER_LEFT][ORIGIN_TERMINAL] = 5000;
-  qc_flags(&s, &qc, true, &flags);
+  qc_flags(&s, &qc, true, NULL, &flags);
   test_eq_size(flags.n, 0);
   /* few reads, a quarter of them without a primer */
   s.reads_in = 400;
   s.n_ends[2] = 300;
   s.n_ends[0] = 100;
-  qc_flags(&s, &qc, false, &flags);
+  qc_flags(&s, &qc, false, NULL, &flags);
   test_eq_size(flags.n, 2);
   test_eq_str(flags.flags[0].text, "few reads (400)");
+  /* the cleavage site: flagged only when the reads do not settle it,
+     and with the reason */
+  cleavage_result_t site;
+  memset(&site, 0, sizeof(site));
+  s.reads_in = 5000;
+  s.n_ends[2] = 5000;
+  s.n_ends[0] = 0;
+  site.searched = 900;
+  site.reads = 600;
+  site.support = 0.7;
+  site.control_support = 0.9;
+  site.verdict = CLEAVAGE_FIRM;
+  qc_flags(&s, &qc, true, &site, &flags);
+  test_eq_size(flags.n, 0);
+  site.verdict = CLEAVAGE_CONFIRM;
+  site.support = 0.3;
+  qc_flags(&s, &qc, true, &site, &flags);
+  test_eq_size(flags.n, 1);
+  test_eq_str(flags.flags[0].key, "cleavage_site");
+  test_eq_str(flags.flags[0].text,
+              "30% of the reads agree on the HA cleavage site");
+  site.control_weak = true;
+  site.control_support = 0.42;
+  qc_flags(&s, &qc, true, &site, &flags);
+  test_eq_str(flags.flags[0].text, "the reads disagree at the HA cleavage "
+              "site and beside it (42% there)");
+  site.disagrees_with_reference = true;
+  qc_flags(&s, &qc, true, &site, &flags);
+  test_eq_str(flags.flags[0].text, "the reads over the HA cleavage site "
+              "are of more than one haemagglutinin");
+  site.verdict = CLEAVAGE_TOO_FEW_READS;
+  site.reads = 7;
+  qc_flags(&s, &qc, true, &site, &flags);
+  test_eq_str(flags.flags[0].text, "only 7 reads over the HA cleavage site");
+  /* nothing read, nothing said */
+  memset(&site, 0, sizeof(site));
+  qc_flags(&s, &qc, true, &site, &flags);
+  test_eq_size(flags.n, 0);
   test_eq_str(flags.flags[1].text, "no primer in 25% of the reads");
   /* the segments above the thresholds are listed in one flag */
   s.reads_in = 5000;
@@ -106,13 +165,13 @@ void qc_flags_test(void) {
   qc.segments[6].internal = 0.12;
   qc.segments[1].internal = 0.05;
   qc.segments[1].deletion = 0.9;
-  qc_flags(&s, &qc, true, &flags);
+  qc_flags(&s, &qc, true, NULL, &flags);
   test_eq_size(flags.n, 2);
   test_eq_str(flags.flags[0].text, "HA 25%, NA 12% of depth internally primed");
   test_eq_str(flags.flags[1].text, "PB2 90% of depth from reads "
               "with an internal deletion");
   /* the read ends not located */
   qc.not_located = 0.75;
-  qc_flags(&s, &qc, true, &flags);
+  qc_flags(&s, &qc, true, NULL, &flags);
   test_eq_str(flags.flags[0].key, "not_located");
 }

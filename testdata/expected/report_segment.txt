@@ -107,7 +107,7 @@ reads	NC_004908.1	1700	5
       "segments_found": 1,
       "segments_complete": 0,
       "ends_not_located": 0.0952,
-      "flags": ["few_reads"],
+      "flags": ["few_reads", "cleavage_site"],
       "segments": [
         {"segment": 1, "gene": "PB2", "state": "missing"},
         {"segment": 2, "gene": "PB1", "state": "missing"},
@@ -201,7 +201,7 @@ reads	NC_004908.1	1700	5
         "segments_found": 1,
         "segments_complete": 0,
         "ends_not_located": 0.0952,
-        "flags": ["few_reads"],
+        "flags": ["few_reads", "cleavage_site"],
         "segments": [
           {"segment": 1, "gene": "PB2", "state": "missing"},
           {"segment": 2, "gene": "PB1", "state": "missing"},

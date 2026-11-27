@@ -75,7 +75,9 @@ void sample_status_line(html_writer_t *w, const report_t *r,
   qc_summary_t qc;
   qc_flags_t flags;
   qc_summary(r->references, c, r->options->segment, &qc);
-  qc_flags(s, &qc, refs, &flags);
+  cleavage_result_t site;
+  report_cleavage(r, c, &site);
+  qc_flags(s, &qc, refs, &site, &flags);
   if (s->reads_in == 0 || (!refs && flags.n == 0))
     return;
   markup_open(w, "p", "chips");
