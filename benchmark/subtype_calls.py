@@ -42,6 +42,7 @@ import re
 import shutil
 import subprocess
 import sys
+import zlib
 
 import flucut_runs
 
@@ -107,8 +108,8 @@ def call_genome(task):
   folder = os.path.join(workdir, "samples", "%s_%g" % (label, error_rate))
   os.makedirs(folder, exist_ok=True)
   flucut_runs.simulate(os.path.join(genomes, label + ".fasta"), folder,
-                       seed=abs(hash(label)) % 10000, error_rate=error_rate,
-                       reads=reads_per_segment)
+                       seed=zlib.crc32(label.encode()) % 10000,
+                       error_rate=error_rate, reads=reads_per_segment)
   summary = run_flucut(program, os.path.join(folder, "reads.fastq.gz"),
                        references, os.path.join(folder, "flucut"))
   shutil.rmtree(folder, ignore_errors=True)
