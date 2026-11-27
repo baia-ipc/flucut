@@ -484,6 +484,12 @@ void counter_add_cleavage(counter_t *self, const char *nt) {
   cleavage_counts_add(&self->cleavage, nt);
 }
 
+void counter_add_cleavage_control(counter_t *self, size_t i,
+    const char *nt) {
+  assert(self != NULL);
+  cleavage_counts_add_control(&self->cleavage, i, nt);
+}
+
 const cleavage_counts_t* counter_cleavage(const counter_t *self) {
   assert(self != NULL);
   return &self->cleavage;

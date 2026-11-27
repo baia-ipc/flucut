@@ -61,30 +61,40 @@ differ too.
 
 ## How far it can be trusted
 
-Two numbers decide: how many reads gave the site, and what share of them
-agree on the same residues (the **support**). How much support is enough
-depends on how often the reads make an indel in this stretch, which
-differs between the kinds of data, so each is judged by its own number:
+Two things are measured from the same reads, and both have to hold.
 
-| data | support needed to be firm |
+**Do the reads agree at the site?** The share of them carrying the
+majority residues is the **support**.
+
+**Do they agree where nothing is difficult?** Beside the anchor, on the
+HA2 side, lie two windows of the same width as the site, taken from the
+same reads. HA2 there is ordinary coding sequence. The share of reads
+agreeing in them is the **control support**, and it says what this
+sample's reads agree on when the sequence is not against them.
+
+The second is what tells a site the reads cannot resolve from reads
+that agree nowhere. A sample whose control is high and whose site is low
+has a genuinely hard site. A sample low in both has reads too noisy, or
+holding more than one virus, for a claim about any position.
+
+| | needed to be firm |
 |---|---|
-| Illumina | 0.60 |
-| Nanopore R10 | 0.45 |
-| Nanopore R9 | never firm on its own |
-
-The chemistry is taken from the basecalling model in the titles of the
-reads (`dna_r10.4.1_...`, `dna_r9.4.1_...`); when the titles do not say,
-the R10 number is used and the report says the chemistry is unknown.
+| reads over the site | 20 |
+| support at the site | 0.45 |
+| support in the control windows | 0.60 |
 
 The verdict is one of
 
-- **firm**: enough reads, enough of them agree, and they read like the
-  reference of the sample;
-- **confirm**: the residues reported are the majority, but too few of
-  the reads agree for them to stand on their own, or the reads do not
-  read like the reference. Confirm before reporting a pathotype.
+- **firm**: enough reads, enough of them agree at the site, they agree
+  beside it, and they read like the reference of the sample;
+- **confirm**: one of those fails. The residues are still reported, with
+  the reason. Confirm before reporting a pathotype.
 - **too few reads**: fewer than 20 reads reach the site; nothing is said
   about it.
+
+Neither threshold names a platform or a chemistry. The chemistry is
+still read from the basecalling model in the read titles and reported,
+because it is worth knowing, but it decides nothing.
 
 Two further numbers are reported next to the majority, and are often
 more useful than it:
@@ -102,39 +112,101 @@ more useful than it:
 
 ## Where the numbers come from
 
-The two Nanopore numbers were measured; the Illumina one was not.
+Measured on 104 Nanopore samples of avian H5N1, H5N2 and H9N2 (94 R10,
+10 R9) of one laboratory and one protocol, run through flucut itself.
+Twelve of them have an IRMA consensus whose HA1 and HA2 frames differ at
+the site, which is the outcome the rule has to catch.
 
-The Nanopore numbers come from 104 samples of avian H5N1, H5N2 and
-H9N2 (94 R10, 10 R9) of one laboratory and one protocol, with the
-majority taken as above:
+| | R10, site readable | R10, frameshifted | R9 |
+|---|---|---|---|
+| support at the site | 0.61 | 0.42 | 0.27 |
+| control support | 0.79 | 0.55 | 0.48 |
 
-| | R10 | R9 |
-|---|---|---|
-| support, median | 0.55 | 0.26 |
-| support, range | 0.25 – 1.00 | 0.15 – 0.42 |
+The rule above flags **all 12** of the frameshifted samples and 11 of
+the 92 others, leaving 81 of the 104 firm.
 
-No R9 sample reached 0.45, and the R9 reads carry an indel over the site
-far more often than the R10 ones, which is why R9 is never firm.
+Two findings decided its shape.
 
-On the same samples, 12 had an IRMA consensus whose HA1 and HA2 frames
-differ at the site. The verdict above was **confirm** for 10 of them and
-**too few reads** for 2: none was called firm. Of the 94 R10 samples,
-68 were called firm.
+**The control windows carry the chemistry.** Every one of the 10 R9
+samples falls below the control floor (their highest is 0.56) and the
+R10 samples sit well above it (median 0.79). A rule naming R9 was
+therefore doing nothing the reads were not already saying, and it is
+gone. That matters beyond tidiness: a bad R10 flow cell, or a chemistry
+that does not exist yet, is judged on the reads in front of it rather
+than on a label.
 
-The Illumina number is **not** measured on a run: no Illumina data set
-of this kind was at hand. It follows from the error rate instead. An
-Illumina read is wrong at about one base in a thousand, so nearly every
-read spells the 24 bases correctly and a clean sample should agree far
-above 0.9; 0.60 is therefore deliberately permissive, and a sample which
-falls below it has something else wrong with it. Treat it as a bound to
-be replaced once measured, not as a calibrated threshold.
+**The ratio of the two does not work.** The obvious idea — divide the
+site's agreement by the control's, so that each sample calibrates
+itself — was tried and is worse: at its best it catches 8 of the 12
+against 12, and at thresholds that catch more it flags most of the good
+samples too. The reason is in the table above. The samples that fail are
+not samples where the site is unusually hard; they are samples that are
+thin, or hold two viruses, and that degrades the control just as much as
+the site, so dividing one by the other cancels the signal. In the R10
+samples the ratio is actually *higher* in the frameshifted ones (0.92)
+than in the readable ones (0.77). The two measurements are worth more
+apart than as a quotient.
 
-Both of these are the numbers of one laboratory's runs. They are a
-starting point, not a constant of nature: a laboratory whose runs differ
-should look at the support its own clean samples reach before trusting
-the line between `firm` and `confirm`. What does not depend on them is
-everything reported beside the verdict — the residues, the reads behind
-them, the support itself and the other sites found.
+The thresholds remain the numbers of one laboratory's runs. They are a
+starting point: a laboratory whose runs differ should look at the
+support and control support its own clean samples reach before trusting
+the line between `firm` and `confirm`. Everything reported beside the
+verdict — the residues, the reads behind them, both supports, and the
+other sites found — does not depend on them.
+
+## What other tools do
+
+Surveyed 2026-11-27. Every tool below derives the site from an
+assembled consensus; none of them reads it from the reads or reports
+how many reads support it.
+
+| tool | input it uses for the site | how it calls the site | read support? |
+|---|---|---|---|
+| [nf-flu](https://github.com/CFIA-NCFAD/nf-flu) (CFIA/PHAC) | its own consensus, annotated by VADR | residue −4 must be R or K, then counts R/K backwards, tolerating one non-basic residue: 1 basic = monobasic/LPAI, 2 = multibasic LP/HP, 3 or more = multibasic/HPAI | no |
+| [Nextstrain avian-flu](https://github.com/nextstrain/avian-flu) | the HA alignment of consensus sequences | finds `GLFG`, takes the 12 bases before it and translates them; calls the motif present when R at 1 and 4 and R or K at 3 | no |
+| [Nextclade](https://doi.org/10.1093/ve/veaf058) A(H5) datasets | consensus FASTA | a fixed window of HA residues 341–346; 4 or more R/K is flagged polybasic | no (only its general QC) |
+| [VADR](https://github.com/ncbi/vadr) | FASTA | annotates the cleavage-site feature; makes no call | no |
+| [IRMA](https://doi.org/10.1186/s12864-016-3030-6), [GenoFLU](https://doi.org/10.1016/j.virol.2023.109860), [LABEL](https://doi.org/10.1186/s12864-016-3030-6), [INSaFLU](https://doi.org/10.1186/s13073-024-01334-3), [FluMut](https://doi.org/10.1093/ve/veaf011), EPI2ME `wf-flu` | – | do not report the site at all | – |
+
+Two of them are worth reading beside this one.
+
+**Nextstrain's script anchors on the fusion peptide**, exactly as flucut
+does, and translates the bases before it. The idea of finding the site
+by what follows it is theirs as much as anyone's; what is done here is
+to apply it to the reads, one at a time, and to count how many of them
+agree.
+
+**[DeGenRESOLVE](https://doi.org/10.1002/2211-5463.70371)** (2026) is
+the nearest work. It takes the other route: it repairs the consensus,
+adjudicating the indels a variant caller proposes by depth, by the
+fraction of reads supporting them, and by a frame test over groups of
+indels within 12 bases. On eight isolates it recovered the site in seven
+against three to seven for the other tools it compared. Its own stated
+limit is where this check begins: the result is "a dominant consensus,
+not a record of within-sample variation", and an ambiguity survives only
+when the minor allele is above about 40%. The two are complementary —
+one mends the consensus, the other says what the reads said before there
+was one.
+
+It also measures what is at stake. Without indel calling, the cleavage
+site was wrong in all five of its isolates whose site differs in length
+from the reference, and the errors ran both ways: three highly
+pathogenic H7 viruses were given a **monobasic** site, a low
+pathogenicity H5 a polybasic one. A wrong site is a wrong pathotype, not
+a wrong base.
+
+The same point is made for Nanopore chemistry by
+[Siegers et al. 2024](https://doi.org/10.1128/spectrum.01880-24), who
+found the correct motif in 59.5% of R9 samples against 90.4% of R10,
+with every R9 indel causing a frameshift which "could result in
+incorrectly classified virulence with automated pipelines". They read
+the motif from a Sanger consensus, with the pattern `(R|K)[^RKH](R|K)`,
+and list minor variants as not addressed.
+
+Reference laboratories do not use an automated caller for this: the
+pathotype is established by RT-qPCR and Sanger sequencing of the site,
+or by reading the consensus by hand. Not confirmed in this survey:
+whether FluSurver reports the site, and whether BV-BRC annotates it.
 
 ## What it does not do
 

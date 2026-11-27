@@ -71,49 +71,60 @@ What reaches the site differs between the platforms:
 How far to trust it
 -------------------
 
-Two numbers decide: how many reads gave the site, and what share of them
-agree on the same residues, the *support*. How much support is enough
-depends on how often the reads gain or lose a base in this stretch,
-which differs between the kinds of data:
+Two things are measured from the same reads, and both must hold.
+
+First, *do the reads agree at the site?* The share of them carrying the
+majority residues is the **support**.
+
+Second, *do they agree where nothing is difficult?* Beside the anchor,
+on the HA2 side, lie two windows of the same width as the site, taken
+from the same reads, where HA2 is ordinary coding sequence. The share
+agreeing there is the **control support**. It tells a site the reads
+cannot resolve from reads that agree nowhere: a sample high in the
+control and low at the site has a genuinely hard site, while a sample
+low in both has reads too noisy, or holding more than one virus, for a
+claim about any position.
 
 .. list-table::
    :header-rows: 1
 
-   * - data
-     - support needed to be firm
-   * - Illumina
-     - 0.60
-   * - Nanopore R10
+   * - measured
+     - needed to be firm
+   * - reads over the site
+     - 20
+   * - support at the site
      - 0.45
-   * - Nanopore R9
-     - never firm on its own
-
-The chemistry is read from the basecalling model in the titles of the
-reads (``dna_r10.4.1_…``, ``dna_r9.4.1_…``). When the titles do not say
-it, flucut uses the R10 number and reports the chemistry as unknown.
-
-The two Nanopore numbers were measured on 104 samples of one laboratory
-and one protocol; the Illumina one follows from the error rate of an
-Illumina read rather than from a run, and is deliberately permissive.
-They are a starting point, not a constant: a laboratory whose runs
-differ should look at the support its own clean samples reach before
-trusting the line between ``firm`` and ``confirm``. Everything reported
-beside the verdict — the residues, the reads behind them, the support
-itself and the other sites found — does not depend on them.
+   * - support in the control windows
+     - 0.60
 
 The verdict is one of
 
 ``firm``
-   enough reads, enough of them agree, and they read like the reference
-   of the sample.
+   enough reads, enough of them agree at the site, they agree beside it,
+   and they read like the reference of the sample.
 
 ``confirm``
-   the residues reported are the majority, but too few of the reads
-   agree for them to stand on their own, or the reads do not read like
-   the reference of the sample. Confirm before reporting a pathotype.
+   one of those fails. The residues are still reported, with the reason.
+   Confirm before reporting a pathotype.
 
 ``too few reads``
    fewer than 20 reads reach the site; nothing is said about it.
+
+Neither threshold names a platform or a chemistry. The chemistry is
+still read from the basecalling model in the read titles
+(``dna_r10.4.1_…``, ``dna_r9.4.1_…``) and reported, because it is worth
+knowing, but it decides nothing: on 104 samples the control windows
+separated the chemistries by themselves, every R9 sample falling below
+the floor and the R10 samples sitting well above it. A bad flow cell, or
+a chemistry that does not exist yet, is then judged on the reads in
+front of it rather than on a label.
+
+The thresholds are the numbers of one laboratory's runs and are a
+starting point: a laboratory whose runs differ should look at what its
+own clean samples reach before trusting the line between ``firm`` and
+``confirm``. Everything reported beside the verdict — the residues, the
+reads behind them, both supports and the other sites found — does not
+depend on them.
 
 Two numbers beside the majority are often more useful than it:
 
@@ -139,6 +150,33 @@ columns ``cleavage_site``, ``cleavage_reads``, ``cleavage_support``,
 It needs references, so it is not reported with ``-r off``, and it needs
 an HA reference which contains the fusion peptide. A reference which is
 a coding sequence is enough, as the site lies inside the reading frame.
+
+How this compares with other tools
+----------------------------------
+
+Several tools report the cleavage site, and all of them read it from an
+assembled consensus: nf-flu counts basic residues in the consensus
+annotated by VADR and labels the sample LPAI or HPAI; the Nextstrain
+avian-flu workflow finds ``GLFG`` in the HA alignment and translates the
+bases before it; the Nextclade A(H5) datasets flag a fixed window of HA
+residues as polybasic when it holds four or more R or K. None of them
+reports how many reads support the call. IRMA, GenoFLU, LABEL, INSaFLU
+and FluMut do not report the site at all.
+
+The idea of finding the site by the fusion peptide that follows it is
+not new — the Nextstrain script does the same — and what flucut adds is
+to do it one read at a time, before an assembly exists, and to say how
+many reads agree.
+
+The nearest work takes the opposite route. DeGenRESOLVE repairs the
+consensus itself, adjudicating the indels a variant caller proposes by
+depth, by the fraction of reads behind them, and by a frame test. Its
+stated limit is where this check begins: its result is a dominant
+consensus, not a record of what the reads disagreed about. The two are
+complementary.
+
+See ``docs/cleavage-site.md`` for the comparison in full, with
+references.
 
 What it is not
 --------------

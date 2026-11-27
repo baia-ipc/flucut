@@ -149,6 +149,49 @@ void cleavage_counts_add(cleavage_counts_t *self, const char *nt) {
   add_reads(self, nt, 1);
 }
 
+/* the slot of <aa> in the table of a control window */
+static size_t control_slot(const cleavage_control_t *c, const char *aa) {
+  size_t h = 2166136261u;
+  for (size_t i = 0; i < CLEAVAGE_SITE_AA; i++) {
+    h ^= (unsigned char)aa[i];
+    h *= 16777619u;
+  }
+  size_t s = h & (CLEAVAGE_CONTROL_SLOTS - 1);
+  while (c->slots[s] != 0 &&
+         memcmp(c->entries[c->slots[s] - 1].aa, aa, CLEAVAGE_SITE_AA) != 0)
+    s = (s + 1) & (CLEAVAGE_CONTROL_SLOTS - 1);
+  return s;
+}
+
+static void control_add(cleavage_control_t *c, const char *aa,
+    size_t reads) {
+  c->reads += reads;
+  size_t s = control_slot(c, aa);
+  if (c->slots[s] != 0) {
+    c->entries[c->slots[s] - 1].reads += reads;
+    return;
+  }
+  if (c->n == CLEAVAGE_CONTROL_MOTIFS) {
+    c->overflow += reads;
+    return;
+  }
+  memcpy(c->entries[c->n].aa, aa, CLEAVAGE_SITE_AA);
+  c->entries[c->n].aa[CLEAVAGE_SITE_AA] = '\0';
+  c->entries[c->n].reads = reads;
+  c->n++;
+  c->slots[s] = c->n;
+}
+
+void cleavage_counts_add_control(cleavage_counts_t *self, size_t i,
+    const char *nt) {
+  assert(self != NULL);
+  assert(nt != NULL);
+  assert(i < CLEAVAGE_N_CONTROLS);
+  char aa[CLEAVAGE_SITE_AA + 1];
+  codons_translate(nt, CLEAVAGE_SITE_NT, aa);
+  control_add(self->control + i, aa, 1);
+}
+
 size_t cleavage_counts_reads(const cleavage_counts_t *self) {
   assert(self != NULL);
   size_t n = self->overflow;
@@ -163,6 +206,12 @@ void cleavage_counts_merge(cleavage_counts_t *self,
   assert(other != NULL);
   self->searched += other->searched;
   self->overflow += other->overflow;
+  for (size_t i = 0; i < CLEAVAGE_N_CONTROLS; i++) {
+    self->control[i].overflow += other->control[i].overflow;
+    for (size_t k = 0; k < other->control[i].n; k++)
+      control_add(self->control + i, other->control[i].entries[k].aa,
+                  other->control[i].entries[k].reads);
+  }
   if (other->reference_aa[0] != '\0')
     cleavage_counts_set_reference(self, other->reference_aa);
   for (size_t i = 0; i < other->n_motifs; i++)
@@ -173,6 +222,15 @@ void cleavage_counts_save(const cleavage_counts_t *self, FILE *file) {
   assert(self != NULL);
   assert(file != NULL);
   fprintf(file, "cleavage-reads %zu %zu\n", self->searched, self->overflow);
+  for (size_t i = 0; i < CLEAVAGE_N_CONTROLS; i++) {
+    if (self->control[i].overflow > 0)
+      fprintf(file, "cleavage-control-over %zu %zu\n", i,
+              self->control[i].overflow);
+    for (size_t k = 0; k < self->control[i].n; k++)
+      fprintf(file, "cleavage-control %zu %s %zu\n", i,
+              self->control[i].entries[k].aa,
+              self->control[i].entries[k].reads);
+  }
   if (self->reference_aa[0] != '\0')
     fprintf(file, "cleavage-reference %s\n", self->reference_aa);
   for (size_t i = 0; i < self->n_motifs; i++)
@@ -187,6 +245,27 @@ bool cleavage_counts_load_line(cleavage_counts_t *self, char *line) {
     char *rest;
     self->searched += strtoull(line + 15, &rest, 10);
     self->overflow += strtoull(rest, NULL, 10);
+    return true;
+  }
+  if (strncmp(line, "cleavage-control-over ", 22) == 0) {
+    char *rest;
+    size_t i = strtoull(line + 22, &rest, 10);
+    if (i >= CLEAVAGE_N_CONTROLS)
+      return false;
+    self->control[i].overflow += strtoull(rest, NULL, 10);
+    return true;
+  }
+  if (strncmp(line, "cleavage-control ", 17) == 0) {
+    char *rest;
+    size_t i = strtoull(line + 17, &rest, 10);
+    char aa[CLEAVAGE_SITE_AA + 2];
+    if (i >= CLEAVAGE_N_CONTROLS || sscanf(rest, "%9s", aa) != 1 ||
+        strlen(aa) != CLEAVAGE_SITE_AA)
+      return false;
+    rest = strchr(rest + 1, ' ');
+    if (rest == NULL)
+      return false;
+    control_add(self->control + i, aa, strtoull(rest, NULL, 10));
     return true;
   }
   if (strncmp(line, "cleavage-reference ", 19) == 0) {
@@ -231,14 +310,6 @@ static size_t reading_of(const char *aa) {
   if (!is_basic(aa[len - 1]))
     return CLEAVAGE_UNREADABLE;
   return basic_run(aa) >= 4 ? CLEAVAGE_MULTIBASIC : CLEAVAGE_MONOBASIC;
-}
-
-static double support_needed(size_t chemistry) {
-  switch (chemistry) {
-    case CLEAVAGE_CHEMISTRY_ILLUMINA: return CLEAVAGE_SUPPORT_ILLUMINA;
-    case CLEAVAGE_CHEMISTRY_R9: return 2.0;  /* never firm */
-    default: return CLEAVAGE_SUPPORT_R10;
-  }
 }
 
 void cleavage_result_of(const cleavage_counts_t *counts, size_t chemistry,
@@ -320,16 +391,33 @@ void cleavage_result_of(const cleavage_counts_t *counts, size_t chemistry,
      sequence: a lower bound, as the reads over the overflow are not
      counted */
   out->multibasic_share = (double)multibasic / (double)out->reads;
+  /* the control windows, pooled: each voted on separately, the reads
+     agreeing with its own majority added up */
+  size_t agree = 0, total = 0;
+  for (size_t i = 0; i < CLEAVAGE_N_CONTROLS; i++) {
+    const cleavage_control_t *c = counts->control + i;
+    size_t best = 0;
+    for (size_t k = 1; k < c->n; k++)
+      if (c->entries[k].reads > c->entries[best].reads)
+        best = k;
+    if (c->n > 0)
+      agree += c->entries[best].reads;
+    total += c->reads;
+  }
+  out->control_reads = total;
+  out->control_support = total > 0 ? (double)agree / (double)total : 0.0;
   /* the reads of a sample which holds more than one haemagglutinin do
      not read like its own reference; the motif reported is then not
      necessarily the one of its own virus */
   out->disagrees_with_reference =
       out->reference_reading < CLEAVAGE_N_READINGS &&
       out->reference_reading != out->reading;
+  out->control_weak = out->control_reads > 0 &&
+      out->control_support < CLEAVAGE_MIN_CONTROL_SUPPORT;
   if (out->reads < CLEAVAGE_MIN_READS)
     out->verdict = CLEAVAGE_TOO_FEW_READS;
-  else if (out->disagrees_with_reference ||
-           out->support < support_needed(chemistry))
+  else if (out->disagrees_with_reference || out->control_weak ||
+           out->support < CLEAVAGE_MIN_SUPPORT)
     out->verdict = CLEAVAGE_CONFIRM;
   else
     out->verdict = CLEAVAGE_FIRM;
@@ -455,11 +543,10 @@ static void test_counts(void) {
   test_assert(r.disagrees_with_reference);
   test_eq_size(r.verdict, CLEAVAGE_CONFIRM);
 
-  /* the same reads judged as R9: never firm on their own */
+  /* the verdict does not depend on the chemistry: the same reads are
+     judged the same whatever they were sequenced with */
   cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R9, &r);
-  test_eq_size(r.verdict, CLEAVAGE_CONFIRM);
-  test_eq_str(r.aa, "QRERRRKR");
-  /* and as Illumina, where 0.90 is enough */
+  test_eq_size(r.verdict, CLEAVAGE_FIRM);
   cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_ILLUMINA, &r);
   test_eq_size(r.verdict, CLEAVAGE_FIRM);
 
@@ -485,6 +572,54 @@ static void test_counts(void) {
   test_eq_size(c.n_motifs, 4);
   cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
   test_eq_size(r.motif_reads, 95);
+}
+
+/* the control windows: reads which agree at the site but nowhere else
+   are not firm */
+static void test_control(void) {
+  cleavage_counts_t c;
+  cleavage_counts_clear(&c);
+  add_n(&c, HPAI_NT, 100);
+  cleavage_result_t r;
+  /* no control window read: nothing is known about the rest, and the
+     site alone decides */
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_size(r.control_reads, 0);
+  test_assert(!r.control_weak);
+  test_eq_size(r.verdict, CLEAVAGE_FIRM);
+  /* control windows the reads agree on (the second motif differs in a
+     residue, not only in a base: the control counts residues too) */
+  for (size_t i = 0; i < 90; i++)
+    for (size_t w = 0; w < CLEAVAGE_N_CONTROLS; w++)
+      cleavage_counts_add_control(&c, w, "TTTATAGAGGGAGGATGGCAGGGA");
+  for (size_t i = 0; i < 10; i++)
+    for (size_t w = 0; w < CLEAVAGE_N_CONTROLS; w++)
+      cleavage_counts_add_control(&c, w, "TTTATAGAGGGAGGATGGCAGTCA");
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_size(r.control_reads, 200);
+  test_assert(r.control_support > 0.89 && r.control_support < 0.91);
+  test_assert(!r.control_weak);
+  test_eq_size(r.verdict, CLEAVAGE_FIRM);
+  /* reads which agree nowhere, not even where nothing is difficult:
+     the site is not wrong so much as unknown */
+  cleavage_counts_t noisy;
+  cleavage_counts_clear(&noisy);
+  add_n(&noisy, HPAI_NT, 100);
+  char nt[CLEAVAGE_SITE_NT + 1];
+  memcpy(nt, "TTTATAGAGGGAGGATGGCAGGGA", sizeof(nt));
+  for (size_t i = 0; i < 100; i++) {
+    for (size_t j = 0; j < 4; j++)
+      nt[j] = "ACGT"[(i >> (2 * j)) & 3];
+    for (size_t w = 0; w < CLEAVAGE_N_CONTROLS; w++)
+      cleavage_counts_add_control(&noisy, w, nt);
+  }
+  cleavage_result_of(&noisy, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_assert(r.control_support < CLEAVAGE_MIN_CONTROL_SUPPORT);
+  test_assert(r.control_weak);
+  test_eq_size(r.verdict, CLEAVAGE_CONFIRM);
+  /* the site itself is still reported, with its own support */
+  test_eq_str(r.aa, "QRERRRKR");
+  test_assert(r.support > 0.99);
 }
 
 static void test_readings(void) {
@@ -578,6 +713,7 @@ static void test_chemistry(void) {
 
 void cleavage_site_test(void) {
   test_counts();
+  test_control();
   test_readings();
   test_overflow();
   test_save_load();

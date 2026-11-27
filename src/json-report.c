@@ -207,6 +207,12 @@ static void write_cleavage_site(json_writer_t *w, const report_t *r,
   json_count_member(w, "motif_reads", s.motif_reads);
   json_share_member(w, "support", s.found ? s.support : 0.0);
   json_share_member(w, "multibasic_share", s.multibasic_share);
+  /* what the same reads agree on beside the site, where nothing is
+     difficult: reported, not used to judge the site */
+  json_count_member(w, "control_reads", s.control_reads);
+  json_share_member(w, "control_support", s.control_support);
+  json_member(w, "reads_disagree_beside_the_site");
+  fputs(s.control_weak ? "true" : "false", f);
   json_count_member(w, "basic_residues", s.basic);
   json_member(w, "reads_as");
   fprintf(f, "\"%s\"", cleavage_reading_name(s.reading));

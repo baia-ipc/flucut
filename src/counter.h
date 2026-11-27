@@ -136,6 +136,8 @@ void counter_add_written(counter_t *self, size_t len, size_t category,
 void counter_set_cleavage_reference(counter_t *self, const char *aa);
 void counter_add_cleavage_searched(counter_t *self);
 void counter_add_cleavage(counter_t *self, const char *nt);
+void counter_add_cleavage_control(counter_t *self, size_t i,
+    const char *nt);
 
 /* The motifs of the cleavage site read from the reads */
 const cleavage_counts_t* counter_cleavage(const counter_t *self);

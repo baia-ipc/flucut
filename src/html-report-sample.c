@@ -339,6 +339,14 @@ static void write_cleavage_site(html_writer_t *w, const report_t *r,
       (size_t)(site.multibasic_share * (double)site.reads + 0.5),
       site.reads).s);
   html_close(w);
+  if (site.control_reads > 0) {
+    markup_open_row(w);
+    markup_td(w, "reads agreeing beside the site");
+    markup_td(w, "%s of %s", percent_text(
+        (size_t)(site.control_support * (double)site.control_reads + 0.5),
+        site.control_reads).s, html_num(site.control_reads).s);
+    html_close(w);
+  }
   markup_open_row(w);
   markup_td(w, "chemistry");
   markup_td(w, "%s", cleavage_chemistry_name(site.chemistry));
@@ -373,6 +381,15 @@ static void write_cleavage_site(html_writer_t *w, const report_t *r,
                 "this sample (%s): it holds the reads of more than one "
                 "haemagglutinin, and the site above is not necessarily "
                 "the one of its own virus.", site.reference_aa);
+  else if (site.control_weak)
+    markup_note(w, "The reads of this sample do not agree even beside the "
+                "site, where nothing is difficult (%s), so this is not a "
+                "site they cannot resolve but reads too noisy, or holding "
+                "more than one virus, to say. Confirm it before reporting "
+                "the pathotype.", percent_text(
+                    (size_t)(site.control_support *
+                             (double)site.control_reads + 0.5),
+                    site.control_reads).s);
   else if (site.verdict == CLEAVAGE_CONFIRM)
     markup_note(w, "Too few of the reads agree for this to stand on its "
                 "own; confirm it before reporting the pathotype.");

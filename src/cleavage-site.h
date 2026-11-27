@@ -83,6 +83,37 @@
 #define CLEAVAGE_SITE_AA (CLEAVAGE_SITE_NT / 3)
 
 /*
+   The control windows: two of the width of the site, taken from the
+   same reads on the other side of the anchor, where HA2 is ordinary
+   coding sequence. They say how much the reads of this sample agree
+   where nothing is difficult, which tells a site the reads cannot
+   resolve from reads that agree nowhere.
+
+   They are reported, not used to judge the site. On 104 samples the
+   site agreed less than the control in nearly every one, in the
+   samples whose consensus was right as much as in those whose consensus
+   was wrong, so the excess does not separate them and the ratio of the
+   two is a worse test than the agreement at the site itself
+   (docs/cleavage-site.md).
+*/
+#define CLEAVAGE_N_CONTROLS 2
+#define CLEAVAGE_CONTROL_MOTIFS 256
+#define CLEAVAGE_CONTROL_SLOTS 512
+
+/* what one control window counted: its reads by the residues they
+   carry, bounded as the table of the site is */
+typedef struct {
+  size_t reads;
+  size_t overflow;
+  size_t n;
+  struct {
+    char aa[CLEAVAGE_SITE_AA + 1];
+    size_t reads;
+  } entries[CLEAVAGE_CONTROL_MOTIFS];
+  size_t slots[CLEAVAGE_CONTROL_SLOTS];
+} cleavage_control_t;
+
+/*
    The distinct motifs kept, and the slots of the table that holds them.
    The memory does not depend on the number of reads: once
    CLEAVAGE_MAX_MOTIFS motifs are known, a read with another one is
@@ -98,22 +129,25 @@
 #define CLEAVAGE_MIN_READS 20
 
 /*
-   The support a motif needs before it is reported as firm. The reads
-   make an insertion or a deletion in this stretch several times more
-   often than elsewhere, and how often decides what a majority over them
-   is worth, so each kind of data is judged by its own number (measured
-   on 104 Nanopore samples and one Illumina run, see
-   docs/cleavage-site.md):
+   What a result must reach before it is reported as firm: the reads
+   must agree at the site, and they must agree where nothing is
+   difficult. The second is what the control windows are for.
 
-   - Illumina reads are accurate here and cover the site deeply; a
-     majority below 0.6 means something else is wrong;
-   - R10 reads agree on the motif in 0.45 to 0.82 of the reads;
-   - R9 reads agree in 0.18 to 0.42 only: a majority over them picks out
-     the right motif, but never with enough support to stand on its own,
-     so it is always reported to be confirmed.
+   The two are independent. A sample whose reads agree in the control
+   windows but not at the site has a site its reads cannot resolve; a
+   sample whose reads agree in neither has reads too noisy, or too
+   mixed, for any claim about any position, and the site is then not
+   wrong so much as unknown.
+
+   Neither number depends on the platform or the chemistry. On 104
+   Nanopore samples the control windows separate the chemistries by
+   themselves - every R9 sample falls below the floor and the R10
+   samples sit well above it - so the data says what a rule naming the
+   chemistry used to say, and says it from the reads in hand
+   (docs/cleavage-site.md).
 */
-#define CLEAVAGE_SUPPORT_ILLUMINA 0.60
-#define CLEAVAGE_SUPPORT_R10 0.45
+#define CLEAVAGE_MIN_SUPPORT 0.45
+#define CLEAVAGE_MIN_CONTROL_SUPPORT 0.60
 
 /* the kind of data, which decides the support needed */
 enum { CLEAVAGE_CHEMISTRY_UNKNOWN,  /* Nanopore, chemistry not in the titles */
@@ -188,6 +222,10 @@ void cleavage_anchors_delete(cleavage_anchors_t *self);
 typedef struct {
   size_t searched;   /* reads the site was looked for in */
   size_t overflow;   /* reads whose motif found no slot (see above) */
+  /* the control windows, each counted by residues in a table of its
+     own; smaller than the one of the site, which is enough to hold a
+     majority, and bounded in the same way */
+  cleavage_control_t control[CLEAVAGE_N_CONTROLS];
   size_t n_motifs;
   /* the site of the HA reference the reads were read against ("": none) */
   char reference_aa[CLEAVAGE_SITE_AA + 1];
@@ -211,6 +249,10 @@ void cleavage_counts_searched(cleavage_counts_t *self);
 
 /* Count the motif <nt> (CLEAVAGE_SITE_NT bases) read from a read */
 void cleavage_counts_add(cleavage_counts_t *self, const char *nt);
+
+/* Count the bases <nt> read from the control window <i> of a read */
+void cleavage_counts_add_control(cleavage_counts_t *self, size_t i,
+    const char *nt);
 
 /* The reads the site was read from (the motifs and the overflow) */
 size_t cleavage_counts_reads(const cleavage_counts_t *self);
@@ -251,6 +293,16 @@ typedef struct {
   size_t motif_reads;              /* reads carrying those residues */
   double support;                  /* motif_reads / reads */
   double multibasic_share;         /* reads whose own site is multibasic */
+  /* the control windows, pooled: the reads they were read from and the
+     share of those agreeing on their most frequent residues. Reported
+     beside the site, as what the reads of this sample agree on where
+     nothing is difficult; not used to judge the site */
+  size_t control_reads;
+  double control_support;          /* 0 where there are no control reads */
+  /* the reads of this sample do not agree even in the control windows:
+     too noisy, or holding more than one virus, for a claim about any
+     position */
+  bool control_weak;
   size_t basic;                    /* basic residues in the last 6 of it */
   size_t reading;                  /* CLEAVAGE_* */
   size_t verdict;                  /* CLEAVAGE_FIRM, ... */

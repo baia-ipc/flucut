@@ -22,7 +22,7 @@ static void summary_header(FILE *f) {
         "left_unknown\tright_terminal\tright_internal\tright_unknown\t"
         "short_complete\tout_full\tout_internal\tout_deletion\t"
         "out_other\tcleavage_site\tcleavage_reads\tcleavage_support\t"
-        "cleavage_multibasic\tcleavage_verdict\n", f);
+        "cleavage_control\tcleavage_multibasic\tcleavage_verdict\n", f);
 }
 
 /* the cleavage site of the haemagglutinin read from the reads
@@ -33,11 +33,11 @@ static void summary_cleavage(FILE *f, const counter_t *c, bool illumina) {
   cleavage_result_of(counter_cleavage(c),
       cleavage_chemistry(illumina, m->values[READ_METADATA_MODEL]), &site);
   if (!site.found) {
-    fputs("\tNA\tNA\tNA\tNA\tNA", f);
+    fputs("\tNA\tNA\tNA\tNA\tNA\tNA", f);
     return;
   }
-  fprintf(f, "\t%s\t%zu\t%.4f\t%.4f\t%s", site.aa, site.reads,
-          site.support, site.multibasic_share,
+  fprintf(f, "\t%s\t%zu\t%.4f\t%.4f\t%.4f\t%s", site.aa, site.reads,
+          site.support, site.control_support, site.multibasic_share,
           cleavage_verdict_name(site.verdict));
 }
 

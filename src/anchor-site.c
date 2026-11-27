@@ -83,11 +83,12 @@ static long search(const char *query, size_t query_len, const char *target,
   return distance;
 }
 
-bool anchor_bases_before(const anchor_t *self, const char *read,
-    size_t read_len, double max_error_rate, size_t n, char *out) {
+bool anchor_find(const anchor_t *self, const char *read, size_t read_len,
+    double max_error_rate, anchor_hit_t *hit) {
   assert(self != NULL);
-  assert(out != NULL);
-  if (!self->found || n == 0 || read == NULL || read_len == 0)
+  assert(hit != NULL);
+  memset(hit, 0, sizeof(anchor_hit_t));
+  if (!self->found || read == NULL || read_len == 0)
     return false;
   long max_errors = (long)(max_error_rate * (double)self->len);
   long fwd_start = 0, fwd_end = 0, rev_start = 0, rev_end = 0;
@@ -97,26 +98,59 @@ bool anchor_bases_before(const anchor_t *self, const char *read,
                     &rev_start, &rev_end);
   if (fwd < 0 && rev < 0)
     return false;
-  /* as good in both orientations: which side of the match the bases are
+  /* as good in both orientations: which side of the match a window is
      on is not decided */
   if (fwd >= 0 && rev >= 0 && fwd == rev)
     return false;
-  if (rev < 0 || (fwd >= 0 && fwd < rev)) {
-    /* the read runs as the reference: the bases are those before the
-       match */
-    if (fwd_start < (long)n)
+  hit->found = true;
+  hit->reverse = !(rev < 0 || (fwd >= 0 && fwd < rev));
+  hit->start = hit->reverse ? rev_start : fwd_start;
+  hit->end = hit->reverse ? rev_end : fwd_end;
+  return true;
+}
+
+bool anchor_bases_before(const anchor_hit_t *hit, const char *read,
+    size_t read_len, size_t n, char *out) {
+  assert(hit != NULL);
+  assert(out != NULL);
+  if (!hit->found || n == 0 || read == NULL)
+    return false;
+  if (!hit->reverse) {
+    /* the read runs as the reference: the bases before the match */
+    if (hit->start < (long)n)
       return false;
     for (size_t i = 0; i < n; i++)
-      out[i] = upper(read[fwd_start - (long)n + (long)i]);
+      out[i] = upper(read[hit->start - (long)n + (long)i]);
     out[n] = '\0';
     return true;
   }
   /* the read is the reverse complement of the reference: the bases
-     before the anchor there are those after the match here, reverse
-     complemented */
-  if (rev_end + (long)n >= (long)read_len)
+     before the anchor there are those after the match here */
+  if (hit->end + (long)n >= (long)read_len)
     return false;
-  revcomp(read + rev_end + 1, n, out);
+  revcomp(read + hit->end + 1, n, out);
+  return true;
+}
+
+bool anchor_bases_after(const anchor_hit_t *hit, const char *read,
+    size_t read_len, size_t skip, size_t n, char *out) {
+  assert(hit != NULL);
+  assert(out != NULL);
+  if (!hit->found || n == 0 || read == NULL)
+    return false;
+  if (!hit->reverse) {
+    long from = hit->end + 1 + (long)skip;
+    if (from < 0 || from + (long)n > (long)read_len)
+      return false;
+    for (size_t i = 0; i < n; i++)
+      out[i] = upper(read[from + (long)i]);
+    out[n] = '\0';
+    return true;
+  }
+  long from = hit->start - (long)skip - (long)n;
+  if (from < 0)
+    return false;
+  revcomp(read + from, n, out);
   return true;
 }
 
@@ -143,43 +177,70 @@ void anchor_site_test(void) {
   test_assert(!anchor_of_peptide(&b, 0, ha, strlen(ha), "G..GAIAG", 0));
 
   char out[32];
+  anchor_hit_t hit;
   /* the read as the reference: the last 9 codons before HA2 */
-  test_assert(anchor_bases_before(&a, ha, strlen(ha), 0.2, 27, out));
+  test_assert(anchor_find(&a, ha, strlen(ha), 0.2, &hit));
+  test_assert(!hit.reverse);
+  test_assert(anchor_bases_before(&hit, ha, strlen(ha), 27, out));
   test_eq_str(out, SITE_NT);
-  /* the same read, reverse complemented */
+  /* and the bases after it, the control windows: the first 6 of HA2
+     after the anchor, then the next ones */
+  test_assert(anchor_bases_after(&hit, ha, strlen(ha), 0, 6, out));
+  test_eq_str(out, "TTTATA");
+  test_assert(anchor_bases_after(&hit, ha, strlen(ha), 6, 6, out));
+  test_eq_str(out, "GAGGGA");
+  /* the same read, reverse complemented: the same windows come back */
   char rc[128];
   revcomp(ha, strlen(ha), rc);
-  test_assert(anchor_bases_before(&a, rc, strlen(rc), 0.2, 27, out));
+  test_assert(anchor_find(&a, rc, strlen(rc), 0.2, &hit));
+  test_assert(hit.reverse);
+  test_assert(anchor_bases_before(&hit, rc, strlen(rc), 27, out));
   test_eq_str(out, SITE_NT);
+  test_assert(anchor_bases_after(&hit, rc, strlen(rc), 0, 6, out));
+  test_eq_str(out, "TTTATA");
+  test_assert(anchor_bases_after(&hit, rc, strlen(rc), 6, 6, out));
+  test_eq_str(out, "GAGGGA");
   /* a read with errors in the anchor still finds it */
   char noisy[128];
   snprintf(noisy, sizeof(noisy), "ATGGAAAAA" SITE_NT
            "GGACTCTTTGGGGCTTTAGCAGGC" "TTTATAGAGGGA");
-  test_assert(anchor_bases_before(&a, noisy, strlen(noisy), 0.2, 27, out));
+  test_assert(anchor_find(&a, noisy, strlen(noisy), 0.2, &hit));
+  test_assert(anchor_bases_before(&hit, noisy, strlen(noisy), 27, out));
   test_eq_str(out, SITE_NT);
-  /* a read which does not reach back far enough */
+  /* a read which does not reach far enough on either side */
   const char *short_read = "AAAGA" FUSION_NT "TTT";
-  test_assert(!anchor_bases_before(&a, short_read, strlen(short_read), 0.2,
+  test_assert(anchor_find(&a, short_read, strlen(short_read), 0.2, &hit));
+  test_assert(!anchor_bases_before(&hit, short_read, strlen(short_read),
                                    27, out));
-  test_assert(anchor_bases_before(&a, short_read, strlen(short_read), 0.2,
+  test_assert(anchor_bases_before(&hit, short_read, strlen(short_read),
                                   5, out));
   test_eq_str(out, "AAAGA");
+  test_assert(anchor_bases_after(&hit, short_read, strlen(short_read), 0,
+                                 3, out));
+  test_eq_str(out, "TTT");
+  test_assert(!anchor_bases_after(&hit, short_read, strlen(short_read), 0,
+                                  4, out));
+  test_assert(!anchor_bases_after(&hit, short_read, strlen(short_read), 3,
+                                  3, out));
   /* a read without the anchor */
   const char *other = "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT";
-  test_assert(!anchor_bases_before(&a, other, strlen(other), 0.2, 27, out));
+  test_assert(!anchor_find(&a, other, strlen(other), 0.2, &hit));
   /* the bases are read as the read carries them, insertion included */
   const char *inserted = "ATGGAAAAA" "CCTCAAAGAGAGAGAAGAAGAAAAAAGA"
                          FUSION_NT "TTT";
-  test_assert(anchor_bases_before(&a, inserted, strlen(inserted), 0.2, 28,
+  test_assert(anchor_find(&a, inserted, strlen(inserted), 0.2, &hit));
+  test_assert(anchor_bases_before(&hit, inserted, strlen(inserted), 28,
                                   out));
   test_eq_str(out, "CCTCAAAGAGAGAGAAGAAGAAAAAAGA");
   /* the read is searched as it is, as the primers are: a lower-case
      read does not match (the basecallers write upper case) */
   const char *lower = "atggaaaaa" "cctcaaagagagagaagaagaaaaaga"
                       "ggactgtttggggctatagcaggc" "ttt";
-  test_assert(!anchor_bases_before(&a, lower, strlen(lower), 0.2, 27, out));
+  test_assert(!anchor_find(&a, lower, strlen(lower), 0.2, &hit));
   /* no anchor, no read */
-  test_assert(!anchor_bases_before(&b, ha, strlen(ha), 0.2, 27, out));
-  test_assert(!anchor_bases_before(&a, NULL, 0, 0.2, 27, out));
-  test_assert(!anchor_bases_before(&a, ha, strlen(ha), 0.2, 0, out));
+  test_assert(!anchor_find(&b, ha, strlen(ha), 0.2, &hit));
+  test_assert(!anchor_find(&a, NULL, 0, 0.2, &hit));
+  test_assert(anchor_find(&a, ha, strlen(ha), 0.2, &hit));
+  test_assert(!anchor_bases_before(&hit, ha, strlen(ha), 0, out));
+  test_assert(!anchor_bases_after(&hit, ha, strlen(ha), 0, 0, out));
 }

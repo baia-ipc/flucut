@@ -63,19 +63,47 @@ typedef struct {
 bool anchor_of_peptide(anchor_t *self, size_t ref, const char *seq,
     size_t seq_len, const char *peptide, size_t len);
 
-/*
-   Read, out of the <read_len> bases of <read>, the <n> bases which
-   precede the anchor in the orientation of the reference, into <out>
-   (which must have room for n + 1 characters; the result is terminated
-   and in upper case).
+/* where an anchor was found in a read */
+typedef struct {
+  bool found;        /* false: the other fields are not set */
+  bool reverse;      /* the read is the reverse complement of the
+                        reference, so what precedes the anchor there
+                        follows the match here */
+  long start, end;   /* 0-based positions of the match in the read, the
+                        last one included */
+} anchor_hit_t;
 
-   The anchor is searched in both orientations, each with at most
-   <max_error_rate> of its length as errors. False, and <out> not
-   written, if it is not found, if it is found as well in both
-   orientations, or if the read does not have <n> bases before it.
+/*
+   Find the anchor in the <read_len> bases of <read>, in both
+   orientations, each with at most <max_error_rate> of its length as
+   errors. False, and <hit> not found, if it is not found, or if it is
+   found as well in both orientations: a read which matches equally well
+   either way does not say which side of the match a window is on.
+
+   One search per read: the windows beside the match are then read with
+   anchor_bases_before() and anchor_bases_after(), which do not search
+   again.
 */
-bool anchor_bases_before(const anchor_t *self, const char *read,
-    size_t read_len, double max_error_rate, size_t n, char *out);
+bool anchor_find(const anchor_t *self, const char *read, size_t read_len,
+    double max_error_rate, anchor_hit_t *hit);
+
+/*
+   Read the <n> bases which precede the anchor in the orientation of the
+   reference, as the read carries them, into <out> (room for n + 1
+   characters; terminated, upper case). False if the read does not have
+   <n> bases on that side.
+*/
+bool anchor_bases_before(const anchor_hit_t *hit, const char *read,
+    size_t read_len, size_t n, char *out);
+
+/*
+   The same for the <n> bases which follow the anchor, <skip> bases
+   after its end: with <skip> 0 the ones directly after it, with <skip>
+   n the ones after those. Those bases are ordinary sequence beside the
+   anchor, which makes them a control for a window read before it.
+*/
+bool anchor_bases_after(const anchor_hit_t *hit, const char *read,
+    size_t read_len, size_t skip, size_t n, char *out);
 
 /* Unit tests */
 void anchor_site_test(void);

@@ -11,8 +11,8 @@ md5: 564ba1743111c4573e6709803a319d3f
 @deletion_minus simulated	fs:Z:-	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:deletion	tl:i:10	tr:i:0
 575 AGTAGAAACAAGGTT...TCCCCTGCTTTTGCT
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_multibasic	cleavage_verdict
-deletion	2	1170	2	1150	2	0	0	1	0	0	0	0	2	0	0	2	0	0	2	0	0	2	0	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict
+deletion	2	1170	2	1150	2	0	0	1	0	0	0	0	2	0	0	2	0	0	2	0	0	2	0	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 deletion	NC_004908.1	550	2

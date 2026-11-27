@@ -198,11 +198,19 @@ static void read_cleavage_site(trimmer_t *self, const char *seq, size_t len,
     return;
   counter_set_cleavage_reference(counts, self->cleavage->aa);
   counter_add_cleavage_searched(counts);
-  char motif[CLEAVAGE_SITE_NT + 1];
-  if (anchor_bases_before(&self->cleavage->anchor, seq, len,
-                          self->config->probe_error_rate,
-                          CLEAVAGE_SITE_NT, motif))
-    counter_add_cleavage(counts, motif);
+  /* one search of the anchor per read; the site and the control
+     windows are then read from either side of the match */
+  anchor_hit_t hit;
+  if (!anchor_find(&self->cleavage->anchor, seq, len,
+                   self->config->probe_error_rate, &hit))
+    return;
+  char window[CLEAVAGE_SITE_NT + 1];
+  if (anchor_bases_before(&hit, seq, len, CLEAVAGE_SITE_NT, window))
+    counter_add_cleavage(counts, window);
+  for (size_t i = 0; i < CLEAVAGE_N_CONTROLS; i++)
+    if (anchor_bases_after(&hit, seq, len, i * CLEAVAGE_SITE_NT,
+                           CLEAVAGE_SITE_NT, window))
+      counter_add_cleavage_control(counts, i, window);
 }
 
 static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
