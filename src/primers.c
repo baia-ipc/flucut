@@ -151,9 +151,9 @@ static char complement(char code) {
   static const char *to   = "TGCAAYRSWMKVHDBN";
   if (code >= 'a' && code <= 'z')
     code = (char)(code - 32);
-  const char *p = strchr(from, code);
-  assert(p != NULL);
-  return to[p - from];
+  /* (another character, e.g. a '.' or '-' in a read, is left as it is) */
+  const char *p = code != '\0' ? strchr(from, code) : NULL;
+  return p != NULL ? to[p - from] : code;
 }
 
 void primers_reverse(const primer_t *p, char *seq_buf, primer_t *dest) {
