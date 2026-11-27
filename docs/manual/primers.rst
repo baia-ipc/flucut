@@ -146,11 +146,18 @@ match reaches furthest out is taken, then the one with fewest errors.
 
 A scheme of both types costs almost nothing: once the references of a
 sample say which type it is, only the primers of that type are searched
-in its reads. What is left is the automatic error rate (``-e auto``),
-which is measured on the first 1000 reads before the type is known and
-therefore searches every primer of the scheme. On a run of 183000
-Nanopore reads of influenza A, ``--virus both`` took 5.49 s against
-5.34 s for ``--virus a``, and the trimmed reads were the same.
+in its reads, and the trimmed reads of an influenza A sample are the
+same as they were before influenza B was supported.
+
+What it does cost is fixed, once per run: the references of influenza B
+in the default set, and the automatic error rate (``-e auto``), which is
+measured on the first 1000 reads before the type is known and therefore
+searches every primer of the scheme. Together they were 0.9 s on a run
+of 183000 Nanopore reads of influenza A (6.11 s against 5.25 s before
+influenza B was supported, with the default references of each). Being
+fixed, they are a smaller and smaller share of a longer run: on 3.2 GB
+of reads in four barcodes, 182.2 s against 181.4 s. ``--virus a`` or
+``--virus b`` on a run which holds one type avoids them.
 
 The rate itself is measured per type: at the few read ends where a
 primer of the other type matches best, it matches with many errors,
