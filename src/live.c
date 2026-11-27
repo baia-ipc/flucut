@@ -279,6 +279,9 @@ static void process_file(live_t *w, live_group_t *st, const char *path,
     long size) {
   const options_t *opts = w->opts;
   counter_clear(w->file_counts);
+  /* (-e auto is decided before the workers are created, also if the file
+     became ready just after decide_auto() looked at it) */
+  auto_settings_decide(w->autos, w->config, path, w->logger);
   worker_t *workers = get_workers(w);
   /* each barcode is a different sample: classify it only against the
      reference of each segment closest to it (chosen from its first
