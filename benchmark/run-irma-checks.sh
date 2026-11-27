@@ -3,9 +3,12 @@
 # The IRMA checks of the benchmark (see benchmark/RESULTS.md): on the
 # simulated reads, the IRMA consensus of
 #   raw        the untrimmed reads
-#   flucut     flucut with the default trimming (every primer removed)
+#   flucut     flucut with its default options: the reads classified
+#              against the built-in references, the conserved termini
+#              kept at the terminal ends
 #   notags     the same, with --no-tags
-#   terminus   flucut --trim terminus with the genome as references
+#   off        flucut -r off (no references: every primer base removed)
+#   genome     flucut -r with the simulated genome as references
 # each with IRMA FLU-minion as it is, and with the reference elongation
 # on (SKIP_E=0, suffix _elong), compared with the truth
 # (benchmark/compare_consensus.py). Also the codon of the I351K site in
@@ -27,14 +30,14 @@ python3 -I "$here/simulate.py" "$genome" "$work/sim"
 reads=$work/sim/reads.fastq.gz
 "$flucut" -q -o "$work/flucut" "$reads"
 "$flucut" -q --no-tags -o "$work/notags" "$reads"
-"$flucut" -q -T terminus -r "$work/sim/genome.fasta" -o "$work/terminus" \
-  "$reads"
+"$flucut" -q -r off -o "$work/off" "$reads"
+"$flucut" -q -r "$work/sim/genome.fasta" -o "$work/genome" "$reads"
 printf 'SKIP_E=0\n' > "$work/elong.sh"
 python_compare="python3 -I $here/compare_consensus.py"
 first=1
 : > "$work/consensus.tsv"
 printf 'run\thas_codon\n' > "$work/site.tsv"
-for name in raw flucut notags terminus; do
+for name in raw flucut notags off genome; do
   if [ "$name" = raw ]; then input=$reads; else
     input=$work/$name/reads.fastq.gz; fi
   for mode in plain elong; do

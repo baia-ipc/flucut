@@ -16,8 +16,9 @@ genomes, scripts and measure (the read ends classified correctly).
 
 ## Data: simulated reads
 
-For now only simulated reads are used, so that the truth is known for
-every base.
+Most measures use simulated reads, so that the truth is known for
+every base. Four public sequencing runs are measured as well ("Public
+runs" below).
 
 ### The genome
 
@@ -37,7 +38,9 @@ the bases after the motif GLFGAIAG read `AGCTATAGCAGG`, which differs
 from the Uni12 primer `AGCRAAAGCAGG` at two positions: the R is on the
 third base of an Ala codon (silent), and the T of the Ile codon `ATA`
 becomes the A of `AAA` (Lys). This is the I351K artefact of
-`docs/internal-priming.md`, found in the public sequences. In
+`docs/internal-priming.md`, found in the public sequences (residue 6 of
+HA2, at the start of the fusion peptide; 351 is counted on the HA0
+precursor from the initiator methionine). In
 KF918483.1 it is the only position with as few mismatches (2), at
 1078-1089 (1-based).
 
@@ -72,9 +75,9 @@ them, by the reads split wrongly and those not split
 
 ## IRMA
 
-IRMA 1.4.0 with IRMA-core 0.11.0, IRMA-viz 0.2.2 and LABEL 0.7.2,
-installed from the sources by `setup-irma.sh` (the release archives were
-not reachable from the environment). The module is `FLU-minion` (the
+IRMA 1.4.0 with IRMA-core 0.11.0, IRMA-viz 0.2.2 and LABEL 0.7.2: an
+installed release, or one built from the sources by `setup-irma.sh`.
+The module is `FLU-minion` (the
 configuration of IRMA for Nanopore reads), as it is, and with the
 reference elongation on (`SKIP_E=0`), which extends the consensus into
 the untranslated regions of the segments.
@@ -88,13 +91,75 @@ the untranslated regions of the segments.
 
 `run-irma-checks.sh` simulates the reads, trims them, runs IRMA and
 compares each consensus with the truth (`compare_consensus.py`).
-`run-tools.sh` runs the other tools (cutadapt, the IRMA-core trimmer)
-on the same reads, scores them and runs IRMA on their output.
 `score_reads.py` scores the trimmed reads of any tool against the truth
 of each base:
 
     python3 -I benchmark/score_reads.py work/sim work/flucut/reads.fastq.gz \
         flucut
+
+It counts the reads written and lost, the template bases removed, the
+primer bases kept (in all, and apart those of the primer tails and
+those of the conserved termini, which flucut keeps on purpose at the
+terminal ends when it has references), the flanking bases kept, the
+primer bases kept at the internal site, and the reads split: flucut
+writes a read which holds several amplicons as several reads, so it can
+write more reads than it was given.
+
+flucut is run in its configurations side by side, as its result
+depends on the references: with its default options (the reads are
+classified against the built-in references and the conserved termini
+kept at the terminal ends), with `-r off` (no references: every primer
+base removed; the primers of influenza A and B are then both searched)
+and with `-r off --virus a` (the primers of influenza A alone).
+
+The other scripts, each with its usage in its first lines; the
+programs are given in the environment (`FLUCUT`, `IRMA`, `IRMA_CORE`,
+`BBDUK`, `PORECHOP`, `DORADO`, `BARBELL`, `SAMTOOLS`, `MINIMAP2`;
+cutadapt and a `python3` with edlib in the `PATH`), and a tool whose
+program is not given is left out:
+
+| script | what it does |
+|---|---|
+| `run-tools.sh <simulation> <outdir>` | every tool on one set of simulated reads: read-level scores, IRMA consensus with and without the elongation, the codon of the site |
+| `run-coverage.sh <genome> <workdir> <flucut> <IRMA> <irma-core>` | 10, 20 and 40 reads per segment, three seeds each: flucut, cutadapt and the IRMA-core trimmer, IRMA majority consensus |
+| `run-flucut-options.sh <simulation> <outdir>` | flucut alone, read-level scores by its options: references, adapter search, errors allowed in a primer |
+| `run-speed.sh <simulation> <outdir> [<copies>]` | time and memory of every tool (`measure.py`) on the reads repeated 10 times |
+
+The reads of the other sets are simulated with the options of
+`simulate.py`: `--barcodes 4` (native barcoding adapters outside the
+primers), `--error-rate 0.01` to `0.12`, `--joined-share 0.05`.
+
+`measure.py` reports the wall time, the CPU time and the peak memory
+of a command; with `MEASURE_CPUS=<list>` in the environment the command
+is confined to these processors (e.g. 4 cores of a larger machine).
+
+## Public runs
+
+`run-real-nanopore.sh` and `run-real-illumina.sh` take a run accession
+of SRA, the accessions of the eight segments of its isolate in GenBank,
+an output directory and, optionally, a directory for the downloads:
+
+    benchmark/run-real-nanopore.sh SRR36760543 \
+        PZ239631.1,PZ239632.1,PZ239633.1,PZ239634.1,PZ239635.1,PZ239636.1,PZ239637.1,PZ239638.1 \
+        work/SRR36760543 reads/SRR36760543
+
+They download the reads (ENA) and the segments (NCBI), trim the reads
+with each tool (timed), map them to the segments of the isolate and
+count the codon of the internal priming site by where the reads start
+(`site_reads.py`), and assemble the reads of each tool with IRMA; the
+consensus sequences are compared with that of the untrimmed reads.
+flucut is run with its default options, with `-r off` and with the
+segments of the isolate as references; for the Nanopore runs also
+with the file given in `REFERENCES` (complete segments, with the
+untranslated regions, which most GenBank records lack). `IRMA_JOBS`
+sets how many assemblies run at a time.
+
+`read_origins.py` writes, from the JSON summaries of flucut runs, the
+table of the 5' read ends by origin (terminal, internal, not located)
+and the largest internal priming sites:
+
+    python3 -I benchmark/read_origins.py \
+        SRR36760543=work/SRR36760543/flucut/flucut_summary.json
 
 ## The choice of the reference of each segment
 

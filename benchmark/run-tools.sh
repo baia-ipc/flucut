@@ -9,7 +9,12 @@
 #
 # The tools, with the configurations of benchmark/RESULTS.md (each tool
 # runs if its program is given, see below):
-# - flucut, default options;
+# - flucut, in three configurations: default options (the reads
+#   classified against the built-in references, the conserved termini
+#   kept at the terminal ends); -r off (no references, every primer base
+#   removed; the primers of influenza A and B are both searched, as the
+#   type cannot be read from the references); -r off --virus a (the
+#   same, with the primers of influenza A alone);
 # - cutadapt: the two primers non-anchored (-g, -a), --revcomp, -e 0.2;
 # - IRMA-core trimmer: the primers as k-mers (k 12, the length of Uni12;
 #   one mismatch), windows of 40 (the default of MIRA-NF for custom
@@ -54,10 +59,14 @@ printf '>uni12A\n%s\n>uni12G\n%s\n>mbtuni13\n%s\n' "$uni12a" "$uni12g" \
   "$mbt13" > "$primers"
 
 # the trimmed reads of each tool, in $out/<tool>.fastq.gz
-tools="untrimmed flucut"
+tools="untrimmed flucut flucut-r-off flucut-r-off-a"
 cp "$reads" "$out/untrimmed.fastq.gz"
 "$FLUCUT" -q -o "$out/flucut" "$reads"
-mv "$out/flucut/reads.fastq.gz" "$out/flucut.fastq.gz"
+"$FLUCUT" -q -r off -o "$out/flucut-r-off" "$reads"
+"$FLUCUT" -q -r off --virus a -o "$out/flucut-r-off-a" "$reads"
+for t in flucut flucut-r-off flucut-r-off-a; do
+  ln -sf "$t/reads.fastq.gz" "$out/$t.fastq.gz"
+done
 
 if command -v cutadapt > /dev/null; then
   tools="$tools cutadapt"
@@ -166,7 +175,7 @@ if [ -n "${BARBELL:-}" ] && [ $barcoded = 1 ]; then
     echo 'Ftag[<<, rc, *, @right(0..250)]'
     echo 'Rtag[<<, rc, *, @right(0..250)]'
   } > "$bb/filters.txt"
-  "$BARBELL" annotate -q "$bb/left.fasta" "$bb/right.fasta" -b Ftag Rtag \
+  "$BARBELL" annotate -q "$bb/left.fasta,$bb/right.fasta" -b Ftag,Rtag \
     -i "$reads" -o "$bb/anno.tsv" -t 4 > "$bb/annotate.log" 2>&1
   "$BARBELL" filter -i "$bb/anno.tsv" -f "$bb/filters.txt" \
     -o "$bb/filtered.tsv" > "$bb/filter.log" 2>&1

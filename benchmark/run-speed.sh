@@ -4,7 +4,12 @@
 # Time and memory of the trimming tools (benchmark/measure.py), with the
 # commands of benchmark/run-tools.sh (see there), on the reads of a
 # simulation repeated <copies> times (the read names made unique), with 4
-# threads where the tool has an option for it (and flucut also with 1).
+# threads where the tool has an option for it (and flucut also with 1);
+# flucut with its default options (the reads classified against the
+# built-in references), with -r off (no references; also with --virus
+# a, the primers of influenza A alone) and with the simulated genome as
+# references. MEASURE_CPUS (see measure.py) confines
+# the tools to some processors of a larger machine.
 # The reads written are not scored here (see run-tools.sh). Barbell needs
 # barcoded reads: it is run on the reads of <barcoded simulation>, if
 # given, repeated as well (the other tools are run on them too, then).
@@ -39,8 +44,14 @@ run() { $measure "$1" "$2" >> "$table"; }
 
 run flucut-j1 "$FLUCUT -q -j 1 -o $out/flucut1 $reads"
 run flucut-j4 "$FLUCUT -q -j 4 -o $out/flucut4 $reads"
-run flucut-j4-references "$FLUCUT -q -j 4 -r $sim/genome.fasta \
-  -o $out/flucut4r $reads"
+run flucut-j1-r-off "$FLUCUT -q -j 1 -r off -o $out/flucut1off $reads"
+run flucut-j4-r-off "$FLUCUT -q -j 4 -r off -o $out/flucut4off $reads"
+run flucut-j1-r-off-a "$FLUCUT -q -j 1 -r off --virus a \
+  -o $out/flucut1offa $reads"
+run flucut-j4-r-off-a "$FLUCUT -q -j 4 -r off --virus a \
+  -o $out/flucut4offa $reads"
+run flucut-j4-genome "$FLUCUT -q -j 4 -r $sim/genome.fasta \
+  -o $out/flucut4genome $reads"
 if command -v cutadapt > /dev/null; then
   run cutadapt-j4 "cutadapt -j 4 -e 0.2 --revcomp -n 2 -m 1 -g $uni12 \
     -a $rc_mbt13 -o $out/cutadapt.fastq.gz $reads > /dev/null"
@@ -109,8 +120,8 @@ if [ -n "${BARBELL:-}" ] && [ -e "$sim/barcodes.fasta" ]; then
     echo 'Ftag[<<, rc, *, @right(0..250)]'
     echo 'Rtag[<<, rc, *, @right(0..250)]'
   } > "$bb/filters.txt"
-  run barbell-t4 "$BARBELL annotate -q $bb/left.fasta $bb/right.fasta \
-    -b Ftag Rtag -i $reads -o $bb/anno.tsv -t 4 > /dev/null 2>&1 && \
+  run barbell-t4 "$BARBELL annotate -q $bb/left.fasta,$bb/right.fasta \
+    -b Ftag,Rtag -i $reads -o $bb/anno.tsv -t 4 > /dev/null 2>&1 && \
     $BARBELL filter -i $bb/anno.tsv -f $bb/filters.txt \
     -o $bb/filtered.tsv > /dev/null 2>&1 && $BARBELL trim \
     -i $bb/filtered.tsv -r $reads -o $bb/trimmed --no-orientation \

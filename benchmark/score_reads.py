@@ -13,6 +13,11 @@ benchmark/simulate.py) then tells what was kept and what was removed:
                         none of the pieces written of the read
   primer_kept           primer bases kept (tail and terminus, at the
                         segment ends), flank_kept: flanking bases kept
+  tail_kept, terminus_kept
+                        the primer bases kept, apart: those of the tail
+                        of a primer, and those of the conserved terminus
+                        of the segment (which flucut keeps on purpose at
+                        the terminal ends when it has references)
   internal_kept         primer bases kept at the internal priming site
                         (the bases which carry the artefact)
   not_found             written reads not found in their input read
@@ -59,7 +64,8 @@ def read_fastq(path):
 
 COLUMNS = ["reads_in", "reads_out", "reads_lost", "template_removed",
            "primer_kept", "flank_kept", "internal_kept", "not_found",
-           "pieces", "split_wrongly", "not_split"]
+           "pieces", "split_wrongly", "not_split", "tail_kept",
+           "terminus_kept"]
 
 
 def main():
@@ -106,12 +112,14 @@ def main():
     for start, end in parts:
       kept = labels[start:end]
       removed[start:end] = "-" * (end - start)
-      c["primer_kept"] += kept.count("p") + kept.count("t")
+      c["tail_kept"] += kept.count("t")
+      c["terminus_kept"] += kept.count("p")
       c["flank_kept"] += kept.count("f")
       c["internal_kept"] += kept.count("i")
     c["template_removed"] += removed.count("T")
     c["split_wrongly"] += len(parts) > amplicons
     c["not_split"] += 0 < len(parts) < amplicons
+  c["primer_kept"] = c["tail_kept"] + c["terminus_kept"]
   if "--no-header" not in sys.argv:
     print("\t".join(["label"] + COLUMNS))
   print("\t".join([label] + [str(c[k]) for k in COLUMNS]))

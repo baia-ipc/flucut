@@ -11,7 +11,12 @@
 #    consensus of the isolate (GenBank) are downloaded;
 # 2. the reads are trimmed by each tool (timed), with the primers of the
 #    uni12-mbt13 scheme:
-#    - flucut -r (whole-amplicon default, with the 8 segments);
+#    - flucut, in three or four configurations: default options (the
+#      reads classified against the built-in references); -r off (no
+#      references); -r with the 8 segments of the isolate (coding
+#      sequences in most records: the terminal read ends are then not
+#      located); and, if REFERENCES is set, -r with that file (complete
+#      segments, with the untranslated regions);
 #    - cutadapt, the 5' Uni12 and 3' Uni13 (reverse complement), both
 #      orientations (--revcomp);
 #    - BBDuk, the primers as k-mers at both ends (ktrim=l, then ktrim=r);
@@ -24,12 +29,18 @@
 # 4. IRMA FLU-minion assembles the reads of each tool, and the consensus
 #    sequences are compared with that of the untrimmed reads.
 #
-# Usage: benchmark/run-real-nanopore.sh <run> <accessions> <output dir>
-# <accessions>: the 8 segments of the isolate, comma-separated. The
-# programs are given in the environment: FLUCUT, IRMA, SAMTOOLS, MINIMAP2
-# (required); IRMA_CORE, BBDUK, DORADO (optional); cutadapt in the PATH
-# (optional). Output: <output dir>/speed.tsv (time and memory), bases.tsv
-# (reads and bases written), codons.tsv, consensus.tsv.
+# Usage: benchmark/run-real-nanopore.sh <run> <accessions> <output dir> \
+#          [<download dir>]
+# <accessions>: the 8 segments of the isolate, comma-separated. The reads
+# and the segments are downloaded to <download dir> (default: <output
+# dir>/download; nothing is downloaded again if it is there), which
+# holds nothing else: no program is run from inside it. The programs are
+# given in the environment: FLUCUT, IRMA, SAMTOOLS, MINIMAP2 (required);
+# IRMA_CORE, BBDUK, DORADO, REFERENCES (optional); cutadapt in the PATH
+# (optional). IRMA_JOBS: the IRMA runs at a time (default 1);
+# MEASURE_CPUS: see measure.py. Output: <output dir>/speed.tsv (time and
+# memory), bases.tsv (reads and bases written), codons.tsv,
+# consensus.tsv.
 
 set -euo pipefail
 run=$1
@@ -43,10 +54,15 @@ uni12g=AGCGAAAGCAGG
 mbt13=ACGCGTGATCAGTAGAAACAAGG
 rc_mbt13=CCTTGTTTCTACTGATCACGCGT
 mkdir -p "$out"
+out=$(cd "$out" && pwd)
+dl=${4:-$out/download}
+mkdir -p "$dl"
+dl=$(cd "$dl" && pwd)
+isolate=$dl/isolate.fasta
 cd "$out"
 
 # 1. the data
-if [ ! -s $run.fastq.gz ]; then
+if [ ! -s "$dl/$run.fastq.gz" ]; then
   url=$(curl -sS --fail --retry 3 "https://www.ebi.ac.uk/ena/portal/api/\
 filereport?accession=$run&result=read_run&fields=fastq_ftp" \
     | tail -1 | cut -f2 || true)
@@ -56,21 +72,21 @@ filereport?accession=$run&result=read_run&fields=fastq_ftp" \
        url=$d/${run}_1.fastq.gz ;;
   esac
   curl -sS --fail --retry 5 --retry-all-errors --retry-delay 10 \
-    -o $run.fastq.gz "https://${url%%;*}"
+    -o "$dl/$run.fastq.gz" "https://${url%%;*}"
 fi
-if [ ! -s isolate.fasta ]; then
+if [ ! -s "$isolate" ]; then
   curl -sS --fail --retry 5 --retry-all-errors --retry-delay 10 \
-    -o isolate.fasta "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/\
+    -o "$isolate" "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/\
 efetch.fcgi?db=nuccore&id=$accessions&rettype=fasta&retmode=text"
 fi
-[ -s download_date.txt ] || date -u +%Y-%m-%d > download_date.txt
-reads=$run.fastq.gz
+[ -s "$dl/download_date.txt" ] || date -u +%Y-%m-%d > "$dl/download_date.txt"
+reads=$dl/$run.fastq.gz
 # the HA (segment 4) and its Uni12-like site (12 bases, 1-based start;
 # the codon is its bases 5-7), searched near position 1050
-read -r ha site < <(python3 -I - <<'EOF'
-import re
+read -r ha site < <(python3 -I - "$isolate" <<'EOF'
+import re, sys
 seqs, name = {}, None
-for line in open("isolate.fasta"):
+for line in open(sys.argv[1]):
   line = line.strip()
   if line.startswith(">"):
     name = line[1:].split()[0]
@@ -91,11 +107,20 @@ printf 'run\t%s\nHA\t%s\nsite\t%s\ncodon\t%s\n' $run $ha $site $codon \
 # 2. the reads trimmed by each tool (<tool>.fastq.gz), timed
 printf 'run\ttool\twall_s\tcpu_s\tpeak_mb\n' > speed.tsv
 timed() { $measure "$1" "$2" | sed "s/^/$run\t/" >> speed.tsv; }
-tools="untrimmed flucut"
+tools="untrimmed flucut flucut-r-off flucut-isolate"
 ln -sf $reads untrimmed.fastq.gz
-rm -rf flucut
-timed flucut "$FLUCUT -q -r isolate.fasta -o flucut $reads"
-ln -sf flucut/$run.fastq.gz flucut.fastq.gz
+rm -rf flucut flucut-r-off flucut-isolate flucut-references
+timed flucut "$FLUCUT -q -o flucut $reads"
+timed flucut-r-off "$FLUCUT -q -r off -o flucut-r-off $reads"
+timed flucut-isolate "$FLUCUT -q -r $isolate -o flucut-isolate $reads"
+if [ -n "${REFERENCES:-}" ]; then
+  tools="$tools flucut-references"
+  timed flucut-references "$FLUCUT -q -r $REFERENCES -o flucut-references \
+    $reads"
+fi
+for t in $tools; do
+  [ $t = untrimmed ] || ln -sf $t/$run.fastq.gz $t.fastq.gz
+done
 if command -v cutadapt > /dev/null; then
   tools="$tools cutadapt"
   timed cutadapt "cutadapt -j 4 -e 0.2 --revcomp -n 2 -m 1 -g $uni12 \
@@ -140,7 +165,7 @@ for t in $tools; do
   printf '%s\t%s\t%s\n' $run $t "$(gzip -dc ${t}.fastq.gz | awk \
     'NR % 4 == 2 { n++; b += length($0) } END { print n "\t" b }')" \
     >> bases.tsv
-  "$MINIMAP2" -ax map-ont -t 4 isolate.fasta ${t}.fastq.gz 2> /dev/null \
+  "$MINIMAP2" -ax map-ont -t 4 "$isolate" ${t}.fastq.gz 2> /dev/null \
     | "$SAMTOOLS" sort -o $t.bam -
   "$SAMTOOLS" index $t.bam
   "$SAMTOOLS" view $t.bam $ha:$codon-$((codon + 2)) \
@@ -151,8 +176,10 @@ done
 # 4. the consensus of IRMA (FLU-minion)
 for t in $tools; do
   rm -rf irma_$t
-  "$IRMA" FLU-minion ${t}.fastq.gz irma_$t > irma_$t.log 2>&1 || true
+  "$IRMA" FLU-minion ${t}.fastq.gz irma_$t > irma_$t.log 2>&1 || true &
+  while [ "$(jobs -rp | wc -l)" -ge "${IRMA_JOBS:-1}" ]; do wait -n; done
 done
+wait
 printf 'run\treads\tsegment\tlength\tcodon\tdifferences_to_untrimmed\n' \
   > consensus.tsv
 python3 -I - $run $site $tools >> consensus.tsv <<'EOF'

@@ -2,7 +2,8 @@
 #
 # The tools at low coverage: reads simulated as in run-irma-checks.sh,
 # with 10, 20 and 40 reads per segment (three seeds each), trimmed by
-# the tools of run-tools.sh (same commands), assembled by IRMA
+# the tools of run-tools.sh (same commands; flucut with its default
+# options and with -r off), assembled by IRMA
 # FLU-minion (as it is); for each run, summed over the segments: the
 # segments assembled, the differences of the majority consensus from the
 # truth (substitutions, insertions, deletions; compare_consensus.py
@@ -39,7 +40,10 @@ for n in 10 20 40; do
     reads=$run/sim/reads.fastq.gz
     cp "$reads" "$run/untrimmed.fastq.gz"
     "$flucut" -q -o "$run/flucut" "$reads"
-    mv "$run/flucut/reads.fastq.gz" "$run/flucut.fastq.gz"
+    "$flucut" -q -r off -o "$run/flucut-r-off" "$reads"
+    for t in flucut flucut-r-off; do
+      ln -sf "$t/reads.fastq.gz" "$run/$t.fastq.gz"
+    done
     cutadapt -j 1 -e 0.2 --revcomp -n 2 -m 1 -g AGCRAAAGCAGG \
       -a CCTTGTTTCTACTGATCACGCGT -o "$run/cutadapt.fastq.gz" "$reads" \
       > "$run/cutadapt.log"
@@ -47,7 +51,7 @@ for n in 10 20 40; do
       -P "$primers" --p-kmer-length 12 --p-fuzzy --p-restrict 70 -n 1 \
       2> "$run/irma-core-w70.log"
     gzip -f "$run/irma-core-w70.fastq"
-    for tool in untrimmed flucut cutadapt irma-core-w70; do
+    for tool in untrimmed flucut flucut-r-off cutadapt irma-core-w70; do
       rm -rf "$run/irma/$tool"
       mkdir -p "$run/irma"
       "$irma" FLU-minion "$run/$tool.fastq.gz" "$run/irma/$tool" \

@@ -9,11 +9,11 @@ given its best configuration.
 ## Barbell
 
 Rust; pattern-aware demultiplexing and trimming of Nanopore reads.
-Beeloo R, Groot Koerkamp R, Jia X, Broekhuizen-Stins MJ, van Ijken L,
-Dutilh BE, Zomer AL. *Barbell resolves demultiplexing and trimming
-issues in Nanopore data.* Bioinformatics (2026),
-https://doi.org/10.1093/bioinformatics/btag349 ;
-https://github.com/rickbeeloo/barbell
+Beeloo R, Groot Koerkamp R, Jia X, Broekhuizen-Stins MJ, van IJken L,
+Broens EM, Zomer A, Dutilh BE. *Barbell reveals and resolves
+demultiplexing and trimming issues in Nanopore data.* Bioinformatics
+2026;42(6), https://doi.org/10.1093/bioinformatics/btag349 (PubMed
+42233292); https://github.com/rickbeeloo/barbell
 
 The reference to beat. It reports far fewer trimming errors than
 `dorado trim` and Flexiplex, and it is fast. Its model is close to the
@@ -31,7 +31,10 @@ end, and with barcoded primers one entry per sample:
       -i reads.fastq -o anno.tsv -t <threads>
     barbell inspect -i anno.tsv
     barbell filter -i anno.tsv -f filters.txt -o filtered.tsv
-    barbell trim -i reads.fastq -a filtered.tsv -o out
+    barbell trim -i filtered.tsv -r reads.fastq -o out
+
+(the options of version 0.3.3; the commands as they are run are in
+`run-tools.sh`)
 
 with a pattern such as
 
