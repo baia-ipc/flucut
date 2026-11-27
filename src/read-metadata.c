@@ -93,8 +93,9 @@ void read_metadata_add_title(read_metadata_t *self, const char *title,
     title++;
   size_t word = field_length(title, end);
   bool any = false;
-  for (const char *s = title + word; s < end; s++) {
-    /* (a field starts after a space or a tab) */
+  for (const char *s = title + word + 1; s < end; s++) {
+    /* (a field starts after a space or a tab; the first one can start
+       after the separator which ends the first word) */
     if (s[-1] != ' ' && s[-1] != '\t')
       continue;
     for (size_t i = 0; i < READ_METADATA_N; i++) {
