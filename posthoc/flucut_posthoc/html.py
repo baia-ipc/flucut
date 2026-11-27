@@ -64,7 +64,8 @@ def table(headers: list[str], rows: list[list], left: int = 1,
             text = value if isinstance(value, Markup) else \
                 num(value) if isinstance(value, (int, float)) or \
                 value is None else escape(str(value))
-            out.append(f'<td{f" class=\"{kind}\"" if kind else ""}>{text}</td>')
+            attribute = f' class="{kind}"' if kind else ""
+            out.append(f"<td{attribute}>{text}</td>")
         out.append("</tr>")
     out.append("</table></div>")
     return "".join(out)
