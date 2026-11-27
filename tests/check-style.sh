@@ -15,7 +15,9 @@
 # most 80 characters (except lines with a URL and those listed in
 # LONG_LINES_OK) and, for Python, 2 spaces per indentation level (each
 # indented block 2 spaces deeper than the enclosing one; continuation
-# lines, comments and strings are not checked).
+# lines, comments and strings are not checked). flucut-posthoc
+# (posthoc/) is a Python program of its own and follows PEP 8, so its
+# indentation is not checked here.
 #
 # Usage: tests/check-style.sh   (from the repository root)
 #
@@ -28,7 +30,11 @@ TEMPLATES=$(ls src/*.html 2>/dev/null)
 SCRIPTS=$(git ls-files -- '*.py' '*.sh' ':!ext' 2>/dev/null ||
   find . -path ./ext -prune -o -path './.*' -prune -o \
     \( -name '*.py' -o -name '*.sh' \) -print | sed 's|^\./||' | sort)
-PYTHON=$(for f in $SCRIPTS; do case $f in *.sh) ;; *) echo $f ;; esac; done)
+# the Python scripts whose indentation follows the rule above: those of
+# flucut-posthoc follow PEP 8 instead and are left out
+PYTHON=$(for f in $SCRIPTS; do
+  case $f in *.sh | posthoc/*) ;; *) echo $f ;; esac
+done)
 # lines of the scripts allowed to be longer than 80 characters, one per
 # line, as <file>:<extended regular expression> (none at the moment; lines
 # with a URL are always allowed)

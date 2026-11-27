@@ -31,9 +31,10 @@ def _verdict(checks: list[Check], rows: list[dict],
     status, text = verdict(checks, rows, subtype)
     outside = [chip("subtype differs")] \
         if subtype and subtype["status"] == "different" else []
-    outside += [chip(f"{END_LABELS[c.end].split(' (')[0] + ': ' if c.end else ''}"
-                    f"{c.label} {c.value}")
-               for c in checks if c.status in ("warn", "bad")]
+    for c in checks:
+        if c.status in ("warn", "bad"):
+            where = END_LABELS[c.end].split(" (")[0] + ": " if c.end else ""
+            outside.append(chip(f"{where}{c.label} {c.value}"))
     outside += [chip(f"{row['gene']}: "
                      + ("state differs" if not row["same_state"]
                         else "depth differs"))
