@@ -24,6 +24,8 @@ In a very fast pass over the reads, flucut will:
 - split reads containing multiple amplicons joined end-to-end
 - estimate the coverage plots for each segment accurately before any read mapping is done
 - classify the subtype of influenza A
+- report reads of a second HA or NA subtype in a sample (a mixed infection, a contamination
+  or barcode crosstalk: the reads do not say which)
 - analyze presence of patterns typical of low/high pathogenicity
 
 It is mainly targeted to Nanopore reads, but also supports most functionality on Illumina reads as well.

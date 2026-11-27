@@ -329,35 +329,51 @@ A segment whose votes are split has two causes which the votes alone do
 not separate: one strain lying between two references (the probes of
 the same read vote for different references), or two strains in the
 sample (the probes of a read agree, the reads disagree with each
-other). flucut reports the agreement of the probes within a read for
-each segment (`src/read-agreement.h`), in the messages (`-v`) only.
+other). flucut reports, for the HA and the NA, the reads of a second
+subtype among the first reads of a sample, in the HTML report and the
+JSON summary (`src/subtype-reads.h`), and the agreement of the probes
+within a read for each segment and reference in the messages (`-v`,
+`src/read-agreement.h`).
 
 `mixed_samples.py` simulates, at the three error rates and with two
 seeds each:
 
-- a sample of each of the 17 genomes alone, which gives the agreement
-  expected without a mix, including the genomes which lie between two
+- a sample of each of the 17 genomes alone, which gives what is seen
+  without a mix, including the genomes which lie between two
   references;
 - mixes of two strains, with the minor one at 50, 10, 5, 2 and 1% of
   the reads: eight pairs of different subtypes (one of them two swine
-  viruses which share their internal genes) and, as a control, two
-  H5N1 of the same clade, which five subtype references cannot
-  separate.
+  viruses which share their internal genes and the subtype of their
+  NA) and, as a control, two H5N1 of the same clade.
 
 Each strain is simulated by itself, with its own read names
 (`--read-prefix`) and the number of reads of its share; `mix_reads.py`
-joins the simulations in random order. Each sample has 3200 reads in
-all, so a minor fraction of 1% is 4 reads per segment.
+joins the simulations in an order of its own for each sample. By
+default a sample has 400 reads per segment, 3200 in all, so a minor
+fraction of 1% is 4 reads per segment; flucut counts the probes of the
+first 2000 reads. The reads per segment can be given, and the reads of
+the NA: with a scarce NA, flucut counts the probes of up to 20,000
+reads, ten times more reads of the HA.
 
     python3 benchmark/mixed_samples.py work/genomes \
-        ~/.cache/flucut/flu-a-references-v1.fasta bin/flucut work/mixed 8
-    python3 benchmark/mixed_samples_tables.py work/mixed lowest
+        ~/.cache/flucut/flu-a-references-v3.fasta bin/flucut work/mixed 8
+    # 32,000 reads, 40 of them of the NA
+    python3 benchmark/mixed_samples.py work/genomes \
+        ~/.cache/flucut/flu-a-references-v3.fasta bin/flucut \
+        work/mixed_deep 8 4000 40
+    python3 benchmark/mixed_samples_tables.py work/mixed one_subtype
+    python3 benchmark/mixed_samples_tables.py work/mixed by_fraction
 
-`mixed_samples_tables.py` writes three tables from `agreement.tsv`:
-`single` (the statistic in the samples of one strain, whose highest
-value per segment is the threshold), `detected` (the runs in which each
-mix is above it) and `lowest` (the lowest minor fraction above it in
-every run).
+`mixed_samples_tables.py` writes, from `second_subtype.tsv` (what the
+JSON summary of each sample says about the HA and the NA):
+`one_subtype` (the samples with one subtype in the gene, and how many
+are above the threshold of flucut), `remarked` (for each pair and minor
+fraction, the runs above it with the right second subtype) and
+`by_fraction` (the same, all pairs together); and from `agreement.tsv`
+(the messages), for the eight segments by reference: `single` (the
+statistic in the samples of one strain, whose highest value per segment
+is the threshold), `detected` (the runs in which each mix is above it)
+and `lowest` (the lowest minor fraction above it in every run).
 
 ### What the simulation assumes
 

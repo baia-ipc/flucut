@@ -25,6 +25,11 @@ probe
    The bases of a read after the primer of an end, located in the
    references to classify the end.
 
+second subtype
+   The HA (or NA) subtype, other than that of most reads of a sample,
+   which most of its other reads belong to. Its reads can come from a
+   mixed infection, from a contamination, or from barcode crosstalk.
+
 scheme
    The primers expected at the two ends of an amplicon.
 

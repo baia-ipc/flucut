@@ -231,11 +231,29 @@ apply, short remarks:
      - 10% or more of the depth of a segment
    * - PB2 90% of depth from reads with an internal deletion
      - 50% or more of the depth of a segment
+   * - reads of a second HA subtype (H9): 14 of 56, 25.0%
+     - 3 or more reads of another HA (or NA) subtype than most reads
+       of the sample, and 1% or more of the reads counted (see below)
 
 **Tiles**: the subtype with the references closest to the HA and to the
 NA, the reads and bases (and the reads added by splitting), the median
 read length, the reads written (of the reads after splitting, and those
 too short), the reads with both primers.
+
+**HA and NA subtypes in the reads.** For the HA and for the NA, the
+subtype of most reads and the second one, each with its reads, among
+the first reads of the sample with several probes located in the
+references of that gene; and the reads of the second subtype expected
+by chance. When they exceed that number by 3 reads and by 1% of the
+reads counted, a line under the table says so, as the remark at the top
+of the sample does. It says what was observed, not what it means: such
+reads can come from a mixed infection, from a contamination of the
+sample, or from barcode crosstalk between the samples of a run, and
+flucut cannot tell these apart. Two viruses of one subtype are not told
+apart, and the other six segments are not looked at
+(:doc:`internal_priming`, *Reads of a second HA or NA subtype*). The
+card is absent where nothing was counted: influenza B, references of
+one subtype only, and the page of a whole run of several samples.
 
 **Reads.** Two bars: the reads by primers found (both, one, none) and
 by origin (with the reads not written: too short after the trimming,
@@ -344,7 +362,8 @@ report, in a documented format (version 1, described in
   group, with ``reads`` (the reads at each step), ``read_lengths`` and
   ``read_quality`` (of the input and of the reads written),
   ``sequencing`` (the metadata of the run in the titles of the reads),
-  ``sample`` (with references: state, subtype, remarks and the eight
+  ``sample`` (with references: state, subtype, the reads of each HA
+  and NA subtype in ``subtype_reads``, remarks and the eight
   segments), ``primers``, ``ends`` and ``internal_sites`` (with
   references), ``short_complete`` and ``complete_amplicons`` (with the
   histograms of the lengths).

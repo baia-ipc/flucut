@@ -758,6 +758,119 @@ Symbols:
 
 The decision (lines 15–34) takes *O*(*M*) time, once per stage.
 
+### Reads of a second HA or NA subtype
+
+> **Source:** `src/subtype-reads.c`; called from `src/auto-settings.c`
+
+The votes of a segment can be split between two references for two
+reasons, which the votes alone do not separate: one virus lying between
+the two references, whose reads each vote for both, or reads of two
+viruses, each voting for one. The probes of one read tell them apart,
+because in the second case they agree with each other. flucut uses
+this in the HA and in the NA, whose references name a subtype of their
+own, while the probes of CLOSEST_REFERENCES are located: no read is
+read again.
+
+The references of one subtype are taken together: `R.number` is the H
+number of a reference of the HA and the N number of one of the NA
+(H5 for the HA of an H5N1 and of an H5N8 reference alike). For each of
+the two genes, a read with at least two voting probes in it is counted
+by its number of voting probes *k* (line 6), and as a read of a subtype
+if all of them vote for that subtype (line 7). The subtype with most
+votes is the leading one (line 9). If each probe voted independently of
+its read, a read with *k* voting probes would be all for a subtype with
+the share *p* of the votes with probability *p*^k: this gives the
+reads of each other subtype expected by chance (line 12), and the
+observed ones beyond them are its excess (line 13). The second subtype
+is the one with the largest excess (line 14).
+
+```
+SECOND_SUBTYPE(g)
+    // the reads of a second subtype in the gene g (HA or NA)
+    // votes_of(r): the references the voting probes of the read r voted for
+    //   in g (lines 11–14 of CLOSEST_REFERENCES), at most 16
+ 1  votes = [0, 0, ...]; agreeing = [0, 0, ...] // for each subtype number
+ 2  reads = [0, 0, ...] // for each number of voting probes
+ 3  for each read r used by CLOSEST_REFERENCES
+ 4      V = ⟨R.number : R in votes_of(r), R.number ≠ NIL⟩
+ 5      INC(votes[x]) for each x in V
+ 6      INC(reads[length(V)]) if length(V) ≥ 2
+ 7      INC(agreeing[V[1]]) if length(V) ≥ 2 and all of V are equal
+ 8  n = sum(reads); total = sum(votes)
+ 9  leading = argmax(votes)
+10  second = NIL; excess = 0
+11  for each subtype x ≠ leading with agreeing[x] > 0
+12      expected = sum over k of reads[k] · (votes[x] / total)^k
+13      if second == NIL or agreeing[x] − expected > excess
+14          second = x; excess = agreeing[x] − expected
+15  above = second ≠ NIL and excess ≥ 2.5 and excess ≥ 0.01 · n
+16  return leading, second, n, agreeing[leading], agreeing[second], excess, above
+```
+
+The report gives the numbers of line 16 for the HA and the NA of each
+sample, and makes a remark when `above` holds. The remark states the
+observation (e.g. "reads of a second HA subtype (H9): 14 of 56, 25.0%")
+and its possible causes: a mixed infection, a contamination of the
+sample, or barcode crosstalk between the samples of a run. The reads do
+not say which, and flucut does not either.
+
+The two thresholds of line 15. The excess must be at least 2.5 reads,
+that is 3 reads where none is expected: simulated samples with one
+subtype in the gene had at most 1 read of another subtype among the
+about 240 counted in 2000 reads, and in two sequenced runs which held
+samples of several subtypes 1 or 2 reads of the subtype of another
+sample were common (0.4 to 0.7% of the reads counted), as barcode
+crosstalk gives. It must also be at least 1% of the reads counted: when
+20,000 reads are counted instead of 2000, the number of reads alone no
+longer separates the cases (simulated samples of one subtype then had
+up to 7 reads of another one among about 2700, with an excess of up to
+2.4), and the background of a sequenced run alone would give more than
+3. With both, the rule means the same at either depth.
+
+What was measured (`benchmark/RESULTS.md`, 2026-11-28), on simulated
+reads of 17 genomes outside the built-in set and of mixes of two of
+them, at mean error rates of 4, 8 and 12%, in four series (800, 3200
+and 32,000 reads, and 32,000 reads with a scarce NA, of which 20,000
+are counted). No sample with one subtype in the gene was above the
+thresholds: 0 of 528 for the HA and 0 of 648 for the NA. Runs above
+them with the right second subtype, by minor fraction (48 runs for the
+HA and 42 for the NA in each cell):
+
+| series | gene | 50% | 10% | 5% | 2% | 1% |
+|---|---|---|---|---|---|---|
+| 800 reads | HA | 48 | 48 | 44 | 0 | 0 |
+| | NA | 42 | 42 | 38 | 0 | 0 |
+| 3200 reads | HA | 48 | 48 | 48 | 40 | 18 |
+| | NA | 42 | 42 | 42 | 35 | 12 |
+| 32,000 reads | HA | 48 | 48 | 48 | 35 | 14 |
+| | NA | 42 | 42 | 42 | 30 | 10 |
+| 32,000 reads, scarce NA | HA | 48 | 48 | 48 | 48 | 9 |
+| | NA | 41 | 20 | 0 | 0 | 0 |
+
+A sample of 3200 and one of 32,000 reads give the same, as the first
+2000 reads are counted in both; a minor strain at 1% has two or three
+reads of the HA among them, fewer than the 3 required in most samples.
+With 20,000 reads counted, 2% is always seen and 1% rarely, as it lies
+at the share threshold. In 104 sequenced samples (37 Nanopore runs, the
+first file of each), 10 were above the thresholds and 48 had at least
+one read of a second subtype.
+
+Limits. Two viruses of the same subtype are not told apart. The other
+six segments are not looked at: with the per-reference form of the
+statistic, their excess in samples of one strain is as large as in
+mixes (`benchmark/RESULTS.md`). The reads are those the references are
+chosen from, the first 2000 of the first file of a sample (20,000 if a
+segment has too few votes), so the smallest fraction seen depends on
+how many reads of the HA and of the NA that file begins with. The
+probes of a short read overlap, and those of a read from a stretch
+where its virus is closer to another subtype vote alike: the
+independence of line 12 is a null model, not a property of the reads.
+The counts of several samples together (a whole run) are not judged, as
+the subtypes of its samples may differ.
+
+SECOND_SUBTYPE adds *O*(1) time per probe and *O*(1) memory: one counter
+per subtype number and per number of probes.
+
 ## A4. Splitting of a read that holds several amplicons
 
 A read can hold two or more amplicons joined end to end. Primers then
@@ -3562,7 +3675,7 @@ the tags out.
 | `<sample>.fastq.gz` | trimmed reads, original order and orientation, tags in the title |
 | `summary.tsv` | one line per sample: the counters of D2 |
 | `lengths.tsv` | histograms of complete-amplicon lengths |
-| `flucut_report.html` | self-contained report (inline SVG, no scripts): parameters, the sample (subtype and segments), reads at each step, primers, internal priming sites, complete amplicons, length histograms, coverage plots by read origin |
+| `flucut_report.html` | self-contained report (inline SVG, no scripts): parameters, the sample (subtype, reads of a second HA or NA subtype, segments), reads at each step, primers, internal priming sites, complete amplicons, length histograms, coverage plots by read origin |
 | `flucut_summary.json` | the same content, versioned format |
 
 Reports are written to a temporary file and renamed, so that a partial
@@ -3844,6 +3957,7 @@ constant of the source code that holds each.
 | `REFERENCE_KMER_LEN`, `REFERENCE_MAX_KMER_OCC` | k-mer length, most occurrences | 10, 4096 |
 | `AUTO_REFERENCE_READS`, `AUTO_REFERENCE_MORE_READS` | reads used to choose the references | 2000, then up to 20,000 |
 | `AUTO_REFERENCE_PROBES` | probes per read for that choice | 8 |
+| `SUBTYPE_READS_MIN_EXCESS`, `SUBTYPE_READS_MIN_SHARE` | reads of a second HA or NA subtype remarked | excess over the reads expected by chance of at least 2.5 reads and 1% of the reads with several voting probes |
 | `AUTO_REFERENCE_MIN_*`, `AUTO_REFERENCE_CLOSE_SHARE` | reference chosen for a segment | at least 20 votes; clear lead from 60% of the votes; close contender from half the votes of the leading one |
 | `TERMINUS_MATCHES_MAX_ERRORS`, `CHIMERA_MAX_PAIR_ERRORS` | terminus inside a read: most errors | 2; a pair, 2 together |
 | `CHIMERA_MAX_GAP` | junction pair: largest gap | 100 |
@@ -3882,6 +3996,11 @@ constant of the source code that holds each.
   difference between sample and reference next to a junction is drawn
   as part of the deletion.
 - The error percentage (A2) is calibrated on simulated reads.
+- Reads of a second HA or NA subtype (A3) are an observation: a mixed
+  infection, a contamination and barcode crosstalk give the same reads.
+  Two viruses of one subtype, and the other six segments, are not seen.
+  The thresholds come from simulated reads and from the background of
+  two sequenced runs, not from mixtures of known composition.
 - Known residue: a few internally primed reads whose primer was cut to
   4–5 bases after a flank are cut too deep (6 of 3200 simulated reads),
   and ends with no primer found keep their primer remnant unless an

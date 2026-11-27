@@ -188,15 +188,86 @@ are used as well; if it still has too few, it keeps all its references.
 The messages (``-v``) give the reference chosen for each segment, with
 its votes and how it was chosen, and how often the probes of one read
 all vote for the same reference, with the number expected if each probe
-voted on its own. A segment whose votes are split between two
-references has two causes which the votes alone do not separate: one
-strain lying between the two references, whose reads each vote for
-both; or two strains in the sample, whose reads each vote for one. In
-the second case many more reads agree with themselves than expected.
+voted on its own.
+
+Reads of a second HA or NA subtype
+----------------------------------
+
+A segment whose votes are split between two references has two causes
+which the votes alone do not separate: one virus lying between the two
+references, whose reads each vote for both; or the reads of two viruses
+in the sample, each voting for one. The probes of one read tell them
+apart: in the second case the probes of a read agree with each other.
+
+flucut looks at this in the HA and in the NA, while it chooses the
+references (no further pass over the reads). The references of one
+subtype are taken together (H5 for the HA of an H5N1 and of an H5N8
+reference alike). A read with several voting probes in the HA is a read
+of a subtype when all of them vote for that subtype. The subtype with
+most votes is the *leading* one; the *second* subtype is the other one
+whose reads exceed most the number expected by chance, that is, if each
+probe voted independently of its read (a read with *k* voting probes
+is then all for a subtype with the share *p* of the votes with
+probability *p*\ :sup:`k`).
+
+The report of a sample gives, for the HA and the NA, the leading and
+the second subtype with their reads (:doc:`reports`), and so does the
+JSON summary. A remark is made when the reads of the second subtype
+exceed those expected by at least 2.5 reads (3 reads where none is
+expected) and by at least 1% of the reads counted, e.g.::
+
+   reads of a second HA subtype (H9): 14 of 56, 25.0%
+
+The remark says what was observed. Reads of a second subtype can come
+from a mixed infection, from a contamination of the sample, or from
+barcode crosstalk between the samples of a run, and flucut cannot tell
+these apart: look at the other samples of the run (do they have that
+subtype?) and at the depth of the second subtype before concluding
+anything.
+
+How small a second virus it sees was measured on simulated reads of 17
+genomes outside the built-in set and of mixes of two of them, at mean
+error rates of 4, 8 and 12% (``benchmark/RESULTS.md``):
+
+- no sample with one subtype in the gene was remarked, in 528 samples
+  for the HA and 648 for the NA; such a sample had at most 1 read of
+  another subtype among about 240 counted (up to 7 among 2700,
+  where 20,000 reads are counted);
+- a second subtype making 5% or more of the reads was remarked in every
+  sample of 3200 reads or more, in the HA and in the NA alike; one
+  making 2% in about three samples of four, and one making 1% in about
+  one of three. flucut counts the first 2000 reads, in which a virus at
+  1% has two or three reads of the HA, so it is the number of reads
+  counted which limits what is seen, not the statistic;
+- in a sample of 800 reads, 5% was remarked in 44 of 48 samples for the
+  HA and 2% in none;
+- where the NA has few reads (25 counted), only a second NA subtype at
+  10% or more is seen, and that in half of the samples.
+
+In 104 sequenced samples of 37 Nanopore runs, almost all H5N1, 10 were
+remarked, and 48 had at least one read of a second HA or NA subtype:
+mostly H9 and N2, the subtype of other samples of the same runs. In two
+runs looked at whole, the samples carried now and then 1 or 2 reads of
+the subtypes of their neighbours (0.4 to 0.7% of the reads counted),
+which is what barcode crosstalk gives, and four samples were remarked.
+The threshold of 3 reads lies above that background; the remark itself
+still does not say where its reads come from.
+
+What it does not see:
+
+- two viruses of the same subtype (two H5N1 of one clade gave no remark
+  at any fraction);
+- the other six segments: their references differ too little between
+  subtypes, so the probes of a read of one virus are already divided
+  among them. They are not reported;
+- anything beyond the reads counted: the first 2000 reads of the first
+  file of the sample (up to 20,000 if a segment has too few votes), so
+  that a file with few reads of the HA or of the NA says little;
+- samples classified against references of one subtype only (``-r``
+  with one reference per segment): there is nothing to count.
+
 The numbers are reported only; they do not change the references
-chosen. In HA and NA they tell the two cases apart down to a minor
-strain of a few percent, in the other segments they rarely do
-(``benchmark/RESULTS.md``).
+chosen.
 
 For a run of one segment alone (e.g. an HA amplicon), ``--segment``
 does the same for the segments: the read ends are classified against

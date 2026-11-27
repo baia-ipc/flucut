@@ -107,13 +107,16 @@ built-in set of influenza A, which is what the script covers.
 
 On simulated reads of 17 genomes outside the built-in set (subtypes H1
 to H3, H5, H7, H9 and H10 with six NA subtypes, hosts from poultry to
-horses, 1934 to 2017; ``benchmark/RESULTS.md``), this set named the
-subtype of all 51 samples correctly, where the built-in set named 48,
-and classified the read ends as well as it (the reads taken for
-internally primed outside the HA, which the simulation does not prime,
-were 0.6% against 0.5%). Its seeds cover the subtypes IRMA knows; the
-built-in set covers every HA and NA subtype, which matters for a sample
-of a subtype IRMA has no seed for.
+horses, 1934 to 2017; ``benchmark/RESULTS.md``), this set and the
+built-in set both named the subtype of all 51 samples correctly; on a
+second panel which covers every HA and NA subtype, this set named 48 of
+48 samples and the built-in set 46. Both classified the read ends about
+as well (the reads taken for internally primed outside the HA, which
+the simulation does not prime, were 0.5% with either; the read ends not
+located 14.8% with this set and 13.1% with the built-in one). Its seeds
+cover the subtypes IRMA knows; the built-in set covers every HA and NA
+subtype, which matters for a sample of a subtype IRMA has no seed
+for.
 
 .. warning::
 

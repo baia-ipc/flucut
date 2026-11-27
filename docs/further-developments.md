@@ -83,10 +83,26 @@ support the trimming; they are not the purpose of the program.
   segment), the HA in all samples, and each sample (state, subtype,
   reads by origin, segments, read lengths and qualities, sequencing
   metadata). Still possible: a test on a replay of a real run; the yield over time from the start times of the
-  reads; a remark when a second HA or NA reference has a substantial
-  depth (mixed infection or contamination); the remnants (primer bases
+  reads; the remnants (primer bases
   left) and the primers found whole or partial; the thresholds of the
   states (depth 50, 90% of the segment) as options.
+- **Reads of a second HA or NA subtype, next**: the report gives them
+  (`src/subtype-reads.h`), counted in the reads the references are
+  chosen from: the first 2000 reads of the first file of a sample,
+  which in the files MinKNOW writes are often fewer. Still possible:
+  counting them over all the reads of a sample, which would see smaller
+  fractions and would not depend on its first file; a view of the run
+  which shows which samples carry each other's subtypes, the pattern
+  barcode crosstalk leaves; a measure on sequenced mixtures of known
+  composition (the threshold comes from simulated reads and from the
+  background of two sequenced runs); short reads, whose probes overlap
+  and so vote alike, counted with fewer probes; a divergent NA, whose
+  probes scatter over several subtypes (two H5N8 samples gave a remark
+  for the NA while only a fifth of their NA reads agreed on N8). When
+  the reference of the HA or of the NA is chosen, the votes are still
+  counted together by the whole subtype name of the references (an
+  H5N1 and an H5N2 reference of the HA apart), not by H or N number as
+  here: to be made the same, with the subtype naming measured again.
 - **Read-origin plot per segment**: done. For each reference, a stacked
   coverage profile along its length, built from flucut's classification
   (the span of each located read, from its probe position and kept

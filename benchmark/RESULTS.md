@@ -1,5 +1,187 @@
 # Results
 
+## 2026-11-28: reads of a second HA or NA subtype, in the report
+
+flucut reports, for the HA and the NA of a sample, the reads of a
+second subtype among the reads its references are chosen from
+(`src/subtype-reads.h`; HTML report and JSON summary): the reads with
+several voting probes which all vote for references of another subtype
+than the leading one, beyond the number expected if each probe voted
+independently of its read. The references of one subtype are counted
+together, by H or N number. A remark is made when that excess is at
+least 2.5 reads (3 reads where none is expected) and at least 1% of
+the reads counted.
+
+Measured with the built-in set of 136 records and flucut commit
+e872d2b (`benchmark/README.md`, "Mixed samples";
+`/home/baia/prj/flucut/mixed_sample_evaluation/`): 102 samples of one
+strain (17 genomes, error rates 4, 8 and 12%, two seeds) and 270 mixes
+(9 pairs, the minor strain at 50, 10, 5, 2 and 1% of the reads), in
+four series: 800, 3200 and 32,000 reads per sample, and 32,000 reads
+of which 40 of the NA, where a segment with too few votes makes flucut
+count the probes of 20,000 reads instead of 2000.
+
+### Samples with one subtype in the gene: no remark
+
+The 102 samples of one strain and the mixes whose two strains share the
+subtype of that gene (the control pair of two H5N1 of one clade, and
+for the NA also the swine pair, both N2):
+
+| series | gene | samples | reads with several voting probes (median) | most reads of a second subtype | highest excess | above the threshold |
+|---|---|---|---|---|---|---|
+| 800 reads | HA | 132 | 96 | 1 | 1.0 | 0 |
+| | NA | 162 | 91 | 1 | 1.0 | 0 |
+| 3200 reads | HA | 132 | 242 | 1 | 0.9 | 0 |
+| | NA | 162 | 227 | 0 | 0.0 | 0 |
+| 32,000 reads | HA | 132 | 250 | 1 | 0.5 | 0 |
+| | NA | 162 | 231 | 0 | 0.0 | 0 |
+| 32,000, scarce NA | HA | 132 | 2718 | 7 | 2.4 | 0 |
+| | NA | 162 | 22 | 1 | 1.0 | 0 |
+
+The 7 reads of the fourth series are why the rule has a share as well
+as a number of reads: with 2700 reads counted instead of 240, a few
+reads of another subtype are ordinary.
+
+### Mixes: the runs remarked, with the right second subtype
+
+Each cell is the runs (error rates and seeds) above the threshold, of
+48 for the HA (8 pairs of different HA subtypes) and 42 for the NA (7
+pairs of different NA subtypes):
+
+| series | gene | 50% | 10% | 5% | 2% | 1% |
+|---|---|---|---|---|---|---|
+| 800 reads | HA | 48 | 48 | 44 | 0 | 0 |
+| | NA | 42 | 42 | 38 | 0 | 0 |
+| 3200 reads | HA | 48 | 48 | 48 | 40 | 18 |
+| | NA | 42 | 42 | 42 | 35 | 12 |
+| 32,000 reads | HA | 48 | 48 | 48 | 35 | 14 |
+| | NA | 42 | 42 | 42 | 30 | 10 |
+| 32,000, scarce NA | HA | 48 | 48 | 48 | 48 | 9 |
+| | NA | 41 | 20 | 0 | 0 | 0 |
+
+- A second subtype at 5% of the reads is remarked in every sample of
+  3200 reads or more, in the HA and in the NA alike; at 2% in three
+  samples of four, at 1% in one of three.
+- 3200 and 32,000 reads give the same, because the same first 2000
+  reads are counted. What limits the smallest fraction seen is the
+  reads counted: at 1% of 3200 reads, the HA of the minor strain has
+  four reads in the sample and two or three among those counted, under
+  the 3 the rule asks for.
+- Counting 20,000 reads (fourth series) makes 2% certain in the HA (48
+  of 48) and leaves 1% at the share threshold. Its NA, with 25 reads
+  counted, sees only a second subtype at 10% or more, and that in half
+  the runs: a gene with few reads says little.
+- The two H5N1 of one clade are never remarked, at any fraction: two
+  viruses of one subtype are not told apart.
+- By pair, at 3200 reads (the runs remarked, of 6 per cell):
+
+| major | minor | minor fraction | HA | NA |
+|---|---|---|---|---|
+| ny04_h3n2 | vn12_h5n1 | 50% | 6/6 | 6/6 |
+| ny04_h3n2 | vn12_h5n1 | 10% | 6/6 | 6/6 |
+| ny04_h3n2 | vn12_h5n1 | 5% | 6/6 | 6/6 |
+| ny04_h3n2 | vn12_h5n1 | 2% | 5/6 | 5/6 |
+| ny04_h3n2 | vn12_h5n1 | 1% | 1/6 | 0/6 |
+| vn12_h5n1 | ny04_h3n2 | 50% | 6/6 | 6/6 |
+| vn12_h5n1 | ny04_h3n2 | 10% | 6/6 | 6/6 |
+| vn12_h5n1 | ny04_h3n2 | 5% | 6/6 | 6/6 |
+| vn12_h5n1 | ny04_h3n2 | 2% | 4/6 | 4/6 |
+| vn12_h5n1 | ny04_h3n2 | 1% | 4/6 | 2/6 |
+| vn12_h5n1 | km17_h7n9 | 50% | 6/6 | 6/6 |
+| vn12_h5n1 | km17_h7n9 | 10% | 6/6 | 6/6 |
+| vn12_h5n1 | km17_h7n9 | 5% | 6/6 | 6/6 |
+| vn12_h5n1 | km17_h7n9 | 2% | 6/6 | 6/6 |
+| vn12_h5n1 | km17_h7n9 | 1% | 3/6 | 2/6 |
+| km17_h7n9 | vn13_h5n1 | 50% | 6/6 | 6/6 |
+| km17_h7n9 | vn13_h5n1 | 10% | 6/6 | 6/6 |
+| km17_h7n9 | vn13_h5n1 | 5% | 6/6 | 6/6 |
+| km17_h7n9 | vn13_h5n1 | 2% | 5/6 | 6/6 |
+| km17_h7n9 | vn13_h5n1 | 1% | 3/6 | 1/6 |
+| ah15_h9n2 | vn12_h5n1 | 50% | 6/6 | 6/6 |
+| ah15_h9n2 | vn12_h5n1 | 10% | 6/6 | 6/6 |
+| ah15_h9n2 | vn12_h5n1 | 5% | 6/6 | 6/6 |
+| ah15_h9n2 | vn12_h5n1 | 2% | 4/6 | 3/6 |
+| ah15_h9n2 | vn12_h5n1 | 1% | 1/6 | 1/6 |
+| km17_h7n9 | ah15_h9n2 | 50% | 6/6 | 6/6 |
+| km17_h7n9 | ah15_h9n2 | 10% | 6/6 | 6/6 |
+| km17_h7n9 | ah15_h9n2 | 5% | 6/6 | 6/6 |
+| km17_h7n9 | ah15_h9n2 | 2% | 6/6 | 5/6 |
+| km17_h7n9 | ah15_h9n2 | 1% | 3/6 | 2/6 |
+| pr8_h1n1 | ny04_h3n2 | 50% | 6/6 | 6/6 |
+| pr8_h1n1 | ny04_h3n2 | 10% | 6/6 | 6/6 |
+| pr8_h1n1 | ny04_h3n2 | 5% | 6/6 | 6/6 |
+| pr8_h1n1 | ny04_h3n2 | 2% | 6/6 | 6/6 |
+| pr8_h1n1 | ny04_h3n2 | 1% | 2/6 | 4/6 |
+| cl14_h1n2 | mx12_h3n2 | 50% | 6/6 | - |
+| cl14_h1n2 | mx12_h3n2 | 10% | 6/6 | - |
+| cl14_h1n2 | mx12_h3n2 | 5% | 6/6 | - |
+| cl14_h1n2 | mx12_h3n2 | 2% | 4/6 | - |
+| cl14_h1n2 | mx12_h3n2 | 1% | 1/6 | - |
+
+### The earlier statistic, per reference, with the present set
+
+The 2026-11-21 entry below measured a different statistic on a
+different set: the excess of reads agreeing on a *reference* other
+than the leading one, in each of the eight segments, with 40
+references, one per subtype. Rerun with the 136-record set (the
+`single` and `lowest` tables of `mixed_samples_tables.py`, 3200 reads),
+it no longer separates the cases: the highest excess in the samples of
+one strain rises to 4.3 reads in the HA (0.9 before) and 11.1 in NS,
+because the four references of a subtype share the reads of one virus,
+and with that as the threshold the HA detects a mix only at 50% in two
+pairs and at 5% in one, where it reached 1-2% in every pair before.
+
+The statistic flucut reports counts the references of a subtype
+together, which is why it does better than either: 5% in every run
+against 1-2% for the per-reference statistic with the old set, and
+nothing with the new one.
+
+### Sequenced samples
+
+flucut commit e872d2b on the first file of each of the 104 samples of
+`dip_consensus/results/samples.tsv` (37 Nanopore runs, 102 isolates
+H5N1 and 2 H5N8), and on every barcode of two of those runs. A first
+file holds 450 to 14,000 reads, which gave 6 to 706 reads with several
+voting probes in the HA (median 59) and 2 to 242 in the NA (median
+56) - a quarter of what a simulated sample of 3200 reads gives, so
+these samples are at the edge of what the statistic can see.
+
+| set | samples | with at least one read of a second subtype | remarked |
+|---|---|---|---|
+| the 104 samples | 104 | 48 | 10 |
+| two runs, every barcode | 48 | 21 | 4 |
+
+- Of the samples not remarked, 0.36% of the HA reads counted and 0.50%
+  of the NA reads were of a second subtype (0.74% and 0.67% in the two
+  whole runs): the background the 3-read threshold lies above.
+- The second subtypes seen are mostly those of other samples of the
+  same run. In run 20250703_Influenza_Run_24_R10 (10 samples whose HA
+  leads H5, 11 H9, 2 H3) the second subtypes are H9 (15 reads over the
+  run), H5 (3), H3 (1), N2 (6) and N1 (4); in
+  20240903_Influenza_Run_30_R10 (6 H5, 10 H9, 5 H6, 1 H3) they are H5
+  (7), H4 (6), H10 (3), H9 (1), H6 (1), H3 (1), N2 (6) and N6 (5).
+  Samples of one run showing each other's subtypes is what barcode
+  crosstalk gives; H4 and H10 belong to no sample of their run, and
+  are the subtypes whose references lie nearest the H5 of those
+  samples. Which of crosstalk, contamination and a true mixture made
+  any one of these reads is not decided here.
+- Two H5N8 samples of 20220629_Influenza_Run_39 are remarked for the
+  NA (7 reads of N2 of 154, 5 of N7 of 82) with only 34 and 12 reads
+  on N8 itself: their NA lies far from every reference, so the probes
+  of one read reach different subtypes. A remark on a gene whose
+  leading subtype holds a small share of the reads says more about the
+  references than about the sample.
+- Two samples had a gene with no read counted at all (the NA of
+  20250617_Influenza_Run_18_R10/barcode37, which has little influenza
+  in its first file, and the HA of 20250709_Influenza_Run_26_R10/
+  barcode01): the report then shows that gene as not counted.
+
+### Not measured
+
+Sequenced mixtures of known composition; mixes of three strains;
+counting over all the reads of a sample rather than the first 2000;
+short reads, whose probes overlap.
+
 ## 2026-11-27: the tools and the public runs, measured with one build
 
 Everything below was run on 2026-11-27 with one build of flucut
