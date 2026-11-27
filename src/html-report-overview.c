@@ -175,8 +175,9 @@ static void segment_cell(html_writer_t *w, const qc_summary_t *qc, int s,
             "%s\xc3\x97 (of full templates %s\xc3\x97)", segments_gene(s),
             fraction_percent_text(q->well_covered).s, QC_MIN_DEPTH,
             html_num(q->median_depth).s, html_num(q->median_full_depth).s);
-  /* (rounded down: 100 only for the whole segment) */
-  html_textf(w, "%d", (int)(100 * q->well_covered));
+  /* (rounded down: 100 only for the whole segment; a little more, as
+     e.g. 100 * 0.29 is slightly less than 29 in floating point) */
+  html_textf(w, "%d", (int)(100 * q->well_covered + 1e-9));
   html_close(w);
 }
 
