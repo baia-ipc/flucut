@@ -283,3 +283,14 @@
   3846 and 5993; of 173 reads which hold two amplicons, 167 are still
   split (168 before). The reads classified as internal deletions are
   unchanged
+- the reads of a second HA or NA subtype of a sample are counted while
+  the references are chosen (the probes of a read voting together, the
+  references of one subtype counted as one) and given in the HTML report
+  and in the JSON summary, with a remark above a threshold of 3 reads
+  and 1% of the reads counted. The remark says what was seen and names
+  what it can come from: a mixed infection, a contamination of the
+  sample, or barcode crosstalk between the samples of a run, which
+  flucut cannot tell apart. On simulated mixes of two subtypes the minor
+  one is seen in every run down to 5% of the reads, in three runs of
+  four at 2% and in one of three at 1%, with no remark on any of the 528
+  HA and 648 NA samples holding one subtype
