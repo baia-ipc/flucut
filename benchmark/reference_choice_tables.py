@@ -36,6 +36,7 @@ import csv
 import re
 import sys
 
+import flucut_runs
 import pairwise
 import reference_rule
 import score_read_ends
@@ -301,7 +302,7 @@ def termini_table(references, accuracy=None):
   for line in open(references):
     if line.startswith(">"):
       name = line[1:].split()[0]
-      subtype[name] = re.search(r"\((H\d+N\d+)\)", line).group(1)
+      subtype[name] = flucut_runs.SUBTYPE.search(line).group(0)
       segment[name] = int(re.search(r"segment (\d)", line).group(1))
   measured = collections.defaultdict(list)
   for (_, _, s), refs in (accuracy or {}).items():

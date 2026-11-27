@@ -51,13 +51,19 @@ def flucut(program, reads, references, outdir):
   return result.stderr, os.path.join(outdir, name + ".fastq.gz")
 
 
+# the subtype in a FASTA description: the first H<n>N<n> anywhere in
+# it, as src/reference.c's parse_subtype() reads it (not only where
+# enclosed in parentheses, which is the usual but not the only case)
+SUBTYPE = re.compile(r"H\d+N\d+")
+
+
 def reference_subtypes(references):
   """The subtype in the description of each reference, by name."""
   subtypes = {}
   for line in open(references):
     if line.startswith(">"):
-      m = re.search(r"\((H\d+N\d+)\)", line)
-      subtypes[line[1:].split()[0]] = m.group(1) if m else "unknown"
+      m = SUBTYPE.search(line)
+      subtypes[line[1:].split()[0]] = m.group(0) if m else "unknown"
   return subtypes
 
 
@@ -67,9 +73,9 @@ def split_by_subtype(references, outdir):
   os.makedirs(outdir, exist_ok=True)
   records = {}
   for record in open(references).read().split(">")[1:]:
-    m = re.search(r"\((H\d+N\d+)\)", record.split("\n", 1)[0])
+    m = SUBTYPE.search(record.split("\n", 1)[0])
     if m:
-      records.setdefault(m.group(1), []).append(">" + record)
+      records.setdefault(m.group(0), []).append(">" + record)
   paths = {}
   for subtype, subtype_records in sorted(records.items()):
     paths[subtype] = os.path.join(outdir, subtype + ".fasta")
