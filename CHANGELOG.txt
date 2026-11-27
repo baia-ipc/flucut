@@ -241,3 +241,25 @@
   (--segment) hold
 - flucut-posthoc takes the category of a read from its ct tag, if
   present
+- influenza B: the universal primers of its multisegment RT-PCR (the
+  IBV-GA2 cocktail of Zhou et al. 2014, scheme "ibv-ga2"), its conserved
+  termini and references of its segments in the built-in set; --virus
+  a|b|both says which types a run may hold, the default being both, with
+  the scheme "uni12-mbt13+ibv-ga2" of the primers of both types; the
+  type of each sample is reported; the automatic error rate (-e auto) is
+  measured per type, as a primer of the other type matches a read end
+  with many errors and raised the rate; flucut-posthoc covers influenza
+  A only
+- the HA cleavage site, read from the reads: in the full templates the
+  start of HA2 is located as a pattern, so that it is found in the
+  haemagglutinins whose fusion peptide differs from the common one, and
+  the codons before it are translated; the report and the JSON summary
+  give the motif of the site, the reads over it, the share agreeing on
+  it, the share agreeing in two windows of the same width beside it
+  (ordinary coding sequence, so what this sample's reads agree on when
+  nothing is against them), the start of HA2 in the reads and in the
+  reference, and whether the result is firm (20 reads, 0.45 agreeing at
+  the site, 0.60 beside it; no threshold names a platform or a
+  chemistry); a site which is not firm raises a flag of the sample,
+  carrying the reason, in the run overview and in the JSON summary.
+  See docs/cleavage-site.md
