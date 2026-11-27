@@ -268,3 +268,18 @@
   shown in the HTML report; distinct_sites and distinct_motifs count the
   readings and spellings of single misread reads too (above 1 in 103 of
   104 samples) and are documented as such
+- splitting of a read at a single primer-like match: the read is cut
+  only where the references show that it does not run through the match.
+  The bases on the other side of the match are aligned to the reference
+  of the amplicon side, from where its probe lies outwards, and the read
+  is left whole if at most 40% of them differ; a probe of those bases
+  which is not located anywhere no longer makes the read a chimera, as a
+  sample far from every reference often has no probe located. A pair of
+  matches is a junction only with at least 32 bases outside it on each
+  side, where an amplicon can be. On 3200 simulated reads of a genome
+  far from the built-in references, the reads of one amplicon written in
+  several pieces fall from 60, 153 and 183 (4, 8 and 12% errors) to
+  none, and the template bases removed from 1175, 7891 and 10589 to 440,
+  3846 and 5993; of 173 reads which hold two amplicons, 167 are still
+  split (168 before). The reads classified as internal deletions are
+  unchanged

@@ -55,13 +55,17 @@ cases:
   barcodes, then Uni12. This needs no reference. The two matches may
   have at most two errors together: with more, two primer-like
   sequences next to each other are found by chance in ordinary reads.
-  With references, the read is not cut if it runs through the pair (the
+  There must also be at least 32 bases outside the pair on each side,
+  enough for an amplicon to be there: beside the primer of an end of
+  the read, a terminus matches the flanking bases by chance. With
+  references, the read is not cut if it runs through the pair (the
   bases before it and those after it lie next to each other in a
   reference);
 - with references, a single primer inside the read at which the read
   stops following the segment: the bases on one side of it are located
-  in a reference, and those on the other side are not found next to
-  them. The read is cut on the outer side of the primer, tail included.
+  in a reference, and those on the other side neither continue that
+  reference across the primer nor are found next to them. The read is
+  cut on the outer side of the primer, tail included.
 
 The primers are searched inside a read by their conserved termini (12
 and 13 bases), with the errors allowed in a primer (``-e``) but at most
@@ -69,8 +73,13 @@ two.
 
 A read of a complete amplicon which runs through a primer-like site of
 its segment is not cut: the segment continues on both sides of the site.
-A primer of the same end found at both ends of a read (two amplicons
-joined without a primer between them) is removed at both ends.
+This is told by aligning the bases next to the site to the reference,
+and not only by searching them in the references: in a sample far from
+every reference, or in a noisy read, those bases are often not found at
+all, which says nothing about where the read stops, while the alignment
+still shows that they continue the segment. A primer of the same end
+found at both ends of a read (two amplicons joined without a primer
+between them) is removed at both ends.
 
 ``summary.tsv`` reports the reads split (``split``); ``--no-split`` turns
 the splitting off. Without references (``-r off``) only the first kind

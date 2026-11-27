@@ -7,6 +7,7 @@
 #include "alloc.h"
 #include "chimera.h"
 #include "fasta.h"
+#include "junction.h"
 #include "primers.h"
 #include "terminus-matches.h"
 #include "test.h"
@@ -15,6 +16,9 @@ struct chimera_finder_t {
   terminus_matches_t *termini;
   long window;
   reference_set_t *refs;
+  /* the bases next to a match, on the plus strand of the reference */
+  char *bases;
+  size_t bases_cap;
 };
 
 chimera_finder_t* chimera_finder_new(const scheme_t *scheme,
@@ -26,6 +30,8 @@ chimera_finder_t* chimera_finder_new(const scheme_t *scheme,
   self->termini = terminus_matches_new(scheme, max_errors);
   self->window = window;
   self->refs = NULL;
+  self->bases = NULL;
+  self->bases_cap = 0;
   return self;
 }
 
@@ -46,6 +52,7 @@ void chimera_finder_delete(chimera_finder_t *self) {
   if (self == NULL)
     return;
   terminus_matches_delete(self->termini);
+  free(self->bases);
   free(self);
 }
 
@@ -81,15 +88,72 @@ static bool is_continuous(const reference_hit_t *a,
 }
 
 /*
+   Whether the bases on the other side of the match <m> continue the
+   reference of <inner> (the probe of the amplicon side, which mapped):
+   they are aligned to that reference, from where the probe lies,
+   outwards across the match (CHIMERA_OUTER_PROBES probes of them, the
+   bases of the match included, which belong to the segment if the read
+   runs through them). The read then runs through the match.
+
+   The alignment tolerates the differences of a sample from its
+   reference and the errors of a read (CHIMERA_MAX_DIFFERENCE), which a
+   search of those bases in the references does not: a probe of a sample
+   far from every reference is often not located at all, and the absence
+   of a location is no evidence that the read stops there. Bases of
+   another amplicon, which do not belong next to the probe, differ far
+   more.
+*/
+static bool continues_reference(chimera_finder_t *self, const char *seq,
+    size_t len, const terminus_match_t *m, const reference_hit_t *inner) {
+  long probe = (long)reference_set_probe_len(self->refs);
+  long match_len = m->to - m->from + 1;
+  long from, to, anchor;
+  bool backwards;
+  if (m->start) {
+    /* the amplicon side is after the match: the bases before it, with
+       those of the match, end where the probe begins */
+    to = m->to + 1;
+    from = to - CHIMERA_OUTER_PROBES * probe - match_len;
+    if (from < 0)
+      from = 0;
+    anchor = inner->reverse ? inner->ref_start + 1 : inner->ref_start - 1;
+    backwards = !inner->reverse;
+  } else {
+    /* the amplicon side is before the match: the bases from the match
+       on begin where the probe ends */
+    from = m->from;
+    to = from + CHIMERA_OUTER_PROBES * probe + match_len;
+    if (to > (long)len)
+      to = (long)len;
+    anchor = inner->reverse ? inner->ref_start - probe :
+             inner->ref_start + probe;
+    backwards = inner->reverse;
+  }
+  long n = to - from;
+  if (n < REFERENCE_MIN_PROBE_LEN)
+    return false;   /* too few bases to tell */
+  const char *plus = seq + from;
+  if (inner->reverse) {
+    XCHECKSPACEINC(self->bases, &self->bases_cap, (size_t)n + 1, 256);
+    primers_reverse_complement(seq + from, (size_t)n, self->bases);
+    self->bases[n] = '\0';
+    plus = self->bases;
+  }
+  long differences = junction_flank_differences(self->refs, plus, (size_t)n,
+      inner->ref_index, anchor, backwards);
+  return (double)differences <= CHIMERA_MAX_DIFFERENCE * (double)n;
+}
+
+/*
    Whether the read stops at the match <m> (see chimera.h): the bases on
    the amplicon side of the match (a whole probe) are located in the
-   references, and
-   those on the other side are not found next to them. The other side is
-   given CHIMERA_OUTER_PROBES chances, the probe next to the match and
-   those after it, as the segment can differ there from the references
-   (e.g. at the cleavage site of the HA, just before its Uni12-like
-   site): a read which runs through a site of the segment must not be
-   cut there.
+   references, and those on the other side neither continue the
+   reference across the match (continues_reference()) nor are found next
+   to the probe. The other side is given CHIMERA_OUTER_PROBES chances,
+   the probe next to the match and those after it, as the segment can
+   differ there from the references (e.g. at the cleavage site of the
+   HA, just before its Uni12-like site): a read which runs through a
+   site of the segment must not be cut there.
 */
 static bool is_discontinuous(chimera_finder_t *self, const char *seq,
     size_t len, const terminus_match_t *m) {
@@ -108,6 +172,8 @@ static bool is_discontinuous(chimera_finder_t *self, const char *seq,
   else
     locate(self, seq, len, before - probe, before, &inner);
   if (!inner.mapped)
+    return false;
+  if (continues_reference(self, seq, len, m, &inner))
     return false;
   for (long i = 0; i < CHIMERA_OUTER_PROBES; i++) {
     /* (the probe of the other side, <i> probes away from the match) */
@@ -130,12 +196,15 @@ static bool is_discontinuous(chimera_finder_t *self, const char *seq,
 }
 
 /* whether the end of an amplicon <end> and the start of one <start>
-   after it can be a pair (see chimera.h) */
+   after it can be a pair in a read of <len> bases (see chimera.h) */
 static bool is_pair(const terminus_match_t *end,
-    const terminus_match_t *start) {
+    const terminus_match_t *start, size_t len) {
   return !end->start && start->start &&
          start->from - end->to - 1 <= CHIMERA_MAX_GAP &&
-         end->n_errors + start->n_errors <= CHIMERA_MAX_PAIR_ERRORS;
+         end->n_errors + start->n_errors <= CHIMERA_MAX_PAIR_ERRORS &&
+         /* (bases enough for an amplicon on each side) */
+         end->from >= CHIMERA_MIN_PART &&
+         (long)len - 1 - start->to >= CHIMERA_MIN_PART;
 }
 
 /* whether the read runs through the pair <end>, <start>: the bases
@@ -197,7 +266,7 @@ size_t chimera_finder_run(chimera_finder_t *self, const char *seq,
   for (size_t i = 0; i < n_matches; i++) {
     const terminus_match_t *m = matches + i;
     bool ok = true;
-    if (i + 1 < n_matches && is_pair(m, m + 1)) {
+    if (i + 1 < n_matches && is_pair(m, m + 1, len)) {
       /* a pair: the gap is dropped, unless the read runs through it
          (the two matches are then template) */
       if (self->refs == NULL || !runs_through(self, seq, len, m, m + 1))
@@ -303,6 +372,29 @@ void chimera_test(void) {
   /* the same, the bases before the site differing from the reference:
      those further away still tell that the read runs through it */
   memcpy(read + 12 + BODY - 24, "ACGTACGTACGTACGTACGTACGT", 24);
+  check_parts(f, read, 1, whole);
+
+  /* a read of a complete amplicon which runs through the site, of a
+     sample far from the reference: a probe of the bases before the site
+     is not located (one base in four differs), while the bases still
+     fit the reference there, and the read is not split */
+  snprintf(read, sizeof(read), "%s%s", uni12, segment);
+  whole[1] = (long)strlen(read) - 1;
+  for (long i = 12; i < 12 + BODY; i += 4)
+    read[i] = read[i] == 'A' ? 'C' : 'A';
+  check_parts(f, read, 1, whole);
+
+  /* a read with an internal deletion whose junction holds the site:
+     the bases before it lie farther from those after it on the
+     reference, in the same order, so the read is one template */
+  snprintf(read, sizeof(read), "%s%.100s%s%s", uni12, a, site, b + 100);
+  whole[1] = (long)strlen(read) - 1;
+  check_parts(f, read, 1, whole);
+
+  /* a pair at the start of a read: the bases before it are no amplicon
+     (the primer of the read end is one of the two matches) */
+  snprintf(read, sizeof(read), "%.8s%s%s%s", other, end13, uni12, b);
+  whole[1] = (long)strlen(read) - 1;
   check_parts(f, read, 1, whole);
 
   /* the start of an amplicon with a tailed primer (the reverse

@@ -766,18 +766,28 @@ of the primers are searched everywhere in the read, with at most 2
 errors (TERMINUS_MATCHES; SPLIT line 2). A junction is recognized in two
 cases. The first is a pair: the end of one amplicon followed within 100
 bases by the start of another, with at most 2 errors in the two matches
-together (SPLIT line 7). The read is cut there and the bases between the
-two are dropped (lines 14–16), unless the references show that the read
-simply continues across the pair: the two matches are then template that
-resembles the primers (lines 9–13). The second is a lone match away from
-the read ends, used only with references (lines 18–26): it is a junction
-if the read stops following the reference there. STOPS_HERE checks that
-the probe on the amplicon side of the match is located in a reference
-(lines 1–7) and that the probes on the other side, at three distances,
-are not continuous with it on that reference (lines 8–17). The cut is
+together and at least 32 bases outside the pair on each side, enough for
+an amplicon to be there (SPLIT line 7). The read is cut there and the
+bases between the two are dropped (lines 14–16), unless the references
+show that the read simply continues across the pair: the two matches are
+then template that resembles the primers (lines 9–13). The second is a
+lone match away from the read ends, used only with references (lines
+18–26): it is a junction if the read stops following the reference
+there. STOPS_HERE checks that the probe on the amplicon side of the
+match is located in a reference (lines 1–7), that the bases on the other
+side do not continue that reference across the match (lines 8–9) and
+that the probes on the other side, at three distances, are not
+continuous with the probe on that reference (lines 10–19). The cut is
 placed outside the whole primer, tail included (PRIMER_BOUND). The
 segments contain primer-like stretches, so each rule is designed to
 avoid splitting a read that holds a single amplicon.
+
+The alignment of lines 8–9 is what keeps a complete amplicon of a sample
+far from every reference whole. A probe of such a read is often not
+located at all, and a location that is missing is no evidence that the
+read stops: aligned to the reference where the amplicon side lies, the
+bases of the sample still fit it, while the bases of another amplicon do
+not.
 
 > **Source:** `src/terminus-matches.c`, `src/chimera.c`
 
@@ -801,8 +811,10 @@ SPLIT(read)
  6      next = M[i + 1] if i < length(M) else NIL
  7      // a pair: the end of an amplicon, then within 100 bases the start of
         // another, with at most 2 errors in the two matches together
+        // and an amplicon on each side of it
         if next ≠ NIL and m.kind == END and next.kind == START
                 and next.start − m.end − 1 ≤ 100 and m.errors + next.errors ≤ 2
+                and m.start > 32 and n − next.end ≥ 32
  8          runs_through = FALSE
  9          if refs ≠ NIL
 10              // the read runs through the pair if the bases before it and
@@ -854,18 +866,36 @@ STOPS_HERE(read, m)
  5      return FALSE if m.start ≤ P
  6      inner = LOCATE(read[m.start − P:m.start − 1])
  7  return FALSE if inner == NIL
- 8  // ... and the other side must not continue it; three probes are tried
+ 8  // ... and the bases on the other side, the match included, must not
+    // continue the reference of the probe from where the probe lies ...
+    return FALSE if CONTINUES_REFERENCE(read, m, inner)
+ 9  // ... nor must a probe of that side be continuous with it; three are tried
     for i = 0 to 2
- 9      if m.kind == START
-10          a = max(1, m.start − (i + 1) · P)
-11          outer = LOCATE(read[a:a + P − 1])
-12          return FALSE if CONTINUOUS(outer, inner, m.end + 1 − a, 10 · (i + 1))
-13      else
-14          a = max(1, m.start − P) // first base of the inner probe
-15          b = m.end + 1 + i · P
-16          outer = LOCATE(read[b:b + P − 1])
-17          return FALSE if CONTINUOUS(inner, outer, b − a, 10 · (i + 1))
-18  return TRUE
+10      if m.kind == START
+11          a = max(1, m.start − (i + 1) · P)
+12          outer = LOCATE(read[a:a + P − 1])
+13          return FALSE if CONTINUOUS(outer, inner, m.end + 1 − a, 10 · (i + 1))
+14      else
+15          a = max(1, m.start − P) // first base of the inner probe
+16          b = m.end + 1 + i · P
+17          outer = LOCATE(read[b:b + P − 1])
+18          return FALSE if CONTINUOUS(inner, outer, b − a, 10 · (i + 1))
+19  return TRUE
+```
+
+```
+CONTINUES_REFERENCE(read, m, inner)
+   // the bases on the other side of m, 3P of them and those of m itself,
+   // aligned to the reference of the probe inner, from where inner lies outwards
+ 1  if m.kind == START
+ 2      b = m.end; a = max(1, b − 3P − (m.end − m.start + 1))
+ 3      anchor = inner.pos − 1 if inner.strand == "+" else inner.pos + 1
+ 4  else
+ 5      a = m.start; b = min(length(read), a + 3P + (m.end − m.start + 1))
+ 6      anchor = inner.pos + P if inner.strand == "+" else inner.pos − P
+ 7  x = read[a:b], reverse-complemented if inner.strand == "−"
+ 8  return FALSE if length(x) < 16 // too few bases to tell
+ 9  return FLANK_DIFFERENCES(x, inner.ref, anchor) ≤ 40% · length(x) // → A13
 ```
 
 ```
@@ -912,7 +942,13 @@ not calibrated:
   *e* = 20% and 30%;
 - an END match just after the primer that starts the read has only that
   primer and a few bases before it, which every segment start matches:
-  the amplicon side must hold a whole probe.
+  the amplicon side must hold a whole probe;
+- the share of bases that may differ from the reference for a read to be
+  taken as running through a match is 40%. It separates the two kinds of
+  bases widely: on simulated reads of 4 to 12% errors (C1), against
+  the built-in references, which are far from the simulated genome, any
+  value from 40% to 60% gives the same reads, splitting none of the
+  complete amplicons and 167 of the 173 reads that hold two amplicons.
 
 The splitting is done first, so that every primer ends up at an end of
 a part. A match of a terminus is not by itself a junction, because a
