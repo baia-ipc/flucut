@@ -469,9 +469,15 @@ void counter_add_written(counter_t *self, size_t len, size_t category,
   read_stats_add(self->stats, READ_STATS_WRITTEN, len, qual);
 }
 
-void counter_set_cleavage_reference(counter_t *self, const char *aa) {
+void counter_set_cleavage_reference(counter_t *self, const char *aa,
+    const char *fusion) {
   assert(self != NULL);
-  cleavage_counts_set_reference(&self->cleavage, aa);
+  cleavage_counts_set_reference(&self->cleavage, aa, fusion);
+}
+
+void counter_add_cleavage_fusion(counter_t *self, const char *nt) {
+  assert(self != NULL);
+  cleavage_counts_add_fusion(&self->cleavage, nt);
 }
 
 void counter_add_cleavage_searched(counter_t *self) {

@@ -44,6 +44,21 @@ consequences worth knowing:
   read, no assembly, so the result is available while the run is still
   sequencing.
 
+The fusion peptide itself is reported too, as the reads carry it where
+the anchor matched, with the share of them agreeing and the one the
+reference has. It costs nothing — those bases are already in hand — and
+it answers two questions the site alone cannot:
+
+- **did the anchor land where it should?** The fusion peptide is
+  conserved, so the reads should agree on it. A sample whose site has
+  little support but whose fusion peptide has a lot has a genuinely hard
+  site; one where both are low has an anchor matching reads it should
+  not.
+- **is the sample the subtype of its reference?** A sample whose own
+  fusion peptide differs from its reference's (`GIFGAIAG` against
+  `GLFGAIAG`, say) is a lineage the reference does not represent, which
+  is worth knowing before reading anything else from it.
+
 The reads are then gathered by the **residues** they carry, not by the
 bases. The residues are what decides the pathotype, and the reads agree
 on them far more often than on the spelling, which differs by a base
@@ -232,8 +247,9 @@ whether FluSurver reports the site, and whether BV-BRC annotates it.
 
 ## Where it is reported
 
-- the HTML report and the dashboard: a card in each sample, and a column
-  of the table of the HA in all samples;
+- the HTML report and the dashboard: a card in each sample, with the
+  fusion peptide the reads carry beside the site, and a column of the
+  table of the HA in all samples;
 - `summary.tsv`: `cleavage_site`, `cleavage_reads`, `cleavage_support`,
   `cleavage_multibasic`, `cleavage_verdict`;
 - `flucut_summary.json`: the `cleavage_site` object of each section (see

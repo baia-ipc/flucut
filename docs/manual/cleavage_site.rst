@@ -46,6 +46,15 @@ frame. Nothing is mapped and nothing is assembled: one search of a
 24-base pattern in each read is enough, so the site is reported while
 the run is still sequencing.
 
+flucut also reports the fusion peptide itself, as the reads carry it
+where the anchor matched. It costs nothing, since those bases are
+already in hand, and it answers two questions the site alone cannot: the
+peptide is conserved, so reads which agree on it but not on the site
+have a genuinely hard site, while reads agreeing on neither have an
+anchor matching reads it should not; and a sample whose own fusion
+peptide differs from its reference's belongs to a lineage that reference
+does not represent.
+
 The reads are counted by the **residues** they carry, not by the bases.
 The residues decide the pathotype, and the reads agree on them far more
 often than on the spelling, which differs by a base wherever a read has
@@ -208,8 +217,10 @@ Example
    reads it was read from        6,977 of 9,588 searched
    reads with these residues     4,524 (64.8%)
    reads with a multibasic site  92.3%
+   reads agreeing beside the site 87.7% of 13,410
    chemistry                     R10
-   site of the reference         LREKRRKR
+   fusion peptide in the reads   GLFGAIAG (99.1% of 6,977)
+   reference: site and peptide   LREKRRKR, GLFGAIAG
 
 A sample holding the reads of a second haemagglutinin instead reads
 
@@ -222,8 +233,10 @@ A sample holding the reads of a second haemagglutinin instead reads
    reads it was read from        65 of 950 searched
    reads with these residues     41 (63.1%)
    reads with a multibasic site  30.8%
+   reads agreeing beside the site 61.7% of 128
    chemistry                     R10
-   site of the reference         LREKRRKR
+   fusion peptide in the reads   GLFGAIAG (96.9% of 65)
+   reference: site and peptide   LREKRRKR, GLFGAIAG
 
    the 5 sites in these reads
      NVPSRSSR  41  63.1%  monobasic

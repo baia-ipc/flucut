@@ -216,6 +216,19 @@ static void write_cleavage_site(json_writer_t *w, const report_t *r,
   json_count_member(w, "basic_residues", s.basic);
   json_member(w, "reads_as");
   fprintf(f, "\"%s\"", cleavage_reading_name(s.reading));
+  /* the fusion peptide: the anchor, and what the reads carry there */
+  json_member(w, "fusion_peptide");
+  if (s.fusion_aa[0] == '\0')
+    fputs("null", f);
+  else
+    fputs_json_string(s.fusion_aa, f);
+  json_count_member(w, "fusion_peptide_reads", s.fusion_reads);
+  json_share_member(w, "fusion_peptide_support", s.fusion_support);
+  json_member(w, "reference_fusion_peptide");
+  if (s.reference_fusion[0] == '\0')
+    fputs("null", f);
+  else
+    fputs_json_string(s.reference_fusion, f);
   json_member(w, "reference_site");
   if (s.reference_aa[0] == '\0')
     fputs("null", f);

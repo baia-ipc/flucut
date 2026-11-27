@@ -351,10 +351,22 @@ static void write_cleavage_site(html_writer_t *w, const report_t *r,
   markup_td(w, "chemistry");
   markup_td(w, "%s", cleavage_chemistry_name(site.chemistry));
   html_close(w);
+  if (site.fusion_aa[0] != '\0') {
+    markup_open_row(w);
+    markup_td(w, "fusion peptide in the reads");
+    markup_td(w, "%s (%s of %s)", site.fusion_aa,
+              percent_text((size_t)(site.fusion_support *
+                                    (double)site.fusion_reads + 0.5),
+                           site.fusion_reads).s,
+              html_num(site.fusion_reads).s);
+    html_close(w);
+  }
   if (site.reference_aa[0] != '\0') {
     markup_open_row(w);
-    markup_td(w, "site of the reference");
-    markup_td(w, "%s", site.reference_aa);
+    markup_td(w, "reference: site and fusion peptide");
+    markup_td(w, "%s, %s", site.reference_aa,
+              site.reference_fusion[0] != '\0' ? site.reference_fusion
+                                               : "\xe2\x80\x93");
     html_close(w);
   }
   html_close(w);   /* table */
@@ -396,9 +408,12 @@ static void write_cleavage_site(html_writer_t *w, const report_t *r,
   else if (site.verdict == CLEAVAGE_TOO_FEW_READS)
     markup_note(w, "Fewer than %d reads reach the site: nothing can be "
                 "said about it.", CLEAVAGE_MIN_READS);
-  markup_note(w, "The %d bases before the fusion peptide GLFGAIAG, taken "
-              "from each read which covers them, translated. Read from "
-              "the reads, not from an assembly.", CLEAVAGE_SITE_NT);
+  markup_note(w, "The %d bases before the fusion peptide, taken from "
+              "each read which covers them, translated. Read from the "
+              "reads, not from an assembly. The fusion peptide itself is "
+              "the anchor: the reads should agree on it, and a sample "
+              "whose own differs from its reference's is not the subtype "
+              "of that reference.", CLEAVAGE_SITE_NT);
   html_close(w);
 }
 

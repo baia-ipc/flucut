@@ -97,6 +97,15 @@ bool anchor_bases_before(const anchor_hit_t *hit, const char *read,
     size_t read_len, size_t n, char *out);
 
 /*
+   The <n> first bases of the anchor itself, as the read carries them:
+   what the read has where the anchor matched. The anchor is conserved,
+   so these are a check that it landed where it should, and they show
+   the variant of it this sample carries.
+*/
+bool anchor_bases_at(const anchor_hit_t *hit, const char *read,
+    size_t read_len, size_t n, char *out);
+
+/*
    The same for the <n> bases which follow the anchor, <skip> bases
    after its end: with <skip> 0 the ones directly after it, with <skip>
    n the ones after those. Those bases are ordinary sequence beside the
