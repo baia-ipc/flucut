@@ -177,6 +177,7 @@ static void locate_by_alignment(const search_t *s, long from, long to,
     out->found = true;
     out->left_to = left_to;
     out->right_from = right_from;
+    out->offset = from + split;
   }
   free(buf);
 }
@@ -306,6 +307,7 @@ void junction_test(void) {
   test_assert(j.found);
   test_eq_long(j.left_to, 150);
   test_eq_long(j.right_from, 600);
+  test_eq_long(j.offset, 150);
 
   /* the same, with errors in the read on both sides of the junction */
   read[100] = read[100] == 'A' ? 'C' : 'A';
@@ -335,6 +337,7 @@ void junction_test(void) {
   test_assert(j.found);
   test_eq_long(j.left_to, 300);
   test_eq_long(j.right_from, 700);
+  test_eq_long(j.offset, 200);
 
   /* deletions of 400 bases at many positions (templates of many
      lengths): the two flanks found are the template (the junction can be

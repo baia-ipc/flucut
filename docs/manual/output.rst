@@ -58,6 +58,9 @@ tag      meaning
          :ref:`reads-by-category`)
 ``sp``   ``<k>/<n>``: the record is part ``k`` of the ``n`` parts of a
          read which contained several amplicons (see below)
+``jf``   ``<k>/2``: the record is flank ``k`` of a read cut at the
+         junction of its internal deletion (``--cut-deletions``, see
+         :ref:`cut-deletions`)
 ======== ============================================================
 
 The left and right ends are those of the amplicon: for a read of the
@@ -118,6 +121,32 @@ for each file; the reads of each file are counted in the columns
 ``out_full``, ``out_internal``, ``out_deletion`` and ``out_other`` of
 ``summary.tsv``.
 
+.. _cut-deletions:
+
+Reads with an internal deletion, cut at the junction
+----------------------------------------------------
+
+A read with an internal deletion (category ``deletion``) is two flanks
+of a segment joined at a junction: what lies between them in the
+segment is missing in the read. ``--cut-deletions`` writes such a read
+as two records, its two flanks, cut at the junction::
+
+   flucut --cut-deletions -o trimmed barcode01/
+
+The bases before the junction in the read are flank 1, those from the
+junction on are flank 2; together they are the bases which would be
+written without the option, with their qualities. The name of the read
+is followed by ``_j1`` and ``_j2``, and the records carry the tags of
+the read and the tag ``jf`` (``1/2``, ``2/2``): ``ct`` is ``deletion``
+for both, ``tl`` and ``tr`` are the bases removed at the two ends of the
+read. With ``--by-category`` both flanks are in the file of the
+deletions.
+
+A flank shorter than the minimum length (``-m``) is not written. A read
+whose ends tell an internal deletion but whose junction could not be
+located is written whole. The reads cut are counted in the column
+``cut_at_junction`` of ``summary.tsv``.
+
 summary.tsv
 -----------
 
@@ -157,6 +186,10 @@ One line for each input, tab-separated, with a header:
      - reads split into several amplicons; ``reads_in`` and ``bases_in``
        count the reads of the input, all the other columns count each
        part as a read
+   * - ``cut_at_junction``
+     - reads with an internal deletion cut at their junction
+       (``--cut-deletions``); ``reads_out``, ``bases_out``,
+       ``too_short`` and ``out_deletion`` count each flank as a read
    * - ``left_terminal``, ``left_internal``, ``left_unknown``, ``right_terminal``, ``right_internal``, ``right_unknown``
      - with ``-r``: the left and right ends found, by origin; ``NA`` without references
    * - ``short_complete``

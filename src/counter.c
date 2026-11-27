@@ -130,6 +130,7 @@ void counter_merge(counter_t *self, const counter_t *other) {
   s->minus += o->minus;
   s->with_internal += o->with_internal;
   s->split += o->split;
+  s->cut += o->cut;
   s->adapter_start += o->adapter_start;
   s->adapter_end += o->adapter_end;
   for (size_t e = 0; e < COUNTER_N_ENDS; e++) {
@@ -184,15 +185,16 @@ static void count_end(counter_t *self, const amplicon_end_t *end,
 }
 
 /* the counts of counter_reads_t, in the order of the files of counts:
-   11 single counts, n_ends, origin, written */
-#define N_SINGLE_COUNTS 11
+   12 single counts, n_ends, origin, written */
+#define N_SINGLE_COUNTS 12
 #define N_READ_COUNTS (N_SINGLE_COUNTS + 3 + COUNTER_N_ENDS * 3 + \
                        READ_N_CATEGORIES)
 
 static void read_counts(counter_reads_t *r, size_t *out[N_READ_COUNTS]) {
   size_t *single[N_SINGLE_COUNTS] = {&r->reads_in, &r->bases_in,
       &r->reads_out, &r->bases_out, &r->too_short, &r->dimers, &r->minus,
-      &r->with_internal, &r->split, &r->adapter_start, &r->adapter_end};
+      &r->with_internal, &r->split, &r->adapter_start, &r->adapter_end,
+      &r->cut};
   size_t n = 0;
   for (size_t i = 0; i < N_SINGLE_COUNTS; i++)
     out[n++] = single[i];
@@ -458,6 +460,11 @@ void counter_add_input(counter_t *self, size_t len, const char *qual,
   read_stats_add(self->stats, READ_STATS_INPUT, len, qual);
   if (title != NULL)
     read_metadata_add_title(&self->metadata, title, title_len);
+}
+
+void counter_add_cut(counter_t *self) {
+  assert(self != NULL);
+  self->reads.cut++;
 }
 
 void counter_add_written(counter_t *self, size_t len, size_t category,

@@ -62,6 +62,10 @@ typedef struct {
      counted as a read in all the counts but <reads_in> and <bases_in>,
      which are those of the input */
   size_t split;
+  /* reads with an internal deletion cut at their junction (see
+     trimmer.h); each flank is then counted as a read in <reads_out>,
+     <bases_out>, <written> and <too_short> */
+  size_t cut;
   /* reads with an adapter removed at their start, at their end (see
      amplicon.h) */
   size_t adapter_start, adapter_end;
@@ -122,6 +126,10 @@ void counter_add_split(counter_t *self, size_t n_parts, size_t len,
 */
 void counter_add_input(counter_t *self, size_t len, const char *qual,
     const char *title, size_t title_len);
+
+/* Count a read cut at the junction of its internal deletion (its flanks
+   are counted by counter_add_written() or counter_add_too_short()) */
+void counter_add_cut(counter_t *self);
 
 /* Count a read written, with <len> bases, of the category <category>
    (READ_CATEGORY_*), with the qualities <qual> (NULL: none) */

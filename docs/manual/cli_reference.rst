@@ -141,6 +141,16 @@ Options
 
       flucut --by-category -o trimmed barcode01/
 
+``--cut-deletions``
+   Write a read with an internal deletion (e.g. of a defective
+   interfering genome) as two records, its two flanks, cut at the
+   junction (:ref:`cut-deletions`). A program which maps the reads to
+   the whole segment then gets two reads which each lie in one place,
+   instead of one read with a gap. It needs the references (not
+   ``-r off``). Example::
+
+      flucut --cut-deletions -o trimmed barcode01/
+
 Classification against the references
 -------------------------------------
 

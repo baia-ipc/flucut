@@ -51,6 +51,10 @@ typedef struct {
      before <left_to>, the right one starts at <right_from>; the bases
      [left_to, right_from) of the reference are missing in the read */
   long left_to, right_from;
+  /* the bases of the template in the left flank: the right flank starts
+     at the base <offset> of the template (as given to
+     junction_locate(), in the orientation of the plus strand) */
+  long offset;
 } junction_t;
 
 /*

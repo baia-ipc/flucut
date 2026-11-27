@@ -28,6 +28,7 @@ enum {
   OPT_NO_TAGS,
   OPT_NO_SPLIT,
   OPT_BY_CATEGORY,
+  OPT_CUT_DELETIONS,
   OPT_EXHAUSTIVE,
   OPT_ADAPTERS,
   OPT_LIVE,
@@ -115,6 +116,10 @@ enum {
   "                          deletions) and <name>.other.fastq.gz (no 5'\n" \
   "                          primer, or not located); needs the\n" \
   "                          references\n" \
+  "   --cut-deletions        write a read with an internal deletion as\n" \
+  "                          two records, its two flanks, cut at the\n" \
+  "                          junction (names: <read>_j1, <read>_j2);\n" \
+  "                          needs the references\n" \
   "   --adapters <kits>      the Nanopore adapters searched at the read\n" \
   "                          ends without a primer: a comma-separated\n" \
   "                          list of " ADAPTERS_KITS ", or none\n" \
@@ -258,6 +263,7 @@ void options_parse(options_t *self, int argc, char *argv[],
   self->live_scan_interval = OPTIONS_DEFAULT_SCAN_INTERVAL;
   self->resume = false;
   self->by_category = false;
+  self->cut_deletions = false;
   bool timeout_given = false, min_age_given = false,
        scan_interval_given = false;
   self->threads = OPTIONS_DEFAULT_THREADS;
@@ -275,6 +281,7 @@ void options_parse(options_t *self, int argc, char *argv[],
     {"no-tags", no_argument, NULL, OPT_NO_TAGS},
     {"no-split", no_argument, NULL, OPT_NO_SPLIT},
     {"by-category", no_argument, NULL, OPT_BY_CATEGORY},
+    {"cut-deletions", no_argument, NULL, OPT_CUT_DELETIONS},
     {"adapters", required_argument, NULL, OPT_ADAPTERS},
     {"live", no_argument, NULL, OPT_LIVE},
     {"timeout", required_argument, NULL, OPT_TIMEOUT},
@@ -400,6 +407,9 @@ void options_parse(options_t *self, int argc, char *argv[],
       case OPT_BY_CATEGORY:
         self->by_category = true;
         break;
+      case OPT_CUT_DELETIONS:
+        self->cut_deletions = true;
+        break;
       case OPT_ADAPTERS:
         if (!adapters_valid(optarg))
           PARSE_ERR("Option '--adapters': a comma-separated list of "
@@ -486,6 +496,9 @@ void options_parse(options_t *self, int argc, char *argv[],
   if (self->by_category && self->references_off)
     PARSE_ERR("Option '--by-category': the references are required (not "
               "-r off)");
+  if (self->cut_deletions && self->references_off)
+    PARSE_ERR("Option '--cut-deletions': the references are required "
+              "(not -r off)");
   /* the report of a run classified against one segment shows that
      segment (the others have no located reads) */
   if (self->segment != 0 && self->report_segment != 0 &&
@@ -545,6 +558,9 @@ void options_parse(options_t *self, int argc, char *argv[],
   PARSE_LOG("Minimum length: %zu\n", self->min_length);
   PARSE_LOG("Outputs: %s\n", self->by_category ?
             "a file for each category of reads" : "a file for each input");
+  if (self->cut_deletions)
+    PARSE_LOG("Reads with an internal deletion: %s\n",
+              "cut at the junction");
   PARSE_LOG("Adapters: %s\n", self->adapters);
   if (self->live) {
     PARSE_LOG("Live mode: timeout %ld s (0: none), minimum age %ld s, "

@@ -25,6 +25,8 @@
      ni:i:<n>       primer matches inside the read (if any)
      sp:Z:<k>/<n>   the record is the part <k> of the <n> parts of a read
                     which contained several amplicons (see below)
+     jf:Z:<k>/2     the record is the flank <k> of a read cut at the
+                    junction of its internal deletion (see below)
 
    With references, for each end found:
 
@@ -49,6 +51,23 @@
 
    Reads shorter than the minimum length after the trimming are not
    written (primer dimers, with nothing left, always).
+
+   Reads with an internal deletion, cut at the junction
+   -----------------------------------------------------
+
+   A read with an internal deletion is two flanks of a segment joined at
+   a junction (junction.h). It can be written as two records, its two
+   flanks (<cut_deletions>, which needs references), so that a program
+   which maps the reads to the whole segment gets two reads which each
+   lie in one place, instead of one read with a gap of hundreds of
+   bases. The kept part of the read is cut at the junction: the bases
+   before it in the read are the flank 1, those from it on the flank 2.
+   The records have the name of the read followed by _j1 and _j2, the
+   tags of the read (tl and tr are the bases removed at the two ends of
+   the read, ct is deletion) and the tag jf. A flank shorter than the
+   minimum length is not written. A read of the category deletion whose
+   junction was not located (the ends tell the deletion, the bases
+   between them do not fit the two flanks) is written whole.
 
    Reads with several amplicons
    ----------------------------
@@ -104,6 +123,8 @@ typedef struct {
   bool tags;                  /* append the tags to the titles */
   bool split;                 /* split the reads with several amplicons */
   bool by_category;           /* an output for each category of reads */
+  bool cut_deletions;         /* cut the reads with an internal deletion
+                                 at their junction */
 } trimmer_config_t;
 
 /* the greatest number of outputs of a trimmer */

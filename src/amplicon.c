@@ -854,13 +854,15 @@ static void find_junction(amplicon_analyzer_t *self, const char *seq,
     return;
   size_t n = (size_t)(to - from + 1);
   bool minus = a->strand == STRAND_MINUS;
-  const char *template = seq + (minus ? (long)len - 1 - to : from);
+  long template_from = minus ? (long)len - 1 - to : from;
+  const char *template = seq + template_from;
   /* its first and last base on the plus strand of the reference */
   long first = l->reverse ? r->ref_start : l->ref_start;
   long last = l->reverse ? l->ref_start : r->ref_start;
   if (!junction_expected((long)n, last - first + 1))
     return;
-  if (minus != l->reverse) {
+  bool reversed = minus != l->reverse;
+  if (reversed) {
     /* the read is the minus strand of the reference */
     XCHECKSPACEINC(self->template, &self->template_cap, n + 1, 1024);
     reverse_complement(template, n, self->template);
@@ -869,6 +871,11 @@ static void find_junction(amplicon_analyzer_t *self, const char *seq,
   }
   junction_locate(self->refs, template, n, l->ref_index, first, last,
                   &a->junction);
+  /* (in a read of the minus strand of the reference, the right flank
+     comes first) */
+  if (a->junction.found)
+    a->junction_at = template_from + (reversed ?
+        (long)n - a->junction.offset : a->junction.offset);
 }
 
 const amplicon_t* amplicon_analyzer_run(amplicon_analyzer_t *self,

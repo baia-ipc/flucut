@@ -47,7 +47,7 @@ without primers, a short amplicon and an amplicon with one primer only.
 
 `deletion.fastq`: 2 reads **simulated** from the reference with its
 middle part missing (the first 250 and the last 300 bases joined), in
-both orientations, for the cases `deletion` and `by_category`:
+both orientations, for the cases `deletion`, `cut_deletions` and `by_category`:
 
     python3 -I scripts/simulate-reads.py testdata/ref-ha.fasta deletion \
         > testdata/deletion.fastq

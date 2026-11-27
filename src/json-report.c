@@ -31,6 +31,7 @@ static void write_reads(json_writer_t *w, const counter_reads_t *s) {
   json_count_member(w, "minus_strand", s->minus);
   json_count_member(w, "with_internal_match", s->with_internal);
   json_count_member(w, "split", s->split);
+  json_count_member(w, "cut_at_junction", s->cut);
   json_count_member(w, "adapter_start", s->adapter_start);
   json_count_member(w, "adapter_end", s->adapter_end);
   json_close_block(w, '}', false);
@@ -386,6 +387,8 @@ static void write_parameters(json_writer_t *w, const report_t *r) {
   fputs(o->split ? "true" : "false", f);
   json_member(w, "by_category");
   fputs(o->by_category ? "true" : "false", f);
+  json_member(w, "cut_deletions");
+  fputs(o->cut_deletions ? "true" : "false", f);
   json_count_member(w, "threads", o->threads);
   json_count_member(w, "compress_level", (size_t)o->compress_level);
   json_close_block(w, '}', false);

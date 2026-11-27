@@ -120,31 +120,36 @@ static void append_end_tags(trimmer_t *self, const amplicon_end_t *end,
 }
 
 /* append the title of a read to <t>, its name (the first word)
-   followed by _<part> */
-static void append_part_title(strbuf_t *t, const char *title,
-    size_t title_len, size_t part) {
+   followed by _<part> (<part> > 0: a part of a split read) and by
+   _j<flank> (<flank> > 0: a flank of a read cut at its junction) */
+static void append_title(strbuf_t *t, const char *title, size_t title_len,
+    size_t part, size_t flank) {
   size_t name_len = 0;
   while (name_len < title_len && title[name_len] != ' ' &&
          title[name_len] != '\t')
     name_len++;
   strbuf_append(t, title, name_len);
-  strbuf_append_char(t, '_');
-  strbuf_append_long(t, (long)part);
+  if (part > 0) {
+    strbuf_append_char(t, '_');
+    strbuf_append_long(t, (long)part);
+  }
+  if (flank > 0) {
+    strbuf_append_str(t, "_j");
+    strbuf_append_long(t, (long)flank);
+  }
   strbuf_append(t, title + name_len, title_len - name_len);
 }
 
 /* the title of the record written for a read, or for the part <part>
    (from 1) of the <n_parts> parts of a split read, of length <len>: its
-   title, then the tags; <category>: of the read (READ_CATEGORY_*) */
+   title, then the tags; <category>: of the read (READ_CATEGORY_*);
+   <flank>: 1 or 2 for a flank of a read cut at its junction, else 0 */
 static void make_title(trimmer_t *self, const char *title, size_t title_len,
     const amplicon_t *a, size_t category, size_t len, size_t part,
-    size_t n_parts) {
+    size_t n_parts, size_t flank) {
   strbuf_t *t = &self->title;
   strbuf_clear(t);
-  if (n_parts > 1)
-    append_part_title(t, title, title_len, part);
-  else
-    strbuf_append(t, title, title_len);
+  append_title(t, title, title_len, n_parts > 1 ? part : 0, flank);
   if (!self->config->tags)
     return;
   const char *strand = a->strand == STRAND_PLUS ? "+" :
@@ -173,6 +178,11 @@ static void make_title(trimmer_t *self, const char *title, size_t title_len,
     strbuf_append_long(t, (long)part);
     strbuf_append_char(t, '/');
     strbuf_append_long(t, (long)n_parts);
+  }
+  if (flank > 0) {
+    sam_tag_start(t, "jf", 'Z');
+    strbuf_append_long(t, (long)flank);
+    strbuf_append_str(t, "/2");
   }
 }
 
@@ -239,15 +249,37 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
     counter_add_too_short(counts);
     return;
   }
-  make_title(self, data + rec->title_from, rec->title_len, a, category,
-             len, part, n_parts);
   if (self->config->by_category)
     out += category;
-  fastq_writer_record(out, self->title.s, self->title.len,
-                      seq + a->keep_from,
-                      data + rec->qual_from + from + a->keep_from, kept);
-  counter_add_written(counts, kept, category, rec->qual_missing ? NULL :
-                      data + rec->qual_from + from + a->keep_from);
+  const char *qual = data + rec->qual_from + from;
+  long cut = self->config->cut_deletions &&
+      category == READ_CATEGORY_DELETION ? amplicon_junction_cut(a) : -1;
+  if (cut < 0) {
+    make_title(self, data + rec->title_from, rec->title_len, a, category,
+               len, part, n_parts, 0);
+    fastq_writer_record(out, self->title.s, self->title.len,
+                        seq + a->keep_from, qual + a->keep_from, kept);
+    counter_add_written(counts, kept, category, rec->qual_missing ? NULL :
+                        qual + a->keep_from);
+    return;
+  }
+  /* the two flanks of the kept part, in the order of the read */
+  counter_add_cut(counts);
+  const long bounds[3] = {a->keep_from, cut, a->keep_to + 1};
+  for (size_t flank = 1; flank <= 2; flank++) {
+    long flank_from = bounds[flank - 1];
+    size_t flank_len = (size_t)(bounds[flank] - flank_from);
+    if (flank_len < self->config->min_length) {
+      counter_add_too_short(counts);
+      continue;
+    }
+    make_title(self, data + rec->title_from, rec->title_len, a, category,
+               len, part, n_parts, flank);
+    fastq_writer_record(out, self->title.s, self->title.len,
+                        seq + flank_from, qual + flank_from, flank_len);
+    counter_add_written(counts, flank_len, category,
+                        rec->qual_missing ? NULL : qual + flank_from);
+  }
 }
 
 void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
@@ -364,6 +396,92 @@ static void test_categories(const scheme_t *sc) {
   test_eq_mem(out[READ_CATEGORY_INTERNAL].s, 8, "@inside\t");
   test_eq_size(out[READ_CATEGORY_DELETION].len, 0);
   test_eq_size(out[READ_CATEGORY_OTHER].len, 0);
+  /* a read with an internal deletion (the bases 90 to 209 of the
+     interior are missing): written whole */
+  char flanks[512];
+  snprintf(flanks, sizeof(flanks), "%.90s%s", interior, interior + 210);
+  snprintf(read, sizeof(read), "%s%s%s", uni12, flanks, rc13);
+  one_record(&batch, "deleted x=1", read);
+  trimmer_run(tr, &batch, 0, 1, out, counts);
+  strbuf_t *del = out + READ_CATEGORY_DELETION;
+  test_eq_mem(del->s, 13, "@deleted x=1\t");
+  strbuf_append_char(del, '\0');
+  test_assert(strstr(del->s, "\tjf:Z:") == NULL);
+  test_assert(strstr(del->s, flanks) != NULL);
+  test_eq_size(counter_reads(counts)->cut, 0);
+  trimmer_delete(tr);
+  /* cut at the junction: two records, the two flanks, which together
+     are the kept part of the read, the template with the conserved
+     termini (the junction can be a few bases from
+     where it was made, if the bases beside it are the same on its two
+     sides) */
+  char kept[512];
+  snprintf(kept, sizeof(kept), "%s%sCCTTGTTTCTACT", uni12, flanks);
+  config.cut_deletions = true;
+  tr = trimmer_new(&config);
+  strbuf_clear(del);
+  size_t written = counter_reads(counts)->written[READ_CATEGORY_DELETION];
+  trimmer_run(tr, &batch, 0, 1, out, counts);
+  strbuf_append_char(del, '\0');
+  test_eq_mem(del->s, 16, "@deleted_j1 x=1\t");
+  const char *second = strstr(del->s, "\n@deleted_j2 x=1\t");
+  test_assert(second != NULL);
+  test_assert(strstr(del->s, "\tct:Z:deletion\t") != NULL);
+  test_assert(strstr(del->s, "\tjf:Z:1/2\n") != NULL);
+  test_assert(second != NULL && strstr(second, "\tjf:Z:2/2\n") != NULL);
+  if (second != NULL) {
+    const char *seq1 = strchr(del->s, '\n') + 1,
+               *seq2 = strchr(second + 1, '\n') + 1;
+    size_t len1 = strcspn(seq1, "\n"), len2 = strcspn(seq2, "\n");
+    char joined[512];
+    snprintf(joined, sizeof(joined), "%.*s%.*s", (int)len1, seq1,
+             (int)len2, seq2);
+    test_eq_size(len1 + len2, strlen(kept));
+    test_eq_mem(joined, strlen(kept), kept);
+    test_assert(len1 >= 97 && len1 <= 107);
+    /* the qualities are cut with the bases */
+    test_eq_mem(seq1 + len1 + 1, 2, "+\n");
+    test_eq_size(strcspn(seq1 + len1 + 3, "\n"), len1);
+  }
+  test_eq_size(counter_reads(counts)->cut, 1);
+  test_eq_size(counter_reads(counts)->written[READ_CATEGORY_DELETION],
+               written + 2);
+  /* the reads of the other categories are written as without the
+     option */
+  snprintf(read, sizeof(read), "%s%s%s", uni12, interior, rc13);
+  one_record(&batch, "whole", read);
+  strbuf_clear(out + READ_CATEGORY_FULL);
+  trimmer_run(tr, &batch, 0, 1, out, counts);
+  test_eq_mem(out[READ_CATEGORY_FULL].s, 7, "@whole\t");
+  test_eq_size(counter_reads(counts)->cut, 1);
+  /* the read of the minus strand: the flank 1 is the one before the
+     junction in the read, the reverse complement of the right flank */
+  char minus[512];
+  snprintf(read, sizeof(read), "%s%s%s", uni12, flanks, rc13);
+  size_t read_len = strlen(read);
+  for (size_t i = 0; i < read_len; i++) {
+    char b = read[read_len - 1 - i];
+    minus[i] = b == 'A' ? 'T' : b == 'C' ? 'G' : b == 'G' ? 'C' : 'A';
+  }
+  minus[read_len] = '\0';
+  one_record(&batch, "deleted", minus);
+  strbuf_clear(del);
+  trimmer_run(tr, &batch, 0, 1, out, counts);
+  strbuf_append_char(del, '\0');
+  test_eq_mem(del->s, 12, "@deleted_j1\t");
+  second = strstr(del->s, "\n@deleted_j2\t");
+  test_assert(second != NULL);
+  if (second != NULL) {
+    const char *seq1 = strchr(del->s, '\n') + 1,
+               *seq2 = strchr(second + 1, '\n') + 1;
+    size_t len1 = strcspn(seq1, "\n"), len2 = strcspn(seq2, "\n");
+    test_eq_size(len1 + len2, strlen(kept));
+    test_assert(len1 >= 98 && len1 <= 108);
+    /* (the flank 2 ends with the reverse complement of the first
+       bases of the segment) */
+    test_eq_mem(seq2 + len2 - 12, 12, "CCTGCTTTTGCT");
+  }
+  test_eq_size(counter_reads(counts)->cut, 2);
   trimmer_delete(tr);
   counter_delete(counts);
   for (size_t k = 0; k < TRIMMER_MAX_OUTPUTS; k++)

@@ -27,8 +27,8 @@ md5: e31735ebfb5d1cbb5f815f086ad30859
 @left_only simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	ct:Z:other	tl:i:12	tr:i:0
 500 GGAATTACTTAACTA...TACAGGAGTATGAGA
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict
-reads	12	12635	10	12220	10	1	1	2	1	2	0	0	0	1	10	0	1	9	1	0	0	0	10	NA	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict
+reads	12	12635	10	12220	10	1	1	2	1	2	0	0	0	0	1	10	0	1	9	1	0	0	0	10	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 reads	QB023392.1	20	1
@@ -70,6 +70,7 @@ reads	not_located	1700	5
     "tags": true,
     "split": true,
     "by_category": false,
+    "cut_deletions": false,
     "threads": 4,
     "compress_level": 6
   },
@@ -92,6 +93,7 @@ reads	not_located	1700	5
       "minus_strand": 2,
       "with_internal_match": 0,
       "split": 0,
+      "cut_at_junction": 0,
       "adapter_start": 0,
       "adapter_end": 0
     },
@@ -152,6 +154,7 @@ reads	not_located	1700	5
         "minus_strand": 2,
         "with_internal_match": 0,
         "split": 0,
+        "cut_at_junction": 0,
         "adapter_start": 0,
         "adapter_end": 0
       },

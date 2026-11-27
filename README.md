@@ -185,6 +185,21 @@ Illumina: trim with `flucut -p illumina` and assemble with the paired
   would.
 - this option needs the references, i.e. it is incompatible with `-r off`
 
+## Reads with an internal deletion, cut at the junction
+
+- a read with an internal deletion (e.g. of a defective interfering
+  genome) is two flanks of a segment joined at a junction
+- with `--cut-deletions`, such a read is written as two records, its
+  two flanks, named `<read>_j1` and `<read>_j2` (tag `jf:Z:1/2`,
+  `jf:Z:2/2`); a mapper then gets two reads which each lie in one
+  place, instead of one read with a gap
+- command line example
+  ```
+  flucut --cut-deletions -o trimmed barcode01/
+  ```
+- a read whose junction could not be located is written whole
+- this option needs the references, i.e. it is incompatible with `-r off`
+
 ## Evaluation suite
 
 An evaluation suite named `flucut-posthoc` was written in Python, with the main

@@ -342,7 +342,8 @@ int main(int argc, char *argv[]) {
       .adapters = opts.adapters, .min_length = opts.min_length,
       .illumina = opts.illumina, .cleavage = cleavage,
       .tags = opts.tags, .split = opts.split,
-      .by_category = opts.by_category};
+      .by_category = opts.by_category,
+      .cut_deletions = opts.cut_deletions};
   run_report_t *report = run_report_new(&opts, VERSION, scheme, refs, argc,
                                         argv, logger);
   run_report_set_max_errors(report, &autos.max_errors);

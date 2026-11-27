@@ -167,7 +167,9 @@
    internal deletion (e.g. a defective interfering genome). Its junction
    is located by probes from inside the template (see junction.h). It
    does not change the trimming: it is reported, so that each flank of
-   the read is counted where it lies in the coverage of its segment.
+   the read is counted where it lies in the coverage of its segment. The
+   position of the junction in the read is reported as well, so that the
+   read can be cut there into its two flanks (see trimmer.h).
 */
 
 #ifndef AMPLICON_H
@@ -275,7 +277,20 @@ typedef struct {
   /* the junction of a read with an internal deletion, if located (see
      "Internal deletions" above) */
   junction_t junction;
+  /* if the junction was located: the first base after it in the
+     ORIGINAL read (the bases before it are one flank, those from it on
+     the other) */
+  long junction_at;
 } amplicon_t;
+
+/* Where to cut the kept part of the read <a> at the junction of its
+   internal deletion: the first base of the second flank in the ORIGINAL
+   read; -1 if no junction was located, or if it does not leave bases of
+   the kept part on both sides */
+static inline long amplicon_junction_cut(const amplicon_t *a) {
+  return a->junction.found && a->junction_at > a->keep_from &&
+         a->junction_at <= a->keep_to ? a->junction_at : -1;
+}
 
 /* The position of an end of <a> on the references: that of its probe,
    or else that found from inside the read; NULL if neither */

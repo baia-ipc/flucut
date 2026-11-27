@@ -75,6 +75,8 @@ typedef struct {
                                  (chimera.h) */
   bool by_category;           /* an output file for each category of
                                  reads (read-outputs.h) */
+  bool cut_deletions;         /* cut the reads with an internal deletion
+                                 at their junction (trimmer.h) */
   const char *adapters;       /* see adapters.h */
   size_t threads;
   int compress_level;         /* of the outputs (gzip) */

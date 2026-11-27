@@ -26,6 +26,8 @@ report_segment	--report-segment PA -r testdata/ref-ha-pa.fasta testdata/reads.fa
 # reads with an internal deletion (the tag ct); the reads written to a
 # file for each category, for each input
 deletion	-r testdata/ref-ha.fasta testdata/deletion.fastq
+# the same reads, each written as its two flanks, cut at the junction
+cut_deletions	--cut-deletions -r testdata/ref-ha.fasta testdata/deletion.fastq
 by_category	--by-category -r testdata/ref-ha.fasta testdata/reads.fastq testdata/deletion.fastq
 # influenza B: reads of its HA, simulated with the primer pair of the
 # HA and the NA (b-hana), against references of its HA and its M

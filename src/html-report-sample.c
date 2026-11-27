@@ -207,6 +207,9 @@ static void write_reads(html_writer_t *w, const report_t *r,
   primer_counts(w, r, c, analyzed);
   small_count(w, "minus strand", s->minus, analyzed);
   small_count(w, "split (several amplicons)", s->split, s->reads_in);
+  if (r->options->cut_deletions)
+    small_count(w, "cut at the junction (internal deletion)", s->cut,
+                analyzed);
   small_count(w, "primer dimers", s->dimers, analyzed);
   small_count(w, "too short", s->too_short, analyzed);
   small_count(w, "primer match inside", s->with_internal, analyzed);
