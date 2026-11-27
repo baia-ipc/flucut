@@ -115,7 +115,8 @@ def pairs_table(accuracy, votes, subtype, lacking):
         continue
       for s, v in segs.items():
         best = reference_rule.leader(v)
-        if reference_rule.is_clear(v, 20, 0.6) or v[best] < 20:
+        clear = reference_rule.choice(v, subtype, 20, 0.6)[2]
+        if clear or v[best] < 20:
           continue
         for ref, n in v.items():
           if ref == best or n == 0 or not keep(s, best, ref):
