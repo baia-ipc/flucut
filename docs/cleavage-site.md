@@ -181,7 +181,7 @@ how many reads support it.
 | [Nextstrain avian-flu](https://github.com/nextstrain/avian-flu) | the HA alignment of consensus sequences | finds `GLFG`, takes the 12 bases before it and translates them; calls the motif present when R at 1 and 4 and R or K at 3 | no |
 | [Nextclade](https://doi.org/10.1093/ve/veaf058) A(H5) datasets | consensus FASTA | a fixed window of HA residues 341–346; 4 or more R/K is flagged polybasic | no (only its general QC) |
 | [VADR](https://github.com/ncbi/vadr) | FASTA | annotates the cleavage-site feature; makes no call | no |
-| [IRMA](https://doi.org/10.1186/s12864-016-3030-6), [GenoFLU](https://doi.org/10.1016/j.virol.2023.109860), [LABEL](https://doi.org/10.1186/s12864-016-3030-6), [INSaFLU](https://doi.org/10.1186/s13073-024-01334-3), [FluMut](https://doi.org/10.1093/ve/veaf011), EPI2ME `wf-flu` | – | do not report the site at all | – |
+| [IRMA](https://doi.org/10.1186/s12864-016-3030-6), [GenoFLU](https://github.com/USDA-VS/GenoFLU), [LABEL](https://doi.org/10.1371/journal.pone.0086921), [INSaFLU](https://doi.org/10.1186/s13073-024-01334-3), [FluMut](https://doi.org/10.1093/ve/veaf011), EPI2ME `wf-flu` | – | do not report the site at all | – |
 
 Two of them are worth reading beside this one.
 
@@ -211,8 +211,8 @@ pathogenicity H5 a polybasic one. A wrong site is a wrong pathotype, not
 a wrong base.
 
 The same point is made for Nanopore chemistry by
-[Siegers et al. 2024](https://doi.org/10.1128/spectrum.01880-24), who
-found the correct motif in 59.5% of R9 samples against 90.4% of R10,
+[Ratcliff et al. 2024](https://doi.org/10.1128/spectrum.01880-24), who
+found the correct motif in 60% of R9 samples against 90% of R10,
 with every R9 indel causing a frameshift which "could result in
 incorrectly classified virulence with automated pipelines". They read
 the motif from a Sanger consensus, with the pattern `(R|K)[^RKH](R|K)`,
