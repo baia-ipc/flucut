@@ -40,6 +40,11 @@ struct amplicon_analyzer_t {
   size_t rc_cap;
   /* the references, if any (see amplicon_analyzer_use_references()) */
   reference_set_t *refs;
+  /* the segment of each reference (0: its description names none),
+     read once from the descriptions: a segment-specific primer keeps
+     its terminus only at an end located in a segment it binds (see
+     primers.h) */
+  int *ref_segment;
   long terminal_window;
   /* the probe of the right end (reference_set_probe_len() + 1 bytes) */
   char *probe;
@@ -182,6 +187,15 @@ void amplicon_analyzer_use_references(amplicon_analyzer_t *self,
   self->refs = refs;
   self->terminal_window = terminal_window;
   XREALLOC(self->probe, reference_set_probe_len(refs) + 1);
+  const fasta_t *fa = reference_set_fasta(refs);
+  free(self->ref_segment);
+  self->ref_segment = NULL;
+  if (fa != NULL && fa->n_records > 0) {
+    XMALLOC(self->ref_segment, sizeof(int) * fa->n_records);
+    for (size_t i = 0; i < fa->n_records; i++)
+      self->ref_segment[i] =
+          segments_of_description(fa->records[i].description);
+  }
 }
 
 void amplicon_analyzer_restrict_references(amplicon_analyzer_t *self,
@@ -199,6 +213,7 @@ void amplicon_analyzer_delete(amplicon_analyzer_t *self) {
   free(self->left_edge);
   free(self->right_skip);
   free(self->right_edge);
+  free(self->ref_segment);
   primer_search_delete(self->search);
   internal_matches_delete(self->internal);
   free(self->rc);
@@ -356,16 +371,33 @@ static long clamp(long v, long lo, long hi) {
   return v < lo ? lo : (v > hi ? hi : v);
 }
 
-/* locate the probe <probe> (length <len>) of an end in the references,
-   and set the origin of the end accordingly */
-static void classify_end(amplicon_analyzer_t *self, const char *probe,
-    size_t len, amplicon_end_t *end) {
+/* the segment of the reference the hit <hit> maps to (0: unknown) */
+static int hit_segment(const amplicon_analyzer_t *self,
+    const reference_hit_t *hit) {
+  if (!hit->mapped || self->ref_segment == NULL)
+    return 0;
+  return self->ref_segment[hit->ref_index];
+}
+
+/*
+   Locate the probe <probe> (length <len>) of an end in the references,
+   and set the origin of the end accordingly; <primer> is the primer
+   found at that end, whose terminus is kept only at a terminal end of
+   a segment it binds (see primers.h): a primer which reaches past the
+   universal terminus into segment-specific bases writes its own
+   sequence at the end of any other segment, as at an internally primed
+   end, so those bases are removed there.
+*/
+static void classify_end(amplicon_analyzer_t *self, const primer_t *primer,
+    const char *probe, size_t len, amplicon_end_t *end) {
   reference_set_locate(self->refs, probe, len, &end->ref);
   if (!end->ref.mapped)
     end->origin = ORIGIN_UNKNOWN;
   else
     end->origin = reference_hit_is_terminal(&end->ref,
         self->terminal_window) ? ORIGIN_TERMINAL : ORIGIN_INTERNAL;
+  end->keep_terminus = end->origin == ORIGIN_TERMINAL &&
+      primers_binds_segment(primer, hit_segment(self, &end->ref));
 }
 
 /*
@@ -384,11 +416,13 @@ static void classify_ends(amplicon_analyzer_t *self, const char *seq,
   long probe_len = (long)reference_set_probe_len(self->refs);
   long n = avail < probe_len ? avail : probe_len;
   if (a->left.found)
-    classify_end(self, seq + lo, (size_t)n, &a->left);
+    classify_end(self, self->scheme->left + a->left.variant, seq + lo,
+                 (size_t)n, &a->left);
   if (a->right.found) {
     primers_reverse_complement(seq + hi - n, (size_t)n, self->probe);
     self->probe[n] = '\0';
-    classify_end(self, self->probe, (size_t)n, &a->right);
+    classify_end(self, self->scheme->right + a->right.variant,
+                 self->probe, (size_t)n, &a->right);
   }
 }
 
@@ -407,11 +441,11 @@ static void compute_keep(const amplicon_t *a, trim_policy_t policy,
      base never reaches the consensus unless the end is known to be a
      segment terminus */
   if (a->left.found)
-    *from = policy == TRIM_TERMINUS && a->left.origin == ORIGIN_TERMINAL ?
+    *from = policy == TRIM_TERMINUS && a->left.keep_terminus ?
             clamp(a->left.hit.terminus_start, 0, (long)len) :
             a->left.hit.end + 1;
   if (a->right.found)
-    *to = policy == TRIM_TERMINUS && a->right.origin == ORIGIN_TERMINAL ?
+    *to = policy == TRIM_TERMINUS && a->right.keep_terminus ?
           clamp(a->right.hit.terminus_end, 0, (long)len) - 1 :
           a->right.hit.start - 1;
   *from = clamp(*from, 0, (long)len);

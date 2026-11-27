@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include "amplicon.h"
 #include "logger.h"
+#include "virus.h"
 
 #define PROGRAM_NAME "flucut"
 #define VERSION "0.1"
@@ -44,6 +45,9 @@ typedef struct {
   char **inputs;
   size_t n_inputs;
   const char *outdir;
+  /* --virus: the types of influenza expected in the run (see virus.h):
+     their primers are searched and their references used */
+  virus_set_t virus;
   const char *scheme;
   trim_policy_t policy;
   double max_errors;

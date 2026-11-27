@@ -10,8 +10,20 @@
 #include "report.h"
 #include "test.h"
 
-void qc_subtype(const char *ha, const char *na, char *buf) {
+void qc_subtype(virus_type_t virus, const char *ha, const char *na,
+    char *buf) {
   buf[0] = '\0';
+  if (virus == VIRUS_B) {
+    /* the lineage of a sample of influenza B is that of its HA, or
+       that of its NA where the HA was not found; the references whose
+       lineage is not known are named "B" (see reference.h) */
+    const char *lineage = ha[0] != '\0' ? ha : na;
+    if (lineage[0] == '\0' || strcmp(lineage, "B") == 0)
+      snprintf(buf, QC_SUBTYPE_SIZE, "B");
+    else
+      snprintf(buf, QC_SUBTYPE_SIZE, "B/%s", lineage);
+    return;
+  }
   /* the H of "H5N1", and its N */
   const char *h_end = strchr(ha, 'N'), *n_start = strchr(na, 'N');
   if (h_end == NULL && n_start == NULL)
@@ -34,6 +46,8 @@ void qc_reference(const fasta_t *refs, const counter_t *c, size_t ref,
   q->found = true;
   q->ref = ref;
   q->ref_len = len;
+  q->virus = record->description == NULL ? VIRUS_A :
+             virus_type_of_description(record->description);
   if (!reference_description_subtype(record->description, q->subtype,
                                      QC_SUBTYPE_SIZE))
     q->subtype[0] = '\0';
@@ -156,11 +170,19 @@ void qc_summary(const fasta_t *refs, const counter_t *c, int only_segment,
       out->segments[s] = q;
   }
   const char *first = NULL;
+  bool first_virus = true;
   for (int s = 1; s <= SEGMENTS_N; s++) {
     const qc_segment_t *q = out->segments + s;
     if (!q->found)
       continue;
     out->n_found++;
+    /* the type of the sample is that of the references of its segments */
+    if (first_virus) {
+      out->virus = q->virus;
+      first_virus = false;
+    } else if (q->virus != out->virus) {
+      out->mixed_virus = true;
+    }
     if (q->subtype[0] == '\0')
       continue;
     if (first == NULL)
@@ -168,27 +190,39 @@ void qc_summary(const fasta_t *refs, const counter_t *c, int only_segment,
     else if (strcmp(first, q->subtype) != 0)
       out->mixed = true;
   }
-  /* (segment 4: HA; segment 6: NA) */
-  qc_subtype(out->segments[4].found ? out->segments[4].subtype : "",
-             out->segments[6].found ? out->segments[6].subtype : "",
+  qc_subtype(out->virus,
+             out->segments[SEGMENT_HA].found ?
+             out->segments[SEGMENT_HA].subtype : "",
+             out->segments[SEGMENT_NA].found ?
+             out->segments[SEGMENT_NA].subtype : "",
              out->subtype);
   set_status(out, counter_reads(c));
 }
 
 void qc_summary_test(void) {
   char subtype[QC_SUBTYPE_SIZE];
-  qc_subtype("H5N1", "H5N1", subtype);
+  qc_subtype(VIRUS_A, "H5N1", "H5N1", subtype);
   test_eq_str(subtype, "H5N1");
   /* the HA and the NA closest to references of different subtypes */
-  qc_subtype("H5N1", "H7N9", subtype);
+  qc_subtype(VIRUS_A, "H5N1", "H7N9", subtype);
   test_eq_str(subtype, "H5N9");
-  qc_subtype("H10N8", "H3N2", subtype);
+  qc_subtype(VIRUS_A, "H10N8", "H3N2", subtype);
   test_eq_str(subtype, "H10N2");
   /* one of the two not found, or its reference without a subtype */
-  qc_subtype("H5N1", "", subtype);
+  qc_subtype(VIRUS_A, "H5N1", "", subtype);
   test_eq_str(subtype, "H5N?");
-  qc_subtype("", "H3N2", subtype);
+  qc_subtype(VIRUS_A, "", "H3N2", subtype);
   test_eq_str(subtype, "H?N2");
-  qc_subtype("", "", subtype);
+  qc_subtype(VIRUS_A, "", "", subtype);
   test_eq_str(subtype, "");
+  /* influenza B: the lineage of the HA, or of the NA where the HA was
+     not found; "B" where no lineage is known */
+  qc_subtype(VIRUS_B, "Victoria", "Victoria", subtype);
+  test_eq_str(subtype, "B/Victoria");
+  qc_subtype(VIRUS_B, "", "Yamagata", subtype);
+  test_eq_str(subtype, "B/Yamagata");
+  qc_subtype(VIRUS_B, "B", "B", subtype);
+  test_eq_str(subtype, "B");
+  qc_subtype(VIRUS_B, "", "", subtype);
+  test_eq_str(subtype, "B");
 }

@@ -90,7 +90,13 @@ void read_agreement_log(const read_agreement_t *self, const fasta_t *fa,
     if (n_refs < 2 || n_reads == 0)
       continue;
     char name[16];
-    segments_name(s, name, sizeof(name));
+    const char *description = NULL;
+    for (size_t i = 0; i < self->n_refs; i++)
+      if (segment[i] == s) {
+        description = fa->records[i].description;
+        break;
+      }
+    segments_name_in(s, description, name, sizeof(name));
     /* the references on which reads agree, with the reads expected */
     char list[1024] = "";
     size_t used = 0;

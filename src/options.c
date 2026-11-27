@@ -15,6 +15,7 @@
 #include "worker.h"
 #include "reference.h"
 #include "scheme.h"
+#include "virus.h"
 #include "segments.h"
 
 #define OPTIONS_DEFAULT_THREADS 4
@@ -38,6 +39,7 @@ enum {
   OPT_PLATFORM,
   OPT_REPORT_SEGMENT,
   OPT_SEGMENT,
+  OPT_VIRUS,
 };
 
 #define PURPOSE "Remove the primers of the influenza A multisegment " \
@@ -59,9 +61,13 @@ enum {
   "Options:\n" \
   "   -o, --outdir <dir>     output directory (default: " \
   OPTIONS_DEFAULT_OUTDIR ")\n" \
-  "   -s, --scheme <name>    primer scheme (default: " SCHEME_DEFAULT \
-  "; see\n" \
-  "                          below)\n" \
+  "   -s, --scheme <name>    primer scheme (default: the one of\n" \
+  "                          --virus; see below)\n" \
+  "   --virus <a|b|both>     the types of influenza expected in the run\n" \
+  "                          (default: both): it chooses the primers\n" \
+  "                          searched and the references used; the type\n" \
+  "                          of each sample is read from the references\n" \
+  "                          its reads are located in\n" \
   "   -r, --references <f>   FASTA of segment references: each read end is\n" \
   "                          classified as terminal or internally primed,\n" \
   "                          the conserved termini are then kept at the\n" \
@@ -223,7 +229,9 @@ void options_parse(options_t *self, int argc, char *argv[],
     Logger **logger) {
   PARSE_START;
   self->outdir = OPTIONS_DEFAULT_OUTDIR;
-  self->scheme = SCHEME_DEFAULT;
+  self->virus = VIRUS_SET_BOTH;
+  /* NULL: the scheme of the types expected, chosen below */
+  self->scheme = NULL;
   self->max_errors = OPTIONS_DEFAULT_MAX_ERRORS;
   self->window = AMPLICON_DEFAULT_WINDOW;
   self->references = NULL;
@@ -234,6 +242,9 @@ void options_parse(options_t *self, int argc, char *argv[],
   self->exhaustive_search = false;
   self->report_segment = 0;
   self->segment = 0;
+  /* the segments are given by a number in the numbering of a type, so
+     they are read after the options, when --virus is known */
+  const char *segment_arg = NULL, *report_segment_arg = NULL;
   self->min_length = OPTIONS_DEFAULT_MIN_LENGTH;
   self->tags = true;
   self->split = true;
@@ -276,6 +287,7 @@ void options_parse(options_t *self, int argc, char *argv[],
     {"exhaustive-search", no_argument, NULL, OPT_EXHAUSTIVE},
     {"report-segment", required_argument, NULL, OPT_REPORT_SEGMENT},
     {"segment", required_argument, NULL, OPT_SEGMENT},
+    {"virus", required_argument, NULL, OPT_VIRUS},
     COMMON_LONGOPTS
     LONGOPTS_END
   };
@@ -400,17 +412,15 @@ void options_parse(options_t *self, int argc, char *argv[],
         self->exhaustive_search = true;
         break;
       case OPT_SEGMENT:
-        self->segment = segments_parse(optarg);
-        if (self->segment == 0)
-          PARSE_ERR("Option '--segment': a segment number (1-%d) or gene "
-                    "(e.g. HA) expected ('%s' found)", SEGMENTS_N, optarg);
+        segment_arg = optarg;
         break;
       case OPT_REPORT_SEGMENT:
-        self->report_segment = segments_parse(optarg);
-        if (self->report_segment == 0)
-          PARSE_ERR("Option '--report-segment': a segment number (1-%d) "
-                    "or gene (e.g. HA) expected ('%s' found)", SEGMENTS_N,
-                    optarg);
+        report_segment_arg = optarg;
+        break;
+      case OPT_VIRUS:
+        if (!virus_set_parse(optarg, &self->virus))
+          PARSE_ERR("Option '--virus': a, b or both expected ('%s' "
+                    "found)", optarg);
         break;
       case OPT_PROBE_LEN:
         {
@@ -441,6 +451,27 @@ void options_parse(options_t *self, int argc, char *argv[],
     }
   }
   CHECK_MIN_NARGS(1);
+  /* the primers of the types expected, unless a scheme was given */
+  if (self->scheme == NULL)
+    self->scheme = scheme_default_for(self->virus);
+  /* a segment given by its number is in the numbering of the type
+     expected (influenza B numbers PB1 1 and PB2 2, see segments.h); a
+     gene name is the same in both types */
+  virus_type_t numbering = virus_set_main(self->virus);
+  if (segment_arg != NULL) {
+    self->segment = segments_parse(segment_arg, numbering);
+    if (self->segment == 0)
+      PARSE_ERR("Option '--segment': a segment number (1-%d) or gene "
+                "(e.g. HA) expected ('%s' found)", SEGMENTS_N,
+                segment_arg);
+  }
+  if (report_segment_arg != NULL) {
+    self->report_segment = segments_parse(report_segment_arg, numbering);
+    if (self->report_segment == 0)
+      PARSE_ERR("Option '--report-segment': a segment number (1-%d) "
+                "or gene (e.g. HA) expected ('%s' found)", SEGMENTS_N,
+                report_segment_arg);
+  }
   /* the trimming mode follows from the references: with them, the
      conserved termini are kept at the ends known to be terminal
      (see amplicon.h); without them, every primer-derived base is
@@ -495,6 +526,7 @@ void options_parse(options_t *self, int argc, char *argv[],
   INIT_LOGGER(*logger);
   PARSE_LOG("Inputs: %zu\n", self->n_inputs);
   PARSE_LOG("Output directory: %s\n", self->outdir);
+  PARSE_LOG("Virus: %s\n", virus_set_name(self->virus));
   PARSE_LOG("Scheme: %s\n", self->scheme);
   PARSE_LOG("Trimming: %s\n",
             self->policy == TRIM_PRIMER ? "all primer bases" :
@@ -522,9 +554,11 @@ void options_parse(options_t *self, int argc, char *argv[],
   }
   if (self->segment != 0)
     PARSE_LOG("Classification: against segment %d (%s) only\n",
-              self->segment, segments_gene(self->segment));
+              segments_number(self->segment, numbering),
+              segments_gene(self->segment));
   if (self->report_segment != 0)
-    PARSE_LOG("Report: segment %d (%s) only\n", self->report_segment,
+    PARSE_LOG("Report: segment %d (%s) only\n",
+              segments_number(self->report_segment, numbering),
               segments_gene(self->report_segment));
   PARSE_LOG("Threads: %zu\n", self->threads);
   PARSE_LOG("Compression level: %d\n", self->compress_level);

@@ -314,6 +314,16 @@ static void vote(reference_set_t *refs, const int *segment, const char *seq,
   read_agreement_add(agreement, segment, read_votes, n_read_votes);
 }
 
+/* the description of a reference of the segment <s>, for the numbering
+   of its type in the messages (NULL if there is none) */
+static const char* segment_description(const fasta_t *fa,
+    const int *segment, int s) {
+  for (size_t i = 0; i < fa->n_records; i++)
+    if (segment[i] == s)
+      return fa->records[i].description;
+  return NULL;
+}
+
 /* report the references chosen for <file> */
 static void log_references(const trimmer_config_t *config, const char *file,
     const int *segment, const int *subtype, const size_t *votes,
@@ -335,7 +345,8 @@ static void log_references(const trimmer_config_t *config, const char *file,
       }
     }
     char name[16];
-    segments_name(s, name, sizeof(name));
+    segments_name_in(s, segment_description(fa, segment, s), name,
+                     sizeof(name));
     for (size_t i = 0; i < fa->n_records; i++)
       if (segment[i] == s)
         lprintf(logger, LOG_DEBUG, "votes of %s for %s: %s %zu\n", name,

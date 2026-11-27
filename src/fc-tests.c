@@ -35,6 +35,7 @@
 #include "pattern-scan-test.h"
 #include "placement.h"
 #include "read-agreement.h"
+#include "virus.h"
 #include "read-cover.h"
 #include "read-outputs.h"
 #include "primer-search.h"
@@ -124,6 +125,7 @@ static test_group_t test_groups[] = {
   {'g', "the groups of input files", run_input_groups_test, false},
   {'o', "the output files of a group", run_read_outputs_test, false},
   {'S', "the recognition of the segments", segments_test, false},
+  {'B', "the type of the virus, A or B", virus_test, false},
   {'A', "the search of the adapters", adapters_test, false},
   {'u', "the automatic settings", auto_settings_test, false},
   {'G', "the agreement of the probes of a read", read_agreement_test,

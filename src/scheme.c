@@ -13,14 +13,25 @@
 #include "test.h"
 
 /* a built-in scheme: the names of the primers of each end, NULL-ended */
+#define SCHEME_MAX_PRIMERS 16
 typedef struct {
   const char *name;
-  const char *left[4];
-  const char *right[4];
+  const char *left[SCHEME_MAX_PRIMERS];
+  const char *right[SCHEME_MAX_PRIMERS];
 } builtin_scheme_t;
 
+/* the primers of influenza B of each end (the IBV-GA2 cocktail, see
+   primers.h), written once as they are used by two schemes */
+#define IBV_GA2_LEFT "b-pbs-unif", "b-pa-unif", "b-hana-unif", \
+  "b-np-unif", "b-m-uni3f", "b-mg-uni3f", "b-ns-uni3f"
+#define IBV_GA2_RIGHT "b-pbs-unir", "b-pa-unir", "b-hana-unir", \
+  "b-np-unir", "b-m-uni3r", "b-ns-uni3r"
+
 static const builtin_scheme_t builtin[] = {
-  {"uni12-mbt13", {"uni12r", NULL}, {"mbtuni-13", NULL}},
+  {SCHEME_DEFAULT_BOTH, {"uni12r", IBV_GA2_LEFT, NULL},
+   {"mbtuni-13", IBV_GA2_RIGHT, NULL}},
+  {SCHEME_DEFAULT_A, {"uni12r", NULL}, {"mbtuni-13", NULL}},
+  {SCHEME_DEFAULT_B, {IBV_GA2_LEFT, NULL}, {IBV_GA2_RIGHT, NULL}},
   {"mbt", {"mbtuni-12", "mbtuni-12.4r", NULL}, {"mbtuni-13", NULL}},
   {"uni", {"uni12", "uni12r", NULL}, {"uni13", NULL}},
 };
@@ -33,6 +44,24 @@ const char* const* scheme_builtin_names(void) {
     builtin_names[i] = builtin[i].name;
   builtin_names[N_BUILTIN] = NULL;
   return builtin_names;
+}
+
+const char* scheme_default_for(virus_set_t set) {
+  if (set == VIRUS_SET_A)
+    return SCHEME_DEFAULT_A;
+  if (set == VIRUS_SET_B)
+    return SCHEME_DEFAULT_B;
+  return SCHEME_DEFAULT_BOTH;
+}
+
+virus_set_t scheme_types(const scheme_t *self) {
+  assert(self != NULL);
+  virus_set_t set = 0;
+  for (size_t i = 0; i < self->n_left; i++)
+    set |= VIRUS_SET_OF(self->left[i].virus);
+  for (size_t i = 0; i < self->n_right; i++)
+    set |= VIRUS_SET_OF(self->right[i].virus);
+  return set;
 }
 
 /* whether two names are equal, ignoring the case of ASCII letters */
@@ -150,7 +179,34 @@ void scheme_test(void) {
   scheme_delete(s);
   /* the primers of the two ends can have different forms: an untailed
      Uni12 primer at the left end, a tailed one at the right end */
-  s = scheme_new_builtin(SCHEME_DEFAULT, logger);
+  /* the scheme of influenza B: the primers of the cocktail, each with
+     the segments it binds; its right-end primers are stored
+     reverse-complemented, with their terminus as their prefix */
+  s = scheme_new_builtin(SCHEME_DEFAULT_B, logger);
+  test_eq_size(s->n_left, 7);
+  test_eq_size(s->n_right, 6);
+  test_eq_int((int)scheme_types(s), (int)VIRUS_SET_B);
+  test_eq_mem(s->left[0].seq, s->left[0].seq_len,
+              "GGGGGGAGCAGAAGCGGAGC");
+  test_eq_size(s->left[0].terminus_from, 6);
+  test_eq_size(s->left[0].terminus_len, 14);
+  test_eq_mem(s->right[0].seq, s->right[0].seq_len,
+              "GCTCGTGTTTCTACTAATAACCCGG");
+  test_eq_size(s->right[0].terminus_from, 0);
+  test_eq_size(s->right[0].terminus_len, 15);
+  test_assert(primers_binds_segment(s->right + 0, SEGMENT_PB1));
+  test_assert(!primers_binds_segment(s->right + 0, SEGMENT_HA));
+  scheme_delete(s);
+  /* the default scheme holds the primers of both types */
+  s = scheme_new_builtin(SCHEME_DEFAULT_BOTH, logger);
+  test_eq_size(s->n_left, 8);
+  test_eq_size(s->n_right, 7);
+  test_eq_int((int)scheme_types(s), (int)VIRUS_SET_BOTH);
+  scheme_delete(s);
+  test_eq_str(scheme_default_for(VIRUS_SET_A), SCHEME_DEFAULT_A);
+  test_eq_str(scheme_default_for(VIRUS_SET_B), SCHEME_DEFAULT_B);
+  test_eq_str(scheme_default_for(VIRUS_SET_BOTH), SCHEME_DEFAULT_BOTH);
+  s = scheme_new_builtin(SCHEME_DEFAULT_A, logger);
   test_eq_str(s->name, "uni12-mbt13");
   test_eq_size(s->n_left, 1);
   test_eq_mem(s->left[0].seq, s->left[0].seq_len, "AGCRAAAGCAGG");

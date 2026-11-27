@@ -24,6 +24,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "counter.h"
+#include "virus.h"
 #include "fasta.h"
 #include "segments.h"
 
@@ -63,7 +64,7 @@ typedef enum {
   QC_SAMPLE_NOT_LOCATED    /* not complete, see QC_NOT_LOCATED */
 } qc_sample_status_t;
 
-/* the size of the name of a subtype (e.g. "H5N1") */
+/* the size of the name of a subtype (e.g. "H5N1", "B/Victoria") */
 #define QC_SUBTYPE_SIZE 16
 
 /* a segment of a sample */
@@ -71,7 +72,10 @@ typedef struct {
   bool found;              /* reads were located in a reference of it */
   qc_segment_status_t status;
   size_t ref;              /* the reference with the greatest depth */
-  char subtype[QC_SUBTYPE_SIZE];  /* of that reference ("": not named) */
+  virus_type_t virus;      /* the type of that reference (see virus.h) */
+  /* the group of that reference: the subtype for influenza A, the
+     lineage for influenza B ("": not named) */
+  char subtype[QC_SUBTYPE_SIZE];
   size_t ref_len;
   double mean_depth;       /* reads per position */
   size_t median_depth;     /* the depth of half of the positions or more */
@@ -105,8 +109,16 @@ typedef struct {
   /* the share of the read ends with a primer which were not located */
   double not_located;
   int only_segment;        /* 0: all segments are expected */
-  /* the subtype of the sample: the H of the reference of its HA and the
-     N of that of its NA ("?" for one not known; "": neither) */
+  /* the type of the sample: that of the references its reads were
+     located in (VIRUS_A where none was) */
+  virus_type_t virus;
+  /* the references of the segments found are of both types (a mixed
+     infection, or one sample contaminating another) */
+  bool mixed_virus;
+  /* the subtype of the sample: for influenza A the H of the reference
+     of its HA and the N of that of its NA ("?" for one not known; "":
+     neither); for influenza B "B" with its lineage where it is known
+     (e.g. "B/Victoria") */
   char subtype[QC_SUBTYPE_SIZE];
   /* the references of the segments found name different subtypes (e.g.
      a reassortant, or internal genes closest to another subtype) */
@@ -138,7 +150,8 @@ bool qc_expects(const qc_summary_t *self, int segment);
 /* The subtype of a sample from the subtypes named by the references of
    its HA (<ha>) and of its NA (<na>), "" if not named, into <buf> (of
    size QC_SUBTYPE_SIZE) */
-void qc_subtype(const char *ha, const char *na, char *buf);
+void qc_subtype(virus_type_t virus, const char *ha, const char *na,
+    char *buf);
 
 /* Unit tests */
 void qc_summary_test(void);

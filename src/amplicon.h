@@ -240,6 +240,12 @@ typedef struct {
   size_t variant;      /* which primer of that end of the scheme */
   primer_hit_t hit;    /* positions in the analyzed orientation */
   end_origin_t origin;
+  /* whether the conserved terminus of the primer found here is the
+     terminus of the segment the probe was located in, so that its
+     bases are the template and may be kept (TRIM_TERMINUS): the end is
+     terminal and the primer binds that segment (see primers.h). False
+     without references, as no end is then classified. */
+  bool keep_terminus;
   reference_hit_t ref; /* the location of the probe (if located) */
   /* the position of the end from a probe further inside the read, if
      the end itself was not located (see "Ends located from inside"

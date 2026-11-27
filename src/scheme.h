@@ -30,9 +30,14 @@
 #include <stddef.h>
 #include "logger.h"
 #include "primers.h"
+#include "virus.h"
 
-/* name of the default built-in scheme */
-#define SCHEME_DEFAULT "uni12-mbt13"
+/* the default built-in scheme of each set of types (see virus.h) */
+#define SCHEME_DEFAULT_A "uni12-mbt13"
+#define SCHEME_DEFAULT_B "ibv-ga2"
+#define SCHEME_DEFAULT_BOTH SCHEME_DEFAULT_A "+" SCHEME_DEFAULT_B
+/* the default when no type is given: both */
+#define SCHEME_DEFAULT SCHEME_DEFAULT_BOTH
 
 typedef struct {
   char *name;
@@ -72,6 +77,12 @@ scheme_t* scheme_new_builtin(const char *name, Logger *logger);
 
 /* The names of the built-in schemes, NULL-terminated */
 const char* const* scheme_builtin_names(void);
+
+/* The name of the default built-in scheme for the types <set> */
+const char* scheme_default_for(virus_set_t set);
+
+/* The types of the primers of the scheme <self> (see virus.h) */
+virus_set_t scheme_types(const scheme_t *self);
 
 /* Delete a scheme (NULL is accepted) */
 void scheme_delete(scheme_t *self);

@@ -48,7 +48,8 @@ static void write_settings(html_writer_t *w, const report_t *r) {
   char n_refs[32], window[32], min_length[32], probe[32], probe_errors[32],
        terminal_window[32], threads[32], segment[32];
   if (o->report_segment != 0)
-    segments_name(o->report_segment, segment, sizeof(segment));
+    segments_name(o->report_segment, virus_set_main(o->virus), segment,
+                  sizeof(segment));
   snprintf(n_refs, sizeof(n_refs), "%zu", r->references == NULL ? 0 :
            r->references->n_records);
   snprintf(window, sizeof(window), "%ld", o->window);
@@ -95,7 +96,9 @@ static void write_line(html_writer_t *w, const report_t *r) {
     html_text(w, " \xc2\xb7 no references");
   if (r->options->report_segment != 0) {
     char segment[32];
-    segments_name(r->options->report_segment, segment, sizeof(segment));
+    segments_name(r->options->report_segment,
+                  virus_set_main(r->options->virus), segment,
+                  sizeof(segment));
     html_textf(w, " \xc2\xb7 %s only", segment);
   }
   html_textf(w, " \xc2\xb7 flucut %s", r->version);

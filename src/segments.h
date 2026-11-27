@@ -1,12 +1,23 @@
 /* (c) 2026 Giorgio Gonnella */
 
 /*
-   The segments of influenza A and their recognition in the description
+   The segments of influenza and their recognition in the description
    of a reference sequence (the FASTA header after the name), so that
    the messages and reports can say which segment a reference is.
 
+   A segment is held as its gene: 1 to 8 are PB2, PB1, PA, HA, NP, NA,
+   M and NS, which is the order in which influenza A numbers them and
+   the order in which the reports show them, for both types. Influenza
+   B numbers its two largest segments the other way round (its segment
+   1 is PB1 and its segment 2 is PB2), so the number a description
+   gives and the number shown to the user are translated by
+   segments_number() and segments_of_number(); every other segment has
+   the same number in both types.
+
    The segment is taken, in this order, from:
-   - "segment <n>" (n from 1 to 8, case-insensitive, e.g. NCBI records);
+   - "segment <n>" (n from 1 to 8, case-insensitive, e.g. NCBI
+     records), read in the numbering of the type the description names
+     (see virus.h);
    - the first word which names a gene or its protein: PB2, PB1, PA, HA
      or hemagglutinin, NP or nucleoprotein (nucleocapsid), NA or
      neuraminidase, M, M1, M2, MP (IRMA) or matrix, NS, NS1, NS2, NEP or
@@ -22,8 +33,19 @@
 #define SEGMENTS_H
 
 #include <stddef.h>
+#include "virus.h"
 
 #define SEGMENTS_N 8
+
+/* the segments, by gene (the order above) */
+#define SEGMENT_PB2 1
+#define SEGMENT_PB1 2
+#define SEGMENT_PA  3
+#define SEGMENT_HA  4
+#define SEGMENT_NP  5
+#define SEGMENT_NA  6
+#define SEGMENT_M   7
+#define SEGMENT_NS  8
 
 /* The segment (1 to 8) named in <description>, 0 if none (see above) */
 int segments_of_description(const char *description);
@@ -31,14 +53,30 @@ int segments_of_description(const char *description);
 /* The gene of segment <segment> (1 to 8), e.g. "HA" for 4 */
 const char *segments_gene(int segment);
 
-/* The segment (1 to 8) given by the user as <s>: its number ("4") or a
-   name of its gene or protein, in any case ("HA", "ha", "hemagglutinin");
-   0 if <s> is neither */
-int segments_parse(const char *s);
+/* The number by which <type> names segment <segment> (1 to 8), and the
+   segment of the number <number> in <type>: the identity for influenza
+   A, and PB2 and PB1 exchanged for influenza B (see above) */
+int segments_number(int segment, virus_type_t type);
+int segments_of_number(int number, virus_type_t type);
+
+/* The segment (1 to 8) given by the user as <s>: its number ("4", in
+   the numbering of <type>) or a name of its gene or protein, in any
+   case ("HA", "ha", "hemagglutinin"); 0 if <s> is neither */
+int segments_parse(const char *s, virus_type_t type);
 
 /* Write to <buf> (of size <size>) the name of segment <segment> (1 to
-   8), e.g. "segment 4 (HA)" */
-void segments_name(int segment, char *buf, size_t size);
+   8) in the numbering of <type>, e.g. "segment 4 (HA)" */
+void segments_name(int segment, virus_type_t type, char *buf,
+    size_t size);
+
+/*
+   Write to <buf> (of size <size>) the name of segment <segment> in the
+   numbering of the type named in <description> (see virus.h), e.g.
+   "segment 1 (PB1)" for a reference of influenza B. <description> may
+   be NULL (the numbering of influenza A is then used).
+*/
+void segments_name_in(int segment, const char *description, char *buf,
+    size_t size);
 
 /*
    Write to <buf> (of size <size>) the label of a reference: "segment 4

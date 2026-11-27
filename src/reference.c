@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include "alloc.h"
 #include "fasta.h"
 #include "kmer-index.h"
@@ -13,6 +14,7 @@
 #include "primers.h"
 #include "reference.h"
 #include "segments.h"
+#include "virus.h"
 #include "test.h"
 
 struct reference_index_t {
@@ -31,11 +33,40 @@ struct reference_index_t {
   int *segment;
 };
 
-/* the subtype in a FASTA description: the H<n>N<n> inside parentheses
-   (e.g. "...(A/.../2024(H5N1)) segment 4..."), uppercased, or NULL */
+/*
+   The lineage of influenza B in a FASTA description: "Victoria" or
+   "Yamagata" where one of them is named (also as B/Vic and B/Yam), and
+   "B" where none is, so that the references of influenza B are one
+   group where their lineage is not known. Never NULL.
+*/
+static char* parse_lineage(const char *desc) {
+  static const struct { const char *word; const char *name; } lineages[] = {
+    {"victoria", "Victoria"}, {"yamagata", "Yamagata"},
+    {"B/Vic", "Victoria"}, {"B/Yam", "Yamagata"},
+  };
+  size_t n = sizeof(lineages) / sizeof(lineages[0]);
+  for (size_t i = 0; i < n && desc != NULL; i++) {
+    size_t len = strlen(lineages[i].word);
+    for (const char *p = desc; *p != '\0'; p++)
+      if (strncasecmp(p, lineages[i].word, len) == 0)
+        return xstrdup(lineages[i].name);
+  }
+  return xstrdup("B");
+}
+
+/*
+   The subtype in a FASTA description: for influenza A the H<n>N<n>
+   inside parentheses (e.g. "...(A/.../2024(H5N1)) segment 4..."),
+   uppercased, or NULL where it names none; for influenza B its lineage
+   (see parse_lineage()). It is the group a reference belongs to: the
+   references of a group are those a sample of it is classified
+   against (see auto-settings.h).
+*/
 static char* parse_subtype(const char *desc) {
   if (desc == NULL)
     return NULL;
+  if (virus_description_is_b(desc))
+    return parse_lineage(desc);
   for (const char *p = desc; (p = strchr(p, 'H')) != NULL; p++) {
     const char *q = p + 1;
     if (!isdigit((unsigned char)*q))
