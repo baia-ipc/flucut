@@ -144,8 +144,18 @@ used at the Institut Pasteur du Cambodge) and ``ibv-ga2`` for influenza
 B alone. When a scheme has several primers at an end, the primer whose
 match reaches furthest out is taken, then the one with fewest errors.
 
-A scheme of both types costs nothing in the trimming: once the
-references of a sample say which type it is, only the primers of that
-type are searched in its reads. The automatic error rate (``-e auto``),
-which is measured before the type is known, does search them all, on
-the first 1000 reads of the run.
+A scheme of both types costs almost nothing: once the references of a
+sample say which type it is, only the primers of that type are searched
+in its reads. What is left is the automatic error rate (``-e auto``),
+which is measured on the first 1000 reads before the type is known and
+therefore searches every primer of the scheme. On a run of 183000
+Nanopore reads of influenza A, ``--virus both`` took 5.49 s against
+5.34 s for ``--virus a``, and the trimmed reads were the same.
+
+The rate itself is measured per type: at the few read ends where a
+primer of the other type matches best, it matches with many errors,
+and counting those with the rest would raise the rate and with it the
+errors allowed in a primer (on that run, 4.33% instead of 3.69%, which
+is on the other side of the threshold at which 30% is allowed rather
+than 20%). The rate reported is that of the type whose primers cover
+most of the read ends.
