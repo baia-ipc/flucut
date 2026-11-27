@@ -8,124 +8,44 @@
 
 # flucut
 
-Primer trimming for influenza whole-genome sequencing.
+flucut is a comprehensive trimming, filtering and QC-tool for influenza A and B whole-genome sequencing. 
 
-flucut removes the primer-derived bases from the reads of the influenza
-multisegment RT-PCR, before the assembly of the segments (e.g. with
-IRMA): the universal Uni12/Uni13 primers for influenza A, the IBV-GA2
-cocktail for influenza B. It is not specific to a sequencing platform:
-the error rates are parameters (the defaults are those of Oxford
-Nanopore reads), and Illumina reads are handled as well.
+In a very fast pass over the reads, flucut will:
+- classify the amplicons, including:
+  - those from the entire template, which are the intended ones
+  - those originating from inexact internal priming, which can cause wrong base calls in
+    assembly programs such as IRMA
+  - those containing internal deletions, e.g. originating from DIPs, which in some case
+    cause misassemblies over the junction
+  - those from fragmented amplicons
+  - reads containing the concatenation of multiple amplicons
+- remove adapters and other library-derived spurious sequences beyond the primers
+- remove the primer-derived bases in internal priming segments 
+- split reads containing multiple amplicons joined end-to-end
+- estimate the coverage plots for each segment accurately before any read mapping is done
+- classify the subtype of influenza A
+- analyze presence of patterns typical of low/high pathogenicity
 
-## Why
+It is mainly targeted to Nanopore reads, but also supports most functionality on Illumina reads as well.
 
-The universal primers bind the conserved termini of the segments, which
-in influenza A are the same in all eight segments and in all subtypes.
-The bases of a read which lie under a primer therefore come from the
-primer and not from the template: a difference between the template and
-the primer at such a position is overwritten, and a variant seen there
-is an artefact.
+The classification of the amplicon type, subtype and markers requires reference sequences.
+These can be (1) a built-in set, which is downloaded from NCBI on first use (2) the seed
+sequences used by IRMA (3) a user-provided reference dataset.
 
-The Uni12 primer is short: used without a tail it is only the twelve
-bases of the conserved terminus, with a degenerate position. A sequence
-that similar also occurs inside the segments, where the primer can
-anneal and start an amplicon in the middle of a segment. The reads of
-such an amplicon begin with primer-derived bases which are not the
-template there, and the primer writes its own sequence into the
-consensus: a variant which looks real and is not, reproducible from run
-to run, and present in the public databases. This is what flucut is
-built around; see `docs/internal-priming.md`.
+## Building
 
-IRMA does not trim primers (it matches a single adapter sequence,
-exactly or with one mismatch), so the trimming has to be done before it.
+Only a C compiler and `make` are needed
+(the source code of all libraries used, i.e. libcbaia,
+edlib, libyaml, zlib, libdeflate is included in the `ext` directory).
 
-## What it does
+To compile just run:
+```
+make
+```
 
-- finds the primers at both ends of a read and in both orientations,
-  whole or partial (a read can begin inside a primer), with errors (the
-  defaults are those of Nanopore reads);
-- removes, by position and not by difference, every primer-derived base
-  (the default): this removes internal artefacts as well, as
-  the primer bases of an internally primed read are at its end, like
-  those of any other read. The consensus then lacks the 12 and 13 bases
-  of the conserved termini, which would have been the primer's sequence,
-  not measured sequence;
-- keeps the conserved termini, for complete ends (the default): because
-  flucut knows which primers were used, it knows where inside a primer
-  the tail ends and the terminus begins. This mode uses references of the
-  segments: the bases after the primer of each read are located in them,
-  and a read which starts at an interior position of a segment (internally
-  primed) loses its whole primer, the others only the tail. By default the
-  references are a **built-in set** (complete segments of several
-  influenza A subtypes and of influenza B), downloaded from NCBI on
-  first use and cached; `-r <file>`
-  uses your own instead, and `-r off` turns references off (every
-  primer-derived base removed). With several references of a segment
-  (e.g. of several subtypes), each barcode is classified against the
-  reference of each segment closest to its reads;
-- reads the **cleavage site of the haemagglutinin** out of the reads
-  themselves, before any assembly: the residues before the fusion
-  peptide GLFGAIAG, with how many reads agree on them, whether they are
-  multibasic (the sequence determinant of high pathogenicity in H5 and
-  H7) and how far the answer can be trusted. The A/G-rich stretch which
-  encodes them is where the reads most often gain or lose a base, and a
-  consensus built from few reads carries the error; this says what the
-  data supports before the consensus exists. See
-  `docs/cleavage-site.md`;
-- with the references, in either mode, measures internal priming: which
-  segments, which sites, what share of the reads (the references must be
-  complete segments, with the UTRs, not coding sequences; flucut warns
-  otherwise);
-- a primer is accepted as the primer of an end only near that end of
-  the read: a match deeper inside is not the primer which started the
-  amplicon, and trimming there would remove template. Those matches are
-  reported instead, as the sites at which the primer can anneal and as
-  the junctions of chimeras;
-- at a read end without a primer (a broken molecule), removes the
-  sequencing adapters of Oxford Nanopore (native and rapid barcoding,
-  ligation), and a primer remnant next to them;
-- reads which are not amplicons are counted and reported: primer dimers,
-  reads without a primer, reads with a primer at one end only.
-
-## The primers
-
-The conserved termini and the primers built into flucut are those of the
-publications, quoted and not derived; each sequence is documented with
-its source in `src/primers.h`. The built-in schemes are:
-
-- `uni12-mbt13+ibv-ga2` (the default): the primers of both types
-  together, for a run which may hold samples of either;
-- `uni12-mbt13`: the untailed degenerate Uni12 primer and the tailed
-  Uni13 primer, the combination used in practice for influenza A;
-- `ibv-ga2`: the universal IBV-GA2 primer cocktail of influenza B
-  (Zhou et al. 2014), six pairs for the eight segments;
-- `mbt`: the tailed primers of the multisegment RT-PCR of influenza A;
-- `uni`: the conserved termini of influenza A used as primers, without
-  a tail.
-
-## Influenza A and influenza B
-
-`--virus a|b|both` says which types a run may hold (`both` by default).
-It chooses the primers searched and the references used; the type of
-each sample is then read from the references its reads were located in,
-and its reads are trimmed with the primers of that type alone, so a run
-of influenza A costs the same as before.
-
-Influenza B differs in three ways which flucut handles:
-
-- its conserved termini are shorter (9 and 10 bases), too short for a
-  specific primer, so its primers reach five or eight bases further in,
-  into bases which are shared by a few segments at a time. Each primer
-  therefore binds only some segments, and its bases are kept at an end
-  only when the read was located in one of them; at an end of any other
-  segment they are the primer's own sequence and the whole primer is
-  removed;
-- it numbers PB1 1 and PB2 2, the other way round from influenza A.
-  flucut reads and writes the numbers of the type; the gene names (`HA`,
-  `PB1`, ...) mean the same in both;
-- it has no subtypes. A sample of influenza B is reported as `B`, and
-  as `B/Victoria` or `B/Yamagata` only where the description of the
-  reference chosen says which lineage it is (most records do not).
+The executable is contained in the ``bin`` directory and does not require any other file,
+thus it can be moved or linked to any directory the user desires (e.g. one specified
+in the PATH environmental variable).
 
 ## Usage
 
@@ -143,8 +63,17 @@ The trimmed reads of each group are written to
 `<name>` is the file name without its suffix, or the directory name. Two
 groups with the same name are an error.
 
-The main options (`flucut -h` lists all of them, with their defaults):
+`flucut -h` lists all options, with their defaults.
 
+Main options:
+- `-p`: the platform: `nanopore` (default; reads of whole amplicons)
+  or `illumina` (reads of fragments of the amplicons: the primer is at
+  the read start; window 10, minimum length 1, no adapter search);
+- `-j`: worker threads (default 4), each trimming batches of 1000 reads
+  in turn, written in the order of the input: the output does not
+  depend on it;
+
+Other options:
 - `-r <references.fasta>`: classify each read end as terminal or
   internally primed against the segment references. The mode follows
   from this: **with** `-r`, the conserved termini are kept at the ends
@@ -154,130 +83,38 @@ The main options (`flucut -h` lists all of them, with their defaults):
   consensus unless the end is a known terminus); **without** `-r`, every
   primer-derived base is removed. The references are indexed by their
   k-mers, so that the time hardly depends on their number
-  (`--exhaustive-search` aligns each read end to every reference, to
-  check the index);
-- `--segment <s>`: for runs of one segment alone (e.g. `--segment HA`):
-  classify the read ends against the references of that segment only
-  (faster, no chance matches in the other segments);
-- `--report-segment <s>`: show only one segment in the HTML report, by
-  number or gene (e.g. `--report-segment HA`); the trimming does not
-  change;
-- `-e`: errors allowed in a primer: a percentage of its length (`-e 20%`,
-  or as a fraction, `-e 0.2`), a number of bases (`-e 3`), or `auto`,
-  the default: 20%, or 30% if the primers of the first 1000 reads have
-  at least 4% errors;
-- `-p`: the platform: `nanopore` (default; reads of whole amplicons)
-  or `illumina` (reads of fragments of the amplicons: the primer is at
-  the read start; window 10, minimum length 1, no adapter search);
-- `-w`: a primer must lie within this many bases of its end of the read
-  (default 100; 10 with `-p illumina`);
-- `-m`: reads shorter than this after trimming are not written
-  (default 50; 1 with `-p illumina`, so that the two files of paired
-  reads keep the same reads; primer dimers are never written);
-- `-j`: worker threads (default 4), each trimming batches of 1000 reads
-  in turn, written in the order of the input: the output does not
-  depend on it;
-- `--compress-level`: the gzip compression level of the outputs, 1 to
-  12 (default 6; higher: smaller and slower; the outputs are compressed
-  with libdeflate).
+- `--virus a|b|both` says which types a run may hold. The default is `both`,
+   which incurs in a small performance loss, of a fraction of a second per barcode.
+
+MISSING: primer scheme option; IRMA reference mode option with save config
 
 Outputs:
-
 - `<name>.fastq.gz`: the trimmed reads, in their original orientation,
-  with their titles; unless `--no-tags` is given, tab-separated SAM-like
-  tags are appended to each title: `fs` (strand of the amplicon: `+`,
-  `-`, or `.` if no primer was found), `fl`/`fr` (the primer found at the
-  left/right end), `tl`/`tr` (bases removed at the start/end of the
-  read), `ni` (primer matches inside the read), `sp` (part `k/n` of a
-  read which was split, see below); with references also
-  `ol`/`or` (origin of the end: terminal, internal or unknown),
-  `ml`/`mr` (where the bases after the primer mapped:
-  reference:position:strand) and `ct` (the category of the read: `full`,
-  `internal`, `deletion` or `other`, see below). IRMA accepts the tags (same consensus
-  with and without them, see `benchmark/RESULTS.md`); `--no-tags` writes
-  the titles unchanged. A read which contains several amplicons joined
-  end to end is split, and each part is written as its own record, named
-  `<read>_1`, `<read>_2`, ...; `--no-split` turns this off.
-- with `--by-category`, four files per sample instead of
-  `<name>.fastq.gz`, one for each category of reads (the colours of the
-  coverage plot of the report):
+  with their header lines and SAM tags appended to them (see below)
+- `flucut_dashboard.html`: a self-updating dashboard page, which can be
+followed during the program run, giving program run diagnostics and ETA,
+metadata of the sequences and all the QC information collected, e.g.
+ completeness of the segments, subtype, number of reads, N50, quality, length histogram,
+ median depth, classification in amplicon categories, e.g. internal priming and internal deletions, coverage plots; 
+it includes an overview of the sequencing, a page for each sample
+and a page focused on the HA segments and their cleavage site
+- `flucut_report.html`: the same content in a printable form,
+constructed at program completion
+- `flucut_summary.json`: the same content in JSON for programmatic access
 
-  | file | reads |
-  |---|---|
-  | `<name>.full.fastq.gz` | full templates: the amplicon started at a segment end |
-  | `<name>.internal.fastq.gz` | internal priming: it started inside the segment |
-  | `<name>.deletion.fastq.gz` | internal deletions: the two ends of a segment joined |
-  | `<name>.other.fastq.gz` | no 5' primer, or not located on the references |
+## Interplay with MinKNOW (Live mode)
 
-  ```
-  flucut --by-category -o trimmed barcode01/
-  ```
+Live mode:
+- `--live` follows a MinKNOW run while it is still sequencing, so no time is lost:
+the files are processed as they are completely written
+- `--min-age`: time after which a sequencing file is considered final
+(completely written) and thus processed by flucut (default: 60 s)
+- `--timeout`: time without new files appearing after which flucut
+live automatically stops (in completed runs, once the `final_summary_*.txt`
+file written by MinKNOW appears, flucut is stopped)
+- `--resume`: resume an interrupted live run, where it stopped
 
-  The four files together hold the same reads as `<name>.fastq.gz`
-  would. The category needs the references (not `-r off`).
-- `summary.tsv`: one line per output, with the reads and bases read and
-  written, the reads by number of primers found, those on the minus
-  strand, the dimers, the reads too short, the reads with internal
-  primer matches, and, with references, the left and right ends by
-  origin, the complete amplicons shorter than 90% of their reference
-  (`short_complete`), the reads written by category (`out_full`,
-  `out_internal`, `out_deletion`, `out_other`) and the HA cleavage site
-  read from the reads (`cleavage_site`, `cleavage_reads`,
-  `cleavage_support`, `cleavage_multibasic`, `cleavage_verdict`); `NA`
-  without references.
-- `lengths.tsv`: the lengths of the complete amplicons (the template
-  between the two primers), in bins of 10 bases: output, group (the
-  reference to which the read end mapped, `not_located`, or `all`
-  without references), start of the bin, reads. It is a check
-  independent of the classification of each read end: internal priming
-  (and deletions, e.g. in defective interfering RNAs) shows as complete
-  amplicons much shorter than their segment. The log names, with
-  references, each reference with such amplicons and the length where
-  most of them are; without references, it lists the peaks of the
-  lengths.
-- `flucut_report.html`: the HTML report, one self-contained file
-  (inline SVG plots, light and dark themes), made to be read at a
-  glance:
-  - a **run overview**: the samples by state, and a table with one row
-    per sample: complete segments (e.g. `7/8`), subtype, reads, N50 and
-    quality, a cell for each segment (PB2 to NS) with the share of it at
-    a depth of 50 or more, the segments with most internal priming and
-    most internal deletions, and the reads by origin; and the median
-    depth of each segment in each sample, as a plot;
-  - the **HA in all samples**, side by side, with the cleavage site
-    each sample's reads carry;
-  - for each **sample**: its state and what deserves attention, the
-    subtype, the reads by primers found and by origin, the internal
-    priming sites, the cleavage site of the HA as the reads carry it,
-    the bases by segment, a strip for each segment
-    (numbers, coverage by read origin where internal priming shows as a
-    step up, lengths of the complete amplicons), and the lengths and
-    qualities of the reads before and after the trimming, with the
-    flow cell, run and basecalling model found in the read titles.
-
-  See the Reports chapter of the manual for how to read it.
-- `flucut_dashboard.html`: the same content, one sample on the screen
-  at a time, to follow the run (below).
-- `flucut_summary.json`: the same content for programs, in a versioned
-  format (`docs/json_summary.md`).
-
-A run with several samples can be followed while it is in progress:
-flucut writes the dashboard before the first sample and after each one,
-and says where it is (`Dashboard: out/flucut_dashboard.html (open it in
-a web browser to follow the run)`). The page reloads itself while the
-run is in progress; at the end it stays as the dashboard of the
-finished run. The report is a separate page with all the samples one
-after the other, for printing or archiving. In the dashboard the strips
-of the segments are folded (a click opens one), and the HA tab starts
-with a table of the HA of every sample. The messages show which
-sample is being trimmed (`Trimming run1/barcode01.fastq.gz (1 of 3)...`).
-If such a run is interrupted, running it again with `--resume` (same
-inputs, options and output directory) skips the samples already
-trimmed and trims only the others; on a complete run, `--resume` trims
-nothing and only writes the tables and reports again. The state of each
-sample is kept in `outdir/.flucut-state/`.
-
-## With IRMA
+## Interplay with IRMA
 
 flucut trims the primers; IRMA assembles the segments. IRMA does not trim
 the universal primers (it matches a single adapter, exactly or with one
@@ -305,66 +142,100 @@ titles (same consensus with and without them; `--no-tags` removes them).
 Illumina: trim with `flucut -p illumina` and assemble with the paired
 `FLU` module of IRMA instead of `FLU-minion`.
 
-## Checking the predictions
+## Output by category
 
-The report of flucut is built from probes, not from mappings. To see how
-close it is for an influenza A run, `posthoc/flucut-posthoc` maps every
-read to the segment references and measures the same things from the mappings (the
-origin of each amplicon end, the internal priming sites, the amplicon
-lengths, the coverage by read origin), next to what flucut predicted and
-to what IRMA assembled. It is a separate program, in Python; see
-`posthoc/README.md`.
+- with `--by-category`, four files per sample are written instead of
+  `<name>.fastq.gz`, one for each category of reads (the colours of the
+  coverage plot of the report)
+- here is the list of files:
+  | file | reads |
+  |---|---|
+  | `<name>.full.fastq.gz` | full templates: the amplicon started at a segment end |
+  | `<name>.internal.fastq.gz` | internal priming: it started inside the segment |
+  | `<name>.deletion.fastq.gz` | internal deletions: the two ends of a segment joined |
+  | `<name>.other.fastq.gz` | no 5' primer, or not located on the references |
+- command line example
+  ```
+  flucut --by-category -o trimmed barcode01/
+  ```
+- the four files together hold the same reads as `<name>.fastq.gz`
+  would.
+- this option needs the references, i.e. it is incompatible with `-r off`
 
-## Live mode
+## Evaluation suite
 
-`flucut --live -o out /data/run1/fastq_pass` follows a MinKNOW run while
-it is sequencing: the files are
-trimmed as they are written (once not modified for `--min-age`, default
-60 s, and complete), appended to the outputs of their samples, and the
-tables, the dashboard and the JSON summary are updated after each file
-(the dashboard reloads itself). It stops at the end of the run (the `final_summary_*.txt` of
-MinKNOW), after `--timeout` without new files, or with Ctrl-C; with
-`--resume`, an interrupted live run continues where it stopped.
+An evaluation suite named `flucut-posthoc` was written in Python, with the main
+purpose of evaluating how valid are the heuristics of flucut, in comparison
+with exact information collected through read mapping and through IRMA.
 
 ## Manual
 
-The user manual is `manual/flucut-manual.pdf` (sources in
-`docs/manual`; `make manual` rebuilds it, with Sphinx and LaTeX).
+A comprehensive user manual is provided as PDF in `manual/flucut-manual.pdf`
+(sources in `docs/manual`; `make manual` rebuilds it, requiring Sphinx and LaTeX).
 
-The methods are described algorithm by algorithm, as pseudocode with
-explanations and figures, in `docs/methods/methods.md`, also as
-`manual/flucut-methods.pdf` (`make methods` rebuilds it; this needs
-Sphinx with `myst-parser`, matplotlib and XeLaTeX).
+Additionally, a technical manual describes the algorithms employed in flucut
+as pseudocode, with further explanations and figures, and is provided as PDF
+in `manual/flucut-methods.pdf` (sources in `docs/methods`;
+`make methods` rebuilds it, requiring Sphinx with `myst-parser`, matplotlib and XeLaTeX).
 
-## Building
+## Supported primers
 
-Only a C compiler and `make` are needed: the libraries used (libcbaia,
-edlib, libyaml, zlib, libdeflate) are included in `ext` (see
-`ext/README.md`).
+These are the supported primer schemes:
+- `uni12-mbt13+ibv-ga2` (the default): the primers of both types
+  together, for a run which may hold samples of either;
+- `uni12-mbt13`: the untailed degenerate Uni12 primer and the tailed
+  Uni13 primer, the combination used in practice for influenza A;
+- `mbt`: the tailed primers of the multisegment RT-PCR of influenza A;
+- `uni`: the conserved termini of influenza A used as primers, without
+  a tail.
+- `ibv-ga2`: the universal IBV-GA2 primer cocktail of influenza B
+  (Zhou et al. 2014), six pairs for the eight segments;
 
-```
-make
-make test
-```
+## SAM Tags
 
-`make SYSTEM_LIBS=1` uses the zlib and libyaml of the system instead of
-the included ones (libdeflate, which compresses the output, is always
-the included one).
+Unless `--no-tags` is given, tab-separated SAM-like
+tags are appended to each read header line: `fs` (strand of the amplicon: `+`,
+`-`, or `.` if no primer was found), `fl`/`fr` (the primer found at the
+left/right end), `tl`/`tr` (bases removed at the start/end of the
+read), `ni` (primer matches inside the read), `sp` (part `k/n` of a
+read which was split, see below); with references also
+`ol`/`or` (origin of the end: terminal, internal or unknown),
+`ml`/`mr` (where the bases after the primer mapped:
+reference:position:strand) and `ct` (the category of the read: `full`,
+`internal`, `deletion` or `other`, see below).
 
-## State
+## Advanced user and developer options
 
-Early development. Implemented and tested: the built-in primers and
-schemes of influenza A and of influenza B, the search of the primers
-(degenerate bases, partial primers at the read ends), the trimming of a
-read, the classification of the read ends against references, and the
-command line program with its gzipped FASTQ output, summary table, HTML
-report and JSON summary, the groups of input files (MinKNOW barcode
-directories), the worker threads, the adapter search, `-e auto` and the
-live mode.
+Advanced user options:
+- `--segment <s>`: for runs of one segment alone (e.g. `--segment HA`):
+  classify the read ends against the references of that segment only
+  (faster, no chance matches in the other segments);
+- `--report-segment <s>`: show only one segment in the HTML report, by
+  number or gene (e.g. `--report-segment HA`); the trimming does not
+  change;
+- `-e`: errors allowed in a primer: a percentage of its length (`-e 20%`,
+  or as a fraction, `-e 0.2`), a number of bases (`-e 3`), or `auto`,
+  the default: 20%, or 30% if the primers of the first 1000 reads have
+  at least 4% errors;
+- `-w`: a primer must lie within this many bases of its end of the read
+  (default 100; 10 with `-p illumina`);
+- `-m`: reads shorter than this after trimming are not written
+  (default 50; 1 with `-p illumina`, so that the two files of paired
+  reads keep the same reads; primer dimers are never written);
+- `--compress-level`: the gzip compression level of the outputs, 1 to
+  12 (default 6; higher: smaller and slower; the outputs are compressed
+  with libdeflate).
+- `--resume`: resumes an interrupted run, or reconstruct the report
 
-Influenza B is implemented and tested on simulated reads and on the
-reference records of the eight segments; it has not yet been run on a
-sequenced influenza B sample.
+Developer option:
+- `--exhaustive-search` aligns each read end to every reference, to
+  check the index
+- `--no-tags`: do not add SAM tags to the read header lines
+- `--no-split`: do not split chimeric amplicons
+
+Advanced build settings:
+- `make SYSTEM_LIBS=1` uses the zlib and libyaml of the system instead of
+the included ones
 
 ## License
 
