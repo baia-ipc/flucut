@@ -84,9 +84,32 @@ Other options:
   primer-derived base is removed. The references are indexed by their
   k-mers, so that the time hardly depends on their number
 - `--virus a|b|both` says which types a run may hold. The default is `both`,
-   which incurs in a small performance loss, of a fraction of a second per barcode.
+   which incurs in a small performance loss, of a fraction of a second per run.
 
-MISSING: primer scheme option; IRMA reference mode option with save config
+- `-s <scheme>`: the primer scheme, i.e. the primers searched at the read
+  ends (see "Supported primers" below). The default follows from `--virus`:
+  `uni12-mbt13` for `a`, `ibv-ga2` for `b` and `uni12-mbt13+ibv-ga2` for `both`
+
+References from the seeds of IRMA:
+- the seed sequences of IRMA hold the coding sequence of each segment only,
+  without the untranslated regions where the primers bind, so they cannot be
+  given to `-r` as they are: the genuine segment ends would be classified
+  as internal priming
+- `scripts/irma_references.py` builds a reference set from them: to each
+  seed it attaches the untranslated regions of a complete record of the same
+  segment (for HA and NA, of the same subtype), taken from the built-in set
+  ```
+  python3 scripts/irma_references.py --irma /opt/flu-amd/IRMA_RES --save-config
+  ```
+- `--save-config` stores the paths of IRMA and of the set written in the
+  configuration file of flucut (`$XDG_CONFIG_HOME/flucut/config`, else
+  `~/.config/flucut/config`): a run without `-r` then uses this set instead
+  of the built-in one (`-r <references.fasta>` and `-r off` still override it)
+- `--from-config` builds the set again from the stored paths, e.g. after
+  IRMA updates its seeds
+- this set is meant for trimming only, never as a reference for an assembly:
+  the coding sequence and the untranslated regions of each sequence come from
+  two different viruses
 
 Outputs:
 - `<name>.fastq.gz`: the trimmed reads, in their original orientation,
