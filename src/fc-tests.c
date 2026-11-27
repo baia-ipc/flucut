@@ -17,6 +17,7 @@
 #include "adapters.h"
 #include "adaptor-search.h"
 #include "amplicon.h"
+#include "anchor-site.h"
 #include "auto-settings.h"
 #include "qc-flags.h"
 #include "qc-summary.h"
@@ -24,6 +25,8 @@
 #include "read-metadata.h"
 #include "read-stats.h"
 #include "chimera.h"
+#include "cleavage-site.h"
+#include "codons.h"
 #include "counter.h"
 #include "fasta.h"
 #include "lengths.h"
@@ -124,6 +127,10 @@ static test_group_t test_groups[] = {
   {'g', "the groups of input files", run_input_groups_test, false},
   {'o', "the output files of a group", run_read_outputs_test, false},
   {'S', "the recognition of the segments", segments_test, false},
+  {'k', "the genetic code", codons_test, false},
+  {'E', "the anchor of a site inside a read", anchor_site_test, false},
+  {'H', "the cleavage site of the haemagglutinin in the reads",
+   cleavage_site_test, false},
   {'A', "the search of the adapters", adapters_test, false},
   {'u', "the automatic settings", auto_settings_test, false},
   {'G', "the agreement of the probes of a read", read_agreement_test,

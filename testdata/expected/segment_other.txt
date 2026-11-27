@@ -27,8 +27,8 @@ md5: e31735ebfb5d1cbb5f815f086ad30859
 @left_only simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	ct:Z:other	tl:i:12	tr:i:0
 500 GGAATTACTTAACTA...TACAGGAGTATGAGA
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other
-reads	12	12635	10	12220	10	1	1	2	1	2	0	0	0	1	10	0	1	9	1	0	0	0	10
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_multibasic	cleavage_verdict
+reads	12	12635	10	12220	10	1	1	2	1	2	0	0	0	1	10	0	1	9	1	0	0	0	10	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 reads	QB023392.1	20	1
@@ -111,6 +111,7 @@ reads	not_located	1700	5
         {"segment": 3, "gene": "PA", "state": "low", "reference": "QB023392.1", "length": 2224, "mean_depth": 0.0, "median_depth": 0, "median_full_depth": 0, "covered": 0.0090, "well_covered": 0.0000, "internal": 1.0000, "deletion": 0.0000, "minus_strand": 0.0000, "complete_amplicons": 1, "short_complete": 1}
       ]
     },
+    "cleavage_site": null,
     "primers": {
       "left": {"uni12r": 11},
       "right": {"mbtuni-13": 10}
@@ -169,6 +170,7 @@ reads	not_located	1700	5
           {"segment": 3, "gene": "PA", "state": "low", "reference": "QB023392.1", "length": 2224, "mean_depth": 0.0, "median_depth": 0, "median_full_depth": 0, "covered": 0.0090, "well_covered": 0.0000, "internal": 1.0000, "deletion": 0.0000, "minus_strand": 0.0000, "complete_amplicons": 1, "short_complete": 1}
         ]
       },
+      "cleavage_site": null,
       "primers": {
         "left": {"uni12r": 11},
         "right": {"mbtuni-13": 10}

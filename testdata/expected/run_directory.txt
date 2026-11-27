@@ -32,9 +32,9 @@ md5: 988703e4e3e52af870b0191cd725d752
 @left_only simulated	fs:Z:+	fl:Z:uni12r	tl:i:12	tr:i:0
 500 GGAATTACTTAACTA...TACAGGAGTATGAGA
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other
-barcode01	6	9748	6	9517	6	0	0	1	0	0	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
-barcode02	6	2887	4	2703	4	1	1	1	1	2	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_multibasic	cleavage_verdict
+barcode01	6	9748	6	9517	6	0	0	1	0	0	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+barcode02	6	2887	4	2703	4	1	1	1	1	2	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 barcode01	all	1000	1
@@ -101,6 +101,7 @@ barcode02	all	1000	1
     "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 10, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
     "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
     "sample": null,
+    "cleavage_site": null,
     "primers": {
       "left": {"uni12r": 11},
       "right": {"mbtuni-13": 10}
@@ -139,6 +140,7 @@ barcode02	all	1000	1
       "read_quality": {"input": {"reads": 6, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 6, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
       "sample": null,
+      "cleavage_site": null,
       "primers": {
         "left": {"uni12r": 6},
         "right": {"mbtuni-13": 6}
@@ -176,6 +178,7 @@ barcode02	all	1000	1
       "read_quality": {"input": {"reads": 6, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 4, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
       "sample": null,
+      "cleavage_site": null,
       "primers": {
         "left": {"uni12r": 5},
         "right": {"mbtuni-13": 4}

@@ -22,6 +22,11 @@ struct run_report_t {
   run_clock_t clock;       /* from the creation of the report */
 };
 
+const options_t* run_report_options(const run_report_t *self) {
+  assert(self != NULL);
+  return self->opts;
+}
+
 run_report_t* run_report_new(const options_t *opts, const char *version,
     const scheme_t *scheme, const fasta_t *references, int argc,
     char *argv[], Logger *logger) {

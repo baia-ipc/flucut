@@ -292,6 +292,99 @@ static void write_sites(html_writer_t *w, const report_t *r,
   html_close(w);
 }
 
+/*
+   The cleavage site of the haemagglutinin as the reads carry it
+   (cleavage-site.h): the residues, how many reads they were read from
+   and how many of them agree, and the other sites found, which show a
+   sample holding the reads of more than one haemagglutinin
+*/
+static void write_cleavage_site(html_writer_t *w, const report_t *r,
+    const counter_t *c) {
+  cleavage_result_t site;
+  report_cleavage(r, c, &site);
+  if (site.searched == 0)
+    return;
+  markup_open(w, "section", "card");
+  html_tag_text(w, "h3", "HA cleavage site");
+  if (!site.found) {
+    markup_note(w, "No read reaches it (%s reads searched).",
+                html_num(site.searched).s);
+    html_close(w);
+    return;
+  }
+  markup_open(w, "p", "motif");
+  html_textf(w, "%s", site.aa);
+  html_close(w);
+  markup_badge(w,
+      site.verdict == CLEAVAGE_FIRM ? MARKUP_GOOD :
+      site.verdict == CLEAVAGE_TOO_FEW_READS ? MARKUP_CRITICAL :
+      MARKUP_WARNING,
+      "%s", cleavage_verdict_name(site.verdict));
+  markup_badge(w, site.reading == CLEAVAGE_MULTIBASIC ? MARKUP_NEUTRAL :
+               MARKUP_WARNING, "%s", cleavage_reading_name(site.reading));
+  html_open(w, "table");
+  markup_open_row(w);
+  markup_td(w, "reads it was read from");
+  markup_td(w, "%s of %s searched", html_num(site.reads).s,
+            html_num(site.searched).s);
+  html_close(w);
+  markup_open_row(w);
+  markup_td(w, "reads with these residues");
+  markup_td(w, "%s (%s)", html_num(site.motif_reads).s,
+            percent_text(site.motif_reads, site.reads).s);
+  html_close(w);
+  markup_open_row(w);
+  markup_td(w, "reads with a multibasic site");
+  markup_td(w, "%s", percent_text(
+      (size_t)(site.multibasic_share * (double)site.reads + 0.5),
+      site.reads).s);
+  html_close(w);
+  markup_open_row(w);
+  markup_td(w, "chemistry");
+  markup_td(w, "%s", cleavage_chemistry_name(site.chemistry));
+  html_close(w);
+  if (site.reference_aa[0] != '\0') {
+    markup_open_row(w);
+    markup_td(w, "site of the reference");
+    markup_td(w, "%s", site.reference_aa);
+    html_close(w);
+  }
+  html_close(w);   /* table */
+  if (site.n_top > 1) {
+    char summary[80];
+    snprintf(summary, sizeof(summary), "the %zu sites in these reads",
+             site.n_top);
+    markup_details_start(w, summary);
+    html_open(w, "table");
+    markup_header_row(w, "site", "reads", "% of reads", "reads as", NULL);
+    for (size_t i = 0; i < site.n_top; i++) {
+      markup_open_row(w);
+      markup_td(w, "%s", site.top[i].aa);
+      markup_td(w, "%s", html_num(site.top[i].reads).s);
+      markup_td(w, "%s", percent_text(site.top[i].reads, site.reads).s);
+      markup_td(w, "%s", cleavage_reading_name(site.top[i].reading));
+      html_close(w);
+    }
+    html_close(w);
+    markup_details_end(w);
+  }
+  if (site.disagrees_with_reference)
+    markup_note(w, "Most of the reads do not read like the reference of "
+                "this sample (%s): it holds the reads of more than one "
+                "haemagglutinin, and the site above is not necessarily "
+                "the one of its own virus.", site.reference_aa);
+  else if (site.verdict == CLEAVAGE_CONFIRM)
+    markup_note(w, "Too few of the reads agree for this to stand on its "
+                "own; confirm it before reporting the pathotype.");
+  else if (site.verdict == CLEAVAGE_TOO_FEW_READS)
+    markup_note(w, "Fewer than %d reads reach the site: nothing can be "
+                "said about it.", CLEAVAGE_MIN_READS);
+  markup_note(w, "The %d bases before the fusion peptide GLFGAIAG, taken "
+              "from each read which covers them, translated. Read from "
+              "the reads, not from an assembly.", CLEAVAGE_SITE_NT);
+  html_close(w);
+}
+
 void sample_write(html_writer_t *w, const report_t *r, const counter_t *c) {
   assert(r != NULL);
   assert(c != NULL);
@@ -307,6 +400,7 @@ void sample_write(html_writer_t *w, const report_t *r, const counter_t *c) {
   write_reads(w, r, c);
   if (r->references != NULL) {
     html_open(w, "div");
+    write_cleavage_site(w, r, c);
     write_sites(w, r, c);
     segments_write_balance(w, &qc);
     html_close(w);

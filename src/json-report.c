@@ -172,6 +172,71 @@ static void write_lengths(json_writer_t *w, const report_t *r,
   json_close_block(w, ']', true);
 }
 
+/*
+   What the reads say about the cleavage site of the haemagglutinin
+   (cleavage-site.h); null when it was not read (no HA reference with
+   the fusion peptide, or no reference at all)
+*/
+static void write_cleavage_site(json_writer_t *w, const report_t *r,
+    const counter_t *c) {
+  FILE *f = w->f;
+  json_member(w, "cleavage_site");
+  cleavage_result_t s;
+  report_cleavage(r, c, &s);
+  if (s.searched == 0) {
+    fputs("null", f);
+    return;
+  }
+  json_open_block(w, '{');
+  json_member(w, "chemistry");
+  fprintf(f, "\"%s\"", cleavage_chemistry_name(s.chemistry));
+  json_count_member(w, "reads_searched", s.searched);
+  json_count_member(w, "reads", s.reads);
+  json_count_member(w, "distinct_motifs", s.distinct);
+  json_count_member(w, "distinct_sites", s.distinct_proteins);
+  json_member(w, "motif");
+  if (!s.found) {
+    fputs("null", f);
+    json_member(w, "protein");
+    fputs("null", f);
+  } else {
+    fputs_json_string(s.nt, f);
+    json_member(w, "protein");
+    fputs_json_string(s.aa, f);
+  }
+  json_count_member(w, "motif_reads", s.motif_reads);
+  json_share_member(w, "support", s.found ? s.support : 0.0);
+  json_share_member(w, "multibasic_share", s.multibasic_share);
+  json_count_member(w, "basic_residues", s.basic);
+  json_member(w, "reads_as");
+  fprintf(f, "\"%s\"", cleavage_reading_name(s.reading));
+  json_member(w, "reference_site");
+  if (s.reference_aa[0] == '\0')
+    fputs("null", f);
+  else
+    fputs_json_string(s.reference_aa, f);
+  json_member(w, "disagrees_with_reference");
+  fputs(s.disagrees_with_reference ? "true" : "false", f);
+  json_member(w, "verdict");
+  fprintf(f, "\"%s\"", cleavage_verdict_name(s.verdict));
+  /* the sites the reads carry, most frequent first: more than one means
+     the reads of more than one haemagglutinin are in the sample */
+  json_member(w, "sites");
+  json_open_block(w, '[');
+  for (size_t i = 0; i < s.n_top; i++) {
+    json_member(w, NULL);
+    fputs("{\"protein\": ", f);
+    fputs_json_string(s.top[i].aa, f);
+    fputs(", \"motif\": ", f);
+    fputs_json_string(s.top[i].nt, f);
+    fprintf(f, ", \"reads\": %zu, \"share\": %.4f, \"reads_as\": \"%s\"}",
+            s.top[i].reads, (double)s.top[i].reads / (double)s.reads,
+            cleavage_reading_name(s.top[i].reading));
+  }
+  json_close_block(w, ']', true);
+  json_close_block(w, '}', true);
+}
+
 /* the statistics of a counter, as members of the open object */
 static void write_section(json_writer_t *w, const report_t *r,
     const counter_t *c) {
@@ -184,6 +249,7 @@ static void write_section(json_writer_t *w, const report_t *r,
   json_member(w, "sequencing");
   json_reads_sequencing(w->f, c);
   json_sample_write(w, r, c);
+  write_cleavage_site(w, r, c);
   write_primers(w, r, c);
   write_internal(w, r, c);
   write_lengths(w, r, c);

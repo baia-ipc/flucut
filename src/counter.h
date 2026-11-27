@@ -29,6 +29,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include "amplicon.h"
+#include "cleavage-site.h"
 #include "fasta.h"
 #include "lengths.h"
 #include "read-cover.h"
@@ -126,6 +127,18 @@ void counter_add_input(counter_t *self, size_t len, const char *qual,
    (READ_CATEGORY_*), with the qualities <qual> (NULL: none) */
 void counter_add_written(counter_t *self, size_t len, size_t category,
     const char *qual);
+
+/*
+   Count a read the cleavage site of the haemagglutinin was looked for
+   in, and the motif <nt> read from one (cleavage-site.h); which reads
+   are read is decided by the trimmer
+*/
+void counter_set_cleavage_reference(counter_t *self, const char *aa);
+void counter_add_cleavage_searched(counter_t *self);
+void counter_add_cleavage(counter_t *self, const char *nt);
+
+/* The motifs of the cleavage site read from the reads */
+const cleavage_counts_t* counter_cleavage(const counter_t *self);
 
 /* The lengths and qualities of the reads, and the metadata of the run */
 const read_stats_t* counter_read_stats(const counter_t *self);

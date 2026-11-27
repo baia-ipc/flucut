@@ -1,0 +1,585 @@
+/* (c) 2026 Giorgio Gonnella */
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "alloc.h"
+#include "cleavage-site.h"
+#include "codons.h"
+#include "segments.h"
+#include "test.h"
+
+#define HA_SEGMENT 4
+
+static size_t reading_of(const char *aa);
+
+struct cleavage_anchors_t {
+  size_t n_refs;
+  size_t n_found;
+  /* one per reference; the anchor is found only for the HA ones */
+  cleavage_reference_t *refs;
+};
+
+cleavage_anchors_t* cleavage_anchors_new(const fasta_t *references,
+    const reference_index_t *index, Logger *logger) {
+  if (references == NULL || index == NULL || references->n_records == 0)
+    return NULL;
+  cleavage_anchors_t *self;
+  XCALLOC(self, 1, sizeof(cleavage_anchors_t));
+  self->n_refs = references->n_records;
+  XCALLOC(self->refs, self->n_refs, sizeof(cleavage_reference_t));
+  for (size_t r = 0; r < self->n_refs; r++) {
+    if (reference_index_segment(index, r) != HA_SEGMENT)
+      continue;
+    const fasta_record_t *rec = references->records + r;
+    cleavage_reference_t *cr = self->refs + r;
+    if (!anchor_of_peptide(&cr->anchor, r, rec->seq, rec->seq_len,
+                           CLEAVAGE_FUSION_PEPTIDE, CLEAVAGE_ANCHOR_NT)) {
+      lprintf(logger, LOG_DEBUG,
+              "No fusion peptide in the HA reference %s: the cleavage "
+              "site is not read from it\n", rec->name);
+      continue;
+    }
+    /* the site the reference itself carries, which the reads are
+       compared with; a reference whose HA2 begins too near its start
+       has none */
+    if (cr->anchor.ref_pos < CLEAVAGE_SITE_NT) {
+      cr->anchor.found = false;
+      continue;
+    }
+    memcpy(cr->nt, rec->seq + cr->anchor.ref_pos - CLEAVAGE_SITE_NT,
+           CLEAVAGE_SITE_NT);
+    cr->nt[CLEAVAGE_SITE_NT] = '\0';
+    codons_translate(cr->nt, CLEAVAGE_SITE_NT, cr->aa);
+    cr->reading = reading_of(cr->aa);
+    self->n_found++;
+  }
+  if (self->n_found == 0) {
+    cleavage_anchors_delete(self);
+    return NULL;
+  }
+  return self;
+}
+
+const cleavage_reference_t* cleavage_anchors_chosen(
+    const cleavage_anchors_t *self, const bool *allowed) {
+  if (self == NULL)
+    return NULL;
+  for (size_t r = 0; r < self->n_refs; r++)
+    if (self->refs[r].anchor.found && (allowed == NULL || allowed[r]))
+      return self->refs + r;
+  return NULL;
+}
+
+size_t cleavage_anchors_n(const cleavage_anchors_t *self) {
+  return self == NULL ? 0 : self->n_found;
+}
+
+void cleavage_anchors_delete(cleavage_anchors_t *self) {
+  if (self == NULL)
+    return;
+  free(self->refs);
+  free(self);
+}
+
+/* --- the motifs counted --- */
+
+void cleavage_counts_clear(cleavage_counts_t *self) {
+  assert(self != NULL);
+  memset(self, 0, sizeof(cleavage_counts_t));
+}
+
+void cleavage_counts_set_reference(cleavage_counts_t *self,
+    const char *aa) {
+  assert(self != NULL);
+  assert(aa != NULL);
+  if (self->reference_aa[0] == '\0')
+    snprintf(self->reference_aa, sizeof(self->reference_aa), "%s", aa);
+}
+
+void cleavage_counts_searched(cleavage_counts_t *self) {
+  assert(self != NULL);
+  self->searched++;
+}
+
+/* FNV-1a over the bases of a motif */
+static size_t hash(const char *nt) {
+  size_t h = 2166136261u;
+  for (size_t i = 0; i < CLEAVAGE_SITE_NT; i++) {
+    h ^= (unsigned char)nt[i];
+    h *= 16777619u;
+  }
+  return h;
+}
+
+/* the slot of <nt> in the table: the one holding it, or the first empty
+   one after its place */
+static size_t slot_of(const cleavage_counts_t *self, const char *nt) {
+  size_t s = hash(nt) & (CLEAVAGE_SLOTS - 1);
+  while (self->slots[s] != 0 &&
+         memcmp(self->motifs[self->slots[s] - 1].nt, nt,
+                CLEAVAGE_SITE_NT) != 0)
+    s = (s + 1) & (CLEAVAGE_SLOTS - 1);
+  return s;
+}
+
+/* add <reads> reads of the motif <nt> */
+static void add_reads(cleavage_counts_t *self, const char *nt,
+    size_t reads) {
+  size_t s = slot_of(self, nt);
+  if (self->slots[s] != 0) {
+    self->motifs[self->slots[s] - 1].reads += reads;
+    return;
+  }
+  if (self->n_motifs == CLEAVAGE_MAX_MOTIFS) {
+    self->overflow += reads;
+    return;
+  }
+  memcpy(self->motifs[self->n_motifs].nt, nt, CLEAVAGE_SITE_NT);
+  self->motifs[self->n_motifs].nt[CLEAVAGE_SITE_NT] = '\0';
+  self->motifs[self->n_motifs].reads = reads;
+  self->n_motifs++;
+  self->slots[s] = self->n_motifs;
+}
+
+void cleavage_counts_add(cleavage_counts_t *self, const char *nt) {
+  assert(self != NULL);
+  assert(nt != NULL);
+  add_reads(self, nt, 1);
+}
+
+size_t cleavage_counts_reads(const cleavage_counts_t *self) {
+  assert(self != NULL);
+  size_t n = self->overflow;
+  for (size_t i = 0; i < self->n_motifs; i++)
+    n += self->motifs[i].reads;
+  return n;
+}
+
+void cleavage_counts_merge(cleavage_counts_t *self,
+    const cleavage_counts_t *other) {
+  assert(self != NULL);
+  assert(other != NULL);
+  self->searched += other->searched;
+  self->overflow += other->overflow;
+  if (other->reference_aa[0] != '\0')
+    cleavage_counts_set_reference(self, other->reference_aa);
+  for (size_t i = 0; i < other->n_motifs; i++)
+    add_reads(self, other->motifs[i].nt, other->motifs[i].reads);
+}
+
+void cleavage_counts_save(const cleavage_counts_t *self, FILE *file) {
+  assert(self != NULL);
+  assert(file != NULL);
+  fprintf(file, "cleavage-reads %zu %zu\n", self->searched, self->overflow);
+  if (self->reference_aa[0] != '\0')
+    fprintf(file, "cleavage-reference %s\n", self->reference_aa);
+  for (size_t i = 0; i < self->n_motifs; i++)
+    fprintf(file, "cleavage %s %zu\n", self->motifs[i].nt,
+            self->motifs[i].reads);
+}
+
+bool cleavage_counts_load_line(cleavage_counts_t *self, char *line) {
+  assert(self != NULL);
+  assert(line != NULL);
+  if (strncmp(line, "cleavage-reads ", 15) == 0) {
+    char *rest;
+    self->searched += strtoull(line + 15, &rest, 10);
+    self->overflow += strtoull(rest, NULL, 10);
+    return true;
+  }
+  if (strncmp(line, "cleavage-reference ", 19) == 0) {
+    char aa[CLEAVAGE_SITE_AA + 2];
+    if (sscanf(line + 19, "%9s", aa) != 1)
+      return false;
+    cleavage_counts_set_reference(self, aa);
+    return true;
+  }
+  if (strncmp(line, "cleavage ", 9) != 0)
+    return false;
+  char *nt = line + 9;
+  char *sep = strchr(nt, ' ');
+  if (sep == NULL || sep - nt != CLEAVAGE_SITE_NT)
+    return false;
+  char motif[CLEAVAGE_SITE_NT + 1];
+  memcpy(motif, nt, CLEAVAGE_SITE_NT);
+  motif[CLEAVAGE_SITE_NT] = '\0';
+  add_reads(self, motif, strtoull(sep + 1, NULL, 10));
+  return true;
+}
+
+/* --- what the reads say --- */
+
+static bool is_basic(char residue) {
+  return residue == 'R' || residue == 'K';
+}
+
+/* the basic residues among the last 6 of the HA1 end */
+static size_t basic_run(const char *aa) {
+  size_t n = 0, len = strlen(aa);
+  size_t from = len > 6 ? len - 6 : 0;
+  for (size_t i = from; i < len; i++)
+    n += is_basic(aa[i]) ? 1 : 0;
+  return n;
+}
+
+static size_t reading_of(const char *aa) {
+  size_t len = strlen(aa);
+  if (len == 0 || strchr(aa, '*') != NULL || strchr(aa, 'X') != NULL)
+    return CLEAVAGE_UNREADABLE;
+  if (!is_basic(aa[len - 1]))
+    return CLEAVAGE_UNREADABLE;
+  return basic_run(aa) >= 4 ? CLEAVAGE_MULTIBASIC : CLEAVAGE_MONOBASIC;
+}
+
+static double support_needed(size_t chemistry) {
+  switch (chemistry) {
+    case CLEAVAGE_CHEMISTRY_ILLUMINA: return CLEAVAGE_SUPPORT_ILLUMINA;
+    case CLEAVAGE_CHEMISTRY_R9: return 2.0;  /* never firm */
+    default: return CLEAVAGE_SUPPORT_R10;
+  }
+}
+
+void cleavage_result_of(const cleavage_counts_t *counts, size_t chemistry,
+    cleavage_result_t *out) {
+  assert(counts != NULL);
+  assert(out != NULL);
+  memset(out, 0, sizeof(cleavage_result_t));
+  out->chemistry = chemistry;
+  out->reference_reading = CLEAVAGE_N_READINGS;
+  snprintf(out->reference_aa, sizeof(out->reference_aa), "%s",
+           counts->reference_aa);
+  if (out->reference_aa[0] != '\0')
+    out->reference_reading = reading_of(out->reference_aa);
+  out->searched = counts->searched;
+  out->reads = cleavage_counts_reads(counts);
+  out->distinct = counts->n_motifs;
+  out->reading = CLEAVAGE_UNREADABLE;
+  out->verdict = CLEAVAGE_TOO_FEW_READS;
+  if (out->reads == 0 || counts->n_motifs == 0)
+    return;
+  /* The reads are gathered by the residues they carry, not by the bases:
+     a read with an error in the third base of a codon usually still
+     reads as the same site, and it is the residues which decide the
+     pathotype. The spellings are few enough (CLEAVAGE_MAX_MOTIFS) to
+     gather them exactly; this runs once for a report, not for a read. */
+  cleavage_motif_t *proteins;
+  XCALLOC(proteins, counts->n_motifs, sizeof(cleavage_motif_t));
+  size_t *spelling_reads;
+  XCALLOC(spelling_reads, counts->n_motifs, sizeof(size_t));
+  size_t n = 0, multibasic = 0;
+  char aa[CLEAVAGE_SITE_AA + 1];
+  for (size_t i = 0; i < counts->n_motifs; i++) {
+    codons_translate(counts->motifs[i].nt, CLEAVAGE_SITE_NT, aa);
+    size_t reading = reading_of(aa);
+    if (reading == CLEAVAGE_MULTIBASIC)
+      multibasic += counts->motifs[i].reads;
+    size_t k = 0;
+    while (k < n && strcmp(proteins[k].aa, aa) != 0)
+      k++;
+    if (k == n) {
+      memcpy(proteins[k].aa, aa, CLEAVAGE_SITE_AA + 1);
+      proteins[k].reading = reading;
+      n++;
+    }
+    proteins[k].reads += counts->motifs[i].reads;
+    /* the most frequent spelling of these residues */
+    if (counts->motifs[i].reads > spelling_reads[k]) {
+      memcpy(proteins[k].nt, counts->motifs[i].nt, CLEAVAGE_SITE_NT + 1);
+      spelling_reads[k] = counts->motifs[i].reads;
+    }
+  }
+  out->distinct_proteins = n;
+  /* the most frequent ones, most frequent first; among equally frequent
+     residues the first in alphabetical order, so that the result does
+     not depend on the order of the reads */
+  out->n_top = n < CLEAVAGE_TOP_MOTIFS ? n : CLEAVAGE_TOP_MOTIFS;
+  for (size_t i = 0; i < out->n_top; i++) {
+    size_t best = i;
+    for (size_t j = i + 1; j < n; j++)
+      if (proteins[j].reads > proteins[best].reads ||
+          (proteins[j].reads == proteins[best].reads &&
+           strcmp(proteins[j].aa, proteins[best].aa) < 0))
+        best = j;
+    cleavage_motif_t t = proteins[i];
+    proteins[i] = proteins[best];
+    proteins[best] = t;
+    out->top[i] = proteins[i];
+  }
+  free(proteins);
+  free(spelling_reads);
+  out->found = true;
+  memcpy(out->aa, out->top[0].aa, CLEAVAGE_SITE_AA + 1);
+  memcpy(out->nt, out->top[0].nt, CLEAVAGE_SITE_NT + 1);
+  out->motif_reads = out->top[0].reads;
+  out->support = (double)out->motif_reads / (double)out->reads;
+  out->basic = basic_run(out->aa);
+  out->reading = out->top[0].reading;
+  /* the share of the reads whose own site is multibasic, whatever its
+     sequence: a lower bound, as the reads over the overflow are not
+     counted */
+  out->multibasic_share = (double)multibasic / (double)out->reads;
+  /* the reads of a sample which holds more than one haemagglutinin do
+     not read like its own reference; the motif reported is then not
+     necessarily the one of its own virus */
+  out->disagrees_with_reference =
+      out->reference_reading < CLEAVAGE_N_READINGS &&
+      out->reference_reading != out->reading;
+  if (out->reads < CLEAVAGE_MIN_READS)
+    out->verdict = CLEAVAGE_TOO_FEW_READS;
+  else if (out->disagrees_with_reference ||
+           out->support < support_needed(chemistry))
+    out->verdict = CLEAVAGE_CONFIRM;
+  else
+    out->verdict = CLEAVAGE_FIRM;
+}
+
+/* whether <model> names the chemistry <tag> (e.g. "r10"): the basecalling
+   models are named dna_r10.4.1_e8.2_400bps_hac@v4.2.0 and the like */
+static bool model_has(const char *model, const char *tag) {
+  const char *p = strstr(model, tag);
+  /* the tag must be a word of the name, not part of a longer one */
+  return p != NULL && (p == model || !((p[-1] >= '0' && p[-1] <= '9') ||
+                                       (p[-1] >= 'a' && p[-1] <= 'z')));
+}
+
+size_t cleavage_chemistry(bool illumina, const char *basecall_model) {
+  if (illumina)
+    return CLEAVAGE_CHEMISTRY_ILLUMINA;
+  if (basecall_model == NULL || basecall_model[0] == '\0')
+    return CLEAVAGE_CHEMISTRY_UNKNOWN;
+  if (model_has(basecall_model, "r10"))
+    return CLEAVAGE_CHEMISTRY_R10;
+  if (model_has(basecall_model, "r9"))
+    return CLEAVAGE_CHEMISTRY_R9;
+  return CLEAVAGE_CHEMISTRY_UNKNOWN;
+}
+
+const char* cleavage_chemistry_name(size_t chemistry) {
+  static const char *const names[CLEAVAGE_N_CHEMISTRIES] = {
+    "unknown", "R9", "R10", "Illumina"};
+  assert(chemistry < CLEAVAGE_N_CHEMISTRIES);
+  return names[chemistry];
+}
+
+const char* cleavage_reading_name(size_t reading) {
+  static const char *const names[CLEAVAGE_N_READINGS] = {
+    "multibasic", "monobasic", "unreadable"};
+  assert(reading < CLEAVAGE_N_READINGS);
+  return names[reading];
+}
+
+const char* cleavage_verdict_name(size_t verdict) {
+  static const char *const names[CLEAVAGE_N_VERDICTS] = {
+    "firm", "confirm", "too few reads"};
+  assert(verdict < CLEAVAGE_N_VERDICTS);
+  return names[verdict];
+}
+
+/* --- unit tests --- */
+
+/* the cleavage site of an H5 of clade 2.3.4.4b (PQRERRRKR) and of a low
+   pathogenic H9 (PARSSR), as the 8 codons before HA2 */
+#define HPAI_NT "CAAAGAGAGAGAAGAAGAAAAAGA"
+#define LPAI_NT "AATGTTCCTGCAAGATCTTCAAGA"
+
+static void add_n(cleavage_counts_t *c, const char *nt, size_t n) {
+  for (size_t i = 0; i < n; i++) {
+    cleavage_counts_searched(c);
+    cleavage_counts_add(c, nt);
+  }
+}
+
+static void test_counts(void) {
+  cleavage_counts_t c;
+  cleavage_counts_clear(&c);
+  test_eq_size(cleavage_counts_reads(&c), 0);
+  cleavage_result_t r;
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_assert(!r.found);
+  test_eq_size(r.verdict, CLEAVAGE_TOO_FEW_READS);
+
+  /* 70 reads of the motif, 20 of a spelling of the same residues (the
+     last codon AGG instead of AGA, both R) and 10 whose last residue is
+     an isoleucine instead */
+  add_n(&c, HPAI_NT, 70);
+  add_n(&c, "CAAAGAGAGAGAAGAAGAAAAAGG", 20);
+  add_n(&c, "CAAAGAGAGAGAAGAAGAAAAATA", 10);
+  test_eq_size(cleavage_counts_reads(&c), 100);
+  test_eq_size(c.n_motifs, 3);
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_assert(r.found);
+  test_eq_str(r.aa, "QRERRRKR");
+  /* the most frequent spelling of those residues */
+  test_eq_str(r.nt, HPAI_NT);
+  test_eq_size(r.reads, 100);
+  /* the two spellings of the same residues are counted together */
+  test_eq_size(r.motif_reads, 90);
+  test_eq_size(r.distinct, 3);
+  test_eq_size(r.distinct_proteins, 2);
+  test_eq_size(r.basic, 5);
+  test_eq_size(r.reading, CLEAVAGE_MULTIBASIC);
+  test_eq_size(r.verdict, CLEAVAGE_FIRM);
+  test_assert(r.support > 0.89 && r.support < 0.91);
+  test_assert(r.multibasic_share > 0.89 && r.multibasic_share < 0.91);
+  /* without a reference site nothing is compared with it */
+  test_eq_size(r.reference_reading, CLEAVAGE_N_READINGS);
+  test_assert(!r.disagrees_with_reference);
+  /* the sites found, most frequent first */
+  test_eq_size(r.n_top, 2);
+  test_eq_str(r.top[0].aa, "QRERRRKR");
+  test_eq_size(r.top[0].reads, 90);
+  test_eq_size(r.top[0].reading, CLEAVAGE_MULTIBASIC);
+  test_eq_str(r.top[1].aa, "QRERRRKI");
+  test_eq_size(r.top[1].reads, 10);
+  test_eq_size(r.top[1].reading, CLEAVAGE_UNREADABLE);
+
+  /* the reads read like the reference: still firm */
+  cleavage_counts_set_reference(&c, "LREKRRKR");
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_str(r.reference_aa, "LREKRRKR");
+  test_eq_size(r.reference_reading, CLEAVAGE_MULTIBASIC);
+  test_assert(!r.disagrees_with_reference);
+  test_eq_size(r.verdict, CLEAVAGE_FIRM);
+  /* a sample whose reference is multibasic but whose reads read as a
+     low pathogenic site holds the reads of another haemagglutinin: it
+     is never firm, however many reads agree */
+  cleavage_counts_t mixed;
+  cleavage_counts_clear(&mixed);
+  cleavage_counts_set_reference(&mixed, "LREKRRKR");
+  add_n(&mixed, LPAI_NT, 100);
+  cleavage_result_of(&mixed, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_str(r.aa, "NVPARSSR");
+  test_assert(r.support > 0.99);
+  test_assert(r.disagrees_with_reference);
+  test_eq_size(r.verdict, CLEAVAGE_CONFIRM);
+
+  /* the same reads judged as R9: never firm on their own */
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R9, &r);
+  test_eq_size(r.verdict, CLEAVAGE_CONFIRM);
+  test_eq_str(r.aa, "QRERRRKR");
+  /* and as Illumina, where 0.90 is enough */
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_ILLUMINA, &r);
+  test_eq_size(r.verdict, CLEAVAGE_FIRM);
+
+  /* too few reads */
+  cleavage_counts_t few;
+  cleavage_counts_clear(&few);
+  add_n(&few, HPAI_NT, CLEAVAGE_MIN_READS - 1);
+  cleavage_result_of(&few, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_assert(r.found);
+  test_eq_size(r.verdict, CLEAVAGE_TOO_FEW_READS);
+  add_n(&few, HPAI_NT, 1);
+  cleavage_result_of(&few, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_size(r.verdict, CLEAVAGE_FIRM);
+
+  /* merging adds the counts of both */
+  cleavage_counts_t other;
+  cleavage_counts_clear(&other);
+  add_n(&other, HPAI_NT, 5);
+  add_n(&other, LPAI_NT, 1);
+  cleavage_counts_merge(&c, &other);
+  test_eq_size(cleavage_counts_reads(&c), 106);
+  test_eq_size(c.searched, 106);
+  test_eq_size(c.n_motifs, 4);
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_size(r.motif_reads, 95);
+}
+
+static void test_readings(void) {
+  cleavage_counts_t c;
+  cleavage_result_t r;
+  /* a low pathogenic site: one basic residue before HA2 */
+  cleavage_counts_clear(&c);
+  add_n(&c, LPAI_NT, 50);
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_str(r.aa, "NVPARSSR");
+  test_eq_size(r.reading, CLEAVAGE_MONOBASIC);
+  test_eq_size(r.verdict, CLEAVAGE_FIRM);
+  /* a motif with a stop codon cannot be read */
+  cleavage_counts_clear(&c);
+  add_n(&c, "CAAAGAGAGTAGAGAAGAAAAAGA", 50);
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_size(r.reading, CLEAVAGE_UNREADABLE);
+  /* and one with an ambiguous base */
+  cleavage_counts_clear(&c);
+  add_n(&c, "CAAAGAGAGAGAAGAAGAAAAANA", 50);
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_size(r.reading, CLEAVAGE_UNREADABLE);
+}
+
+static void test_overflow(void) {
+  /* more distinct motifs than the table holds: the reads are counted,
+     the support is a lower bound, and the frequent motif is kept */
+  cleavage_counts_t c;
+  cleavage_counts_clear(&c);
+  add_n(&c, HPAI_NT, 500);
+  /* the other motifs are built on a different template, so that none of
+     them is the frequent one */
+  char nt[CLEAVAGE_SITE_NT + 1];
+  memcpy(nt, LPAI_NT, sizeof(nt));
+  for (size_t i = 0; i < CLEAVAGE_MAX_MOTIFS + 100; i++) {
+    for (size_t j = 0; j < 6; j++)
+      nt[j] = "ACGT"[(i >> (2 * j)) & 3];
+    add_n(&c, nt, 1);
+  }
+  test_eq_size(c.n_motifs, CLEAVAGE_MAX_MOTIFS);
+  test_assert(c.overflow > 0);
+  cleavage_result_t r;
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_str(r.nt, HPAI_NT);
+  test_eq_size(r.motif_reads, 500);
+}
+
+static void test_save_load(void) {
+  cleavage_counts_t c;
+  cleavage_counts_clear(&c);
+  add_n(&c, HPAI_NT, 30);
+  add_n(&c, LPAI_NT, 7);
+  c.overflow = 3;
+  char *buf = NULL;
+  size_t size = 0;
+  FILE *f = open_memstream(&buf, &size);
+  test_assert(f != NULL);
+  cleavage_counts_save(&c, f);
+  fclose(f);
+  cleavage_counts_t loaded;
+  cleavage_counts_clear(&loaded);
+  for (char *line = strtok(buf, "\n"); line != NULL;
+       line = strtok(NULL, "\n"))
+    test_assert(cleavage_counts_load_line(&loaded, line));
+  test_eq_size(loaded.searched, 37);
+  test_eq_size(loaded.overflow, 3);
+  test_eq_size(cleavage_counts_reads(&loaded), 40);
+  test_eq_size(loaded.n_motifs, 2);
+  free(buf);
+  /* a line of another kind is not one of these */
+  char other[] = "reads 1 2 3";
+  test_assert(!cleavage_counts_load_line(&loaded, other));
+}
+
+static void test_chemistry(void) {
+  test_eq_size(cleavage_chemistry(true, NULL), CLEAVAGE_CHEMISTRY_ILLUMINA);
+  test_eq_size(cleavage_chemistry(true, "dna_r9.4.1_e8_hac@v3.3"),
+               CLEAVAGE_CHEMISTRY_ILLUMINA);
+  test_eq_size(cleavage_chemistry(false, NULL), CLEAVAGE_CHEMISTRY_UNKNOWN);
+  test_eq_size(cleavage_chemistry(false, ""), CLEAVAGE_CHEMISTRY_UNKNOWN);
+  test_eq_size(cleavage_chemistry(false, "dna_r10.4.1_e8.2_400bps_hac@v4.2.0"),
+               CLEAVAGE_CHEMISTRY_R10);
+  test_eq_size(cleavage_chemistry(false, "dna_r9.4.1_e8_hac@v3.3"),
+               CLEAVAGE_CHEMISTRY_R9);
+  test_eq_size(cleavage_chemistry(false, "something_else"),
+               CLEAVAGE_CHEMISTRY_UNKNOWN);
+  test_eq_str(cleavage_chemistry_name(CLEAVAGE_CHEMISTRY_R10), "R10");
+  test_eq_str(cleavage_reading_name(CLEAVAGE_MULTIBASIC), "multibasic");
+  test_eq_str(cleavage_verdict_name(CLEAVAGE_CONFIRM), "confirm");
+}
+
+void cleavage_site_test(void) {
+  test_counts();
+  test_readings();
+  test_overflow();
+  test_save_load();
+  test_chemistry();
+}

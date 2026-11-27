@@ -205,6 +205,31 @@ void segments_write(html_writer_t *w, const report_t *r, const counter_t *c,
   html_close(w);
 }
 
+/* the segment whose cleavage site is read from the reads */
+#define CLEAVAGE_SEGMENT 4
+
+/* the cell of the HA cleavage site: the residues the reads carry and
+   how far they can be trusted (cleavage-site.h) */
+static void cleavage_cell(html_writer_t *w, const report_t *r,
+    const counter_t *c) {
+  cleavage_result_t site;
+  report_cleavage(r, c, &site);
+  html_open(w, "td");
+  if (!site.found)
+    html_text(w, "\xe2\x80\x93");
+  else {
+    html_open(w, "span");
+    html_attr(w, "class", "motif-cell");
+    html_textf(w, "%s", site.aa);
+    html_close(w);
+    markup_badge(w,
+        site.verdict == CLEAVAGE_FIRM ? MARKUP_GOOD :
+        site.verdict == CLEAVAGE_TOO_FEW_READS ? MARKUP_CRITICAL :
+        MARKUP_WARNING, "%s", cleavage_verdict_name(site.verdict));
+  }
+  html_close(w);
+}
+
 /* a row of the table of one segment in all samples: the sample <i> */
 static void across_row(html_writer_t *w, const report_t *r, size_t i,
     int segment) {
@@ -222,7 +247,7 @@ static void across_row(html_writer_t *w, const report_t *r, size_t i,
   if (g->counts == NULL || !qc.segments[segment].found) {
     html_open(w, "td");
     html_attr(w, "class", "wait");
-    html_attr(w, "colspan", "10");
+    html_attr(w, "colspan", segment == CLEAVAGE_SEGMENT ? "11" : "10");
     html_text(w, g->counts == NULL ? "waiting" : "not found");
     html_close(w);
     html_close(w);
@@ -242,6 +267,8 @@ static void across_row(html_writer_t *w, const report_t *r, size_t i,
   markup_td(w, "%s", html_num(q->complete).s);
   markup_td(w, "%s", q->complete > 0 ?
             percent_text(q->short_complete, q->complete).s : "\xe2\x80\x93");
+  if (segment == CLEAVAGE_SEGMENT)
+    cleavage_cell(w, r, g->counts);
   html_close(w);
 }
 
@@ -252,10 +279,16 @@ static void write_across_table(html_writer_t *w, const report_t *r,
   snprintf(well, sizeof(well), "at \xe2\x89\xa5%d\xc3\x97", QC_MIN_DEPTH);
   markup_open(w, "div", "scroll");
   markup_open(w, "table", "samples across");
-  markup_header_row(w, "sample", "state", "subtype", "median depth",
-                    "of full templates", well,
-                    "covered", "int. primed", "int. deletions",
-                    "complete amplicons", "short", NULL);
+  if (segment == CLEAVAGE_SEGMENT)
+    markup_header_row(w, "sample", "state", "subtype", "median depth",
+                      "of full templates", well,
+                      "covered", "int. primed", "int. deletions",
+                      "complete amplicons", "short", "cleavage site", NULL);
+  else
+    markup_header_row(w, "sample", "state", "subtype", "median depth",
+                      "of full templates", well,
+                      "covered", "int. primed", "int. deletions",
+                      "complete amplicons", "short", NULL);
   for (size_t i = 0; i < r->n_sections; i++)
     across_row(w, r, i, segment);
   html_close(w);
@@ -267,6 +300,11 @@ static void write_across_table(html_writer_t *w, const report_t *r,
               "deletions: shares of the depth from internally primed reads "
               "and from reads with an internal deletion.", well,
               segments_gene(segment), QC_MIN_DEPTH);
+  if (segment == CLEAVAGE_SEGMENT)
+    markup_note(w, "cleavage site: the residues before the fusion peptide "
+                "as the full templates carry them, read from the reads "
+                "and not from an assembly; the badge says how far they "
+                "can be trusted (see the sample below).");
 }
 
 void segments_write_across(html_writer_t *w, const report_t *r,

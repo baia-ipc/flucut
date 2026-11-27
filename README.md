@@ -60,6 +60,15 @@ exactly or with one mismatch), so the trimming has to be done before it.
   primer-derived base removed). With several references of a segment
   (e.g. of several subtypes), each barcode is classified against the
   reference of each segment closest to its reads;
+- reads the **cleavage site of the haemagglutinin** out of the reads
+  themselves, before any assembly: the residues before the fusion
+  peptide GLFGAIAG, with how many reads agree on them, whether they are
+  multibasic (the sequence determinant of high pathogenicity in H5 and
+  H7) and how far the answer can be trusted. The A/G-rich stretch which
+  encodes them is where the reads most often gain or lose a base, and a
+  consensus built from few reads carries the error; this says what the
+  data supports before the consensus exists. See
+  `docs/cleavage-site.md`;
 - with the references, in either mode, measures internal priming: which
   segments, which sites, what share of the reads (the references must be
   complete segments, with the UTRs, not coding sequences; flucut warns
@@ -179,8 +188,11 @@ Outputs:
   strand, the dimers, the reads too short, the reads with internal
   primer matches, and, with references, the left and right ends by
   origin, the complete amplicons shorter than 90% of their reference
-  (`short_complete`) and the reads written by category (`out_full`,
-  `out_internal`, `out_deletion`, `out_other`); `NA` without references.
+  (`short_complete`), the reads written by category (`out_full`,
+  `out_internal`, `out_deletion`, `out_other`) and the HA cleavage site
+  read from the reads (`cleavage_site`, `cleavage_reads`,
+  `cleavage_support`, `cleavage_multibasic`, `cleavage_verdict`); `NA`
+  without references.
 - `lengths.tsv`: the lengths of the complete amplicons (the template
   between the two primers), in bins of 10 bases: output, group (the
   reference to which the read end mapped, `not_located`, or `all`
@@ -200,10 +212,12 @@ Outputs:
     a depth of 50 or more, the segments with most internal priming and
     most internal deletions, and the reads by origin; and the median
     depth of each segment in each sample, as a plot;
-  - the **HA in all samples**, side by side;
+  - the **HA in all samples**, side by side, with the cleavage site
+    each sample's reads carry;
   - for each **sample**: its state and what deserves attention, the
     subtype, the reads by primers found and by origin, the internal
-    priming sites, the bases by segment, a strip for each segment
+    priming sites, the cleavage site of the HA as the reads carry it,
+    the bases by segment, a strip for each segment
     (numbers, coverage by read origin where internal priming shows as a
     step up, lengths of the complete amplicons), and the lengths and
     qualities of the reads before and after the trimming, with the

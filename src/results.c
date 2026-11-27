@@ -21,11 +21,29 @@ static void summary_header(FILE *f) {
         "with_internal_match\tsplit\tleft_terminal\tleft_internal\t"
         "left_unknown\tright_terminal\tright_internal\tright_unknown\t"
         "short_complete\tout_full\tout_internal\tout_deletion\t"
-        "out_other\n", f);
+        "out_other\tcleavage_site\tcleavage_reads\tcleavage_support\t"
+        "cleavage_multibasic\tcleavage_verdict\n", f);
 }
 
-static void summary_line(FILE *f, const char *name,
-    const counter_reads_t *s, bool refs, size_t short_complete) {
+/* the cleavage site of the haemagglutinin read from the reads
+   (cleavage-site.h); NA where it was not read */
+static void summary_cleavage(FILE *f, const counter_t *c, bool illumina) {
+  cleavage_result_t site;
+  const read_metadata_t *m = counter_metadata(c);
+  cleavage_result_of(counter_cleavage(c),
+      cleavage_chemistry(illumina, m->values[READ_METADATA_MODEL]), &site);
+  if (!site.found) {
+    fputs("\tNA\tNA\tNA\tNA\tNA", f);
+    return;
+  }
+  fprintf(f, "\t%s\t%zu\t%.4f\t%.4f\t%s", site.aa, site.reads,
+          site.support, site.multibasic_share,
+          cleavage_verdict_name(site.verdict));
+}
+
+static void summary_line(FILE *f, const char *name, const counter_t *c,
+    const counter_reads_t *s, bool refs, size_t short_complete,
+    bool illumina) {
   fprintf(f, "%s\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu"
           "\t%zu",
           name, s->reads_in, s->bases_in, s->reads_out, s->bases_out,
@@ -52,6 +70,7 @@ static void summary_line(FILE *f, const char *name,
     else
       fputs("\tNA", f);
   }
+  summary_cleavage(f, c, illumina);
   fputc('\n', f);
 }
 
@@ -167,7 +186,8 @@ void results_write(const char *outdir, const results_group_t *groups,
       results_log_counts(g->output, stats, refs != NULL, logger);
     size_t n_short = write_lengths(counter_lengths(g->counts), refs,
         g->name, g->output, lengths_file, log);
-    summary_line(summary, g->name, stats, refs != NULL, n_short);
+    summary_line(summary, g->name, g->counts, stats, refs != NULL, n_short,
+                 run_report_options(report)->illumina);
   }
   xfclose(&summary, logger);
   xfclose(&lengths_file, logger);

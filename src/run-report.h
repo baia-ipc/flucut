@@ -36,6 +36,9 @@ typedef struct run_report_t run_report_t;
    used; the command line (<argc>, <argv>) and the <version> are output
    in the reports
 */
+/* The options of the run */
+const options_t* run_report_options(const run_report_t *self);
+
 run_report_t* run_report_new(const options_t *opts, const char *version,
     const scheme_t *scheme, const fasta_t *references, int argc,
     char *argv[], Logger *logger);
