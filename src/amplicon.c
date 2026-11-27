@@ -197,9 +197,12 @@ void amplicon_analyzer_use_references(amplicon_analyzer_t *self,
   self->ref_segment = NULL;
   if (fa != NULL && fa->n_records > 0) {
     XMALLOC(self->ref_segment, sizeof(int) * fa->n_records);
-    for (size_t i = 0; i < fa->n_records; i++)
-      self->ref_segment[i] =
-          segments_of_description(fa->records[i].description);
+    for (size_t i = 0; i < fa->n_records; i++) {
+      const char *description = fa->records[i].description;
+      /* (a reference whose header is a name alone has no segment) */
+      self->ref_segment[i] = description == NULL ? 0 :
+                             segments_of_description(description);
+    }
   }
 }
 

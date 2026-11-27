@@ -205,8 +205,11 @@ void segments_test(void) {
   test_eq_int(segments_of_number(segments_number(2, VIRUS_B), VIRUS_B), 2);
   segments_name(4, VIRUS_A, buf, sizeof(buf));
   test_eq_str(buf, "segment 4 (HA)");
+  /* (segment 1 is PB2 by gene; influenza B numbers PB2 2) */
   segments_name(1, VIRUS_B, buf, sizeof(buf));
-  test_eq_str(buf, "segment 2 (PB1)");
+  test_eq_str(buf, "segment 2 (PB2)");
+  segments_name(2, VIRUS_B, buf, sizeof(buf));
+  test_eq_str(buf, "segment 1 (PB1)");
   segments_name_in(2, "Influenza B virus (B/Lee/1940) segment 1", buf,
                    sizeof(buf));
   test_eq_str(buf, "segment 1 (PB1)");

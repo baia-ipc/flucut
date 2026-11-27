@@ -37,12 +37,18 @@ double auto_settings_max_errors(double error_rate) {
 }
 
 /* add the errors and the aligned read bases of an end found */
-static void add_end(const amplicon_end_t *end, size_t *errors,
-    size_t *bases) {
+/*
+   Add the primer found at an end to the errors and the bases of the
+   type of influenza that primer belongs to (<primers>: the primers of
+   that end of the scheme)
+*/
+static void add_end(const amplicon_end_t *end, const primer_t *primers,
+    size_t *errors, size_t *bases) {
   if (!end->found)
     return;
-  *errors += (size_t)end->hit.n_errors;
-  *bases += (size_t)(end->hit.end - end->hit.start + 1);
+  virus_type_t virus = primers[end->variant].virus;
+  errors[virus] += (size_t)end->hit.n_errors;
+  bases[virus] += (size_t)(end->hit.end - end->hit.start + 1);
 }
 
 double auto_settings_error_rate(const trimmer_config_t *config,
@@ -54,15 +60,25 @@ double auto_settings_error_rate(const trimmer_config_t *config,
   reads_reader_t *reader = reads_reader_new(file, logger);
   fastq_batch_t batch;
   fastq_batch_init(&batch);
-  size_t n = 0, errors = 0, bases = 0, got;
+  /* the errors and the aligned bases of each type of influenza: a
+     scheme can hold the primers of both, and the type of the run is
+     not known yet (the references say it only once a sample is read,
+     see auto_settings_choose_references). The primers of the other
+     type are not in the reads, so the few ends where one of them
+     matches best match it with many errors; counting them with the
+     rest would raise the rate measured, and the rate decides the
+     errors allowed in a primer. The rate returned is therefore that of
+     the type whose primers cover most of the read ends. */
+  size_t n = 0, got, errors[VIRUS_N_TYPES] = {0};
+  size_t bases[VIRUS_N_TYPES] = {0};
   while (n < max_reads &&
          (got = reads_reader_read_batch(reader, &batch, max_reads - n)) > 0) {
     for (size_t i = 0; i < got; i++) {
       const fastq_record_t *rec = batch.records + i;
       const amplicon_t *r = amplicon_analyzer_run(a,
           batch.data.s + rec->seq_from, rec->seq_len);
-      add_end(&r->left, &errors, &bases);
-      add_end(&r->right, &errors, &bases);
+      add_end(&r->left, config->scheme->left, errors, bases);
+      add_end(&r->right, config->scheme->right, errors, bases);
     }
     n += got;
   }
@@ -71,7 +87,12 @@ double auto_settings_error_rate(const trimmer_config_t *config,
   amplicon_analyzer_delete(a);
   if (n_reads != NULL)
     *n_reads = n;
-  return bases == 0 ? 0.0 : (double)errors / (double)bases;
+  virus_type_t best = VIRUS_A;
+  for (int virus = 1; virus < VIRUS_N_TYPES; virus++)
+    if (bases[virus] > bases[best])
+      best = (virus_type_t)virus;
+  return bases[best] == 0 ? 0.0 :
+         (double)errors[best] / (double)bases[best];
 }
 
 /* the reference with most votes among the <n> references of the segment

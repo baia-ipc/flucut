@@ -215,8 +215,9 @@ void scheme_test(void) {
   test_eq_mem(s->right[0].seq, s->right[0].seq_len,
               "CCTTGTTTCTACTGATCACGCGT");
   scheme_delete(s);
+  /* the names of the built-in schemes: the default first, NULL-ended */
   const char *const *names = scheme_builtin_names();
-  test_eq_str(names[0], "uni12-mbt13");
+  test_eq_str(names[0], SCHEME_DEFAULT);
   test_assert(names[N_BUILTIN] == NULL);
   delete_logger(logger);
 }

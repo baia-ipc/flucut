@@ -25,6 +25,13 @@ support the trimming; they are not the purpose of the program.
   of the segment, so they align to the reference as template does, and
   the boundary of the alignment is not where the terminus ends.
 
+- **The letters of the test groups**: `fc-tests` gives each group a
+  letter, and three of them were letters of the common options (`-q`
+  quiet, `-V` version, `-L` log file) while `-c` named two groups. The
+  letters are now free and checked at every run; `make test_units`
+  (`fc-tests -q`) had been running one group of the thirty. Worth a
+  look for what else the silence hid.
+
 - **The kept terminus against the reference**: at an end classified as
   terminal, the bases kept are taken from the primer alignment alone.
   Where a sibling primer of a cocktail matches better than the one

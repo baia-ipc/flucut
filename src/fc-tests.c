@@ -112,7 +112,7 @@ static test_group_t test_groups[] = {
    false},
   {'J', "the junction of a read with an internal deletion",
    junction_test, false},
-  {'V', "the category of a read, from where it lies on its reference",
+  {'W', "the category of a read, from where it lies on its reference",
    read_cover_test, false},
   {'e', "the matches of the conserved termini in a read",
    terminus_matches_test, false},
@@ -130,15 +130,15 @@ static test_group_t test_groups[] = {
   {'u', "the automatic settings", auto_settings_test, false},
   {'G', "the agreement of the probes of a read", read_agreement_test,
    false},
-  {'q', "the summary of a sample by segment", qc_summary_test, false},
+  {'Q', "the summary of a sample by segment", qc_summary_test, false},
   {'f', "what deserves attention in a sample", qc_flags_test, false},
-  {'L', "the lengths and qualities of the reads", read_stats_test, false},
+  {'Y', "the lengths and qualities of the reads", read_stats_test, false},
   {'M', "the metadata of the run in the titles of the reads",
    read_metadata_test, false},
   {'d', "the search of an adaptor", adaptor_search_test,
    false},
   {'U', "the resources used by a run", run_resources_test, false},
-  {'c', "the configuration file", user_config_test, false},
+  {'N', "the configuration file", user_config_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 
@@ -170,9 +170,22 @@ void parseargs(int argc, char *argv[], Logger **logger) {
     COMMON_OPTS_STR "T:";
   size_t len = strlen(optstring);
   for (size_t i = 0; i < N_TEST_GROUPS; i++) {
-    /* the test options must not be used by other options */
-    assert(strchr(optstring, test_groups[i].option) == NULL);
-    assert(len + 1 < sizeof(optstring));
+    /* The letter of a test group must be free: one which another
+       option already uses (-q, -v, -L, ... of the common options, or
+       -T) would select the group instead, and one used twice would
+       select both. This is checked at every run, not with assert,
+       which the release build leaves out: a letter taken silently
+       turned "fc-tests -q" into a run of one group. */
+    if (strchr(optstring, test_groups[i].option) != NULL) {
+      fprintf(stderr, "the letter -%c of the test group \"%s\" is "
+              "already used by another option or group\n",
+              test_groups[i].option, test_groups[i].description);
+      exit(EXIT_FAILURE);
+    }
+    if (len + 1 >= sizeof(optstring)) {
+      fputs("too many test groups for the option string\n", stderr);
+      exit(EXIT_FAILURE);
+    }
     optstring[len++] = test_groups[i].option;
     optstring[len] = '\0';
   }

@@ -86,6 +86,7 @@ static pattern_t* add_pattern(terminus_matches_t *self, const char *seq,
   p->scan = pattern_scan_new(seq, len);
   XMALLOC(p->primers, sizeof(oligo_t) * self->max_primers);
   p->n_primers = 0;
+  p->types = 0;   /* (the primers added to it set theirs) */
   return p;
 }
 
@@ -314,6 +315,27 @@ void terminus_matches_test(void) {
                                              m + 1), 77);
 
   test_eq_size(terminus_matches_find(tm, "", 0, m), 0);
+
+  /* Restricted to one type, the termini of the other one are not
+     searched. The search is exact here (0 errors): the conserved
+     termini of the two types are so alike that with the 2 errors
+     allowed above the terminus of influenza A also matches the one of
+     influenza B (AGCAAAAGCAGG against AGCAGAAGCAGAGC: two
+     differences), which is why the primers of a type are searched
+     alone once the references say which type a sample is. */
+  terminus_matches_t *exact = terminus_matches_new(sc, 0.0);
+  snprintf(read, sizeof(read), "%s%s%s%s%s", filler, "AGCAAAAGCAGG",
+           filler, "AGCAGAAGCAGAGC", filler);
+  test_eq_size(terminus_matches_find(exact, read, strlen(read), m), 2);
+  terminus_matches_restrict_virus(exact, VIRUS_SET_A);
+  test_eq_size(terminus_matches_find(exact, read, strlen(read), m), 1);
+  test_eq_long(m[0].from, 32);
+  terminus_matches_restrict_virus(exact, VIRUS_SET_B);
+  test_eq_size(terminus_matches_find(exact, read, strlen(read), m), 1);
+  test_eq_long(m[0].from, 76);
+  terminus_matches_restrict_virus(exact, VIRUS_SET_BOTH);
+  test_eq_size(terminus_matches_find(exact, read, strlen(read), m), 2);
+  terminus_matches_delete(exact);
   terminus_matches_delete(tm);
   scheme_delete(sc);
   delete_logger(logger);
