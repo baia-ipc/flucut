@@ -294,8 +294,8 @@ Illumina: trim with `flucut -p illumina` and assemble with the paired
 ## Checking the predictions
 
 The report of flucut is built from probes, not from mappings. To see how
-close it is for a run, `posthoc/flucut-posthoc` maps every read to the
-segment references and measures the same things from the mappings (the
+close it is for an influenza A run, `posthoc/flucut-posthoc` maps every
+read to the segment references and measures the same things from the mappings (the
 origin of each amplicon end, the internal priming sites, the amplicon
 lengths, the coverage by read origin), next to what flucut predicted and
 to what IRMA assembled. It is a separate program, in Python; see

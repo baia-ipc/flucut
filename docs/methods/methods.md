@@ -85,6 +85,12 @@ AGCAAAAGCAGG ... segment ... CCTTGTTTCTACT
 The fourth base of the 12-nucleotide terminus is A in some segments and
 G in others.
 
+Influenza B has the same eight genes, numbered differently (its segment
+1 is PB1 and its segment 2 is PB2), and shorter conserved termini: 9
+nucleotides at the left end of the plus strand and 10 at the right end,
+the latter in two forms which differ at their sixth base (one in the
+HA, the NA and the NS, the other in the five remaining segments).
+
 ### The multisegment RT-PCR
 
 Two universal primers bind these termini and amplify all eight segments
@@ -105,17 +111,31 @@ stored whole, with the offset at which its conserved terminus begins
 (`src/primers.h`). This offset is what allows a cut *inside* a primer,
 between tail and terminus.
 
+Nine and ten bases are too few for a specific primer, so the universal
+primers of influenza B (the IBV-GA2 cocktail of Zhou et al. 2014, J
+Clin Microbiol 52:1330) reach five or eight bases past the terminus,
+into untranslated bases which only a few segments share. The cocktail
+is six pairs for the eight segments (PB1 with PB2, PA, HA with NA, NP,
+M with two forms of its left-end primer, NS), and each primer is a 5′
+tail — six bases at the left end, ten at the right — followed by the
+sequence of the segments it binds. Each primer therefore carries, with
+its sequence, the segments whose terminus it is (`primer_t.segments`):
+its bases are the template only there.
+
 A **scheme** (option `-s`) names the primers expected at each end of an
 amplicon (`src/scheme.h`):
 
-| scheme | left end (Uni12 side) | right end (Uni13 side) |
+| scheme | left end | right end |
 |---|---|---|
-| `uni12-mbt13` (default) | `uni12r` | `mbtuni-13` |
+| `uni12-mbt13+ibv-ga2` (default) | `uni12r`, the seven of influenza B | `mbtuni-13`, the six of influenza B |
+| `uni12-mbt13` | `uni12r` | `mbtuni-13` |
+| `ibv-ga2` | the seven of influenza B | the six of influenza B |
 | `mbt` | `mbtuni-12`, `mbtuni-12.4r` | `mbtuni-13` |
 | `uni` | `uni12`, `uni12r` | `uni13` |
 
-The right-end primers are stored reverse-complemented, as they appear in
-a read of the plus strand, so that both ends are searched in one
+The default is the scheme of the types expected (`--virus`). The
+right-end primers are stored reverse-complemented, as they appear in a
+read of the plus strand, so that both ends are searched in one
 orientation.
 
 ### What a read looks like
@@ -1251,6 +1271,12 @@ primer are taken as probe (lines 1–5) and located in the references
 decides: less than 60 bases is TERMINAL, more is INTERNAL, and a probe
 that is not found is UNKNOWN (ORIGIN lines 1–4).
 
+The origin says where the amplicon began; whether the bases of the
+primer may be kept there says, in addition, whether that primer binds
+the segment the probe was located in (lines 9 and 13). For a universal
+primer of influenza A this is always so; for one of influenza B it is
+so only in the segments it was designed for.
+
 > **Source:** `classify_ends` in `src/amplicon.c`
 
 ![The origin of an end, from where its probe lies](figures/origin.svg)
@@ -1269,10 +1295,20 @@ CLASSIFY_ENDS(seq, a)
  7      // locate the probe in the references (→ A10)
         a.left.hit = LOCATE(seq[lo:lo + n − 1])
  8      a.left.origin = ORIGIN(a.left.hit)
- 9  if a.right ≠ NIL
-10      a.right.hit = LOCATE(RC(seq[hi − n + 1:hi]))
-11      a.right.origin = ORIGIN(a.right.hit)
+ 9      a.left.keep_terminus = a.left.origin == TERMINAL and
+            BINDS(a.left.primer, SEGMENT_OF(a.left.hit))
+10  if a.right ≠ NIL
+11      a.right.hit = LOCATE(RC(seq[hi − n + 1:hi]))
+12      a.right.origin = ORIGIN(a.right.hit)
+13      a.right.keep_terminus = a.right.origin == TERMINAL and
+            BINDS(a.right.primer, SEGMENT_OF(a.right.hit))
 ```
+
+BINDS(p, g) is true if the primer p binds the segment g: always for a
+primer of every segment (influenza A), and for a primer of influenza B
+only for the segments of its pair. A segment which is not known (a
+reference whose description does not say which segment it is) is not
+one of them, so the primer is removed whole there.
 
 ```
 ORIGIN(hr)
@@ -1420,9 +1456,17 @@ KEEP computes the part of the read that is kept. At an end with a
 primer, the primer and everything outside it are removed (lines 6 and
 10); this is also done when the origin is unknown, so that in doubt no
 primer base is left. The exception is a terminal start, known only with
-references: the last 12 or 13 bases of the primer are then the true end
-of the segment, so they are kept and only the tail before them is
-removed (lines 5 and 9). If the two primers touch or overlap there is no
+references: the bases of the primer which are the sequence of the
+segment (the last 12 or 13 of a primer of influenza A, the last 14 to
+18 of one of influenza B) are then the true end of the segment, so they
+are kept and only the tail before them is removed (lines 5 and 9).
+
+An end is terminal *for this primer* only if the primer binds the
+segment the end was located in (`a.left.keep_terminus`, lines 4 and
+8): the universal primers of influenza A bind every segment, those of
+influenza B only the segments they were designed for, and at an end of
+any other segment their bases are the primer's own sequence, as at an
+internally primed end. If the two primers touch or overlap there is no
 template between them (a primer dimer) and nothing is kept (lines
 11–12). CUT_FACING_PRIMER handles a less frequent case: at the end of
 the read where no primer was found, the other strand shows a second copy
@@ -1442,11 +1486,11 @@ KEEP(a, n)
  1  from = 1
  2  to = n
  3  if a.left ≠ NIL
- 4      if refs ≠ NIL and a.left.origin == TERMINAL
- 5          from = max(1, a.left.terminus_start) // tail removed, terminus kept
+ 4      if refs ≠ NIL and a.left.keep_terminus // TERMINAL, and its
+ 5          from = max(1, a.left.terminus_start) // primer binds that segment
  6      else from = a.left.end + 1 // whole primer removed
  7  if a.right ≠ NIL
- 8      if refs ≠ NIL and a.right.origin == TERMINAL
+ 8      if refs ≠ NIL and a.right.keep_terminus
  9          to = min(n, a.right.terminus_end)
 10      else to = a.right.start − 1
 11  if a.left ≠ NIL and a.right ≠ NIL and a.right.start ≤ a.left.end + 1

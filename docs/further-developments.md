@@ -16,6 +16,15 @@ support the trimming; they are not the purpose of the program.
   show how often the primer is not found at an end (the main source of
   the primer bases left in the simulation) and whether influenza B has
   internal priming at all.
+- **flucut-posthoc and influenza B**: the post-hoc check (`posthoc/`)
+  is still that of influenza A: it searches the two conserved termini
+  of influenza A next to the boundary of each alignment, numbers the
+  segments as influenza A does and reads the subtype from the
+  descriptions. Influenza B needs its own design for the search: the
+  bases its primers add after the universal terminus are the sequence
+  of the segment, so they align to the reference as template does, and
+  the boundary of the alignment is not where the terminus ends.
+
 - **The kept terminus against the reference**: at an end classified as
   terminal, the bases kept are taken from the primer alignment alone.
   Where a sibling primer of a cocktail matches better than the one

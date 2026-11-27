@@ -1,7 +1,9 @@
 # flucut-posthoc
 
 Measures, after the fact and from the mapping of every read, what the
-report of flucut predicts for a sample.
+report of flucut predicts for a sample. **Influenza A only**: it
+searches the two conserved termini of influenza A and numbers the
+segments as influenza A does (see `docs/further-developments.md`).
 
 flucut is fast because it does not map the reads: it classifies each read
 end from a probe of 32 bases after the primer, and builds its coverage
