@@ -13,8 +13,9 @@ primer-like site starting at <site> (1-based):
   at_site    the alignment starts within 3 bases of the site: the read
              can come from an amplicon started at the site by internal
              priming: its bases at the codon can be those of the primer
-  other      any other start (e.g. a few bases before the site, or
-             soft-clipped bases at the start)
+  other      any other start (e.g. a few bases before the site); the
+             start is the alignment's reference position (SAM POS),
+             unaffected by soft-clipped bases
 
 Usage: samtools view <bam> <ref>:<codon>-<codon+2> | \\
     python3 -I benchmark/site_reads.py <ref> <site> <codon> <label>
