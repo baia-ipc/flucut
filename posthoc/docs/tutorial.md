@@ -82,7 +82,7 @@ table of how well the two depths agree.
 ## Your own references
 
 By default the references are the set which flucut downloads
-(`~/.cache/flucut/flu-a-references-v1.fasta`); run flucut once to get
+(`~/.cache/flucut/flu-a-references-v3.fasta`); run flucut once to get
 it, or give a FASTA file of complete segments with `-r`. As in flucut,
 the segment of a record is read from its description (`segment 4`); from
 several records of a segment the closest to the sample is used. Records

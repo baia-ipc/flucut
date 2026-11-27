@@ -32,7 +32,7 @@ _EQUALITIES = [("R", "A"), ("R", "G")]
 CHOICE_READS = 20000    # reads sampled for the choice of the references
 # the references which flucut downloads on first use
 FLUCUT_CACHE = os.path.expanduser(
-    "~/.cache/flucut/flu-a-references-v1.fasta")
+    "~/.cache/flucut/flu-a-references-v3.fasta")
 
 
 @dataclass
