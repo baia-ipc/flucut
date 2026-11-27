@@ -1,5 +1,547 @@
 # Results
 
+## 2026-11-27: the tools and the public runs, measured with one build
+
+Everything below was run on 2026-11-27 with one build of flucut
+(commit d26b9b1, `make`, gcc 13.3.0), and every output was kept, in
+`/home/baia/prj/flucut/trimmer_benchmark_runs` (outside the repository;
+its `README.md` lists the programs, its three run scripts every
+command, `tables/` the result tables as TSV). The sections of
+2026-10-30 and 2026-10-31 below were measured with successive builds
+of those days, whose default was what `-r off --virus a` is now; where
+a number of this entry replaces one of theirs, it says so.
+
+**flucut is run in three configurations**, because its defaults
+changed:
+
+- *default*: the reads are classified against the built-in references
+  (`flu-ab-references-v3-v1.fasta`, 168 records), the conserved termini
+  are kept at the ends classified as terminal, and the whole primer is
+  removed elsewhere; the primers of influenza A and B are both searched
+  until the references show the type of the sample;
+- `-r off`: no references, every primer base removed. The primers of
+  influenza A and B are then searched in every read;
+- `-r off --virus a`: the same with the primers of influenza A alone.
+  This is what the sections of 2026-10-30 call the default.
+
+Reads with several amplicons are written as several reads
+(`--no-split` turns it off), so flucut can write more reads than it
+reads; `score_reads.py` counts the reads split although they hold one
+amplicon ("split wrongly") and, apart, the primer bases kept which
+belong to a primer tail and those of the conserved terminus (kept on
+purpose in the default configuration).
+
+**Versions.** IRMA 1.4.0 (IRMA-core 0.11.0, IRMA-viz 0.2.2, LABEL
+0.7.1), with its samtools 1.21 and minimap2 2.29; cutadapt 4.9; BBTools
+39.81 (BBDuk); Porechop_ABI 0.5.1; Barbell 0.3.3 (bioconda; its
+`annotate` takes the query files and the barcode types separated by
+commas); Python 3.13.18 with edlib 1.3.9. The commands of every tool
+are those of `run-tools.sh`. **dorado was not run**: it is not
+installed on the machine and has no conda package; its numbers in the
+sections of 2026-10-30 were not measured again.
+
+The simulated reads are the same as on 2026-10-30 (same genome,
+`simulate.py`, seed 1: the scores of the untrimmed reads are
+identical). cutadapt, BBDuk, the IRMA-core trimmer, Porechop_ABI,
+samtools ampliconclip and Barbell give exactly the reads-level scores
+and the consensus of 2026-10-30, although cutadapt (5.2 then) and
+BBTools (40.05 then) are other versions.
+
+### Simulated reads without barcodes (`run-tools.sh`)
+
+3200 reads; bases by their true origin (`tables/simulated_reads.tsv`):
+
+| tool | written | lost | template removed | primer kept (tail + terminus) | flank kept | internal site kept | split wrongly |
+|---|---|---|---|---|---|---|---|
+| untrimmed | 3200 | 0 | 0 | 102554 (29016 + 73538) | 127032 | 2698 | 0 |
+| flucut, default | 3235 | 0 | 1175 | 70373 (121 + 70252) | 7733 | 23 | 60 |
+| flucut `-r off` | 3173 | 0 | 855 | 2966 (255 + 2711) | 8057 | 83 | 0 |
+| flucut `-r off --virus a` | 3173 | 0 | 680 | 1760 (85 + 1675) | 7472 | 23 | 0 |
+| cutadapt | 3177 | 0 | 102408 | 3037 (223 + 2814) | 8784 | 25 | 0 |
+| IRMA-core, window 40 | 3195 | 0 | 77 | 43474 (9578 + 33896) | 75068 | 1105 | 0 |
+| IRMA-core, window 70 | 3200 | 0 | 130 | 13152 (889 + 12263) | 22890 | 660 | 0 |
+| IRMA-core, window 120 | 3200 | 0 | 545 | 13133 (885 + 12248) | 22914 | 660 | 0 |
+| BBDuk, hdist 1 | 3194 | 0 | 261 | 12974 (850 + 12124) | 22826 | 660 | 0 |
+| BBDuk, hdist 2 | 3194 | 0 | 2977 | 7814 (214 + 7600) | 15831 | 502 | 0 |
+| Porechop_ABI | 3182 | 6 | 28349 | 46964 (12390 + 34574) | 62672 | 1389 | 0 |
+| Porechop_ABI, tuned | 3179 | 6 | 81812 | 9107 (882 + 8225) | 14313 | 25 | 0 |
+| samtools ampliconclip | 3173 | 0 | 142 | 30 (0 + 30) | 135 | 1549 | 0 |
+
+IRMA FLU-minion, summed over the 8 segments, with the reference
+elongation (`SKIP_E=0`) and without it; the codon of the I351K site in
+the majority consensus of HA (`tables/simulated_consensus.tsv`; I351K:
+residue 6 of HA2, at the start of the fusion peptide, 351 counted on
+the HA0 precursor from the initiator methionine):
+
+| tool | missing 5' | missing 3' | beyond the ends or errors | ambiguous | codon | without elongation: missing 5', 3', errors, codon |
+|---|---|---|---|---|---|---|
+| untrimmed | 0 | 0 | 358 | 3 | AAA | 219, 276, 0, AAA |
+| flucut, default | 0 | 0 | 2 | 8 | ATA | 219, 276, 0, ATA |
+| flucut `-r off` | 96 | 103 | 0 | 0 | ATA | 219, 276, 0, ATA |
+| flucut `-r off --virus a` | 96 | 103 | 0 | 0 | ATA | 219, 276, 0, ATA |
+| cutadapt | 96 | 103 | 0 | 0 | ATA | 219, 276, 0, ATA |
+| IRMA-core, window 40 | 0 | 0 | 365 | 1 | ATA | 219, 276, 0, ATA |
+| IRMA-core, window 70 | 84 | 101 | 11 | 0 | ATA | 219, 276, 0, ATA |
+| IRMA-core, window 120 | 84 | 101 | 11 | 0 | ATA | 219, 276, 0, ATA |
+| BBDuk, hdist 1 | 84 | 101 | 19 | 0 | ATA | 219, 276, 0, ATA |
+| BBDuk, hdist 2 | 96 | 101 | 0 | 0 | ATA | 219, 276, 0, ATA |
+| Porechop_ABI | 14 | 59 | 228 | 1 | ATA | 219, 276, 0, ATA |
+| Porechop_ABI, tuned | 96 | 103 | 0 | 0 | ATA | 219, 276, 0, ATA |
+| samtools ampliconclip | 96 | 103 | 0 | 0 | ATA | 219, 276, 0, ATA |
+
+- **The consensus.** Every trimming tool gives ATA; the untrimmed reads
+  give AAA. With `-r off`, flucut gives the consensus of 2026-10-30:
+  12 and 13 bases missing at the ends of each segment (96 and 103 in
+  all; 103 as an N appended by IRMA to segment 3 matches any base), no
+  error. With its default options the ends are complete; the bases
+  there are those of the primers: one ambiguous base per segment (the
+  degenerate position of Uni12), one substitution in segment 2 (the 3'
+  terminus of PR8 differs from the primer in one base) and one
+  insertion in segment 3 (`tables/irma_checks_consensus_by_segment.tsv`).
+  No other tool gives complete ends.
+- **The reads, `-r off --virus a`.** 680 template bases removed, 1760
+  primer bases, 7472 flank bases and 23 bases of the internal site
+  kept: 680, 1819, 7542 and 23 on 2026-10-30.
+- **The reads, `-r off`.** 855, 2966, 8057 and 83: worse on every
+  column, because the primers of influenza B are searched as well and
+  are sometimes taken for the primer of a read end.
+- **The reads, default.** 121 bases of primer tails are kept (255 and
+  85 with `-r off` and `-r off --virus a`), and the 70252 terminus
+  bases are kept on purpose. 1175 template bases are removed, more than
+  without references, and 65 reads of one amplicon are split (60 of
+  them written in two pieces): all are complete amplicons of PA (30),
+  PB2 (14), NP (13), PB1 (5) and NS (3), segments whose built-in reference is far from PR8; a
+  primer-like sequence inside the read is taken for the start of a
+  second amplicon. With the simulated genome as references
+  (`-r genome.fasta`) no read is split wrongly and 428 template bases
+  are removed.
+
+### Simulated reads with barcodes
+
+3200 reads simulated with `--barcodes 4`; the flank column counts the
+adapter, barcode and random remnant bases:
+
+| tool | written | lost | template removed | primer kept (tail + terminus) | flank kept | internal site kept | split wrongly |
+|---|---|---|---|---|---|---|---|
+| untrimmed | 3200 | 0 | 0 | 102899 (29172 + 73727) | 423867 | 2731 | 0 |
+| flucut, default | 3240 | 0 | 913 | 69706 (84 + 69622) | 802 | 44 | 64 |
+| flucut `-r off` | 3174 | 0 | 317 | 1954 (176 + 1778) | 4939 | 64 | 0 |
+| flucut `-r off --virus a` | 3174 | 0 | 268 | 956 (77 + 879) | 695 | 44 | 0 |
+| cutadapt | 3184 | 0 | 107913 | 3371 (164 + 3207) | 29700 | 35 | 0 |
+| IRMA-core, window 40 | 3200 | 0 | 0 | 102899 (29172 + 73727) | 423785 | 2731 | 0 |
+| IRMA-core, window 70 | 3199 | 0 | 23 | 80547 (21429 + 59118) | 343053 | 2027 | 0 |
+| IRMA-core, window 120 | 3200 | 0 | 121 | 13678 (973 + 12705) | 78267 | 705 | 0 |
+| BBDuk, hdist 1 | 3200 | 0 | 97 | 17217 (1468 + 15749) | 82495 | 717 | 0 |
+| BBDuk, hdist 2 | 3200 | 0 | 360 | 12193 (674 + 11519) | 59862 | 557 | 0 |
+| Porechop_ABI | 3186 | 7 | 18100 | 48424 (12611 + 35813) | 212979 | 1298 | 0 |
+| Porechop_ABI, tuned | 3179 | 7 | 30614 | 15361 (1628 + 13733) | 73752 | 693 | 0 |
+| samtools ampliconclip | 3174 | 0 | 159 | 40 (0 + 40) | 88 | 1337 | 0 |
+| Barbell | 3174 | 1 | 1883 | 445 (5 + 440) | 4375 | 21 | 0 |
+
+| tool | missing 5' | missing 3' | beyond the ends or errors | ambiguous | codon | without elongation: missing 5', 3', errors, codon |
+|---|---|---|---|---|---|---|
+| untrimmed | 0 | 0 | 940 | 2 | ATA | 219, 276, 0, ATA |
+| flucut, default | 4 | 0 | 1 | 7 | ATA | 219, 276, 0, ATA |
+| flucut `-r off` | 96 | 104 | 0 | 0 | ATA | 219, 276, 0, ATA |
+| flucut `-r off --virus a` | 96 | 104 | 0 | 0 | ATA | 219, 276, 0, ATA |
+| cutadapt | 96 | 104 | 0 | 0 | ATA | 219, 276, 0, ATA |
+| IRMA-core, window 40 | 0 | 0 | 932 | 2 | ATA | 219, 276, 0, ATA |
+| IRMA-core, window 70 | 4 | 0 | 940 | 1 | ATA | 219, 276, 0, ATA |
+| IRMA-core, window 120 | 72 | 103 | 66 | 0 | ATA | 219, 276, 0, ATA |
+| BBDuk, hdist 1 | 72 | 58 | 95 | 0 | ATA | 219, 276, 0, ATA |
+| BBDuk, hdist 2 | 94 | 79 | 0 | 0 | ATA | 219, 276, 0, ATA |
+| Porechop_ABI | 14 | 60 | 646 | 1 | ATA | 219, 276, 0, ATA |
+| Porechop_ABI, tuned | 46 | 103 | 229 | 1 | ATA | 219, 276, 0, ATA |
+| samtools ampliconclip | 96 | 104 | 0 | 0 | ATA | 219, 276, 0, ATA |
+| Barbell | 96 | 104 | 0 | 0 | ATA | 219, 276, 0, ATA |
+
+flucut with `-r off --virus a`: 268, 956, 695 and 44 (267, 1019, 698
+and 44 on 2026-10-30); the consensus is the same (96 and 104 missing,
+no error). With the default options the consensus lacks 4 bases at one
+5' end and has 1 error and 7 ambiguous bases, from the termini kept;
+64 reads are split wrongly. Among the tools that search sequences, Barbell
+leaves the fewest primer bases (445) and removes 7 times more template
+than flucut `-r off --virus a`. The untrimmed reads give ATA
+on this set, as on 2026-10-30.
+
+The adapter search and the references, flucut alone
+(`run-flucut-options.sh`, `tables/flucut_options.tsv`):
+
+| flucut | written | template removed | tail kept | terminus kept | flank kept | internal site kept | split wrongly | not split |
+|---|---|---|---|---|---|---|---|---|
+| default | 3240 | 913 | 84 | 69622 | 802 | 44 | 64 | 0 |
+| `-r off` | 3174 | 317 | 176 | 1778 | 4939 | 64 | 0 | 0 |
+| `-r off --virus a` | 3174 | 268 | 77 | 879 | 695 | 44 | 0 | 0 |
+| `-r` the genome | 3174 | 115 | 85 | 72528 | 802 | 44 | 0 | 0 |
+| default `--adapters none` | 3243 | 935 | 105 | 69632 | 28246 | 99 | 64 | 0 |
+| `-r off` `--adapters none` | 3176 | 329 | 197 | 2900 | 31194 | 111 | 0 | 0 |
+| `-r off --virus a` `--adapters none` | 3177 | 287 | 98 | 2052 | 28189 | 99 | 0 | 0 |
+| `-r` the genome `--adapters none` | 3177 | 137 | 106 | 72529 | 28246 | 99 | 0 | 0 |
+
+### Reads with joined amplicons
+
+3200 reads simulated with `--joined-share 0.05`: 173 hold two
+amplicons.
+
+| flucut | written | template removed | tail kept | terminus kept | flank kept | internal site kept | split wrongly | not split |
+|---|---|---|---|---|---|---|---|---|
+| default | 3411 | 1597 | 200 | 73858 | 8745 | 28 | 69 | 5 |
+| `-r off` | 3310 | 1273 | 515 | 3585 | 9289 | 57 | 0 | 37 |
+| `-r off --virus a` | 3310 | 946 | 357 | 2412 | 8580 | 28 | 0 | 37 |
+| `-r` the genome | 3343 | 673 | 177 | 76045 | 8719 | 28 | 0 | 4 |
+
+Without references 37 of the 173 are written in one piece; with the
+genome as references 4, and none of the other reads is split. With the
+built-in references 5 are not split and 69 reads are split wrongly.
+
+### IRMA checks (`run-irma-checks.sh`)
+
+Runs: `raw`, `flucut` (default), `notags`, `off` (`-r off`), `genome`
+(`-r` the simulated genome). The codon is AAA for `raw` and ATA for the
+others, with and without the elongation. `flucut` and `notags` give the
+same IRMA read counts and the same consensus. With the elongation:
+`off` lacks 12 and 13 bases per segment (12 at the 3' end of segment 3)
+and has no error; `flucut` and `genome` have complete ends, 1 ambiguous
+base per segment, 1 substitution in segment 2 and 1 base inserted or
+beyond the end in segment 3; `raw` extends 13 to 32 bases beyond the 3'
+ends with 0 to 28 insertions per segment. Without the elongation every
+run lacks 20-45 and 20-58 bases.
+
+### Low coverage (`run-coverage.sh`)
+
+Differences of the majority consensus from the truth, summed over the
+8 segments, and the codon (`tables/low_coverage.tsv`):
+
+| reads per segment | seed | untrimmed | flucut, default | flucut `-r off` | cutadapt | IRMA-core w70 |
+|---|---|---|---|---|---|---|
+| 10 | 1 | 4, **AAA** | 2, ATA | 2, ATA | 2, ATA | 2, ATA |
+| 10 | 2 | 36, **AAA** | 34, ATA | 34, ATA | 34, ATA | 34, ATA |
+| 10 | 3 | 0, ATA | 0, ATA | 0, ATA | 2, ATA | 0, ATA |
+| 20 | 1 | 0, ATA | 0, ATA | 0, ATA | 0, ATA | 0, ATA |
+| 20 | 2 | 1, **AAA** | 0, ATA | 0, ATA | 0, ATA | 0, ATA |
+| 20 | 3 | 1, ATA | 1, ATA | 1, ATA | 1, ATA | 1, ATA |
+| 40 | 1 | 1, **AAA** | 0, ATA | 0, ATA | 0, ATA | 0, ATA |
+| 40 | 2 | 0, ATA | 0, ATA | 0, ATA | 0, ATA | 0, ATA |
+| 40 | 3 | 1, **AAA** | 0, ATA | 0, ATA | 0, ATA | 0, ATA |
+
+The same as on 2026-10-30; flucut gives the same result with and
+without references. All runs assembled 8 segments.
+
+### The error rate of the reads and `-e auto`
+
+Reads simulated at mean error rates of 1 to 12%
+(`run-flucut-options.sh`). `-e auto` measured 1.0, 1.7, 3.0, 5.1 and
+6.3% in the primer alignments of the first 1000 reads and chose 0.2 up
+to 4% and 0.3 at 8 and 12%, as on 2026-10-30:
+
+| mean error rate | flucut | `-e` chosen | written | template removed | tail kept | terminus kept | flank kept | internal site kept | split wrongly |
+|---|---|---|---|---|---|---|---|---|---|
+| 0.01 | default | 0.2 (1.0% measured) | 3171 | 550 | 14 | 72861 | 6627 | 1 | 0 |
+| 0.01 | `-r off` | 0.2 (1.0% measured) | 3171 | 754 | 126 | 2032 | 6947 | 63 | 0 |
+| 0.01 | `-r off --virus a` | 0.2 (0.9% measured) | 3171 | 607 | 10 | 1035 | 6374 | 1 | 0 |
+| 0.01 | `-r` the genome | 0.2 (1.0% measured) | 3171 | 550 | 14 | 72967 | 6629 | 1 | 0 |
+| 0.02 | default | 0.2 (1.7% measured) | 3187 | 955 | 25 | 71902 | 7652 | 11 | 18 |
+| 0.02 | `-r off` | 0.2 (1.7% measured) | 3169 | 1005 | 195 | 2442 | 8212 | 136 | 0 |
+| 0.02 | `-r off --virus a` | 0.2 (1.7% measured) | 3169 | 847 | 21 | 1386 | 7388 | 11 | 0 |
+| 0.02 | `-r` the genome | 0.2 (1.7% measured) | 3169 | 738 | 25 | 72381 | 7653 | 11 | 0 |
+| 0.04 | default | 0.2 (3.0% measured) | 3235 | 1175 | 121 | 70252 | 7733 | 23 | 60 |
+| 0.04 | `-r off` | 0.2 (3.0% measured) | 3173 | 855 | 255 | 2711 | 8057 | 83 | 0 |
+| 0.04 | `-r off --virus a` | 0.2 (3.0% measured) | 3173 | 680 | 85 | 1675 | 7472 | 23 | 0 |
+| 0.04 | `-r` the genome | 0.2 (3.0% measured) | 3173 | 428 | 104 | 72403 | 7735 | 23 | 0 |
+| 0.08 | default | 0.3 (5.1% measured) | 3321 | 7891 | 199 | 62838 | 5465 | 54 | 153 |
+| 0.08 | `-r off` | 0.3 (5.1% measured) | 3164 | 6678 | 1384 | 12223 | 13246 | 704 | 0 |
+| 0.08 | `-r off --virus a` | 0.3 (5.0% measured) | 3164 | 4448 | 148 | 1368 | 4929 | 54 | 0 |
+| 0.08 | `-r` the genome | 0.3 (5.1% measured) | 3166 | 3822 | 181 | 69637 | 5506 | 54 | 2 |
+| 0.12 | default | 0.3 (6.3% measured) | 3350 | 10589 | 492 | 51231 | 6953 | 101 | 183 |
+| 0.12 | `-r off` | 0.3 (6.3% measured) | 3162 | 9206 | 2181 | 13554 | 13867 | 737 | 0 |
+| 0.12 | `-r off --virus a` | 0.3 (6.3% measured) | 3161 | 6559 | 460 | 2729 | 6572 | 101 | 0 |
+| 0.12 | `-r` the genome | 0.3 (6.3% measured) | 3180 | 6263 | 521 | 63688 | 7061 | 101 | 19 |
+
+With `-r off --virus a` the scores at 1, 2 and 4% are those of
+2026-10-30 within 90 bases; at 8 and 12% more template is removed than
+then (4448 and 6559 against 3847 and 5916) and fewer primer and flank
+bases are left (1516 and 3189 primer bases against 1691 and 3715). With
+the default options the reads split wrongly grow with the error rate (0,
+18, 60, 153, 183), and from 8% on some are split wrongly even with the
+true genome as references (2 and 19).
+
+With `-e` set by hand (template removed, primer kept, flank kept,
+internal site kept):
+
+| mean error rate | -e | `-r off --virus a` | `-r off` |
+|---|---|---|---|
+| 0.01 | 0.1 | 56, 2443, 8937, 85 | 56, 2738, 9062, 109 |
+| 0.01 | 0.15 | 57, 1776, 8162, 85 | 62, 2109, 8292, 109 |
+| 0.01 | 0.2 | 607, 1045, 6374, 1 | 754, 2158, 6947, 63 |
+| 0.01 | 0.25 | 2155, 437, 3701, 1 | 3122, 5649, 7743, 263 |
+| 0.01 | 0.3 | 2444, 382, 3219, 1 | 4407, 11202, 10686, 630 |
+| 0.01 | 0.35 | 6141, 130, 866, 13 | 7198, 13393, 11032, 739 |
+| 0.02 | 0.1 | 165, 3970, 11589, 114 | 164, 4409, 12038, 188 |
+| 0.02 | 0.15 | 172, 2621, 9975, 114 | 184, 3138, 10508, 188 |
+| 0.02 | 0.2 | 847, 1407, 7388, 11 | 1005, 2637, 8212, 136 |
+| 0.02 | 0.25 | 3052, 568, 4038, 5 | 4362, 5676, 7887, 227 |
+| 0.02 | 0.3 | 3374, 574, 3626, 5 | 5401, 11495, 11500, 764 |
+| 0.02 | 0.35 | 7830, 234, 1004, 5 | 7693, 14071, 11686, 719 |
+| 0.04 | 0.1 | 196, 9204, 16832, 227 | 196, 9451, 16943, 254 |
+| 0.04 | 0.15 | 224, 5154, 13233, 227 | 230, 5424, 13342, 254 |
+| 0.04 | 0.2 | 680, 1760, 7472, 23 | 855, 2966, 8057, 83 |
+| 0.04 | 0.25 | 2814, 756, 4498, 3 | 3722, 6389, 8500, 181 |
+| 0.04 | 0.3 | 3176, 763, 4184, 3 | 5396, 12224, 12154, 533 |
+| 0.04 | 0.35 | 8227, 351, 1261, 3 | 9045, 15979, 12270, 634 |
+| 0.08 | 0.1 | 440, 26073, 36528, 548 | 438, 26302, 36542, 548 |
+| 0.08 | 0.15 | 533, 16612, 27732, 548 | 563, 16828, 27738, 548 |
+| 0.08 | 0.2 | 1298, 6341, 13675, 146 | 1763, 7503, 13946, 174 |
+| 0.08 | 0.25 | 4166, 1876, 5752, 64 | 5045, 7540, 9889, 273 |
+| 0.08 | 0.3 | 4448, 1516, 4929, 54 | 6678, 13607, 13246, 704 |
+| 0.08 | 0.35 | 8347, 918, 1948, 54 | 9375, 19454, 14231, 600 |
+| 0.12 | 0.1 | 683, 42957, 55175, 1063 | 685, 43081, 55138, 1077 |
+| 0.12 | 0.15 | 716, 30131, 43701, 1063 | 741, 30275, 43707, 1077 |
+| 0.12 | 0.2 | 2382, 14155, 22600, 386 | 3136, 14934, 22437, 444 |
+| 0.12 | 0.25 | 6489, 4907, 8716, 109 | 7036, 9909, 12096, 425 |
+| 0.12 | 0.3 | 6559, 3189, 6572, 101 | 9206, 15735, 13867, 737 |
+| 0.12 | 0.35 | 13315, 1916, 1857, 70 | 12054, 22363, 15537, 794 |
+
+With the primers of influenza B searched (`-r off`), allowing more
+errors leaves more primer bases, not fewer, from 0.25 on: at 4% errors
+and `-e 0.3`, 12224 primer bases against 763 with `--virus a`. `-e
+auto` chooses 0.3 for reads at 8% and more, so `-r off` without
+`--virus a` is a poor configuration for such reads (13607 primer bases
+left at 8%, against 1516).
+
+### Time and memory, 32,000 reads (`run-speed.sh`)
+
+The 3200 reads 10 times, three runs of every tool, the median. Machine:
+2 x Intel Xeon Gold 6154, 64 cores, shared; the tools were confined to
+4 processors (`MEASURE_CPUS=2-5`) while jobs of other users kept about
+20 of the other cores busy (`timings/machine.txt`). The times of
+2026-10-30 were measured on another machine, so only the order of the
+tools can be compared across the two dates.
+
+| tool | wall s | CPU s | peak MB | wall s, the three runs |
+|---|---|---|---|---|
+| flucut, default, 1 thread | 9.18 | 9.11 | 76 | 9.18, 9.27, 9.01 |
+| flucut, default, 4 threads | 4.41 | 9.28 | 101 | 5.00, 4.41, 4.29 |
+| flucut `-r off`, 1 thread | 18.59 | 18.57 | 27 | 18.74, 18.57, 18.59 |
+| flucut `-r off`, 4 threads | 5.77 | 18.89 | 63 | 5.77, 5.49, 5.80 |
+| flucut `-r off --virus a`, 1 thread | 3.88 | 3.85 | 22 | 3.91, 3.86, 3.88 |
+| flucut `-r off --virus a`, 4 threads | 1.28 | 3.98 | 60 | 1.30, 1.28, 1.26 |
+| flucut `-r` the genome (8 references), 4 threads | 1.75 | 4.94 | 88 | 1.81, 1.75, 1.73 |
+| cutadapt, 4 cores | 4.10 | 13.85 | 48 | 4.10, 4.17, 3.81 |
+| IRMA-core trimmer (1 thread) | 6.32 | 6.47 | 12 | 6.39, 6.32, 6.29 |
+| BBDuk hdist 2, 4 threads (two passes) | 2.79 | 7.74 | 439 | 2.94, 2.76, 2.79 |
+| Porechop_ABI tuned, 4 threads | 25.72 | 64.99 | 254 | 25.96, 25.72, 25.70 |
+| minimap2 + samtools ampliconclip, 4 threads | 12.13 | 22.32 | 124 | 12.24, 12.03, 12.13 |
+
+Barcoded reads:
+
+| tool | wall s | CPU s | peak MB | wall s, the three runs |
+|---|---|---|---|---|
+| flucut, default, 1 thread | 9.38 | 9.36 | 81 | 9.46, 9.38, 9.35 |
+| flucut, default, 4 threads | 4.74 | 9.58 | 104 | 4.74, 5.12, 4.54 |
+| flucut `-r off`, 1 thread | 19.90 | 19.88 | 27 | 19.90, 19.90, 19.91 |
+| flucut `-r off`, 4 threads | 5.98 | 20.04 | 65 | 5.98, 6.00, 5.68 |
+| flucut `-r off --virus a`, 1 thread | 4.09 | 4.07 | 28 | 4.10, 4.09, 4.08 |
+| flucut `-r off --virus a`, 4 threads | 1.34 | 4.25 | 63 | 1.45, 1.33, 1.34 |
+| flucut `-r` the genome (8 references), 4 threads | 1.82 | 5.22 | 91 | 1.85, 1.82, 1.81 |
+| cutadapt, 4 cores | 4.23 | 14.30 | 44 | 4.69, 4.23, 4.09 |
+| IRMA-core trimmer (1 thread) | 7.18 | 7.35 | 12 | 7.18, 7.18, 7.22 |
+| BBDuk hdist 2, 4 threads (two passes) | 2.94 | 8.04 | 433 | 2.94, 3.22, 2.90 |
+| Porechop_ABI tuned, 4 threads | 26.41 | 66.33 | 262 | 26.70, 26.41, 26.15 |
+| minimap2 + samtools ampliconclip, 4 threads | 12.53 | 23.20 | 130 | 12.53, 12.52, 13.77 |
+| Barbell, 4 threads (annotate, filter, trim) | 3.53 | 5.30 | 68 | 3.53, 3.71, 3.53 |
+
+- With the primers of influenza A alone and no references, flucut is
+  the fastest tool (1.28 s with 4 threads, 60 MB), as on 2026-10-30
+  (1.62 s on that machine).
+- With its default options it takes 4.4 s with 4 threads and 9.2 s
+  with 1 (101 and 76 MB): slower than BBDuk (2.8 s) and about as fast
+  as cutadapt (4.1 s). With the 8 segments of the genome as references
+  it takes 1.75 s, so the time goes into classifying these reads
+  against the 168 built-in references, not into the classification as
+  such; on the public runs below the default is as fast as with 8
+  references. What takes the time on the simulated reads was not
+  examined.
+- `-r off` takes 18.6 s with 1 thread and 5.8 s with 4, 4.5 to 4.8
+  times the time with `--virus a`: the primers of influenza B are
+  searched in every read.
+
+### Time and memory at the scale of a run
+
+The three Nanopore runs below, 6 times (1,129,506 reads, 982 million
+bases), 4 threads on the same 4 processors, three runs, the median
+(`tables/speed_run_scale.tsv`):
+
+| flucut | wall s | CPU s | peak MB | reads per second |
+|---|---|---|---|---|
+| default | 38.2 | 149.9 | 55 | 29,600 |
+| `-r off` | 114.7 | 456.7 | 32 | 9,800 |
+| `-r` QB222556-QB222563 | 35.8 | 139.7 | 46 | 31,500 |
+
+On 2026-10-31, 34.2 s, 127.2 CPU s and 45 MB with the same references
+on another machine.
+
+### Three public Nanopore runs (`run-real-nanopore.sh`)
+
+SRR36760543, SRR36760506 and SRR36760520 (BioProject PRJNA1400594;
+47,990, 62,842 and 77,419 reads, downloaded from ENA on 2026-11-27),
+each with the eight GenBank segments of its isolate (PZ239631.1 to
+PZ239638.1, PZ239807.1 to PZ239814.1, PZ239711.1 to PZ239718.1; coding
+sequences). `-e auto` measured 16% errors in the primer alignments of
+each run and chose 0.3.
+
+The 5' ends of the reads by origin, flucut with its default options
+(H5N1 references chosen from the built-in set; internal share =
+internal / (terminal + internal); `tables/public_read_origins.tsv`):
+
+| run | reads | reads written | 5' terminal | 5' internal | not located | internal share | HA reads internally primed |
+|---|---|---|---|---|---|---|---|
+| SRR36760543 | 47,990 | 48,165 | 35,786 | 4,964 | 6,590 | 12.2% | 64.3% |
+| SRR36760506 | 62,842 | 65,844 | 55,039 | 8,329 | 1,083 | 13.1% | 62.8% |
+| SRR36760520 | 77,419 | 77,629 | 28,102 | 23,045 | 21,665 | 45.1% | 92.2% |
+
+With the complete segments of one H5N1 isolate as references
+(QB222556-QB222563, the references of 2026-10-31):
+
+| run | reads | reads written | 5' terminal | 5' internal | not located | internal share | HA reads internally primed |
+|---|---|---|---|---|---|---|---|
+| SRR36760543 | 47,990 | 48,196 | 35,261 | 4,914 | 7,188 | 12.2% | 64.4% |
+| SRR36760506 | 62,842 | 65,922 | 54,092 | 8,310 | 2,085 | 13.3% | 63.0% |
+| SRR36760520 | 77,419 | 77,624 | 27,901 | 23,089 | 21,819 | 45.3% | 92.2% |
+
+The shares of 2026-10-31 were 12.0, 12.9 and 45.8%. The share counts
+the read ends of the whole run; in the HA alone, 63 to 92% of the reads
+are internally primed. The largest sites are in the HA, at 1083-1118 of
+the built-in reference PV571614.1 (1065-1102 of QB222559.1), in all
+three runs (`tables/public_internal_sites.tsv`). The other segments are
+not free of it: in SRR36760506, 28% of the PA reads and 20% of the PB1
+reads; in SRR36760520, 93% of the PB1 reads and 39% of the PB2 reads.
+
+With the segments of the isolate as references (coding sequences,
+without the untranslated regions) the terminal ends are not located:
+
+| run | reads | reads written | 5' terminal | 5' internal | not located | internal share | HA reads internally primed |
+|---|---|---|---|---|---|---|---|
+| SRR36760543 | 47,990 | 47,971 | 91 | 4,942 | 42,114 | 98.2% | 63.8% |
+| SRR36760506 | 62,842 | 64,575 | 128 | 8,212 | 54,866 | 98.5% | 62.3% |
+| SRR36760520 | 77,419 | 77,424 | 43 | 23,198 | 49,388 | 99.8% | 92.0% |
+
+Each tool on each run: the reads over the codon of the site, mapped to
+the HA of the isolate (`site_reads.py`: reads from amplicons started
+upstream, which show the template codon, and reads which still carry
+the primer codon), the IRMA FLU-minion consensus against that of the
+untrimmed reads, and the time of the trimming (4 threads, the 4
+processors above; `tables/public_site_reads.tsv`,
+`public_consensus.tsv`, `public_bases.tsv`, `public_speed.tsv`).
+
+SRR36760543:
+
+| reads | written | bases kept | template reads (upstream, ATA) | primer codon left (at the site + other, AAA) | HA codon (IRMA) | differences from the untrimmed consensus | wall s | peak MB |
+|---|---|---|---|---|---|---|---|---|
+| untrimmed | 47,990 | 100.0% | 869 | 1745 (1720 + 25) | **AAA** | 0 |  |  |
+| flucut, default | 48,165 | 97.7% | 870 | 0 (0 + 0) | ATA | 2 (HA 2) | 2.21 | 54 |
+| flucut `-r off` | 47,948 | 94.9% | 869 | 36 (31 + 5) | ATA | 2 (HA 2) | 5.47 | 31 |
+| flucut `-r` the isolate | 47,971 | 95.7% | 869 | 0 (0 + 0) | ATA | 2 (HA 2) | 4.10 | 44 |
+| flucut `-r` QB222556-QB222563 | 48,196 | 97.7% | 870 | 0 (0 + 0) | ATA | 2 (HA 2) | 1.93 | 45 |
+| cutadapt | 47,988 | 91.5% | 632 | 6 (5 + 1) | ATA | 2 (HA 2) | 3.49 | 42 |
+| BBDuk | 47,973 | 96.2% | 865 | 147 (126 + 21) | ATA | 2 (HA 2) | 2.92 | 469 |
+| IRMA-core | 47,990 | 96.4% | 869 | 190 (166 + 24) | ATA | 2 (HA 2) | 7.25 | 12 |
+
+SRR36760506:
+
+| reads | written | bases kept | template reads (upstream, ATA) | primer codon left (at the site + other, AAA) | HA codon (IRMA) | differences from the untrimmed consensus | wall s | peak MB |
+|---|---|---|---|---|---|---|---|---|
+| untrimmed | 62,842 | 100.0% | 1341 | 3009 (2938 + 71) | **AAA** | 0 |  |  |
+| flucut, default | 65,844 | 97.9% | 1356 | 0 (0 + 0) | ATA | 3 (HA 2, PA 1) | 2.67 | 60 |
+| flucut `-r off` | 64,484 | 95.1% | 1343 | 101 (94 + 7) | ATA | 3 (HA 2, PA 1) | 7.22 | 31 |
+| flucut `-r` the isolate | 64,575 | 95.7% | 1342 | 0 (0 + 0) | ATA | 3 (HA 2, PA 1) | 5.78 | 43 |
+| flucut `-r` QB222556-QB222563 | 65,922 | 97.9% | 1355 | 0 (0 + 0) | ATA | 3 (HA 2, PA 1) | 3.03 | 48 |
+| cutadapt | 62,841 | 89.1% | 932 | 21 (17 + 4) | ATA | 3 (HA 2, PA 1) | 4.64 | 44 |
+| BBDuk | 62,720 | 96.1% | 1334 | 243 (199 + 44) | ATA | 3 (HA 2, PA 1) | 3.31 | 460 |
+| IRMA-core | 62,841 | 96.4% | 1341 | 304 (243 + 61) | ATA | 3 (HA 2, PA 1) | 9.12 | 12 |
+
+SRR36760520:
+
+| reads | written | bases kept | template reads (upstream, ATA) | primer codon left (at the site + other, AAA) | HA codon (IRMA) | differences from the untrimmed consensus | wall s | peak MB |
+|---|---|---|---|---|---|---|---|---|
+| untrimmed | 77,419 | 100.0% | 611 | 9208 (9019 + 189) | **AAA** | 0 |  |  |
+| flucut, default | 77,629 | 96.1% | 611 | 0 (0 + 0) | ATA | 8 (HA 2, PB1 5, PB2 1) | 3.37 | 54 |
+| flucut `-r off` | 77,294 | 93.3% | 610 | 274 (241 + 33) | ATA | 8 (HA 2, PB1 5, PB2 1) | 7.95 | 28 |
+| flucut `-r` the isolate | 77,424 | 94.4% | 610 | 0 (0 + 0) | ATA | 8 (HA 2, PB1 5, PB2 1) | 5.38 | 44 |
+| flucut `-r` QB222556-QB222563 | 77,624 | 96.0% | 611 | 1 (1 + 0) | ATA | 8 (HA 2, PB1 5, PB2 1) | 2.85 | 44 |
+| cutadapt | 77,409 | 88.6% | 482 | 30 (26 + 4) | ATA | 8 (HA 2, PB1 5, PB2 1) | 5.08 | 49 |
+| BBDuk | 77,310 | 95.3% | 610 | 787 (656 + 131) | ATA | 8 (HA 2, PB1 5, PB2 1) | 3.29 | 402 |
+| IRMA-core | 77,417 | 95.9% | 611 | 1033 (860 + 173) | ATA | 8 (HA 2, PB1 5, PB2 1) | 9.32 | 12 |
+
+- **The consensus.** In all three runs the untrimmed reads give AAA and
+  every trimming tool ATA. The consensus of the untrimmed reads is
+  identical to the GenBank record of the isolate in the four segments
+  compared (PB2, PB1, PA, HA).
+- **More than one base, and more than the HA.** Every tool changes the
+  same bases, all at internal priming sites reported by flucut. In the
+  HA two: the codon (K to I at residue 351) and the first base of the
+  site, 5 bases before (silent). In SRR36760506 one base of the PA
+  (residue 489 of the PA protein, S in the untrimmed consensus and in
+  PZ239807.1, C after trimming and in the other two isolates), where
+  748 reads start. In SRR36760520 five bases of the PB1 (residues 457,
+  459 and 460) and one of the PB2 (residue 682), where 966 and 544
+  reads start. These were found by comparing the consensus sequences;
+  the reads at these sites were not counted by where they start, as
+  was done for the HA codon.
+- **The reads.** flucut with references leaves at most 1 read with the
+  primer codon and keeps the template reads (at most 1 fewer). `-r
+  off` leaves 31, 94 and 241 (`COMPARISON.md` gave 7 for the first
+  run, from a run of which nothing was recorded here); cutadapt, not anchored, loses 21 to 31% of the template
+  reads (it cuts them at the site) and 8 to 11% of all bases; BBDuk
+  leaves 126 to 656 reads with the primer codon and the IRMA-core
+  trimmer 166 to 860.
+- **Reads written.** flucut writes more reads than it reads: 515, 3332
+  and 546 reads were split.
+- **Time.** flucut with its default options takes 2.2 to 3.4 s on these
+  runs, less than cutadapt (3.5 to 5.1 s), BBDuk (2.9 to 3.3 s) and the
+  IRMA-core trimmer (7.3 to 9.3 s); `-r off` takes 5.5 to 8.0 s.
+
+### The public Illumina run SRR34913296 (`run-real-illumina.sh`)
+
+282,828 pairs, flucut with `-p illumina`; references of the isolate:
+PX279895.1 to PX279902.1. The site is at 1050-1061 of the HA coding
+sequence PX279898.1 and the codon at 1054-1056: residue 352 in this
+isolate, whose cleavage site is one residue longer.
+
+| reads | written | bases kept | template reads (upstream, ATA) | primer codon left (at the site + other, AAA) | HA codon (IRMA) | differences from the untrimmed consensus | wall s | peak MB |
+|---|---|---|---|---|---|---|---|---|
+| untrimmed | 565,656 | 100.0% | 35 | 221 (92 + 129) | **AAA** | 0 |  |  |
+| flucut, default | 566,100 | 99.4% | 34 | 0 (0 + 0) | ATA | 1 (HA 1) | 7.90 | 43 |
+| flucut `-r off` | 565,733 | 98.9% | 35 | 0 (0 + 0) | ATA | 1 (HA 1) | 17.00 | 17 |
+| flucut `-r` the isolate | 565,959 | 99.1% | 34 | 0 (0 + 0) | ATA | 1 (HA 1) | 5.29 | 31 |
+| cutadapt | 565,513 | 97.8% | 25 | 8 (5 + 3) | ATA | 1 (HA 1) | 4.05 | 46 |
+| cutadapt, anchored | 565,656 | 99.4% | 35 | 20 (9 + 11) | ATA | 1 (HA 1) | 2.26 | 45 |
+| BBDuk | 565,656 | 99.3% | 35 | 21 (10 + 11) | ATA | 1 (HA 1) | 3.03 | 384 |
+| IRMA-core | 565,656 | 99.4% | 35 | 72 (58 + 14) | ATA | 1 (HA 1) | 15.86 | 12 |
+
+- IRMA FLU gives AAA from the untrimmed reads (as PX279898.1) and ATA
+  from the reads of every tool; the codon is the only difference in the
+  8 segments, as on 2026-10-30.
+- flucut keeps 99.4% of the bases with its default options and 99.1%
+  with the segments of the isolate as references (99.1% on
+  2026-10-30). One of the 35 template reads is no longer counted
+  upstream after flucut with references.
+- cutadapt, not anchored, keeps 25 of the 35 template reads; anchored
+  it keeps all and leaves 20 reads with the primer codon; BBDuk leaves
+  21 and the IRMA-core trimmer 72.
+- The two files of a pair are trimmed as two inputs, and reads are
+  split in each (447 in all): the files written have 283,041 and
+  283,059 reads. IRMA accepted them.
+- The origin of the read ends is not meaningful for these reads
+  (fragments: 88% have no primer), and the mean coverage of the HA was
+  not computed again.
+
+### Not measured again
+
+dorado (see above), so its rows of 2026-10-30 and its comparison with
+flucut on SRR36760543 stand as they were. The scan of the GenBank
+records. Barbell with `--use-extended`. The other tools at other error
+rates. The seven other Illumina runs of the scan.
+
 ## 2026-11-24: the subtype named, the references of each subtype and the votes
 
 flucut names the subtype of a sample after the references it chooses
