@@ -202,11 +202,13 @@ def cds_span(record):
 
 def collection_year(record):
   """The year of the strain name of the description, which is its last
-  field (A/duck/Cambodia/X/2024(H5N1)), or 0. Two digits
+  field (A/duck/Cambodia/X/2024(H5N1), or (B/Phuket/3073/2013) for
+  influenza B), or 0. Two digits
   (A/swine/Belgium/1/83) are read as 19xx above 25 and as 20xx below
   it; the fields before the last are isolate numbers, not years."""
   text = record.findtext("GBSeq_definition") or ""
-  found = re.search(r"A/([^()]+?)\(", text)
+  found = re.search(r"A/([^()]+?)\(", text) or \
+    re.search(r"\(B/([^()]+?)\)", text)
   if not found:
     return 0
   year = found.group(1).split("/")[-1].strip()
