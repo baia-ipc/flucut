@@ -53,6 +53,7 @@ cleavage_anchors_t* cleavage_anchors_new(const fasta_t *references,
     cr->nt[CLEAVAGE_SITE_NT] = '\0';
     codons_translate(cr->nt, CLEAVAGE_SITE_NT, cr->aa);
     cr->reading = reading_of(cr->aa);
+    codons_translate(cr->anchor.seq, CLEAVAGE_ANCHOR_NT, cr->fusion);
     self->n_found++;
   }
   if (self->n_found == 0) {
@@ -90,12 +91,16 @@ void cleavage_counts_clear(cleavage_counts_t *self) {
   memset(self, 0, sizeof(cleavage_counts_t));
 }
 
-void cleavage_counts_set_reference(cleavage_counts_t *self,
-    const char *aa) {
+void cleavage_counts_set_reference(cleavage_counts_t *self, const char *aa,
+    const char *fusion) {
   assert(self != NULL);
   assert(aa != NULL);
-  if (self->reference_aa[0] == '\0')
-    snprintf(self->reference_aa, sizeof(self->reference_aa), "%s", aa);
+  assert(fusion != NULL);
+  if (self->reference_aa[0] != '\0')
+    return;
+  snprintf(self->reference_aa, sizeof(self->reference_aa), "%s", aa);
+  snprintf(self->reference_fusion, sizeof(self->reference_fusion), "%s",
+           fusion);
 }
 
 void cleavage_counts_searched(cleavage_counts_t *self) {
@@ -150,7 +155,7 @@ void cleavage_counts_add(cleavage_counts_t *self, const char *nt) {
 }
 
 /* the slot of <aa> in the table of a control window */
-static size_t control_slot(const cleavage_control_t *c, const char *aa) {
+static size_t control_slot(const cleavage_tally_t *c, const char *aa) {
   size_t h = 2166136261u;
   for (size_t i = 0; i < CLEAVAGE_SITE_AA; i++) {
     h ^= (unsigned char)aa[i];
@@ -163,7 +168,7 @@ static size_t control_slot(const cleavage_control_t *c, const char *aa) {
   return s;
 }
 
-static void control_add(cleavage_control_t *c, const char *aa,
+static void control_add(cleavage_tally_t *c, const char *aa,
     size_t reads) {
   c->reads += reads;
   size_t s = control_slot(c, aa);
@@ -192,6 +197,14 @@ void cleavage_counts_add_control(cleavage_counts_t *self, size_t i,
   control_add(self->control + i, aa, 1);
 }
 
+void cleavage_counts_add_fusion(cleavage_counts_t *self, const char *nt) {
+  assert(self != NULL);
+  assert(nt != NULL);
+  char aa[CLEAVAGE_SITE_AA + 1];
+  codons_translate(nt, CLEAVAGE_ANCHOR_NT, aa);
+  control_add(&self->fusion, aa, 1);
+}
+
 size_t cleavage_counts_reads(const cleavage_counts_t *self) {
   assert(self != NULL);
   size_t n = self->overflow;
@@ -213,7 +226,12 @@ void cleavage_counts_merge(cleavage_counts_t *self,
                   other->control[i].entries[k].reads);
   }
   if (other->reference_aa[0] != '\0')
-    cleavage_counts_set_reference(self, other->reference_aa);
+    cleavage_counts_set_reference(self, other->reference_aa,
+                                  other->reference_fusion);
+  self->fusion.overflow += other->fusion.overflow;
+  for (size_t k = 0; k < other->fusion.n; k++)
+    control_add(&self->fusion, other->fusion.entries[k].aa,
+                other->fusion.entries[k].reads);
   for (size_t i = 0; i < other->n_motifs; i++)
     add_reads(self, other->motifs[i].nt, other->motifs[i].reads);
 }
@@ -232,7 +250,13 @@ void cleavage_counts_save(const cleavage_counts_t *self, FILE *file) {
               self->control[i].entries[k].reads);
   }
   if (self->reference_aa[0] != '\0')
-    fprintf(file, "cleavage-reference %s\n", self->reference_aa);
+    fprintf(file, "cleavage-reference %s %s\n", self->reference_aa,
+            self->reference_fusion);
+  if (self->fusion.overflow > 0)
+    fprintf(file, "cleavage-fusion-over %zu\n", self->fusion.overflow);
+  for (size_t k = 0; k < self->fusion.n; k++)
+    fprintf(file, "cleavage-fusion %s %zu\n", self->fusion.entries[k].aa,
+            self->fusion.entries[k].reads);
   for (size_t i = 0; i < self->n_motifs; i++)
     fprintf(file, "cleavage %s %zu\n", self->motifs[i].nt,
             self->motifs[i].reads);
@@ -268,11 +292,25 @@ bool cleavage_counts_load_line(cleavage_counts_t *self, char *line) {
     control_add(self->control + i, aa, strtoull(rest, NULL, 10));
     return true;
   }
-  if (strncmp(line, "cleavage-reference ", 19) == 0) {
+  if (strncmp(line, "cleavage-fusion-over ", 21) == 0) {
+    self->fusion.overflow += strtoull(line + 21, NULL, 10);
+    return true;
+  }
+  if (strncmp(line, "cleavage-fusion ", 16) == 0) {
     char aa[CLEAVAGE_SITE_AA + 2];
-    if (sscanf(line + 19, "%9s", aa) != 1)
+    char *rest;
+    if (sscanf(line + 16, "%9s", aa) != 1 ||
+        strlen(aa) != CLEAVAGE_SITE_AA ||
+        (rest = strchr(line + 16, ' ')) == NULL)
       return false;
-    cleavage_counts_set_reference(self, aa);
+    control_add(&self->fusion, aa, strtoull(rest, NULL, 10));
+    return true;
+  }
+  if (strncmp(line, "cleavage-reference ", 19) == 0) {
+    char aa[CLEAVAGE_SITE_AA + 2], fusion[CLEAVAGE_SITE_AA + 2] = "";
+    if (sscanf(line + 19, "%9s %9s", aa, fusion) < 1)
+      return false;
+    cleavage_counts_set_reference(self, aa, fusion);
     return true;
   }
   if (strncmp(line, "cleavage ", 9) != 0)
@@ -395,7 +433,7 @@ void cleavage_result_of(const cleavage_counts_t *counts, size_t chemistry,
      agreeing with its own majority added up */
   size_t agree = 0, total = 0;
   for (size_t i = 0; i < CLEAVAGE_N_CONTROLS; i++) {
-    const cleavage_control_t *c = counts->control + i;
+    const cleavage_tally_t *c = counts->control + i;
     size_t best = 0;
     for (size_t k = 1; k < c->n; k++)
       if (c->entries[k].reads > c->entries[best].reads)
@@ -406,6 +444,19 @@ void cleavage_result_of(const cleavage_counts_t *counts, size_t chemistry,
   }
   out->control_reads = total;
   out->control_support = total > 0 ? (double)agree / (double)total : 0.0;
+  snprintf(out->reference_fusion, sizeof(out->reference_fusion), "%s",
+           counts->reference_fusion);
+  const cleavage_tally_t *f = &counts->fusion;
+  if (f->reads > 0 && f->n > 0) {
+    size_t best = 0;
+    for (size_t k = 1; k < f->n; k++)
+      if (f->entries[k].reads > f->entries[best].reads)
+        best = k;
+    snprintf(out->fusion_aa, sizeof(out->fusion_aa), "%s",
+             f->entries[best].aa);
+    out->fusion_reads = f->reads;
+    out->fusion_support = (double)f->entries[best].reads / (double)f->reads;
+  }
   /* the reads of a sample which holds more than one haemagglutinin do
      not read like its own reference; the motif reported is then not
      necessarily the one of its own virus */
@@ -524,7 +575,7 @@ static void test_counts(void) {
   test_eq_size(r.top[1].reading, CLEAVAGE_UNREADABLE);
 
   /* the reads read like the reference: still firm */
-  cleavage_counts_set_reference(&c, "LREKRRKR");
+  cleavage_counts_set_reference(&c, "LREKRRKR", "GLFGAIAG");
   cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
   test_eq_str(r.reference_aa, "LREKRRKR");
   test_eq_size(r.reference_reading, CLEAVAGE_MULTIBASIC);
@@ -535,7 +586,7 @@ static void test_counts(void) {
      is never firm, however many reads agree */
   cleavage_counts_t mixed;
   cleavage_counts_clear(&mixed);
-  cleavage_counts_set_reference(&mixed, "LREKRRKR");
+  cleavage_counts_set_reference(&mixed, "LREKRRKR", "GLFGAIAG");
   add_n(&mixed, LPAI_NT, 100);
   cleavage_result_of(&mixed, CLEAVAGE_CHEMISTRY_R10, &r);
   test_eq_str(r.aa, "NVPARSSR");
@@ -620,6 +671,38 @@ static void test_control(void) {
   /* the site itself is still reported, with its own support */
   test_eq_str(r.aa, "QRERRRKR");
   test_assert(r.support > 0.99);
+}
+
+/* the fusion peptide: the anchor as the reads carry it */
+static void test_fusion(void) {
+  cleavage_counts_t c;
+  cleavage_counts_clear(&c);
+  cleavage_counts_set_reference(&c, "LREKRRKR", "GLFGAIAG");
+  add_n(&c, HPAI_NT, 100);
+  cleavage_result_t r;
+  /* no read read at the anchor yet */
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_str(r.reference_fusion, "GLFGAIAG");
+  test_eq_str(r.fusion_aa, "");
+  test_eq_size(r.fusion_reads, 0);
+  /* 80 reads carry the peptide of the reference, 20 another */
+  for (size_t i = 0; i < 80; i++)
+    cleavage_counts_add_fusion(&c, "GGACTGTTTGGGGCTATAGCAGGC");
+  for (size_t i = 0; i < 20; i++)
+    cleavage_counts_add_fusion(&c, "GGAATTTTTGGGGCTATAGCAGGC");
+  cleavage_result_of(&c, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_str(r.fusion_aa, "GLFGAIAG");
+  test_eq_size(r.fusion_reads, 100);
+  test_assert(r.fusion_support > 0.79 && r.fusion_support < 0.81);
+  /* the other peptide is the one of the H3 of horses and pigs */
+  cleavage_counts_t h3;
+  cleavage_counts_clear(&h3);
+  for (size_t i = 0; i < 50; i++)
+    cleavage_counts_add_fusion(&h3, "GGAATTTTTGGGGCTATAGCAGGC");
+  add_n(&h3, HPAI_NT, 50);
+  cleavage_result_of(&h3, CLEAVAGE_CHEMISTRY_R10, &r);
+  test_eq_str(r.fusion_aa, "GIFGAIAG");
+  test_assert(r.fusion_support > 0.99);
 }
 
 static void test_readings(void) {
@@ -714,6 +797,7 @@ static void test_chemistry(void) {
 void cleavage_site_test(void) {
   test_counts();
   test_control();
+  test_fusion();
   test_readings();
   test_overflow();
   test_save_load();

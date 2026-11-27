@@ -132,6 +132,28 @@ bool anchor_bases_before(const anchor_hit_t *hit, const char *read,
   return true;
 }
 
+bool anchor_bases_at(const anchor_hit_t *hit, const char *read,
+    size_t read_len, size_t n, char *out) {
+  assert(hit != NULL);
+  assert(out != NULL);
+  if (!hit->found || n == 0 || read == NULL)
+    return false;
+  if (!hit->reverse) {
+    if (hit->start + (long)n > (long)read_len)
+      return false;
+    for (size_t i = 0; i < n; i++)
+      out[i] = upper(read[hit->start + (long)i]);
+    out[n] = '\0';
+    return true;
+  }
+  /* the anchor read the other way round: its first bases are the last
+     of the match here */
+  if (hit->end + 1 < (long)n)
+    return false;
+  revcomp(read + hit->end + 1 - (long)n, n, out);
+  return true;
+}
+
 bool anchor_bases_after(const anchor_hit_t *hit, const char *read,
     size_t read_len, size_t skip, size_t n, char *out) {
   assert(hit != NULL);
@@ -222,6 +244,18 @@ void anchor_site_test(void) {
                                   4, out));
   test_assert(!anchor_bases_after(&hit, short_read, strlen(short_read), 3,
                                   3, out));
+  /* the anchor itself, as the read carries it */
+  test_assert(anchor_find(&a, ha, strlen(ha), 0.2, &hit));
+  test_assert(anchor_bases_at(&hit, ha, strlen(ha), 24, out));
+  test_eq_str(out, FUSION_NT);
+  test_assert(anchor_find(&a, rc, strlen(rc), 0.2, &hit));
+  test_assert(anchor_bases_at(&hit, rc, strlen(rc), 24, out));
+  test_eq_str(out, FUSION_NT);
+  /* a read whose anchor carries an error shows that error */
+  test_assert(anchor_find(&a, noisy, strlen(noisy), 0.2, &hit));
+  test_assert(anchor_bases_at(&hit, noisy, strlen(noisy), 24, out));
+  test_eq_str(out, "GGACTCTTTGGGGCTTTAGCAGGC");
+  test_assert(anchor_find(&a, ha, strlen(ha), 0.2, &hit));
   /* a read without the anchor */
   const char *other = "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT";
   test_assert(!anchor_find(&a, other, strlen(other), 0.2, &hit));

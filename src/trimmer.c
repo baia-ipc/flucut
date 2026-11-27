@@ -202,7 +202,8 @@ static void read_cleavage_site(trimmer_t *self, const char *seq, size_t len,
       !(cover->located && cover->ref == self->cleavage->anchor.ref &&
         category == READ_CATEGORY_FULL))
     return;
-  counter_set_cleavage_reference(counts, self->cleavage->aa);
+  counter_set_cleavage_reference(counts, self->cleavage->aa,
+                                 self->cleavage->fusion);
   counter_add_cleavage_searched(counts);
   /* one search of the anchor per read; the site and the control
      windows are then read from either side of the match */
@@ -213,6 +214,8 @@ static void read_cleavage_site(trimmer_t *self, const char *seq, size_t len,
   char window[CLEAVAGE_SITE_NT + 1];
   if (anchor_bases_before(&hit, seq, len, CLEAVAGE_SITE_NT, window))
     counter_add_cleavage(counts, window);
+  if (anchor_bases_at(&hit, seq, len, CLEAVAGE_ANCHOR_NT, window))
+    counter_add_cleavage_fusion(counts, window);
   for (size_t i = 0; i < CLEAVAGE_N_CONTROLS; i++)
     if (anchor_bases_after(&hit, seq, len, i * CLEAVAGE_SITE_NT,
                            CLEAVAGE_SITE_NT, window))

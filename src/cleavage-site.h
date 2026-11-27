@@ -100,8 +100,9 @@
 #define CLEAVAGE_CONTROL_MOTIFS 256
 #define CLEAVAGE_CONTROL_SLOTS 512
 
-/* what one control window counted: its reads by the residues they
-   carry, bounded as the table of the site is */
+/* what one window of residues counted: its reads by the residues they
+   carry, bounded as the table of the site is. Used for the control
+   windows and for the fusion peptide */
 typedef struct {
   size_t reads;
   size_t overflow;
@@ -111,7 +112,7 @@ typedef struct {
     size_t reads;
   } entries[CLEAVAGE_CONTROL_MOTIFS];
   size_t slots[CLEAVAGE_CONTROL_SLOTS];
-} cleavage_control_t;
+} cleavage_tally_t;
 
 /*
    The distinct motifs kept, and the slots of the table that holds them.
@@ -185,6 +186,7 @@ typedef struct {
   char nt[CLEAVAGE_SITE_NT + 1];
   char aa[CLEAVAGE_SITE_AA + 1];
   size_t reading;                  /* CLEAVAGE_MULTIBASIC, ... */
+  char fusion[CLEAVAGE_SITE_AA + 1];   /* the anchor, translated */
 } cleavage_reference_t;
 
 /* the sites of the HA references of a run, built once and shared */
@@ -225,7 +227,13 @@ typedef struct {
   /* the control windows, each counted by residues in a table of its
      own; smaller than the one of the site, which is enough to hold a
      majority, and bounded in the same way */
-  cleavage_control_t control[CLEAVAGE_N_CONTROLS];
+  cleavage_tally_t control[CLEAVAGE_N_CONTROLS];
+  /* the fusion peptide itself, as the reads carry it: the anchor is
+     conserved, so this is a check that it landed where it should and
+     shows the variant this sample carries */
+  cleavage_tally_t fusion;
+  /* the fusion peptide of the HA reference ("": none) */
+  char reference_fusion[CLEAVAGE_SITE_AA + 1];
   size_t n_motifs;
   /* the site of the HA reference the reads were read against ("": none) */
   char reference_aa[CLEAVAGE_SITE_AA + 1];
@@ -240,9 +248,11 @@ void cleavage_counts_clear(cleavage_counts_t *self);
 
 /*
    Record the site of the HA reference the reads are being read against
-   (<aa>, the residues; ignored if one is already recorded)
+   (<aa>) and its fusion peptide (<fusion>, the anchor); ignored if one
+   is already recorded
 */
-void cleavage_counts_set_reference(cleavage_counts_t *self, const char *aa);
+void cleavage_counts_set_reference(cleavage_counts_t *self, const char *aa,
+    const char *fusion);
 
 /* Count a read searched, whether or not the site was found in it */
 void cleavage_counts_searched(cleavage_counts_t *self);
@@ -253,6 +263,9 @@ void cleavage_counts_add(cleavage_counts_t *self, const char *nt);
 /* Count the bases <nt> read from the control window <i> of a read */
 void cleavage_counts_add_control(cleavage_counts_t *self, size_t i,
     const char *nt);
+
+/* Count the bases <nt> the read carries where the anchor matched */
+void cleavage_counts_add_fusion(cleavage_counts_t *self, const char *nt);
 
 /* The reads the site was read from (the motifs and the overflow) */
 size_t cleavage_counts_reads(const cleavage_counts_t *self);
@@ -316,6 +329,15 @@ typedef struct {
   char reference_aa[CLEAVAGE_SITE_AA + 1];
   size_t reference_reading;
   bool disagrees_with_reference;
+  /* the fusion peptide: the one of the reference, which is the anchor,
+     and the one the reads carry where it matched, with the share of
+     them agreeing. The two differ when the sample is not the subtype
+     of its reference; a low share means the anchor is matching reads
+     it should not */
+  char reference_fusion[CLEAVAGE_SITE_AA + 1];
+  char fusion_aa[CLEAVAGE_SITE_AA + 1];
+  size_t fusion_reads;
+  double fusion_support;
   /* the most frequent sites, most frequent first: a sample with the
      reads of more than one haemagglutinin in it (a co-infection, or
      reads of another barcode) shows here, as the fusion peptide which
