@@ -185,7 +185,7 @@ def esearch(term, retmax, api_key):
   url = eutils_url("esearch", params)
   try:
     raw = http_get(url)
-  except urllib.error.URLError as err:
+  except (urllib.error.URLError, ConnectionError, TimeoutError) as err:
     raise RuntimeError("esearch request failed: %s" % err)
   import json
   try:
@@ -211,7 +211,7 @@ def efetch_fasta(uids, api_key):
   url = eutils_url("efetch", params)
   try:
     raw = http_get(url)
-  except urllib.error.URLError as err:
+  except (urllib.error.URLError, ConnectionError, TimeoutError) as err:
     raise RuntimeError("efetch request failed: %s" % err)
   return raw.decode("utf-8")
 
