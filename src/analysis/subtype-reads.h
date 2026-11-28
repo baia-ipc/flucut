@@ -88,14 +88,12 @@ enum { SUBTYPE_READS_HA, SUBTYPE_READS_NA, SUBTYPE_READS_N_SEGMENTS };
    reads with several voting probes whose probes agree on no subtype,
    and the fewest such reads for the share to mean anything.
 
-   Measured on 177 HA and NA segments of 104 sequenced samples, each
-   compared with the identity of its IRMA consensus to the closest
-   record of the set (subtype_check/ of the analyses): no segment with
-   a record at least 90% identical reached 0.15, and every segment
-   above 0.5 had its closest record at most 88% identical. The
-   converse does not hold: most segments with a distant record stay
-   below 0.5, so this says that the reads of a segment fit no record
-   of the set, not how distant the closest one is.
+   The share was chosen on sequenced samples whose segments were
+   compared with the identity of their consensus to the closest record
+   of the set: segments with a record at least 90% identical stay well
+   below it. Not every distant reference reaches it, so this says that
+   the reads of a segment fit no record of the set, not how distant
+   the closest one is.
 */
 #define SUBTYPE_READS_SCATTERED_SHARE 0.5
 #define SUBTYPE_READS_SCATTERED_MIN_READS 20

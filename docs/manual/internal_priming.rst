@@ -244,14 +244,8 @@ reference gives reads which agree on nothing. Where it appears, take
 the subtype of that segment as provisional and, if it matters, add a
 closer reference with ``-r``.
 
-It was measured on 177 HA and NA segments of 104 sequenced samples,
-each compared with the identity of its assembled consensus to the
-closest record of the set: no segment with a record at least 90%
-identical reached 0.15 scattered reads, and every segment above 0.5
-had its closest record at most 88% identical. Most segments with a
-distant record stay below 0.5, so the remark marks reads which fit no
-record, not how distant the closest record is, and its absence is no
-proof that the reference is close.
+The remark does not appear for every distant reference, so its absence
+does not mean that the reference is close.
 
 How small a second virus it sees was measured on simulated reads of 17
 genomes outside the built-in set and of mixes of two of them, at mean
