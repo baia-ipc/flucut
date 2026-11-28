@@ -170,6 +170,14 @@
    the read is counted where it lies in the coverage of its segment. The
    position of the junction in the read is reported as well, so that the
    read can be cut there into its two flanks (see trimmer.h).
+
+   The modules
+   -----------
+
+   This header is the interface of the analysis to the rest of the
+   program (trimmer.h, chimera.h). Each step of the analysis is in a
+   module of its own, listed in amplicon-analyzer.h; the unit tests are
+   in amplicon-test.c.
 */
 
 #ifndef AMPLICON_H
@@ -206,7 +214,7 @@ typedef enum {
 #define AMPLICON_DEFAULT_POLICY TRIM_PRIMER
 
 /* the fewest bases of a primer searched at an end of a read, after a
-   flank, without its outer bases (see amplicon.c, missing_costs()) */
+   flank, without its outer bases (see amplicon-ends.h) */
 #define AMPLICON_MIN_TRUNCATED 8
 
 /* default window: the primer of an end must begin (left) or end (right)
@@ -372,8 +380,5 @@ static inline size_t amplicon_kept_length(const amplicon_t *self) {
   return self->keep_to < self->keep_from ? 0 :
          (size_t)(self->keep_to - self->keep_from + 1);
 }
-
-/* Unit tests */
-void amplicon_test(void);
 
 #endif

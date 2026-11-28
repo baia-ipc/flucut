@@ -17,6 +17,7 @@
 #include "adapters.h"
 #include "adaptor-search.h"
 #include "amplicon.h"
+#include "amplicon-test.h"
 #include "anchor-site.h"
 #include "auto-settings.h"
 #include "qc-flags.h"
