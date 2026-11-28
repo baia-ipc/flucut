@@ -7,6 +7,7 @@
 #include "alloc.h"
 #include "qc-summary.h"
 #include "reference.h"
+#include "reference-subtype.h"
 #include "report.h"
 #include "test.h"
 

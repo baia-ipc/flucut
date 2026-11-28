@@ -45,6 +45,7 @@
 #include "primer-search-test.h"
 #include "primers.h"
 #include "reference.h"
+#include "reference-test.h"
 #include "report.h"
 #include "scheme.h"
 #include "segments.h"

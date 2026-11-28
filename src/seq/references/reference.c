@@ -1,222 +1,17 @@
 /* (c) 2026 Giorgio Gonnella */
 
 #include <assert.h>
-#include <ctype.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include "alloc.h"
 #include "fasta.h"
 #include "kmer-index.h"
 #include "pattern-scan.h"
 #include "primers.h"
 #include "reference.h"
+#include "reference-index.h"
 #include "segments.h"
-#include "strutils.h"
-#include "virus.h"
-#include "test.h"
-
-struct reference_index_t {
-  const fasta_t *fasta;
-  kmer_index_t *kmers;
-  /* the subtype of each reference (an id into <subtype_names>, -1 if its
-     description has none), parsed from the FASTA description (e.g. the
-     "(H5N1)" of an influenza record): the references of different subtypes
-     can be told apart, so that a read is classified against the subtype it
-     belongs to (see reference_set_restrict) */
-  int *subtype;
-  char **subtype_names;
-  size_t n_subtypes;
-  /* the segment of each reference (1 to 8, 0 if its description names
-     none, see segments.h), for reference_set_restrict_segment() */
-  int *segment;
-};
-
-/*
-   The lineage of influenza B in a FASTA description: "Victoria" or
-   "Yamagata" where the description says so ("Victoria lineage",
-   "lineage Yamagata"), and "B" where it does not, so that the
-   references whose lineage is not known are one group. Never NULL.
-
-   The word alone is not enough: Victoria and Yamagata are also the
-   places of the strain names B/Victoria/2/87 and B/Yamagata/16/88,
-   which name the lineages after them, and a virus of either lineage
-   isolated in Victoria or in Yamagata carries that place in its name.
-   Most records do not say which lineage they are, so most references
-   of influenza B are the group "B": the lineage of a sample is better
-   called downstream, from its assembled HA.
-*/
-static char* parse_lineage(const char *desc) {
-  static const char *const names[] = {"Victoria", "Yamagata"};
-  static const char key[] = "lineage";
-  const size_t key_len = sizeof(key) - 1;
-  for (size_t i = 0; i < 2 && desc != NULL; i++) {
-    size_t len = strlen(names[i]);
-    for (const char *p = desc; (p = strcasestr(p, names[i])) != NULL;
-         p += len) {
-      /* "<name> lineage" or "lineage <name>" (any separators between) */
-      const char *after = p + len;
-      while (*after == ' ' || *after == '-' || *after == '_')
-        after++;
-      if (strncasecmp(after, key, key_len) == 0)
-        return xstrdup(names[i]);
-      if (p - desc >= (long)key_len + 1) {
-        const char *before = p - 1;
-        while (before > desc &&
-               (*before == ' ' || *before == '-' || *before == '_'))
-          before--;
-        if (before - desc >= (long)key_len - 1 &&
-            strncasecmp(before - key_len + 1, key, key_len) == 0)
-          return xstrdup(names[i]);
-      }
-    }
-  }
-  return xstrdup("B");
-}
-
-/*
-   The subtype in a FASTA description: for influenza A the H<n>N<n>
-   inside parentheses (e.g. "...(A/.../2024(H5N1)) segment 4..."),
-   uppercased, or NULL where it names none; for influenza B its lineage
-   (see parse_lineage()). It is the group a reference belongs to: the
-   references of a group are those a sample of it is classified
-   against (see auto-settings.h).
-*/
-static char* parse_subtype(const char *desc) {
-  if (desc == NULL)
-    return NULL;
-  if (virus_description_is_b(desc))
-    return parse_lineage(desc);
-  for (const char *p = desc; (p = strchr(p, 'H')) != NULL; p++) {
-    const char *q = p + 1;
-    if (!isdigit((unsigned char)*q))
-      continue;
-    while (isdigit((unsigned char)*q))
-      q++;
-    if (*q != 'N')
-      continue;
-    const char *r = q + 1;
-    if (!isdigit((unsigned char)*r))
-      continue;
-    while (isdigit((unsigned char)*r))
-      r++;
-    size_t n = (size_t)(r - p);
-    char *s;
-    XMALLOC(s, n + 1);
-    for (size_t i = 0; i < n; i++)
-      s[i] = (char)toupper((unsigned char)p[i]);
-    s[n] = '\0';
-    return s;
-  }
-  return NULL;
-}
-
-bool reference_description_subtype(const char *description, char *buf,
-    size_t size) {
-  assert(buf != NULL && size > 0);
-  buf[0] = '\0';
-  char *name = parse_subtype(description);
-  if (name == NULL)
-    return false;
-  snprintf(buf, size, "%s", name);
-  free(name);
-  return true;
-}
-
-/* fill self->subtype (an id per record) and self->subtype_names */
-static void index_subtypes(reference_index_t *self) {
-  size_t n = self->fasta->n_records;
-  XMALLOC(self->subtype, sizeof(int) * (n > 0 ? n : 1));
-  self->subtype_names = NULL;
-  self->n_subtypes = 0;
-  size_t cap = 0;
-  for (size_t i = 0; i < n; i++) {
-    char *name = parse_subtype(self->fasta->records[i].description);
-    if (name == NULL) {
-      self->subtype[i] = -1;
-      continue;
-    }
-    int id = -1;
-    for (size_t j = 0; j < self->n_subtypes; j++)
-      if (strcmp(self->subtype_names[j], name) == 0) {
-        id = (int)j;
-        break;
-      }
-    if (id < 0) {
-      if (self->n_subtypes == cap) {
-        cap = cap == 0 ? 8 : cap * 2;
-        XREALLOC(self->subtype_names, sizeof(char *) * cap);
-      }
-      self->subtype_names[self->n_subtypes] = name;
-      id = (int)self->n_subtypes++;
-    } else {
-      free(name);
-    }
-    self->subtype[i] = id;
-  }
-}
-
-reference_index_t* reference_index_new(const fasta_t *fasta) {
-  assert(fasta != NULL);
-  reference_index_t *self;
-  XMALLOC(self, sizeof(reference_index_t));
-  self->fasta = fasta;
-  index_subtypes(self);
-  const char **seqs;
-  size_t *lens;
-  size_t n = fasta->n_records;
-  XMALLOC(self->segment, sizeof(int) * (n > 0 ? n : 1));
-  for (size_t i = 0; i < n; i++)
-    self->segment[i] = fasta->records[i].description == NULL ? 0 :
-        segments_of_description(fasta->records[i].description);
-  XMALLOC(seqs, sizeof(char *) * (n > 0 ? n : 1));
-  XMALLOC(lens, sizeof(size_t) * (n > 0 ? n : 1));
-  for (size_t i = 0; i < n; i++) {
-    seqs[i] = fasta->records[i].seq;
-    lens[i] = fasta->records[i].seq_len;
-  }
-  self->kmers = kmer_index_new(seqs, lens, n, REFERENCE_KMER_LEN);
-  free(seqs);
-  free(lens);
-  return self;
-}
-
-const fasta_t* reference_index_fasta(const reference_index_t *self) {
-  return self->fasta;
-}
-
-void reference_index_delete(reference_index_t *self) {
-  if (self == NULL)
-    return;
-  kmer_index_delete(self->kmers);
-  for (size_t i = 0; i < self->n_subtypes; i++)
-    free(self->subtype_names[i]);
-  free(self->subtype_names);
-  free(self->subtype);
-  free(self->segment);
-  free(self);
-}
-
-int reference_index_subtype(const reference_index_t *self, size_t ref) {
-  return self->subtype[ref];
-}
-
-size_t reference_index_n_subtypes(const reference_index_t *self) {
-  return self->n_subtypes;
-}
-
-int reference_index_segment(const reference_index_t *self, size_t ref) {
-  return self->segment[ref];
-}
-
-const char* reference_index_subtype_name(const reference_index_t *self,
-    int subtype) {
-  if (subtype < 0 || (size_t)subtype >= self->n_subtypes)
-    return NULL;
-  return self->subtype_names[subtype];
-}
 
 struct reference_set_t {
   const reference_index_t *index;
@@ -252,7 +47,7 @@ reference_set_t* reference_set_new(const reference_index_t *index,
   reference_set_t *self;
   XMALLOC(self, sizeof(reference_set_t));
   self->index = index;
-  self->fasta = index->fasta;
+  self->fasta = reference_index_fasta(index);
   self->probe_len = probe_len;
   self->max_error_rate = max_error_rate;
   self->exhaustive = false;
@@ -296,7 +91,8 @@ void reference_set_restrict_segment(reference_set_t *self, int segment) {
 static bool ref_allowed(const reference_set_t *self, size_t ref) {
   return (self->allowed == NULL || self->allowed[ref]) &&
          (self->restrict_segment == 0 ||
-          self->index->segment[ref] == self->restrict_segment);
+          reference_index_segment(self->index, ref) ==
+          self->restrict_segment);
 }
 
 bool reference_set_allows(const reference_set_t *self, size_t ref) {
@@ -357,7 +153,8 @@ static void set_reverse(reference_set_t *self, const char *probe,
 static bool same_subtype(const reference_set_t *self, size_t a, size_t b) {
   int subtype = reference_index_subtype(self->index, a);
   return subtype >= 0 && subtype == reference_index_subtype(self->index, b)
-         && self->index->segment[a] == self->index->segment[b];
+         && reference_index_segment(self->index, a) ==
+            reference_index_segment(self->index, b);
 }
 
 /* the match of the probe at <ref_start> of the reference <ref_index>
@@ -451,9 +248,9 @@ static void align_reference(reference_set_t *self, size_t ref_index,
 */
 static void seeded_search(reference_set_t *self, const char *query,
     size_t len, bool reverse, long max_errors, reference_hit_t *best) {
-  size_t n = kmer_index_diagonals(self->index->kmers, query, len,
-                                  REFERENCE_MAX_KMER_OCC, &self->hits,
-                                  &self->hits_size);
+  size_t n = kmer_index_diagonals(reference_index_kmers(self->index),
+                                  query, len, REFERENCE_MAX_KMER_OCC,
+                                  &self->hits, &self->hits_size);
   for (size_t i = 0; i < n;) {
     uint32_t ref = self->hits[i].seq;
     if (!ref_allowed(self, ref)) {
@@ -557,236 +354,4 @@ bool reference_hit_is_terminal(const reference_hit_t *hit,
     long terminal_window) {
   assert(hit->mapped);
   return terminus_distance(hit) < terminal_window;
-}
-
-/* a reference set of <n> records with the sequences <seqs> */
-static fasta_t* test_fasta(char **seqs, size_t n) {
-  fasta_t *fa;
-  XMALLOC(fa, sizeof(fasta_t));
-  XMALLOC(fa->records, sizeof(fasta_record_t) * n);
-  fa->n_records = n;
-  for (size_t i = 0; i < n; i++) {
-    fa->records[i].name = NULL;
-    fa->records[i].description = NULL;
-    fa->records[i].seq = seqs[i];
-    fa->records[i].seq_len = strlen(seqs[i]);
-  }
-  return fa;
-}
-
-/* a probe: <len> bases of <seq> from <pos>, reverse-complemented if
-   <rc> (then <pos> is the position of the last base, on the plus strand,
-   i.e. the probe is the minus strand read from <pos> backwards) */
-static void take_probe(const char *seq, long pos, size_t len, bool rc,
-    char *probe) {
-  if (rc)
-    primers_reverse_complement(seq + pos - (long)len + 1, len, probe);
-  else
-    memcpy(probe, seq + pos, len);
-  probe[len] = '\0';
-}
-
-/* the tests of the location of a probe, with the index or exhaustive
-   (the same results; <ref0>, <ref1>: the references of <ix>, see
-   reference_test()) */
-static void test_locate(reference_index_t *ix, bool exhaustive,
-    const char *ref0, const char *ref1, unsigned long *state) {
-  enum { REF_LEN = 1000, PROBE = 30 };
-  char probe[64];
-  reference_set_t *rs = reference_set_new(ix, PROBE, 0.2);
-  reference_set_set_exhaustive(rs, exhaustive);
-  test_eq_size(reference_set_size(rs), 2);
-  test_eq_size(reference_set_probe_len(rs), PROBE);
-  reference_hit_t hit;
-
-  /* a normal amplicon: the probe is the start of the segment */
-  take_probe(ref0, 12, PROBE, false, probe);
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_assert(hit.mapped);
-  test_eq_size(hit.ref_index, 0);
-  test_assert(!hit.reverse);
-  test_eq_long(hit.ref_start, 12);
-  test_eq_long(hit.n_errors, 0);
-  test_eq_long(hit.ref_len, REF_LEN);
-  test_assert(reference_hit_is_terminal(&hit, 60));
-  test_assert(!reference_hit_is_terminal(&hit, 10));
-
-  /* internal priming: an interior position, with two substitutions */
-  take_probe(ref1, 500, PROBE, false, probe);
-  probe[5] = probe[5] == 'A' ? 'C' : 'A';
-  probe[20] = probe[20] == 'G' ? 'T' : 'G';
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_assert(hit.mapped);
-  test_eq_size(hit.ref_index, 1);
-  test_eq_long(hit.ref_start, 500);
-  test_eq_long(hit.n_errors, 2);
-  test_assert(!reference_hit_is_terminal(&hit, 60));
-
-  /* an insertion and a deletion in the probe */
-  /* (ref0[700..710), an inserted base, ref0[710..720), ref0[721..]) */
-  snprintf(probe, sizeof(probe), "%.10s%c%.10s%.*s", ref0 + 700,
-           ref0[710] == 'T' ? 'G' : 'T', ref0 + 710, PROBE - 21,
-           ref0 + 721);
-  test_eq_size(strlen(probe), PROBE);
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_assert(hit.mapped);
-  test_eq_size(hit.ref_index, 0);
-  test_eq_long(hit.ref_start, 700);
-  test_assert(hit.n_errors <= 2);
-
-  /* a read of the minus strand from the end of the segment */
-  take_probe(ref0, REF_LEN - 1 - 13, PROBE, true, probe);
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_assert(hit.mapped);
-  test_assert(hit.reverse);
-  test_eq_long(hit.ref_start, REF_LEN - 1 - 13);
-  test_eq_long(hit.n_errors, 0);
-  test_assert(reference_hit_is_terminal(&hit, 60));
-
-  /* a read of the minus strand from an interior position */
-  take_probe(ref1, 429, PROBE, true, probe);
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_assert(hit.mapped);
-  test_assert(hit.reverse);
-  test_eq_size(hit.ref_index, 1);
-  test_eq_long(hit.ref_start, 429);
-  test_assert(!reference_hit_is_terminal(&hit, 60));
-
-  /* a repeat: equally good at the start and inside, the terminal
-     location is chosen (an ambiguous read is kept intact) */
-  take_probe(ref1, 5, PROBE, false, probe);
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_assert(hit.mapped);
-  test_eq_long(hit.ref_start, 5);
-  test_assert(reference_hit_is_terminal(&hit, 60));
-
-  /* a degenerate base in the reference matches its bases */
-  take_probe(ref0, 290, PROBE, false, probe);
-  probe[10] = 'G';
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_eq_long(hit.ref_start, 290);
-  test_eq_long(hit.n_errors, 0);
-
-  /* a longer probe is cut to the probe length of the set: the bases
-     after it are not used */
-  take_probe(ref1, 250, PROBE + 20, false, probe);
-  memset(probe + PROBE, 'A', 20);
-  reference_set_locate(rs, probe, PROBE + 20, &hit);
-  test_eq_long(hit.ref_start, 250);
-  test_eq_long(hit.n_errors, 0);
-
-  /* a sequence not in the references */
-  test_random_dna_seq(probe, PROBE, state);
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_assert(!hit.mapped);
-  test_eq_long(hit.ref_start, -1);
-
-  /* a probe too short to be located */
-  take_probe(ref1, 500, REFERENCE_MIN_PROBE_LEN - 1, false, probe);
-  reference_set_locate(rs, probe, REFERENCE_MIN_PROBE_LEN - 1, &hit);
-  test_assert(!hit.mapped);
-
-  reference_set_delete(rs);
-}
-
-void reference_test(void) {
-  /* the group of a reference: the subtype for influenza A, the lineage
-     for influenza B, and "B" where no lineage is named */
-  char group[32];
-  test_assert(reference_description_subtype("Influenza A virus "
-      "(A/Cambodia/1/2023(H5N1)) segment 4", group, sizeof(group)));
-  test_eq_str(group, "H5N1");
-  test_assert(reference_description_subtype("Influenza B virus "
-      "(B/Brisbane/60/2008) segment 4", group, sizeof(group)));
-  test_eq_str(group, "B");
-  test_assert(reference_description_subtype("Influenza B virus "
-      "(B/Phuket/3073/2013) Yamagata lineage, segment 4", group,
-      sizeof(group)));
-  test_eq_str(group, "Yamagata");
-  test_assert(reference_description_subtype("Influenza B virus, "
-      "lineage Victoria, segment 6", group, sizeof(group)));
-  test_eq_str(group, "Victoria");
-  /* the place of a strain name is not a lineage */
-  test_assert(reference_description_subtype("Influenza B virus "
-      "(B/Victoria/504/2000) segment 4", group, sizeof(group)));
-  test_eq_str(group, "B");
-  /* a record of influenza A without a subtype has no group */
-  test_assert(!reference_description_subtype("Influenza A virus "
-      "(A/Hong Kong/1/68) segment 4", group, sizeof(group)));
-  enum { REF_LEN = 1000, PROBE = 30 };
-  unsigned long state = 42;
-  char ref0[REF_LEN + 1], ref1[REF_LEN + 1], probe[64];
-  test_random_dna_seq(ref0, REF_LEN, &state);
-  test_random_dna_seq(ref1, REF_LEN, &state);
-  /* a repeat in ref1: the first 40 bases are also at 600 */
-  memcpy(ref1 + 600, ref1, 40);
-  /* a degenerate base in ref0 */
-  ref0[300] = 'R';
-  char *seqs[] = {ref0, ref1};
-  fasta_t *fa = test_fasta(seqs, 2);
-  reference_index_t *ix = reference_index_new(fa);
-  test_assert(reference_index_fasta(ix) == fa);
-  test_locate(ix, false, ref0, ref1, &state);
-  test_locate(ix, true, ref0, ref1, &state);
-
-  /* a probe with an error in each k-mer: the k-mers find nothing, the
-     exhaustive search which follows finds it */
-  take_probe(ref1, 500, PROBE, false, probe);
-  for (size_t i = REFERENCE_KMER_LEN - 1; i < PROBE;
-       i += REFERENCE_KMER_LEN - 1)
-    probe[i] = probe[i] == 'A' ? 'C' : 'A';
-  reference_set_t *rs = reference_set_new(ix, PROBE, 0.2);
-  reference_hit_t hit;
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_assert(hit.mapped);
-  test_eq_long(hit.ref_start, 500);
-  test_eq_long(hit.n_errors, 3);
-  /* by the k-mers alone it is not found, whatever the settings */
-  reference_set_locate_seeded(rs, probe, PROBE, &hit);
-  test_assert(!hit.mapped);
-  reference_set_set_exhaustive(rs, true);
-  reference_set_locate_seeded(rs, probe, PROBE, &hit);
-  test_assert(!hit.mapped);
-  reference_set_set_exhaustive(rs, false);
-  /* with the seeds only, it is not found */
-  reference_set_set_seeds_only(rs, true);
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_assert(!hit.mapped);
-  /* ... while a probe with an exact k-mer is */
-  take_probe(ref1, 500, PROBE, false, probe);
-  probe[3] = probe[3] == 'A' ? 'C' : 'A';
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_assert(hit.mapped);
-  test_eq_long(hit.ref_start, 500);
-  reference_set_set_seeds_only(rs, false);
-  reference_set_delete(rs);
-  reference_index_delete(ix);
-
-  /* the references of one segment only: a probe of another segment is
-     not located, by the k-mers or exhaustively */
-  char ha[] = "segment 4 (HA)", na[] = "segment 6 (NA)";
-  fa->records[0].description = ha;
-  fa->records[1].description = na;
-  ix = reference_index_new(fa);
-  rs = reference_set_new(ix, PROBE, 0.2);
-  take_probe(ref1, 500, PROBE, false, probe);
-  reference_set_restrict_segment(rs, 4);
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_assert(!hit.mapped);
-  reference_set_set_exhaustive(rs, true);
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_assert(!hit.mapped);
-  reference_set_set_exhaustive(rs, false);
-  reference_set_restrict_segment(rs, 6);
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_assert(hit.mapped);
-  test_eq_size(hit.ref_index, 1);
-  test_eq_long(hit.ref_start, 500);
-  reference_set_restrict_segment(rs, 0);
-  reference_set_locate(rs, probe, PROBE, &hit);
-  test_assert(hit.mapped);
-  reference_set_delete(rs);
-  reference_index_delete(ix);
-  free(fa->records);
-  free(fa);
 }

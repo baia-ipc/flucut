@@ -5,6 +5,7 @@
 #include <string.h>
 #include "alloc.h"
 #include "reference.h"
+#include "reference-subtype.h"
 #include "segments.h"
 #include "subtype-reads.h"
 #include "test.h"

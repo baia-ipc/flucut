@@ -430,7 +430,8 @@ taken for the primer and the read cut there.
 
 ### References
 
-`src/seq/references/reference.c`, `src/seq/references/builtin-references.c`. The references decide the
+`src/seq/references/reference-index.c`,
+`src/seq/references/builtin-references.c`. The references decide the
 trimming mode; there is no separate option.
 
 - Default: a built-in set of complete segments (with UTRs), downloaded
@@ -456,8 +457,9 @@ and only internally primed ones map: on SRR36760543, CDS references
 located 10% of the reads, complete segments 86%. A warning is given when
 the references start at a start codon and end at a stop codon
 (`src/flucut.c`). The subtype of each reference is parsed from its FASTA
-description (e.g. `(H5N1)`), and its segment from `segment <n>` or a
-gene or protein name (`src/seq/primers/segments.c`).
+description (e.g. `(H5N1)`; `src/seq/references/reference-subtype.c`),
+and its segment from `segment <n>` or a gene or protein name
+(`src/seq/primers/segments.c`).
 
 ### Threads, reproducibility, live mode
 
