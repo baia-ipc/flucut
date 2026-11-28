@@ -7,6 +7,7 @@
 #include <time.h>
 #include "file.h"
 #include "json-coverage.h"
+#include "json-markers.h"
 #include "json-reads.h"
 #include "json-report.h"
 #include "json-sample.h"
@@ -273,6 +274,7 @@ static void write_section(json_writer_t *w, const report_t *r,
   json_reads_sequencing(w->f, c);
   json_sample_write(w, r, c);
   write_cleavage_site(w, r, c);
+  json_markers_write(w, c);
   write_primers(w, r, c);
   write_internal(w, r, c);
   write_lengths(w, r, c);

@@ -15,6 +15,7 @@
 #include <stddef.h>
 #include "cleavage-counts.h"
 #include "counter.h"
+#include "marker-counts.h"
 #include "qc-summary.h"
 #include "subtype-reads.h"
 
@@ -59,14 +60,19 @@ typedef struct {
    firm is pointed out here as well, so that it is seen in the run
    overview and not only in the sample.
 
+   <markers> is what the reads carried at each marker (marker-counts.h;
+   NULL: not read): the markers whose residue deserves attention and
+   which the table marks as a remark are named in one flag, with the
+   share of the reads carrying them.
+
    <subtypes> are the reads of each HA and NA subtype among the first
    reads of the sample (subtype-reads.h; NULL: not counted): reads of a
    second subtype above the threshold are pointed out, as what was
    observed, since their cause is not known.
 */
 void qc_flags(const counter_reads_t *s, const qc_summary_t *qc, bool refs,
-    const cleavage_result_t *site, const subtype_reads_t *subtypes,
-    qc_flags_t *out);
+    const cleavage_result_t *site, const marker_counts_t *markers,
+    const subtype_reads_t *subtypes, qc_flags_t *out);
 
 /* The share of the reads analyzed (after splitting) placed on a segment
    of the references; 0 without reads */

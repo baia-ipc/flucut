@@ -119,14 +119,24 @@ bool marker_counts_load_line(marker_counts_t *self, char *line);
    which is where nothing is difficult. A sample failing the first has
    a position its reads cannot resolve; one failing the second has
    reads too noisy, or too mixed, for a claim about any position.
+
+   Below MARKER_MIN_MAJORITY the most frequent value is not a majority
+   of anything: no value is reported. A window of many codons reaches
+   that state on noisy reads, because one indel anywhere in it changes
+   what is read, so the markers read over a long window are often
+   unresolved on Nanopore reads and resolved on Illumina ones
+   (docs/markers.md).
 */
 #define MARKER_MIN_SUPPORT 0.60
 #define MARKER_MIN_ANCHOR_SUPPORT 0.60
+#define MARKER_MIN_MAJORITY 0.35
 
 /* how far the value reported can be trusted */
 enum { MARKER_FIRM,       /* enough reads agree */
        MARKER_CONFIRM,    /* the value is the majority, but too few of
                              the reads agree for it to stand alone */
+       MARKER_UNRESOLVED, /* the reads do not agree on any value: the
+                             one reported is not the sample's */
        MARKER_TOO_FEW_READS,
        MARKER_N_VERDICTS };
 

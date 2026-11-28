@@ -78,6 +78,11 @@ static void test_values(void) {
   test_eq_str(v, "EKK*");
   /* a window without a stop codon does not say where the protein ends */
   test_assert(!marker_value_of(MARKER_TO_STOP, "GAAAAAAAAGCTGCTGCT", 18, v));
+  /* a protein which ends farther into the window gives its last
+     residues, so that the value stays a few codons wide */
+  test_assert(marker_value_of(MARKER_TO_STOP,
+      "AAACAAAAACGTAAAATGGCTCGTACTATTGAATCTGAAGTTTAAGCT", 48, v));
+  test_eq_str(v, "ESEV*");
   /* the codons before the stop codon */
   test_assert(marker_value_of(MARKER_FRAME_LENGTH, "GAAAAAAAATAAGCT", 15, v));
   test_eq_str(v, "3");
@@ -88,15 +93,15 @@ static void test_values(void) {
   /* a value deserves attention when it has one of the residues of the
      table at the position where the table has it */
   const marker_def_t *pb2 = marker_def(MARKER_PB2_627);
-  test_assert(marker_value_attention(pb2, "K"));
-  test_assert(!marker_value_attention(pb2, "E"));
+  test_assert(marker_value_attention(pb2, "K", ""));
+  test_assert(!marker_value_attention(pb2, "E", ""));
   /* the haemagglutinin is read at three positions, of which the first
      and the third are the ones watched */
   const marker_def_t *ha = marker_def(MARKER_HA_RBS);
-  test_assert(marker_value_attention(ha, "LSS"));
-  test_assert(marker_value_attention(ha, "QSS"));
-  test_assert(marker_value_attention(ha, "LSG"));
-  test_assert(!marker_value_attention(ha, "QSG"));
+  test_assert(marker_value_attention(ha, "LSS", ""));
+  test_assert(marker_value_attention(ha, "QSS", ""));
+  test_assert(marker_value_attention(ha, "LSG", ""));
+  test_assert(!marker_value_attention(ha, "QSG", ""));
 }
 
 /* --- the anchors in the references --- */
@@ -203,6 +208,17 @@ static void test_reads(void) {
   test_eq_size(r.reads, 10);
   /* too few reads for a firm value */
   test_eq_size(r.verdict, MARKER_TOO_FEW_READS);
+
+  /* reads which agree on no value: none is reported as the sample's */
+  marker_counts_clear(&c);
+  for (size_t i = 0; i < 100; i++) {
+    char value[4] = {"ACDEFGHIKLMNPQRSTVWY"[i % 20], '\0', '\0', '\0'};
+    marker_counts_searched(&c, MARKER_PB2_627);
+    marker_counts_add(&c, MARKER_PB2_627, value);
+    marker_counts_add_anchor(&c, MARKER_PB2_627, "QSRMQFSS");
+  }
+  marker_result_of(&c, MARKER_PB2_627, &r);
+  test_eq_size(r.verdict, MARKER_UNRESOLVED);
 
   /* the C-terminus of a protein, and the length of a stretch, read in
      both orientations */

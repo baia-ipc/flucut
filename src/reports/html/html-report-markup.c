@@ -36,6 +36,19 @@ void markup_open_row(html_writer_t *w) {
   html_inline(w);
 }
 
+void markup_header_cells(html_writer_t *w, const char *const *cells,
+    size_t n) {
+  markup_open_row(w);
+  for (size_t i = 0; i < n; i++) {
+    if (cells[i] == NULL)
+      continue;
+    html_open(w, "th");
+    html_raw(w, cells[i]);
+    html_close(w);
+  }
+  html_close(w);
+}
+
 void markup_header_row(html_writer_t *w, ...) {
   markup_open_row(w);
   va_list ap;

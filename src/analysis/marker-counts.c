@@ -213,6 +213,7 @@ const char* marker_verdict_name(size_t verdict) {
   switch (verdict) {
     case MARKER_FIRM: return "firm";
     case MARKER_CONFIRM: return "confirm";
+    case MARKER_UNRESOLVED: return "unresolved";
     case MARKER_TOO_FEW_READS: return "too few reads";
     default: return "unknown";
   }
@@ -271,7 +272,8 @@ void marker_result_of(const marker_counts_t *counts, size_t marker,
     if (share < MARKER_MIN_SHARE || reads < MARKER_MIN_VALUE_READS)
       continue;
     out->supported++;
-    if (marker_value_attention(def, c->value.entries[i].value)) {
+    if (marker_value_attention(def, c->value.entries[i].value,
+                               out->reference_value)) {
       out->attention = true;
       out->attention_share += share;
     }
@@ -291,9 +293,15 @@ void marker_result_of(const marker_counts_t *counts, size_t marker,
     snprintf(v->value, sizeof(v->value), "%s", c->value.entries[at].value);
     v->reads = c->value.entries[at].reads;
     v->share = (double)v->reads / (double)out->reads;
-    v->attention = marker_value_attention(def, v->value);
+    v->attention = marker_value_attention(def, v->value,
+                                         out->reference_value);
   }
-  out->verdict = out->reads < MARKER_MIN_READS ? MARKER_TOO_FEW_READS :
-      (out->support >= MARKER_MIN_SUPPORT && !out->anchor_weak ?
-       MARKER_FIRM : MARKER_CONFIRM);
+  if (out->reads < MARKER_MIN_READS)
+    out->verdict = MARKER_TOO_FEW_READS;
+  else if (out->support < MARKER_MIN_MAJORITY)
+    out->verdict = MARKER_UNRESOLVED;
+  else if (out->support >= MARKER_MIN_SUPPORT && !out->anchor_weak)
+    out->verdict = MARKER_FIRM;
+  else
+    out->verdict = MARKER_CONFIRM;
 }

@@ -51,7 +51,11 @@ static void read_marker(const marker_reference_t *site, size_t marker,
     marker_counts_add(counts, marker, value);
     return;
   }
-  if (!anchor_bases_window(&hit, read, len, def->offset, def->window, nt))
+  bool got = def->offset < 0 ?
+      anchor_bases_window(&hit, read, len, def->offset, def->window, nt) :
+      anchor_bases_after(&hit, read, len, (size_t)def->offset, def->window,
+                         nt);
+  if (!got)
     return;
   if (marker_value_of(def->kind, nt, def->window, value))
     marker_counts_add(counts, marker, value);

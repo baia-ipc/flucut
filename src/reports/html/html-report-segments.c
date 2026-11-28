@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "html-page.h"
+#include "html-report-markers.h"
 #include "html-report-markup.h"
 #include "html-report-plots.h"
 #include "html-report-sample.h"
@@ -247,7 +248,8 @@ static void across_row(html_writer_t *w, const report_t *r, size_t i,
   if (g->counts == NULL || !qc.segments[segment].found) {
     html_open(w, "td");
     html_attr(w, "class", "wait");
-    html_attr(w, "colspan", segment == CLEAVAGE_SEGMENT ? "11" : "10");
+    html_attr(w, "colspan", "%d", 10 + (segment == CLEAVAGE_SEGMENT ? 1 : 0)
+                                     + (markers_on_segment(segment) ? 1 : 0));
     html_text(w, g->counts == NULL ? "waiting" : "not found");
     html_close(w);
     html_close(w);
@@ -269,6 +271,8 @@ static void across_row(html_writer_t *w, const report_t *r, size_t i,
             percent_text(q->short_complete, q->complete).s : "\xe2\x80\x93");
   if (segment == CLEAVAGE_SEGMENT)
     cleavage_cell(w, r, g->counts);
+  if (markers_on_segment(segment))
+    markers_cell(w, g->counts, segment);
   html_close(w);
 }
 
@@ -279,16 +283,12 @@ static void write_across_table(html_writer_t *w, const report_t *r,
   snprintf(well, sizeof(well), "at \xe2\x89\xa5%d\xc3\x97", QC_MIN_DEPTH);
   markup_open(w, "div", "scroll");
   markup_open(w, "table", "samples across");
-  if (segment == CLEAVAGE_SEGMENT)
-    markup_header_row(w, "sample", "state", "subtype", "median depth",
-                      "of full templates", well,
-                      "covered", "int. primed", "int. deletions",
-                      "complete amplicons", "short", "cleavage site", NULL);
-  else
-    markup_header_row(w, "sample", "state", "subtype", "median depth",
-                      "of full templates", well,
-                      "covered", "int. primed", "int. deletions",
-                      "complete amplicons", "short", NULL);
+  const char *const cells[] = {"sample", "state", "subtype",
+      "median depth", "of full templates", well, "covered", "int. primed",
+      "int. deletions", "complete amplicons", "short",
+      segment == CLEAVAGE_SEGMENT ? "cleavage site" : NULL,
+      markers_on_segment(segment) ? "markers" : NULL};
+  markup_header_cells(w, cells, sizeof(cells) / sizeof(cells[0]));
   for (size_t i = 0; i < r->n_sections; i++)
     across_row(w, r, i, segment);
   html_close(w);
@@ -300,6 +300,11 @@ static void write_across_table(html_writer_t *w, const report_t *r,
               "deletions: shares of the depth from internally primed reads "
               "and from reads with an internal deletion.", well,
               segments_gene(segment), QC_MIN_DEPTH);
+  if (markers_on_segment(segment))
+    markup_note(w, "markers: the residues the reads carry at the marked "
+                "positions of this segment, read from the reads and not "
+                "from an assembly; a badge names a position whose residue "
+                "deserves a look (see the sample below).");
   if (segment == CLEAVAGE_SEGMENT)
     markup_note(w, "cleavage site: the residues before the fusion peptide "
                 "as the full templates carry them, read from the reads "

@@ -69,6 +69,38 @@ static void add_cleavage(qc_flags_t *out, const cleavage_result_t *site) {
         "cleavage site", 100 * site->support);
 }
 
+/*
+   The markers whose residue deserves attention (markers.h), as one
+   remark naming them with the share of the reads carrying them: what
+   was read, not what it means. Only the markers the table marks as a
+   remark are named, and only where the reads support the value, so
+   that a value the reads do not agree on raises nothing.
+*/
+static void add_markers(qc_flags_t *out, const marker_counts_t *markers) {
+  if (markers == NULL)
+    return;
+  char text[QC_FLAGS_TEXT_SIZE];
+  size_t len = 0;
+  size_t named = 0;
+  for (size_t i = 0; i < MARKER_N_MARKERS && len + 24 < sizeof(text); i++) {
+    const marker_def_t *def = marker_def(i);
+    marker_result_t m;
+    marker_result_of(markers, i, &m);
+    if (!def->flag || !m.found || !m.attention ||
+        (m.verdict != MARKER_FIRM && m.verdict != MARKER_CONFIRM))
+      continue;
+    int n = snprintf(text + len, sizeof(text) - len, "%s%s %s (%.0f%%)",
+                     named > 0 ? ", " : "", def->name, m.value,
+                     100 * m.attention_share);
+    if (n < 0 || (size_t)n >= sizeof(text) - len)
+      break;
+    len += (size_t)n;
+    named++;
+  }
+  if (named > 0)
+    add(out, "markers", "%s", text);
+}
+
 /* the reads of a second HA or NA subtype, where their excess is above
    the threshold: what was observed, not what it means */
 static void add_second_subtypes(qc_flags_t *out,
@@ -95,8 +127,8 @@ double qc_flags_reads_placed(const counter_reads_t *s) {
 }
 
 void qc_flags(const counter_reads_t *s, const qc_summary_t *qc, bool refs,
-    const cleavage_result_t *site, const subtype_reads_t *subtypes,
-    qc_flags_t *out) {
+    const cleavage_result_t *site, const marker_counts_t *markers,
+    const subtype_reads_t *subtypes, qc_flags_t *out) {
   assert(s != NULL);
   assert(qc != NULL);
   assert(out != NULL);
@@ -125,6 +157,7 @@ void qc_flags(const counter_reads_t *s, const qc_summary_t *qc, bool refs,
                deletion_share,
                QC_FLAGS_DELETION);
   add_cleavage(out, site);
+  add_markers(out, markers);
   add_second_subtypes(out, subtypes);
 }
 
@@ -139,13 +172,13 @@ void qc_flags_test(void) {
   s.n_ends[2] = 5000;
   s.placed = 5000;
   s.origin[COUNTER_LEFT][ORIGIN_TERMINAL] = 5000;
-  qc_flags(&s, &qc, true, NULL, NULL, &flags);
+  qc_flags(&s, &qc, true, NULL, NULL, NULL, &flags);
   test_eq_size(flags.n, 0);
   /* few reads, a quarter of them without a primer */
   s.reads_in = 400;
   s.n_ends[2] = 300;
   s.n_ends[0] = 100;
-  qc_flags(&s, &qc, false, NULL, NULL, &flags);
+  qc_flags(&s, &qc, false, NULL, NULL, NULL, &flags);
   test_eq_size(flags.n, 2);
   test_eq_str(flags.flags[0].text, "few reads (400)");
   /* the cleavage site: flagged only when the reads do not settle it,
@@ -160,31 +193,31 @@ void qc_flags_test(void) {
   site.support = 0.7;
   site.control_support = 0.9;
   site.verdict = CLEAVAGE_FIRM;
-  qc_flags(&s, &qc, true, &site, NULL, &flags);
+  qc_flags(&s, &qc, true, &site, NULL, NULL, &flags);
   test_eq_size(flags.n, 0);
   site.verdict = CLEAVAGE_CONFIRM;
   site.support = 0.3;
-  qc_flags(&s, &qc, true, &site, NULL, &flags);
+  qc_flags(&s, &qc, true, &site, NULL, NULL, &flags);
   test_eq_size(flags.n, 1);
   test_eq_str(flags.flags[0].key, "cleavage_site");
   test_eq_str(flags.flags[0].text,
               "30% of the reads agree on the HA cleavage site");
   site.control_weak = true;
   site.control_support = 0.42;
-  qc_flags(&s, &qc, true, &site, NULL, &flags);
+  qc_flags(&s, &qc, true, &site, NULL, NULL, &flags);
   test_eq_str(flags.flags[0].text, "the reads disagree at the HA cleavage "
               "site and beside it (42% there)");
   site.disagrees_with_reference = true;
-  qc_flags(&s, &qc, true, &site, NULL, &flags);
+  qc_flags(&s, &qc, true, &site, NULL, NULL, &flags);
   test_eq_str(flags.flags[0].text, "the reads over the HA cleavage site "
               "are of more than one haemagglutinin");
   site.verdict = CLEAVAGE_TOO_FEW_READS;
   site.reads = 7;
-  qc_flags(&s, &qc, true, &site, NULL, &flags);
+  qc_flags(&s, &qc, true, &site, NULL, NULL, &flags);
   test_eq_str(flags.flags[0].text, "only 7 reads over the HA cleavage site");
   /* nothing read, nothing said */
   memset(&site, 0, sizeof(site));
-  qc_flags(&s, &qc, true, &site, NULL, &flags);
+  qc_flags(&s, &qc, true, &site, NULL, NULL, &flags);
   test_eq_size(flags.n, 0);
   test_eq_str(flags.flags[1].text, "no primer in 25% of the reads");
   /* the segments above the thresholds are listed in one flag */
@@ -199,14 +232,14 @@ void qc_flags_test(void) {
   qc.segments[6].internal = 0.12;
   qc.segments[1].internal = 0.05;
   qc.segments[1].deletion = 0.9;
-  qc_flags(&s, &qc, true, NULL, NULL, &flags);
+  qc_flags(&s, &qc, true, NULL, NULL, NULL, &flags);
   test_eq_size(flags.n, 2);
   test_eq_str(flags.flags[0].text, "HA 25%, NA 12% of depth internally primed");
   test_eq_str(flags.flags[1].text, "PB2 90% of depth from reads "
               "with an internal deletion");
   /* the read ends not located */
   qc.not_located = 0.75;
-  qc_flags(&s, &qc, true, NULL, NULL, &flags);
+  qc_flags(&s, &qc, true, NULL, NULL, NULL, &flags);
   test_eq_str(flags.flags[0].key, "not_located");
   /* reads of a second HA subtype above the threshold: 190 reads of H5
      (reference 0), 10 of H3 (reference 1), two probes each */
@@ -219,7 +252,7 @@ void qc_flags_test(void) {
     subtype_reads_add(&subtypes, segment, number, i < 190 ? h5 : h3, 2);
   qc.not_located = 0;
   memset(qc.segments, 0, sizeof(qc.segments));
-  qc_flags(&s, &qc, true, NULL, &subtypes, &flags);
+  qc_flags(&s, &qc, true, NULL, NULL, &subtypes, &flags);
   test_eq_size(flags.n, 1);
   test_eq_str(flags.flags[0].key, "second_ha_subtype");
   test_eq_str(flags.flags[0].text,
@@ -229,7 +262,7 @@ void qc_flags_test(void) {
   subtypes.samples = 1;
   for (size_t i = 0; i < 200; i++)
     subtype_reads_add(&subtypes, segment, number, i < 199 ? h5 : h3, 2);
-  qc_flags(&s, &qc, true, NULL, &subtypes, &flags);
+  qc_flags(&s, &qc, true, NULL, NULL, &subtypes, &flags);
   test_eq_size(flags.n, 0);
   /* few of the reads placed on a segment: the references describe a
      small part of the sample, a severe flag. At the threshold, or
@@ -237,22 +270,22 @@ void qc_flags_test(void) {
   memset(&qc, 0, sizeof(qc));
   s.placed = 1500;
   test_assert(qc_flags_reads_placed(&s) == 0.3);
-  qc_flags(&s, &qc, true, NULL, NULL, &flags);
+  qc_flags(&s, &qc, true, NULL, NULL, NULL, &flags);
   test_eq_size(flags.n, 0);
   s.placed = 1499;
-  qc_flags(&s, &qc, true, NULL, NULL, &flags);
+  qc_flags(&s, &qc, true, NULL, NULL, NULL, &flags);
   test_eq_size(flags.n, 1);
   s.placed = 70;
-  qc_flags(&s, &qc, true, NULL, NULL, &flags);
+  qc_flags(&s, &qc, true, NULL, NULL, NULL, &flags);
   test_eq_size(flags.n, 1);
   test_eq_str(flags.flags[0].key, "few_reads_placed");
   test_eq_str(flags.flags[0].text,
               "only 1.4% of the reads placed on a segment");
   test_assert(flags.flags[0].severe);
-  qc_flags(&s, &qc, false, NULL, NULL, &flags);
+  qc_flags(&s, &qc, false, NULL, NULL, NULL, &flags);
   test_eq_size(flags.n, 0);
   s.placed = 5000;
   qc.not_located = 0.75;
-  qc_flags(&s, &qc, true, NULL, NULL, &flags);
+  qc_flags(&s, &qc, true, NULL, NULL, NULL, &flags);
   test_assert(!flags.flags[0].severe);
 }

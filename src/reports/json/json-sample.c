@@ -71,7 +71,8 @@ void json_sample_write(json_writer_t *w, const report_t *r,
   qc_summary(r->references, c, r->options->segment, &qc);
   cleavage_result_t site;
   report_cleavage(r, c, &site);
-  qc_flags(counter_reads(c), &qc, true, &site, counter_subtype_reads(c),
+  qc_flags(counter_reads(c), &qc, true, &site, counter_markers(c),
+           counter_subtype_reads(c),
            &flags);
   json_open_block(w, '{');
   json_member(w, "state");

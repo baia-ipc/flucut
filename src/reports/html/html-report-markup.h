@@ -32,6 +32,11 @@ void markup_open_row(html_writer_t *w);
    to a NULL */
 void markup_header_row(html_writer_t *w, ...);
 
+/* A header row of the <n> cells of <cells>, those which are NULL left
+   out: for a table whose columns depend on what there is to show */
+void markup_header_cells(html_writer_t *w, const char *const *cells,
+    size_t n);
+
 /* a table cell with the text formatted as by printf */
 #define markup_td(W, ...) html_tag_textf((W), "td", __VA_ARGS__)
 

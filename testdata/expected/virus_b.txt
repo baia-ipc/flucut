@@ -29,8 +29,8 @@ md5: dd591e63eed7effbe08b44945d2d0fcf
 @other_segment_primer simulated	fs:Z:+	fl:Z:b-m-uni3f	ol:Z:terminal	ml:Z:KX058884.1:15:+	fr:Z:b-hana-unir	or:Z:terminal	mr:Z:KX058884.1:1870:-	ct:Z:full	tl:i:23	tr:i:10
 1871 ATTTTCTAATATCCA...GCTCTTGTTACTACT
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_unplaced	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict
-reads-b	13	15718	11	15366	11	1	1	2	1	2	0	0	0	9	2	1	8	2	1	4	8	2	0	0	1	PAKLLKER	6	0.8333	0.9167	0.0000	too few reads
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_unplaced	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
+reads-b	13	15718	11	15366	11	1	1	2	1	2	0	0	0	9	2	1	8	2	1	4	8	2	0	0	1	PAKLLKER	6	0.8333	0.9167	0.0000	too few reads	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 reads-b	KX058884.1	20	1
@@ -156,6 +156,7 @@ reads-b	KX058884.1	1850	6
         {"protein": "PAKLLKGR", "motif": "CCTGCAAAACTATTAAAGGGAAGG", "reads": 1, "share": 0.1667, "reads_as": "monobasic"}
       ]
     },
+    "markers": [],
     "primers": {
       "left": {"b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 11, "b-np-unif": 0, "b-m-uni3f": 1, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
       "right": {"b-pbs-unir": 0, "b-pa-unir": 0, "b-hana-unir": 11, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
@@ -254,6 +255,7 @@ reads-b	KX058884.1	1850	6
           {"protein": "PAKLLKGR", "motif": "CCTGCAAAACTATTAAAGGGAAGG", "reads": 1, "share": 0.1667, "reads_as": "monobasic"}
         ]
       },
+      "markers": [],
       "primers": {
         "left": {"b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 11, "b-np-unif": 0, "b-m-uni3f": 1, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
         "right": {"b-pbs-unir": 0, "b-pa-unir": 0, "b-hana-unir": 11, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}

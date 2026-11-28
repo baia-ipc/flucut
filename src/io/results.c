@@ -1,5 +1,6 @@
 /* (c) 2026 Giorgio Gonnella */
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +15,8 @@
 /* the peaks of the lengths shown without references */
 #define MAX_PEAKS 12
 
+static void summary_markers_header(FILE *f);
+
 /* the header and a line of the summary table */
 static void summary_header(FILE *f) {
   fputs("output\treads_in\tbases_in\treads_out\tbases_out\t"
@@ -24,7 +27,56 @@ static void summary_header(FILE *f) {
         "short_complete\tout_full\tout_internal\tout_deletion\t"
         "out_unplaced\tout_other\tcleavage_site\tcleavage_reads\t"
         "cleavage_support\tcleavage_control\tcleavage_multibasic\t"
-        "cleavage_verdict\n", f);
+        "cleavage_verdict", f);
+  summary_markers_header(f);
+  fputc('\n', f);
+}
+
+/*
+   One column per marker (markers.h), named after it, and a last one
+   listing the markers which deserve attention. The names are made from
+   the table, so that a marker added to it adds its column.
+*/
+static void summary_markers_header(FILE *f) {
+  for (size_t i = 0; i < MARKER_N_MARKERS; i++) {
+    fputc('\t', f);
+    for (const char *p = marker_def(i)->name; *p != '\0'; p++)
+      fputc(*p == '-' ? '_' : (char)tolower((unsigned char)*p), f);
+  }
+  fputs("\tmarkers_attention", f);
+}
+
+/*
+   The value of each marker, or NA where it was not read or the reads do
+   not support one: a value the reads do not agree on is not a value of
+   the sample, and the shares which say so are in the JSON summary
+*/
+static void summary_markers(FILE *f, const counter_t *c) {
+  const marker_counts_t *counts = counter_markers(c);
+  bool any = false;
+  for (size_t i = 0; i < MARKER_N_MARKERS; i++) {
+    marker_result_t m;
+    marker_result_of(counts, i, &m);
+    bool held = m.found && (m.verdict == MARKER_FIRM ||
+                            m.verdict == MARKER_CONFIRM);
+    fprintf(f, "\t%s", held ? m.value : "NA");
+    any = any || (held && m.attention);
+  }
+  if (!any) {
+    fputs("\tNA", f);
+    return;
+  }
+  fputc('\t', f);
+  bool first = true;
+  for (size_t i = 0; i < MARKER_N_MARKERS; i++) {
+    marker_result_t m;
+    marker_result_of(counts, i, &m);
+    if (!m.found || !m.attention ||
+        (m.verdict != MARKER_FIRM && m.verdict != MARKER_CONFIRM))
+      continue;
+    fprintf(f, "%s%s", first ? "" : ",", marker_def(i)->name);
+    first = false;
+  }
 }
 
 /* the cleavage site of the haemagglutinin read from the reads
@@ -73,6 +125,7 @@ static void summary_line(FILE *f, const char *name, const counter_t *c,
       fputs("\tNA", f);
   }
   summary_cleavage(f, c, illumina);
+  summary_markers(f, c);
   fputc('\n', f);
 }
 

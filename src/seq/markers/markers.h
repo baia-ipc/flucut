@@ -70,13 +70,15 @@
 #define MARKER_WINDOW_NT 276
 #define MARKER_VALUE_MAX 20
 
+/* the residues of a C-terminus reported (MARKER_TO_STOP) */
+#define MARKER_TERMINAL_AA 4
+
 /* how the value of a marker is read beside its anchor */
 typedef enum {
   /* the residues of the window: the marker is those residues */
   MARKER_RESIDUES,
-  /* the residues from the end of the anchor to the first stop codon
-     after it, the stop included ("EKK*"): where a protein ends, and
-     what its last residues are */
+  /* the last residues before the first stop codon after the anchor,
+     the stop included ("ESEV*"): the last residues of a protein */
   MARKER_TO_STOP,
   /* the number of codons from the end of the anchor to the first stop
      codon after it: how long a reading frame is */
@@ -110,8 +112,11 @@ typedef struct {
   const char *peptide;
   /* MARKER_SPAN: the peptide of the second anchor, else NULL */
   const char *peptide2;
-  long offset;             /* bases from the first base of the anchor to
-                              the window (negative: before it) */
+  /* where the window lies beside the anchor: a negative offset is
+     bases before its first base, a positive one or zero bases after
+     its last base. The two are counted from the two ends of the match
+     in the read, so that an indel inside the anchor moves neither */
+  long offset;
   size_t window;           /* bases read (0 for MARKER_SPAN) */
   marker_kind_t kind;
   const char *numbering;   /* what the positions are counted on */
@@ -126,6 +131,11 @@ typedef struct {
      attention; MARKER_SPAN: a stretch shorter than the one of the
      reference by at least this many bases does (0: neither) */
   size_t attention_below;
+  /* a value deserving attention is also a remark on the sample (see
+     qc-flags.h). False where nearly every virus now circulating
+     carries that residue, so that the remark would be on every
+     sample: the value is then reported without one */
+  bool flag;
   const char *meaning;     /* one line, for the reports */
 } marker_def_t;
 
@@ -196,9 +206,13 @@ bool marker_value_of(marker_kind_t kind, const char *nt, size_t window,
 void marker_span_value(long bases, char *out);
 
 /*
-   Whether <value> has, at any position where <attention> names a
-   residue, that residue: the marker deserves attention
+   Whether <value> deserves attention: a residue of <attention> at the
+   position where <attention> has it; a reading frame of fewer codons
+   than <attention_below>; or a stretch shorter than the one of the
+   reference, <reference> ("": not known), by at least
+   <attention_below> bases
 */
-bool marker_value_attention(const marker_def_t *def, const char *value);
+bool marker_value_attention(const marker_def_t *def, const char *value,
+    const char *reference);
 
 #endif

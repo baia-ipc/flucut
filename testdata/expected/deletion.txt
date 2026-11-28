@@ -11,8 +11,8 @@ md5: 564ba1743111c4573e6709803a319d3f
 @deletion_minus simulated	fs:Z:-	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:deletion	tl:i:10	tr:i:0
 575 AGTAGAAACAAGGTT...TCCCCTGCTTTTGCT
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_unplaced	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict
-deletion	2	1170	2	1150	2	0	0	1	0	0	0	0	0	2	0	0	2	0	0	2	0	0	2	0	0	NA	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_unplaced	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
+deletion	2	1170	2	1150	2	0	0	1	0	0	0	0	0	2	0	0	2	0	0	2	0	0	2	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 deletion	NC_004908.1	550	2
@@ -106,6 +106,32 @@ deletion	NC_004908.1	550	2
       ]
     },
     "cleavage_site": null,
+    "markers": [
+      {
+        "name": "HA-226-228",
+        "protein": "HA",
+        "segment": 4,
+        "positions": "226, 227, 228",
+        "numbering": "H3 numbering of the mature HA1",
+        "meaning": "leucine at 226 with serine at 228 binds the receptors of the human airway; glutamine with glycine binds the avian ones",
+        "reads_searched": 2,
+        "reads": 0,
+        "distinct_values": 0,
+        "supported_values": 0,
+        "value": null,
+        "value_reads": 0,
+        "support": 0.0000,
+        "reference_value": "LQG",
+        "differs_from_reference": false,
+        "anchor_reads": 0,
+        "anchor_support": 0.0000,
+        "reads_disagree_at_the_anchor": false,
+        "attention": false,
+        "attention_share": 0.0000,
+        "verdict": "too few reads",
+        "values": []
+      }
+    ],
     "primers": {
       "left": {"uni12r": 2, "b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 0, "b-np-unif": 0, "b-m-uni3f": 0, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
       "right": {"mbtuni-13": 2, "b-pbs-unir": 0, "b-pa-unir": 0, "b-hana-unir": 0, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
@@ -172,6 +198,32 @@ deletion	NC_004908.1	550	2
         ]
       },
       "cleavage_site": null,
+      "markers": [
+        {
+          "name": "HA-226-228",
+          "protein": "HA",
+          "segment": 4,
+          "positions": "226, 227, 228",
+          "numbering": "H3 numbering of the mature HA1",
+          "meaning": "leucine at 226 with serine at 228 binds the receptors of the human airway; glutamine with glycine binds the avian ones",
+          "reads_searched": 2,
+          "reads": 0,
+          "distinct_values": 0,
+          "supported_values": 0,
+          "value": null,
+          "value_reads": 0,
+          "support": 0.0000,
+          "reference_value": "LQG",
+          "differs_from_reference": false,
+          "anchor_reads": 0,
+          "anchor_support": 0.0000,
+          "reads_disagree_at_the_anchor": false,
+          "attention": false,
+          "attention_share": 0.0000,
+          "verdict": "too few reads",
+          "values": []
+        }
+      ],
       "primers": {
         "left": {"uni12r": 2, "b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 0, "b-np-unif": 0, "b-m-uni3f": 0, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
         "right": {"mbtuni-13": 2, "b-pbs-unir": 0, "b-pa-unir": 0, "b-hana-unir": 0, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
@@ -195,6 +247,7 @@ deletion	NC_004908.1	550	2
 </html>
 <h2>deletion</h2>
 <h3>Reads</h3>
+<h3>Markers</h3>
 <h3>Internal priming sites</h3>
 <h3>Bases by segment</h3>
 <h3>Segments</h3>

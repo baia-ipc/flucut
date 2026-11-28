@@ -24,6 +24,7 @@ static const marker_def_t TABLE[MARKER_N_MARKERS] = {
     .kind = MARKER_RESIDUES,
     .numbering = "PB2, counted from the initiator methionine",
     .positions = "627", .usual = "E", .attention = "K",
+    .flag = true,
     .meaning = "lysine replicates in mammalian cells at their "
                "temperature; glutamate is the avian residue",
   },
@@ -33,6 +34,7 @@ static const marker_def_t TABLE[MARKER_N_MARKERS] = {
     .kind = MARKER_RESIDUES,
     .numbering = "PB2, counted from the initiator methionine",
     .positions = "701", .usual = "D", .attention = "N",
+    .flag = true,
     .meaning = "asparagine adapts the polymerase to mammals, as 627K "
                "does and without it",
   },
@@ -42,6 +44,7 @@ static const marker_def_t TABLE[MARKER_N_MARKERS] = {
     .kind = MARKER_RESIDUES,
     .numbering = "PA, counted from the initiator methionine",
     .positions = "38", .usual = "I", .attention = "T",
+    .flag = true,
     .meaning = "threonine lowers the susceptibility to baloxavir",
   },
   [MARKER_NA_275] = {
@@ -50,6 +53,7 @@ static const marker_def_t TABLE[MARKER_N_MARKERS] = {
     .kind = MARKER_RESIDUES,
     .numbering = "N1 numbering (274 in N2 numbering)",
     .positions = "275", .usual = "H", .attention = "Y",
+    .flag = true,
     .meaning = "tyrosine lowers the susceptibility to oseltamivir in "
                "the N1 neuraminidases",
   },
@@ -59,6 +63,7 @@ static const marker_def_t TABLE[MARKER_N_MARKERS] = {
     .offset = -9, .window = 9, .kind = MARKER_RESIDUES,
     .numbering = "H3 numbering of the mature HA1",
     .positions = "226, 227, 228", .usual = "", .attention = "L.S",
+    .flag = true,
     .meaning = "leucine at 226 with serine at 228 binds the receptors "
                "of the human airway; glutamine with glycine binds the "
                "avian ones",
@@ -79,13 +84,13 @@ static const marker_def_t TABLE[MARKER_N_MARKERS] = {
     .numbering = "bases from the start of NA to its conserved HxNxT "
                  "peptide, compared with the reference",
     .positions = "the stalk, between residues 36 and 90",
-    .usual = "", .attention = "", .attention_below = 9,
+    .usual = "", .attention = "", .attention_below = 9, .flag = true,
     .meaning = "a shorter stretch is a deletion in the stalk, which "
                "poultry-adapted viruses carry",
   },
   [MARKER_NS1_TAIL] = {
     .name = "NS1-tail", .protein = "NS1", .segment = 8,
-    .peptide = "[DN]G[RG]P[SP]LPP", .offset = MARKER_ANCHOR_NT,
+    .peptide = "[DN]G[RG]P[SP]LPP", .offset = 0,
     .window = 48, .kind = MARKER_TO_STOP,
     .numbering = "the residues after the conserved GxPxLPP peptide, up "
                  "to the stop codon",
@@ -97,7 +102,7 @@ static const marker_def_t TABLE[MARKER_N_MARKERS] = {
   },
   [MARKER_PB1_F2] = {
     .name = "PB1-F2", .protein = "PB1-F2", .segment = 2,
-    .peptide = "YTGDPPYS", .offset = MARKER_ANCHOR_NT + 1, .window = 276,
+    .peptide = "YTGDPPYS", .offset = 1, .window = 276,
     .kind = MARKER_FRAME_LENGTH,
     .numbering = "codons of PB1-F2, which begins directly after the "
                  "conserved YTGDPPYS peptide of PB1",
@@ -132,13 +137,19 @@ bool marker_value_of(marker_kind_t kind, const char *nt, size_t window,
       return true;
     case MARKER_TO_STOP: {
       const char *stop = strchr(aa, '*');
-      /* the residues up to the stop codon, the stop included; a window
-         without one does not say where the protein ends */
-      if (stop == NULL || (size_t)(stop - aa) + 1 > MARKER_VALUE_MAX)
+      /* the last residues before the stop codon, the stop included: the
+         end of the protein, read from the stop backwards, so that the
+         value is a few codons wide however far into the window the
+         protein ends. A window without a stop codon does not say where
+         it ends. */
+      if (stop == NULL)
         return false;
-      size_t len = (size_t)(stop - aa) + 1;
-      memcpy(out, aa, len);
-      out[len] = '\0';
+      size_t before = (size_t)(stop - aa);
+      if (before > MARKER_TERMINAL_AA)
+        before = MARKER_TERMINAL_AA;
+      memcpy(out, stop - before, before);
+      out[before] = '*';
+      out[before + 1] = '\0';
       return true;
     }
     case MARKER_FRAME_LENGTH: {
@@ -158,9 +169,21 @@ void marker_span_value(long bases, char *out) {
   snprintf(out, MARKER_VALUE_MAX + 1, "%ld", bases);
 }
 
-bool marker_value_attention(const marker_def_t *def, const char *value) {
+bool marker_value_attention(const marker_def_t *def, const char *value,
+    const char *reference) {
   assert(def != NULL);
   assert(value != NULL);
+  assert(reference != NULL);
+  if (def->kind == MARKER_FRAME_LENGTH)
+    return def->attention_below > 0 &&
+           strtoul(value, NULL, 10) < def->attention_below;
+  if (def->kind == MARKER_SPAN) {
+    if (def->attention_below == 0 || reference[0] == '\0')
+      return false;
+    long missing = (long)strtoul(reference, NULL, 10) -
+                   (long)strtoul(value, NULL, 10);
+    return missing >= (long)def->attention_below;
+  }
   for (size_t i = 0; def->attention[i] != '\0' && value[i] != '\0'; i++)
     if (def->attention[i] != '.' && def->attention[i] == value[i])
       return true;
@@ -314,7 +337,8 @@ static bool anchors_of(marker_reference_t *out, size_t marker, size_t r,
     return true;
   }
   /* the value the reference itself carries */
-  long from = pos + def->offset;
+  long from = def->offset < 0 ? pos + def->offset
+                              : pos + (long)MARKER_ANCHOR_NT + def->offset;
   if (from < 0 || (size_t)from + def->window > len) {
     *why = "the window reaches past its end";
     return false;

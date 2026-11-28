@@ -35,8 +35,8 @@ md5: 5a6880ab4aad1f28b3d942fc13018a05
 @errors_plus_h3 simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1713:-	ct:Z:full	tl:i:12	tr:i:10
 1716 GGAATTACTTAACTA...AACTGGGTTTCTACT
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_unplaced	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict
-reads-two-subtypes	16	19612	14	19255	14	1	1	3	1	2	0	0	0	8	2	5	11	2	1	4	11	2	0	0	1	NVPARSSR	5	0.8000	0.8000	0.0000	too few reads
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_unplaced	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
+reads-two-subtypes	16	19612	14	19255	14	1	1	3	1	2	0	0	0	8	2	5	11	2	1	4	11	2	0	0	1	NVPARSSR	5	0.8000	0.8000	0.0000	too few reads	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 reads-two-subtypes	NC_004908.1	20	1
@@ -165,6 +165,35 @@ reads-two-subtypes	NC_004908.1	1700	9
         {"protein": "DVHARPSR", "motif": "GACGTGCATGCGAGACCAAGTAGA", "reads": 1, "share": 0.2000, "reads_as": "monobasic"}
       ]
     },
+    "markers": [
+      {
+        "name": "HA-226-228",
+        "protein": "HA",
+        "segment": 4,
+        "positions": "226, 227, 228",
+        "numbering": "H3 numbering of the mature HA1",
+        "meaning": "leucine at 226 with serine at 228 binds the receptors of the human airway; glutamine with glycine binds the avian ones",
+        "reads_searched": 16,
+        "reads": 12,
+        "distinct_values": 2,
+        "supported_values": 2,
+        "value": "LQG",
+        "value_reads": 8,
+        "support": 0.6667,
+        "reference_value": "LQG",
+        "differs_from_reference": false,
+        "anchor_reads": 12,
+        "anchor_support": 0.6667,
+        "reads_disagree_at_the_anchor": false,
+        "attention": true,
+        "attention_share": 0.6667,
+        "verdict": "too few reads",
+        "values": [
+          {"value": "LQG", "reads": 8, "share": 0.6667, "attention": true},
+          {"value": "SAG", "reads": 4, "share": 0.3333, "attention": false}
+        ]
+      }
+    ],
     "primers": {
       "left": {"uni12r": 15, "b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 0, "b-np-unif": 0, "b-m-uni3f": 0, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
       "right": {"mbtuni-13": 14, "b-pbs-unir": 0, "b-pa-unir": 0, "b-hana-unir": 0, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
@@ -266,6 +295,35 @@ reads-two-subtypes	NC_004908.1	1700	9
           {"protein": "DVHARPSR", "motif": "GACGTGCATGCGAGACCAAGTAGA", "reads": 1, "share": 0.2000, "reads_as": "monobasic"}
         ]
       },
+      "markers": [
+        {
+          "name": "HA-226-228",
+          "protein": "HA",
+          "segment": 4,
+          "positions": "226, 227, 228",
+          "numbering": "H3 numbering of the mature HA1",
+          "meaning": "leucine at 226 with serine at 228 binds the receptors of the human airway; glutamine with glycine binds the avian ones",
+          "reads_searched": 16,
+          "reads": 12,
+          "distinct_values": 2,
+          "supported_values": 2,
+          "value": "LQG",
+          "value_reads": 8,
+          "support": 0.6667,
+          "reference_value": "LQG",
+          "differs_from_reference": false,
+          "anchor_reads": 12,
+          "anchor_support": 0.6667,
+          "reads_disagree_at_the_anchor": false,
+          "attention": true,
+          "attention_share": 0.6667,
+          "verdict": "too few reads",
+          "values": [
+            {"value": "LQG", "reads": 8, "share": 0.6667, "attention": true},
+            {"value": "SAG", "reads": 4, "share": 0.3333, "attention": false}
+          ]
+        }
+      ],
       "primers": {
         "left": {"uni12r": 15, "b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 0, "b-np-unif": 0, "b-m-uni3f": 0, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
         "right": {"mbtuni-13": 14, "b-pbs-unir": 0, "b-pa-unir": 0, "b-hana-unir": 0, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
@@ -295,6 +353,7 @@ reads-two-subtypes	NC_004908.1	1700	9
 <h3>Reads</h3>
 <h3>HA and NA subtypes in the reads</h3>
 <h3>HA cleavage site</h3>
+<h3>Markers</h3>
 <h3>Internal priming sites</h3>
 <h3>Bases by segment</h3>
 <h3>Segments</h3>
