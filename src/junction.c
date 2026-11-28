@@ -256,15 +256,6 @@ void junction_locate(reference_set_t *refs, const char *seq, size_t len,
 
 /* --- unit tests --- */
 
-/* a deterministic pseudo-random sequence of <len> bases into <seq> */
-static void random_seq(char *seq, size_t len, unsigned long *state) {
-  for (size_t i = 0; i < len; i++) {
-    *state = *state * 6364136223846793005UL + 1442695040888963407UL;
-    seq[i] = "ACGT"[(*state >> 33) & 3];
-  }
-  seq[len] = '\0';
-}
-
 /* the template made of the first <left> bases of <ref> and of its bases
    from <right> on, into <read>; its length */
 static size_t deleted_copy(const char *ref, size_t ref_len, size_t left,

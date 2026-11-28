@@ -57,15 +57,6 @@ void placement_locate(reference_set_t *refs, const char *seq, size_t len,
 
 /* --- unit tests --- */
 
-/* a deterministic pseudo-random sequence of <len> bases into <seq> */
-static void random_seq(char *seq, size_t len, unsigned long *state) {
-  for (size_t i = 0; i < len; i++) {
-    *state = *state * 6364136223846793005UL + 1442695040888963407UL;
-    seq[i] = "ACGT"[(*state >> 33) & 3];
-  }
-  seq[len] = '\0';
-}
-
 void placement_test(void) {
   enum { REF_LEN = 1000, PROBE = 32, READ = 300 };
   unsigned long state = 7;

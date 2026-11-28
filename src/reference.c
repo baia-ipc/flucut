@@ -559,15 +559,6 @@ bool reference_hit_is_terminal(const reference_hit_t *hit,
   return terminus_distance(hit) < terminal_window;
 }
 
-/* a deterministic pseudo-random sequence of <len> bases into <seq> */
-static void random_seq(char *seq, size_t len, unsigned long *state) {
-  for (size_t i = 0; i < len; i++) {
-    *state = *state * 6364136223846793005UL + 1442695040888963407UL;
-    seq[i] = "ACGT"[(*state >> 33) & 3];
-  }
-  seq[len] = '\0';
-}
-
 /* a reference set of <n> records with the sequences <seqs> */
 static fasta_t* test_fasta(char **seqs, size_t n) {
   fasta_t *fa;

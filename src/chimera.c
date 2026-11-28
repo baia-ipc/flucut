@@ -286,15 +286,6 @@ size_t chimera_finder_run(chimera_finder_t *self, const char *seq,
 
 /* --- unit tests --- */
 
-/* a deterministic pseudo-random sequence of <len> bases into <seq> */
-static void random_seq(char *seq, size_t len, unsigned long *state) {
-  for (size_t i = 0; i < len; i++) {
-    *state = *state * 6364136223846793005UL + 1442695040888963407UL;
-    seq[i] = "ACGT"[(*state >> 33) & 3];
-  }
-  seq[len] = '\0';
-}
-
 /* split <read> and check the parts (<n> pairs of from and to) */
 static void check_parts(chimera_finder_t *f, const char *read, size_t n,
     const long *expected) {
