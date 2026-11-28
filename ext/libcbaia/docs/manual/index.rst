@@ -30,7 +30,10 @@ modules.
    ds
    html
    io
+   formats
    seq
+   nanopore
+   singlecell
    barcodes
    recipes
    testing

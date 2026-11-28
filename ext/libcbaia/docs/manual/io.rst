@@ -1,11 +1,12 @@
 .. _io:
 
-Large files and compression
----------------------------
+File and destination I/O
+------------------------
 
 The ``io`` component contains modules for handling large files: sorting
-files which do not fit in memory, compressing output data in parallel,
-and computing checksums.
+files which do not fit in memory, managing output files for several
+destinations, and computing checksums. Format-specific compression is in
+:ref:`formats`.
 
 External sorting (``file-sorter.h``, ``file-merger.h``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -74,47 +75,6 @@ returns pointers to the lines in the buffer (each line ends with
 The buffer must be larger than the longest line (otherwise the program
 exits with a message suggesting a larger buffer).
 
-Parallel compression (``gzip-compressor.h``, ``bgzf-compressor.h``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Compressing the output is often the most expensive part of a read
-processing program. The two compressors make it parallel, using a
-property of the gzip format: **the concatenation of gzip members is a
-valid gzip file**. Each block of output (e.g. the records of a batch) is
-compressed independently, as a gzip member, by the thread which produced
-it; the compressed blocks are then written to the file in the right
-order (see :ref:`recipe-threads`).
-
-.. code-block:: c
-
-   gzip_compressor_t *gz = gzip_compressor_new(6);   /* level 1-9 */
-   strbuf_t out;
-   strbuf_init(&out);
-   gzip_compressor_run(gz, text.s, text.len, &out);  /* appended to out */
-   fwrite(out.s, 1, out.len, file);                  /* a gzip member */
-   strbuf_free(&out);
-   gzip_compressor_delete(gz);
-
-Each thread uses its own compressor (the zlib stream state is reused
-for all its blocks).
-
-``bgzf-compressor.h`` does the same in the BGZF format of BAM files:
-blocks of at most 64 KiB, each a gzip member with an extra field giving
-its compressed size (so that BAM readers can seek). A BGZF file ends
-with an empty block, the end-of-file marker ``bgzf_eof``
-(``BGZF_EOF_LEN`` bytes), written after the last block:
-
-.. code-block:: c
-
-   bgzf_compressor_t *bgzf = bgzf_compressor_new(6);
-   bgzf_compressor_run(bgzf, bam_data.s, bam_data.len, &out);
-   ...
-   fwrite(bgzf_eof, 1, BGZF_EOF_LEN, file);
-
-The output files of several destinations (``outfiles.h``,
-:ref:`outfiles`) write such compressed blocks, and add the BGZF
-end-of-file marker to BAM files.
-
 Checksums (``md5.h``)
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -133,3 +93,45 @@ downloads; not for security purposes:
    md5_update(&md5, data, len);
    md5_update(&md5, more, more_len);
    md5_final(&md5, hex);
+
+.. _outfiles:
+
+Output files of several destinations (``outfiles.h``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A demultiplexer, or any program distributing the reads to several
+*destinations* (e.g. the samples), writes a file for each of them. An
+``outfiles_t`` manages these files:
+
+* the destinations are numbered from 0; each has a name, used in the
+  file name;
+* for an input file, the files are
+  ``<outdir>/<input basename>.<destination>.fastq.gz`` (the suffix
+  of a file of reads of the input, ``.fastq``, ``.fq`` (optionally
+  ``.gz``) or ``.bam``, is removed); for a
+  group of input files (e.g. the files of a barcode directory),
+  ``<outdir>/<group>/<destination>.fastq.gz``;
+* a file is created when the first data are written to it, so that
+  destinations without reads have no file;
+* the data are written already compressed (gzip members, e.g. by a
+  ``gzip_compressor_t``), so that they can be compressed in parallel;
+* with ``outfiles_set_append()``, the data are appended to existing
+  files (e.g. when the files of a run are processed one at a time);
+* BAM output: with ``outfiles_set_bam()``, the files are ``.bam``
+  instead of ``.fastq.gz``; the data are BGZF blocks; the header (given,
+  BGZF-compressed, for each destination) is written to each new file,
+  and the end-of-file marker when it is closed (and removed before
+  appending to an existing file).
+
+.. code-block:: c
+
+   outfiles_t *out = outfiles_new("out", "run1.fastq.gz", n_samples + 1,
+                                  logger);
+   ...
+   /* compressed: a gzip member with the records of destination d */
+   outfiles_write(out, d, names[d], compressed.s, compressed.len);
+   ...
+   outfiles_delete(out);   /* closes the files */
+
+The output directory (and the group directory) is created if needed.
+:ref:`recipe-demux` shows a complete program.

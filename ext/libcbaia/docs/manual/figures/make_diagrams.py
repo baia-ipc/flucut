@@ -17,7 +17,9 @@ from matplotlib.patches import FancyBboxPatch
 
 # colors of the components (Okabe-Ito, colorblind-safe), as fill colors
 COLORS = {"core": "#E69F00", "ds": "#56B4E9", "html": "#009E73",
-          "io": "#0072B2", "seq": "#CC79A7", "ext": "#BBBBBB"}
+          "io": "#0072B2", "seq": "#CC79A7", "formats": "#D55E00",
+          "nanopore": "#CC79A7", "singlecell": "#E69F00",
+          "ext": "#BBBBBB"}
 INK = "#222222"
 MUTED = "#666666"
 
@@ -58,8 +60,11 @@ def components(outdir):
                      "hyperloglog"]),
     ("html", 6.65, 1, ["html-writer", "html-template", "html-page",
                         "svg-writer"]),
-    ("io", 8.9, 1, ["file-sorter", "file-merger", "gzip-compressor",
-                     "bgzf-compressor", "md5"]),
+    ("io", 8.9, 1, ["file-sorter", "file-merger", "outfiles", "md5"]),
+    ("formats", 11.1, 1, ["gzip-compressor", "bgzf-compressor",
+                            "json-writer", "fastq-reader", "fastq-writer",
+                            "bam-reader", "sam-header", "sam-tags",
+                            "ubam-writer"]),
   ]
   top = 4.6
   pos = {}
@@ -78,10 +83,7 @@ def components(outdir):
       box(ax, mx, my, W, H, m, COLORS[name])
       pos[m] = (mx, my)
   # seq: two columns, below
-  seq = ["sequtil", "sam-header", "fastq-reader", "bam-reader",
-         "fastq-writer", "reads-reader", "ubam-writer", "outfiles",
-         "sam-tags", "edit-distance", "minknow-metadata", "whitelist",
-         "complexity", "cell-caller"]
+  seq = ["sequtil", "reads-reader", "edit-distance", "kmer-index"]
   x, ncols = 2.2, 2
   stop = top - 3.55
   nrows = (len(seq) + ncols - 1) // ncols
@@ -97,6 +99,20 @@ def components(outdir):
     my = stop - 0.45 - (k // ncols + 1) * DY + (DY - H)
     box(ax, mx, my, W, H, m, COLORS["seq"])
     pos[m] = (mx, my)
+  # Domain-specific groups
+  for name, x, mods in [("nanopore", 7.1, ["minknow-metadata"]),
+                        ("singlecell", 9.4, ["whitelist", "cell-caller",
+                                             "complexity"])]:
+    h = len(mods) * DY + 0.45
+    ax.add_patch(FancyBboxPatch((x, stop - h), W + 0.15, h,
+                 boxstyle="round,pad=0.02,rounding_size=0.12",
+                 facecolor="white", edgecolor=COLORS[name], lw=1.5))
+    ax.text(x + 0.12, stop - 0.1, name, ha="left", va="top", fontsize=10,
+            fontweight="bold", color=INK)
+    for k, m in enumerate(mods):
+      mx, my = x + 0.075, stop - 0.45 - (k + 1) * DY + (DY - H)
+      box(ax, mx, my, W, H, m, COLORS[name])
+      pos[m] = (mx, my)
   def edge(a, b):
     """arrow from module a to module b (a uses b), between box borders"""
     (xa, ya), (xb, yb) = pos[a], pos[b]
