@@ -142,6 +142,15 @@ $(REFERENCES_INC): metadata/references.yaml $(METADATA_AWK) \
 	  $< > $@
 $(OBJS): | $(REFERENCES_INC)
 
+# the segments and the words which name their genes, from
+# metadata/segments.yaml, in the same way (see segments.h)
+SEGMENTS_INC = $(OBJDIR)/segments-table.h
+$(SEGMENTS_INC): metadata/segments.yaml $(METADATA_AWK) \
+                 scripts/segments-table.awk | $(OBJDIR)
+	awk -f scripts/metadata-records.awk -f scripts/segments-table.awk \
+	  $< > $@
+$(OBJS): | $(SEGMENTS_INC)
+
 # the banner shown in a terminal (docs/logo/flucut-banner.ans), embedded
 # in the same way
 BANNER_INC = $(OBJDIR)/flucut-banner-ans.inc

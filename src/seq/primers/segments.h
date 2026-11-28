@@ -35,17 +35,11 @@
 #include <stddef.h>
 #include "virus.h"
 
-#define SEGMENTS_N 8
-
-/* the segments, by gene (the order above) */
-#define SEGMENT_PB2 1
-#define SEGMENT_PB1 2
-#define SEGMENT_PA  3
-#define SEGMENT_HA  4
-#define SEGMENT_NP  5
-#define SEGMENT_NA  6
-#define SEGMENT_M   7
-#define SEGMENT_NS  8
+/* the number of segments (SEGMENTS_N) and each of them by its gene
+   (SEGMENT_PB2 to SEGMENT_NS, numbered as in influenza A), written by
+   the build from metadata/segments.yaml, which also lists the words
+   which name a gene in the description of a reference */
+#include "segments-table.h"
 
 /* The segment (1 to 8) named in <description>, 0 if none (see above) */
 int segments_of_description(const char *description);

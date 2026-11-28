@@ -1,0 +1,58 @@
+# The eight genomic segments of influenza and the words which name them
+# (see segments.h for what the program does with them).
+#
+# The build turns this file into the tables of the program
+# (scripts/segments-table.awk writes obj/segments-table.h): a name or a
+# synonym is added here, not in the sources.
+#
+# The numbers are those of influenza A. Influenza B numbers PB1 1 and
+# PB2 2, the other way round, and numbers every other segment alike;
+# the program exchanges the two, which is its own inverse.
+#
+# The words are looked for in the description of a reference, which
+# names its gene in no fixed way, so each segment lists the names and
+# the synonyms seen there. They are compared without regard to case.
+#
+# Records
+#
+#   segment   a segment, by the gene name used in the reports
+#     number  its number in influenza A, 1 to 8
+#     words   the words which name it in a description,
+#             space-separated
+#     split   a word which begins a name written with a hyphen or a
+#             space, so that the word after it is checked as well
+#
+# Avoid ": " and "#" in the values.
+
+- segment: PB2
+  number: 1
+  words: PB2
+
+- segment: PB1
+  number: 2
+  words: PB1
+
+- segment: PA
+  number: 3
+  words: PA
+
+- segment: HA
+  number: 4
+  words: HA hemagglutinin
+
+- segment: NP
+  number: 5
+  words: NP nucleoprotein nucleocapsid
+
+- segment: NA
+  number: 6
+  words: NA neuraminidase
+
+- segment: M
+  number: 7
+  words: M M1 M2 MP matrix
+
+- segment: NS
+  number: 8
+  words: NS NS1 NS2 NEP nonstructural
+  split: non

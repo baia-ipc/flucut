@@ -10,23 +10,17 @@
 #include "test.h"
 #include "virus.h"
 
-static const char *genes[SEGMENTS_N] = {"PB2", "PB1", "PA", "HA", "NP",
-                                        "NA", "M", "NS"};
-
-/* the words which name the gene of a segment (see segments.h) */
-static const struct {
+/* a word which names a gene, and the segment it names */
+typedef struct {
   const char *word;
   int segment;
-} gene_words[] = {
-  {"PB2", 1}, {"PB1", 2}, {"PA", 3}, {"HA", 4}, {"hemagglutinin", 4},
-  {"NP", 5}, {"nucleoprotein", 5}, {"nucleocapsid", 5}, {"NA", 6},
-  {"neuraminidase", 6}, {"M", 7}, {"M1", 7}, {"M2", 7}, {"MP", 7},
-  {"matrix", 7}, {"NS", 8}, {"NS1", 8}, {"NS2", 8}, {"NEP", 8},
-  {"nonstructural", 8},
-  /* "non-structural": the next word is checked */
-  {"non", -8},
-};
-#define N_GENE_WORDS (sizeof(gene_words) / sizeof(gene_words[0]))
+} segment_word_t;
+
+/* the gene names and those words, written by the build from
+   metadata/segments.yaml (scripts/segments-table.awk) */
+#define SEGMENTS_TABLE_DEFINE
+#include "segments-table.h"
+
 
 /*
    The segment of the number <number> in <type> and the number of a
@@ -69,20 +63,20 @@ static int segment_number(const char *s) {
 /* the segment of the word <w> (length <len>; <next>: the text after it),
    0 if none */
 static int segment_of_word(const char *w, size_t len, const char *next) {
-  for (size_t i = 0; i < N_GENE_WORDS; i++) {
-    const char *g = gene_words[i].word;
+  for (size_t i = 0; i < SEGMENTS_N_GENE_WORDS; i++) {
+    const char *g = SEGMENTS_GENE_WORDS[i].word;
     /* the gene names (upper case) exactly, the protein names in any
        case */
     bool any_case = islower((unsigned char)g[0]);
     if (strlen(g) != len || (any_case ? strncasecmp(w, g, len) :
                              strncmp(w, g, len)) != 0)
       continue;
-    if (gene_words[i].segment > 0)
-      return gene_words[i].segment;
+    if (SEGMENTS_GENE_WORDS[i].segment > 0)
+      return SEGMENTS_GENE_WORDS[i].segment;
     /* "non-structural", "non structural" */
     if ((*next == '-' || *next == ' ') &&
         strncasecmp(next + 1, "structural", 10) == 0)
-      return -gene_words[i].segment;
+      return -SEGMENTS_GENE_WORDS[i].segment;
   }
   return 0;
 }
@@ -109,16 +103,17 @@ int segments_of_description(const char *description) {
 
 const char *segments_gene(int segment) {
   assert(segment >= 1 && segment <= SEGMENTS_N);
-  return genes[segment - 1];
+  return SEGMENTS_GENES[segment - 1];
 }
 
 int segments_parse(const char *s, virus_type_t type) {
   assert(s != NULL);
   if (s[0] >= '1' && s[0] <= '0' + SEGMENTS_N && s[1] == '\0')
     return segments_of_number(s[0] - '0', type);
-  for (size_t i = 0; i < N_GENE_WORDS; i++)
-    if (gene_words[i].segment > 0 && strcasecmp(s, gene_words[i].word) == 0)
-      return gene_words[i].segment;
+  for (size_t i = 0; i < SEGMENTS_N_GENE_WORDS; i++)
+    if (SEGMENTS_GENE_WORDS[i].segment > 0 &&
+        strcasecmp(s, SEGMENTS_GENE_WORDS[i].word) == 0)
+      return SEGMENTS_GENE_WORDS[i].segment;
   return 0;
 }
 
