@@ -277,7 +277,7 @@ static void sample_row(html_writer_t *w, const report_t *r, size_t i,
   html_text(w, html_num(s->reads_in).s);
   html_close(w);
   read_stats_summary_t lengths;
-  read_stats_summarize(counter_read_stats(g->counts), READ_STATS_INPUT,
+  read_stats_summarize(counter_read_stats(g->counts), COUNTER_STATS_INPUT,
                        &lengths);
   markup_td(w, "%s", html_num(lengths.n50).s);
   if (lengths.has_quality)

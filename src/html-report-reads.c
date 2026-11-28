@@ -171,11 +171,11 @@ static void write_metadata(html_writer_t *w, const read_metadata_t *m) {
 void reads_write(html_writer_t *w, const counter_t *c) {
   assert(c != NULL);
   const read_stats_t *stats = counter_read_stats(c);
-  const read_stats_set_t *in = stats->sets + READ_STATS_INPUT;
-  const read_stats_set_t *out = stats->sets + READ_STATS_WRITTEN;
+  const read_stats_set_t *in = stats->sets + COUNTER_STATS_INPUT;
+  const read_stats_set_t *out = stats->sets + COUNTER_STATS_WRITTEN;
   read_stats_summary_t summary_in, summary_out;
-  read_stats_summarize(stats, READ_STATS_INPUT, &summary_in);
-  read_stats_summarize(stats, READ_STATS_WRITTEN, &summary_out);
+  read_stats_summarize(stats, COUNTER_STATS_INPUT, &summary_in);
+  read_stats_summarize(stats, COUNTER_STATS_WRITTEN, &summary_out);
   markup_open(w, "section", "card");
   html_tag_text(w, "h3", "Read length and quality");
   markup_open(w, "div", "readqc");

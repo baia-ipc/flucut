@@ -6,6 +6,7 @@
 #include "anchor-site.h"
 #include "codons.h"
 #include "edlib.h"
+#include "edlib-iupac.h"
 #include "iupac.h"
 #include "sequtil.h"
 #include "test.h"
@@ -43,10 +44,12 @@ static long search(const char *query, size_t query_len, const char *target,
     size_t target_len, long max_errors, long *start, long *end) {
   if (target_len == 0 || target_len < query_len)
     return -1;
+  int n_pairs;
+  const EdlibEqualityPair *pairs = edlib_iupac_equalities(&n_pairs);
   EdlibAlignResult r = edlibAlign(query, (int)query_len, target,
       (int)target_len,
       edlibNewAlignConfig((int)max_errors, EDLIB_MODE_HW, EDLIB_TASK_LOC,
-                          iupac_equalities, n_iupac_equalities));
+                          pairs, n_pairs));
   assert(r.status == EDLIB_STATUS_OK);
   long distance = r.editDistance;
   if (distance < 0) {
@@ -111,7 +114,7 @@ bool anchor_bases_before(const anchor_hit_t *hit, const char *read,
      before the anchor there are those after the match here */
   if (hit->end + (long)n >= (long)read_len)
     return false;
-  revcomp(read + hit->end + 1, n, out);
+  reverse_complement(read + hit->end + 1, n, out);
   return true;
 }
 
@@ -133,7 +136,7 @@ bool anchor_bases_at(const anchor_hit_t *hit, const char *read,
      of the match here */
   if (hit->end + 1 < (long)n)
     return false;
-  revcomp(read + hit->end + 1 - (long)n, n, out);
+  reverse_complement(read + hit->end + 1 - (long)n, n, out);
   return true;
 }
 
@@ -155,7 +158,7 @@ bool anchor_bases_after(const anchor_hit_t *hit, const char *read,
   long from = hit->start - (long)skip - (long)n;
   if (from < 0)
     return false;
-  revcomp(read + from, n, out);
+  reverse_complement(read + from, n, out);
   return true;
 }
 
@@ -196,7 +199,7 @@ void anchor_site_test(void) {
   test_eq_str(out, "GAGGGA");
   /* the same read, reverse complemented: the same windows come back */
   char rc[128];
-  revcomp(ha, strlen(ha), rc);
+  reverse_complement(ha, strlen(ha), rc);
   test_assert(anchor_find(&a, rc, strlen(rc), 0.2, &hit));
   test_assert(hit.reverse);
   test_assert(anchor_bases_before(&hit, rc, strlen(rc), 27, out));

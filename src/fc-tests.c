@@ -35,7 +35,6 @@
 #include "internal-matches.h"
 #include "junction.h"
 #include "logger.h"
-#include "pattern-scan-test.h"
 #include "placement.h"
 #include "read-agreement.h"
 #include "virus.h"
@@ -57,7 +56,6 @@
    make_tmpdir()) */
 static const char *tmpdir = NULL;
 
-static void run_fasta_test(void) { fasta_test(tmpdir); }
 static void run_input_groups_test(void) { input_groups_test(tmpdir); }
 static void run_read_outputs_test(void) { read_outputs_test(tmpdir); }
 
@@ -103,13 +101,10 @@ typedef struct {
 static test_group_t test_groups[] = {
   {'p', "the built-in primers", primers_test, false},
   {'s', "the search of a primer in a read", primer_search_test, false},
-  {'m', "the scan of a sequence for all the matches of a pattern",
-   pattern_scan_test, false},
   {'i', "the matches of the primers inside a read",
    internal_matches_test, false},
   {'c', "the primer schemes", scheme_test, false},
   {'a', "the analysis and trimming of a read", amplicon_test, false},
-  {'F', "reading of FASTA files", run_fasta_test, false},
   {'r', "the location of the reads in the references", reference_test,
    false},
   {'P', "the placement of a read on the references", placement_test,
@@ -142,9 +137,6 @@ static test_group_t test_groups[] = {
    false},
   {'Q', "the summary of a sample by segment", qc_summary_test, false},
   {'f', "what deserves attention in a sample", qc_flags_test, false},
-  {'y', "the lengths and qualities of the reads", read_stats_test, false},
-  {'M', "the metadata of the run in the titles of the reads",
-   read_metadata_test, false},
   {'d', "the search of an adaptor", adaptor_search_test,
    false},
   {'U', "the resources used by a run", run_resources_test, false},

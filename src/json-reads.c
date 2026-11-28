@@ -7,12 +7,12 @@
 void json_reads_lengths(FILE *f, const counter_t *c) {
   assert(f != NULL);
   fputc('{', f);
-  for (size_t k = 0; k < READ_STATS_N_SETS; k++) {
+  for (size_t k = 0; k < counter_read_stats(c)->n_sets; k++) {
     read_stats_summary_t s;
     read_stats_summarize(counter_read_stats(c), k, &s);
     fprintf(f, "%s\"%s\": {\"reads\": %zu, \"bases\": %zu, \"min\": %zu, "
             "\"max\": %zu, \"mean\": %zu, \"median\": %zu, \"n50\": %zu}",
-            k > 0 ? ", " : "", read_stats_set_name(k), s.reads, s.bases,
+            k > 0 ? ", " : "", read_stats_set_name(counter_read_stats(c), k), s.reads, s.bases,
             s.min_len, s.max_len, s.mean_len, s.median_len, s.n50);
   }
   fputc('}', f);
@@ -22,10 +22,10 @@ void json_reads_quality(FILE *f, const counter_t *c) {
   assert(f != NULL);
   const read_stats_t *stats = counter_read_stats(c);
   fputc('{', f);
-  for (size_t k = 0; k < READ_STATS_N_SETS; k++) {
+  for (size_t k = 0; k < stats->n_sets; k++) {
     read_stats_summary_t s;
     read_stats_summarize(stats, k, &s);
-    fprintf(f, "%s\"%s\": ", k > 0 ? ", " : "", read_stats_set_name(k));
+    fprintf(f, "%s\"%s\": ", k > 0 ? ", " : "", read_stats_set_name(stats, k));
     if (!s.has_quality)
       fputs("null", f);
     else

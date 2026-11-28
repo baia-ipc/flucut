@@ -59,7 +59,7 @@ sample_bases_t sample_bases(size_t bases) {
 void sample_length_tile(html_writer_t *w, const counter_t *c) {
   read_stats_summary_t in;
   char sub[96];
-  read_stats_summarize(counter_read_stats(c), READ_STATS_INPUT, &in);
+  read_stats_summarize(counter_read_stats(c), COUNTER_STATS_INPUT, &in);
   if (in.has_quality)
     snprintf(sub, sizeof(sub), "N50 %s, median quality Q%.0f",
              html_num(in.n50).s, in.median_quality - 0.5);

@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <string.h>
 #include "primers.h"
+#include "iupac.h"
 #include "sequtil.h"
 #include "test.h"
 
@@ -109,15 +110,6 @@ const primer_t* primers_builtin_all(size_t *n) {
   return builtin;
 }
 
-/* the IUPAC codes and the bases they stand for */
-static const struct { char code; const char *bases; } iupac[] = {
-  {'A', "A"}, {'C', "C"}, {'G', "G"}, {'T', "T"}, {'U', "T"},
-  {'R', "AG"}, {'Y', "CT"}, {'S', "CG"}, {'W', "AT"}, {'K', "GT"},
-  {'M', "AC"}, {'B', "CGT"}, {'D', "AGT"}, {'H', "ACT"}, {'V', "ACG"},
-  {'N', "ACGT"},
-};
-#define N_IUPAC ((size_t)(sizeof(iupac) / sizeof(iupac[0])))
-
 bool primers_binds_segment(const primer_t *p, int segment) {
   assert(p != NULL);
   if (p->segments == PRIMER_SEGMENTS_ALL)
@@ -125,25 +117,6 @@ bool primers_binds_segment(const primer_t *p, int segment) {
   if (segment < 1 || segment > SEGMENTS_N)
     return false;
   return (p->segments & PRIMER_SEGMENT(segment)) != 0;
-}
-
-const char* primers_iupac_bases(char code) {
-  if (code >= 'a' && code <= 'z')
-    code = (char)(code - 32);
-  for (size_t i = 0; i < N_IUPAC; i++)
-    if (iupac[i].code == code)
-      return iupac[i].bases;
-  return NULL;
-}
-
-bool primers_is_iupac_seq(const char *seq, size_t len) {
-  assert(seq != NULL);
-  if (len == 0)
-    return false;
-  for (size_t i = 0; i < len; i++)
-    if (primers_iupac_bases(seq[i]) == NULL)
-      return false;
-  return true;
 }
 
 void primers_reverse(const primer_t *p, char *seq_buf, primer_t *dest) {
@@ -181,7 +154,7 @@ void primers_test(void) {
   size_t n;
   const primer_t *all = primers_builtin_all(&n);
   for (size_t i = 0; i < n; i++) {
-    test_assert(primers_is_iupac_seq(all[i].seq, all[i].seq_len));
+    test_assert(iupac_is_seq(all[i].seq, all[i].seq_len));
     test_assert(all[i].terminus_from + all[i].terminus_len <=
                 all[i].seq_len);
   }
@@ -223,13 +196,6 @@ void primers_test(void) {
     /* the segments it binds are those of its name, never none */
     test_assert(all[i].segments != PRIMER_SEGMENTS_ALL);
   }
-  /* IUPAC codes */
-  test_eq_str(primers_iupac_bases('R'), "AG");
-  test_eq_str(primers_iupac_bases('r'), "AG");
-  test_eq_str(primers_iupac_bases('A'), "A");
-  test_assert(primers_iupac_bases('X') == NULL);
-  test_assert(!primers_is_iupac_seq("ACGX", 4));
-  test_assert(!primers_is_iupac_seq("", 0));
   /* the reverse complement, with degenerate codes */
   char rc[32];
   primers_reverse_complement("AGCRAAAGCAGG", 12, rc);

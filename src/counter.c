@@ -56,6 +56,9 @@ counter_t* counter_new(const scheme_t *scheme, const fasta_t *references) {
   }
   self->lengths = lengths_new(counter_n_length_groups(references));
   XCALLOC(self->stats, 1, sizeof(read_stats_t));
+  static const char *const stats_names[COUNTER_STATS_N_SETS] = {
+    "input", "written"};
+  read_stats_init(self->stats, COUNTER_STATS_N_SETS, stats_names);
   return self;
 }
 
@@ -464,7 +467,7 @@ void counter_add_split(counter_t *self, size_t n_parts, size_t len,
 void counter_add_input(counter_t *self, size_t len, const char *qual,
     const char *title, size_t title_len) {
   assert(self != NULL);
-  read_stats_add(self->stats, READ_STATS_INPUT, len, qual);
+  read_stats_add(self->stats, COUNTER_STATS_INPUT, len, qual);
   if (title != NULL)
     read_metadata_add_title(&self->metadata, title, title_len);
 }
@@ -480,7 +483,7 @@ void counter_add_written(counter_t *self, size_t len, size_t category,
   self->reads.written[category]++;
   self->reads.reads_out++;
   self->reads.bases_out += len;
-  read_stats_add(self->stats, READ_STATS_WRITTEN, len, qual);
+  read_stats_add(self->stats, COUNTER_STATS_WRITTEN, len, qual);
 }
 
 void counter_set_cleavage_reference(counter_t *self, const char *aa,

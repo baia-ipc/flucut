@@ -162,6 +162,9 @@ void counter_set_subtype_reads(counter_t *self,
     const subtype_reads_t *subtype_reads);
 const subtype_reads_t* counter_subtype_reads(const counter_t *self);
 
+/* The read-statistics sets used by the trimming workflow. */
+enum { COUNTER_STATS_INPUT, COUNTER_STATS_WRITTEN, COUNTER_STATS_N_SETS };
+
 /* The lengths and qualities of the reads, and the metadata of the run */
 const read_stats_t* counter_read_stats(const counter_t *self);
 const read_metadata_t* counter_metadata(const counter_t *self);

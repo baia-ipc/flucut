@@ -42,7 +42,7 @@
 
    Degenerate bases are written in the IUPAC code (R = A or G); they are
    matched against any of the bases they stand for (see
-   primers_iupac_bases()).
+   iupac_bases() in iupac.h).
 */
 
 #ifndef PRIMERS_H
@@ -216,20 +216,10 @@ const primer_t* primers_builtin_all(size_t *n);
 bool primers_binds_segment(const primer_t *p, int segment);
 
 /*
-   The bases a IUPAC code stands for, as a 0-terminated string of
-   A, C, G and T (e.g. "AG" for 'R', "A" for 'A'); NULL if <code> is not
-   a IUPAC code. Case is ignored.
-*/
-const char* primers_iupac_bases(char code);
-
-/* Whether a sequence contains only IUPAC codes (and is not empty) */
-bool primers_is_iupac_seq(const char *seq, size_t len);
-
-/*
    Write the reverse complement of <seq> (length <len>) to <dest>,
    complementing the degenerate codes as well (e.g. R -> Y); <dest> must
    have room for <len> + 1 characters. The result is 0-terminated. The
-   sequence must be valid (see primers_is_iupac_seq()).
+   sequence must be valid IUPAC (see iupac_is_seq() in iupac.h).
 */
 void primers_reverse_complement(const char *seq, size_t len, char *dest);
 

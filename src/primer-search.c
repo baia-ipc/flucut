@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "edlib.h"
+#include "edlib-iupac.h"
 #include "alloc.h"
 #include "numutils.h"
 #include "primer-search.h"
@@ -23,7 +24,7 @@ struct primer_search_t {
   char *padded;
   size_t padded_cap;
   /* the search at an end: whether two characters are equal (see
-     iupac_equalities), the matrix of the dynamic programming, the
+     IUPAC matching rules), the matrix of the dynamic programming, the
      primer and the read reversed (for the right end), the operations of
      the alignment path */
   bool eq[256][256];
@@ -43,7 +44,7 @@ primer_search_t* primer_search_new(void) {
   memset(self->eq, 0, sizeof(self->eq));
   for (int c = 0; c < 256; c++)
     self->eq[c][c] = true;
-  for (int i = 0; i < n_iupac_equalities; i++) {
+  for (size_t i = 0; i < n_iupac_equalities; i++) {
     unsigned char a = (unsigned char)iupac_equalities[i].first,
                   b = (unsigned char)iupac_equalities[i].second;
     self->eq[a][b] = true;
@@ -71,10 +72,12 @@ void primer_search_delete(primer_search_t *self) {
 /* edit distance between the primer and target[start..end] */
 static long distance(const char *primer, size_t primer_len,
     const char *target, long start, long end) {
+  int n_pairs;
+  const EdlibEqualityPair *pairs = edlib_iupac_equalities(&n_pairs);
   EdlibAlignResult result = edlibAlign(primer, (int)primer_len,
       target + start, (int)(end - start + 1),
       edlibNewAlignConfig(-1, EDLIB_MODE_NW, EDLIB_TASK_DISTANCE,
-                          iupac_equalities, n_iupac_equalities));
+                          pairs, n_pairs));
   assert(result.status == EDLIB_STATUS_OK);
   long d = result.editDistance;
   edlibFreeAlignResult(result);
@@ -109,10 +112,12 @@ static void map_primer_positions(const char *primer, size_t primer_len,
   *out_b = end + 1;
   if (pos_a == 0 && pos_b == 0)
     return;
+  int n_pairs;
+  const EdlibEqualityPair *pairs = edlib_iupac_equalities(&n_pairs);
   EdlibAlignResult result = edlibAlign(primer, (int)primer_len,
       target + start, (int)(end - start + 1),
       edlibNewAlignConfig(-1, EDLIB_MODE_NW, EDLIB_TASK_PATH,
-                          iupac_equalities, n_iupac_equalities));
+                          pairs, n_pairs));
   assert(result.status == EDLIB_STATUS_OK);
   long qpos = 0, tpos = start;
   bool got_a = pos_a == 0, got_b = false;
@@ -170,10 +175,12 @@ static bool search(const char *primer, size_t primer_len,
     primer_hit_t *hit, long *in_read) {
   if (target_len == 0)
     return false;
+  int n_pairs;
+  const EdlibEqualityPair *pairs = edlib_iupac_equalities(&n_pairs);
   EdlibAlignResult result = edlibAlign(primer, (int)primer_len,
       target, (int)target_len,
       edlibNewAlignConfig((int)max_errors, EDLIB_MODE_HW, EDLIB_TASK_LOC,
-                          iupac_equalities, n_iupac_equalities));
+                          pairs, n_pairs));
   assert(result.status == EDLIB_STATUS_OK);
   long n_errors = result.editDistance;
   if (n_errors < 0) {
