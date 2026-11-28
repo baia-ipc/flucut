@@ -238,6 +238,24 @@ static void origin_cell(html_writer_t *w, const counter_reads_t *s) {
   html_close(w);
 }
 
+/* the cell of the share of the reads placed on a segment: emphasized,
+   tinted as a problem, below the threshold of its flag */
+static void placed_cell(html_writer_t *w, const counter_reads_t *s) {
+  size_t analyzed = counter_reads_analyzed(s);
+  if (analyzed == 0) {
+    markup_td_none(w);
+    return;
+  }
+  double placed = qc_flags_reads_placed(s);
+  html_open(w, "td");
+  if (placed < QC_FLAGS_PLACED)
+    html_attr(w, "class", "hi bad");
+  html_attr(w, "title", "%.1f%% of the reads placed on a segment of the "
+            "references", 100 * placed);
+  html_text(w, percent_text(s->placed, analyzed).s);
+  html_close(w);
+}
+
 /* the row of the sample <i>; <max_reads>: the reads of the largest one */
 static void sample_row(html_writer_t *w, const report_t *r, size_t i,
     size_t max_reads) {
@@ -253,7 +271,7 @@ static void sample_row(html_writer_t *w, const report_t *r, size_t i,
   if (g->counts == NULL) {
     html_open(w, "td");
     html_attr(w, "class", "wait");
-    html_attr(w, "colspan", "%d", refs ? 17 : 4);
+    html_attr(w, "colspan", "%d", refs ? 18 : 4);
     html_text(w, "waiting");
     html_close(w);
     html_close(w);
@@ -296,8 +314,10 @@ static void sample_row(html_writer_t *w, const report_t *r, size_t i,
     greatest_share_cell(w, &qc, deletion_share,
                         judged ? QC_FLAGS_DELETION : 2);
   }
-  if (refs)
+  if (refs) {
     origin_cell(w, s);
+    placed_cell(w, s);
+  }
   markup_td(w, "%s", percent_text(s->n_ends[2], analyzed).s);
   html_close(w);
 }
@@ -327,7 +347,8 @@ static void samples_header(html_writer_t *w) {
   snprintf(coverage, sizeof(coverage), "coverage: %% of the segment at "
            "\xe2\x89\xa5%d\xc3\x97", QC_MIN_DEPTH);
   static const char *const after[] = {
-    "int. primed", "int. deletions", "reads by origin", "both primers"};
+    "int. primed", "int. deletions", "reads by origin", "placed",
+    "both primers"};
   html_open(w, "thead");
   markup_open_row(w);
   header_cell(w, "sample", NULL, 2, 1);
@@ -383,6 +404,11 @@ static void write_table(html_writer_t *w, const report_t *r) {
   markup_swatch(w, "c-del", "internal deletion");
   markup_swatch(w, "c-unp", "not placed");
   markup_swatch(w, "c-oth", "other");
+  char placed[96];
+  snprintf(placed, sizeof(placed), "below %.0f%% of the reads placed on a "
+           "segment", 100 * QC_FLAGS_PLACED);
+  html_text(w, "Placed: ");
+  markup_swatch(w, "t-bad", placed);
   html_close(w);
 }
 

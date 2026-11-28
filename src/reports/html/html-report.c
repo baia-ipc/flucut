@@ -11,6 +11,7 @@
 #include "html-report-sample.h"
 #include "html-report-segments.h"
 #include "html-template.h"
+#include "qc-flags.h"
 
 #include "report-logo-data.inc"
 
@@ -80,15 +81,17 @@ static bool has_across(const report_t *r) {
 
 /* the explanation of the terms, at the end of the page */
 static void write_terms(html_writer_t *w) {
-  char depth[16], complete[16], percent[16], reads[16], share[16];
+  char depth[16], complete[16], percent[16], reads[16], share[16],
+       placed[16];
   snprintf(reads, sizeof(reads), "%g", SUBTYPE_READS_MIN_EXCESS);
   snprintf(share, sizeof(share), "%g", 100 * SUBTYPE_READS_MIN_SHARE);
   snprintf(depth, sizeof(depth), "%d", QC_MIN_DEPTH);
   snprintf(complete, sizeof(complete), "%.0f", 100 * QC_COMPLETE_FRACTION);
   snprintf(percent, sizeof(percent), "%.0f", 100 * LENGTHS_SHORT_FRACTION);
+  snprintf(placed, sizeof(placed), "%.0f", 100 * QC_FLAGS_PLACED);
   html_template(w, terms_tmpl, "depth", depth, "complete", complete,
                 "short", percent, "second_reads", reads, "second_share",
-                share);
+                share, "placed", placed);
 }
 
 /* --- report: one page, the overview and then each sample --- */

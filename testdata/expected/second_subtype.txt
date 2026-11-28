@@ -35,8 +35,8 @@ md5: 5a6880ab4aad1f28b3d942fc13018a05
 @errors_plus_h3 simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1713:-	ct:Z:full	tl:i:12	tr:i:10
 1716 GGAATTACTTAACTA...AACTGGGTTTCTACT
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict
-reads-two-subtypes	16	19612	14	19255	14	1	1	3	1	2	0	0	0	8	2	5	11	2	1	4	11	2	0	1	NVPARSSR	5	0.8000	0.8000	0.0000	too few reads
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_unplaced	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict
+reads-two-subtypes	16	19612	14	19255	14	1	1	3	1	2	0	0	0	8	2	5	11	2	1	4	11	2	0	0	1	NVPARSSR	5	0.8000	0.8000	0.0000	too few reads
 == lengths.tsv ==
 output	group	length	reads
 reads-two-subtypes	NC_004908.1	20	1
@@ -107,7 +107,7 @@ reads-two-subtypes	NC_004908.1	1700	9
       "adapter_start": 0,
       "adapter_end": 0
     },
-    "written_by_category": {"full": 11, "internal": 2, "deletion": 0, "other": 1},
+    "written_by_category": {"full": 11, "internal": 2, "deletion": 0, "unplaced": 0, "other": 1},
     "read_lengths": {"input": {"reads": 16, "bases": 19612, "min": 35, "max": 1763, "mean": 1225, "median": 1737, "n50": 1737}, "written": {"reads": 14, "bases": 19255, "min": 300, "max": 1728, "mean": 1375, "median": 1716, "n50": 1716}},
     "read_quality": {"input": {"reads": 16, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 14, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
     "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
@@ -119,6 +119,7 @@ reads-two-subtypes	NC_004908.1	1700	9
       "segments_found": 1,
       "segments_complete": 0,
       "ends_not_located": 0.2069,
+      "reads_placed": 0.9375,
       "subtype_reads": {
         "ha": {"leading": "H9", "second": "H3", "reads": 14, "leading_reads": 10, "second_reads": 4, "second_expected": 0.00, "second_excess": 4.00, "second_share": 0.2857, "above_threshold": true},
         "na": null
@@ -207,7 +208,7 @@ reads-two-subtypes	NC_004908.1	1700	9
         "adapter_start": 0,
         "adapter_end": 0
       },
-      "written_by_category": {"full": 11, "internal": 2, "deletion": 0, "other": 1},
+      "written_by_category": {"full": 11, "internal": 2, "deletion": 0, "unplaced": 0, "other": 1},
       "read_lengths": {"input": {"reads": 16, "bases": 19612, "min": 35, "max": 1763, "mean": 1225, "median": 1737, "n50": 1737}, "written": {"reads": 14, "bases": 19255, "min": 300, "max": 1728, "mean": 1375, "median": 1716, "n50": 1716}},
       "read_quality": {"input": {"reads": 16, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 14, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
@@ -219,6 +220,7 @@ reads-two-subtypes	NC_004908.1	1700	9
         "segments_found": 1,
         "segments_complete": 0,
         "ends_not_located": 0.2069,
+        "reads_placed": 0.9375,
         "subtype_reads": {
           "ha": {"leading": "H9", "second": "H3", "reads": 14, "leading_reads": 10, "second_reads": 4, "second_expected": 0.00, "second_excess": 4.00, "second_share": 0.2857, "above_threshold": true},
           "na": null

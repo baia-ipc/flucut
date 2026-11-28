@@ -16,6 +16,7 @@ static void add(qc_flags_t *out, const char *key, const char *fmt, ...) {
     return;
   qc_flag_t *flag = out->flags + out->n++;
   flag->key = key;
+  flag->severe = false;
   va_list ap;
   va_start(ap, fmt);
   vsnprintf(flag->text, sizeof(flag->text), fmt, ap);
@@ -87,6 +88,12 @@ static void add_second_subtypes(qc_flags_t *out,
   }
 }
 
+double qc_flags_reads_placed(const counter_reads_t *s) {
+  assert(s != NULL);
+  size_t analyzed = counter_reads_analyzed(s);
+  return analyzed == 0 ? 0 : (double)s->placed / (double)analyzed;
+}
+
 void qc_flags(const counter_reads_t *s, const qc_summary_t *qc, bool refs,
     const cleavage_result_t *site, const subtype_reads_t *subtypes,
     qc_flags_t *out) {
@@ -106,11 +113,11 @@ void qc_flags(const counter_reads_t *s, const qc_summary_t *qc, bool refs,
   if (qc->not_located >= QC_NOT_LOCATED)
     add(out, "not_located", "%.0f%% of the read ends not located in the "
         "references", 100 * qc->not_located);
-  if (analyzed > 0 &&
-      (double)s->placed < QC_FLAGS_PLACED * (double)analyzed)
-    add(out, "few_influenza_reads", "only %.1f%% of the reads placed on a "
-        "segment: most of the reads are of something else",
-        100.0 * (double)s->placed / (double)analyzed);
+  if (analyzed > 0 && qc_flags_reads_placed(s) < QC_FLAGS_PLACED) {
+    add(out, "few_reads_placed", "only %.1f%% of the reads placed on a "
+        "segment", 100.0 * qc_flags_reads_placed(s));
+    out->flags[out->n - 1].severe = true;
+  }
   add_segments(out, qc, "internal_priming", "of depth internally primed",
                internal_share, QC_FLAGS_INTERNAL);
   add_segments(out, qc, "internal_deletions",
@@ -224,18 +231,28 @@ void qc_flags_test(void) {
     subtype_reads_add(&subtypes, segment, number, i < 199 ? h5 : h3, 2);
   qc_flags(&s, &qc, true, NULL, &subtypes, &flags);
   test_eq_size(flags.n, 0);
-  /* few of the reads placed on a segment: the sample is mostly
-     something else. Without references nothing is said */
+  /* few of the reads placed on a segment: the references describe a
+     small part of the sample, a severe flag. At the threshold, or
+     without references, nothing is said */
   memset(&qc, 0, sizeof(qc));
   s.placed = 1500;
+  test_assert(qc_flags_reads_placed(&s) == 0.3);
   qc_flags(&s, &qc, true, NULL, NULL, &flags);
   test_eq_size(flags.n, 0);
-  s.placed = 65;
+  s.placed = 1499;
   qc_flags(&s, &qc, true, NULL, NULL, &flags);
   test_eq_size(flags.n, 1);
-  test_eq_str(flags.flags[0].key, "few_influenza_reads");
-  test_eq_str(flags.flags[0].text, "only 1.3% of the reads placed on a "
-              "segment: most of the reads are of something else");
+  s.placed = 70;
+  qc_flags(&s, &qc, true, NULL, NULL, &flags);
+  test_eq_size(flags.n, 1);
+  test_eq_str(flags.flags[0].key, "few_reads_placed");
+  test_eq_str(flags.flags[0].text,
+              "only 1.4% of the reads placed on a segment");
+  test_assert(flags.flags[0].severe);
   qc_flags(&s, &qc, false, NULL, NULL, &flags);
   test_eq_size(flags.n, 0);
+  s.placed = 5000;
+  qc.not_located = 0.75;
+  qc_flags(&s, &qc, true, NULL, NULL, &flags);
+  test_assert(!flags.flags[0].severe);
 }

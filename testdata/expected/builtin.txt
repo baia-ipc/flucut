@@ -27,8 +27,8 @@ md5: c2564aa8ccbcf94f0ec1b5718799ed0d
 @left_only simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	ct:Z:full	tl:i:0	tr:i:0
 512 AGCAAAAGCAGGGGA...TACAGGAGTATGAGA
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict
-reads	12	12635	10	12391	10	1	1	2	1	2	0	0	0	8	2	1	7	2	1	4	7	2	0	1	NVPARSSR	5	0.8000	0.8000	0.0000	too few reads
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_unplaced	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict
+reads	12	12635	10	12391	10	1	1	2	1	2	0	0	0	8	2	1	7	2	1	4	7	2	0	0	1	NVPARSSR	5	0.8000	0.8000	0.0000	too few reads
 == lengths.tsv ==
 output	group	length	reads
 reads	NC_004908.1	20	1
@@ -98,7 +98,7 @@ reads	NC_004908.1	1700	5
       "adapter_start": 0,
       "adapter_end": 0
     },
-    "written_by_category": {"full": 7, "internal": 2, "deletion": 0, "other": 1},
+    "written_by_category": {"full": 7, "internal": 2, "deletion": 0, "unplaced": 0, "other": 1},
     "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 10, "bases": 12391, "min": 300, "max": 1728, "mean": 1239, "median": 1016, "n50": 1727}},
     "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 10, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
     "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
@@ -110,6 +110,7 @@ reads	NC_004908.1	1700	5
       "segments_found": 1,
       "segments_complete": 0,
       "ends_not_located": 0.0952,
+      "reads_placed": 0.9167,
       "subtype_reads": null,
       "flags": ["few_reads", "cleavage_site"],
       "segments": [
@@ -195,7 +196,7 @@ reads	NC_004908.1	1700	5
         "adapter_start": 0,
         "adapter_end": 0
       },
-      "written_by_category": {"full": 7, "internal": 2, "deletion": 0, "other": 1},
+      "written_by_category": {"full": 7, "internal": 2, "deletion": 0, "unplaced": 0, "other": 1},
       "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 10, "bases": 12391, "min": 300, "max": 1728, "mean": 1239, "median": 1016, "n50": 1727}},
       "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 10, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
@@ -207,6 +208,7 @@ reads	NC_004908.1	1700	5
         "segments_found": 1,
         "segments_complete": 0,
         "ends_not_located": 0.0952,
+        "reads_placed": 0.9167,
         "subtype_reads": null,
         "flags": ["few_reads", "cleavage_site"],
         "segments": [

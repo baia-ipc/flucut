@@ -26,11 +26,12 @@
 #define QC_FLAGS_INTERNAL 0.1
 #define QC_FLAGS_DELETION 0.5
 /* below this share of the reads placed on a segment of the references
-   (counter.h), the references describe only a small part of the sample:
-   most of its reads are of something else. Chosen from 104 Nanopore
-   samples of the multisegment RT-PCR, where the share has median 0.986
-   and is 0.62 or more in all but the two samples whose reads are
-   largely not influenza (0.014 and 0.16) */
+   (counter.h), the references describe only a small part of the sample.
+   Chosen from the 104 Nanopore samples of the multisegment RT-PCR of the
+   HA I351K validation: the share has median 0.992 and is 0.63 or more in
+   102 of them; it is 0.014 and 0.154 in the two samples whose reads map
+   to influenza at 1.3% and 15% (the other 102: 63% or more). The
+   threshold lies at about twice the second and half the third */
 #define QC_FLAGS_PLACED 0.3
 
 #define QC_FLAGS_MAX 8
@@ -39,6 +40,9 @@
 typedef struct {
   const char *key;                 /* a name for programs, e.g. few_reads */
   char text[QC_FLAGS_TEXT_SIZE];   /* for people */
+  /* the results of the sample rest on a small part of its reads: shown
+     as a problem, not only as a remark */
+  bool severe;
 } qc_flag_t;
 
 typedef struct {
@@ -63,6 +67,10 @@ typedef struct {
 void qc_flags(const counter_reads_t *s, const qc_summary_t *qc, bool refs,
     const cleavage_result_t *site, const subtype_reads_t *subtypes,
     qc_flags_t *out);
+
+/* The share of the reads analyzed (after splitting) placed on a segment
+   of the references; 0 without reads */
+double qc_flags_reads_placed(const counter_reads_t *s);
 
 /* Unit tests */
 void qc_flags_test(void);

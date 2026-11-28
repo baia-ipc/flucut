@@ -302,11 +302,16 @@
   and draws no depth, so that the full-template class, the coverage plot
   and the segment states hold only the reads the references place on a
   segment; in a sample of which little is influenza these reads are the
-  bulk: in one of the 104 validation samples 93,547 of them, 93.6% of
-  its full-template class, left that class, and the depth drawn fell
-  from 12 times the depth measured by mapping to about the measured one
-- a sample whose reads the references describe only in small part is
-  flagged in the run overview and in the JSON summary ("only N% of the
-  reads placed on a segment: most of the reads are of something else"),
-  below 30% of the reads placed; the share itself is in the JSON summary
-  (reads_placed)
+  bulk: in one of the 104 validation samples (1.3% of its reads
+  influenza) 128,441 of them, 94.6% of its full-template class, left
+  that class, the mean depth drawn on M fell from 40,487 to 225 (248
+  measured by mapping) and on PA from 22,094 to 82 (79), and PA and NA
+  are no longer called complete; in the other 103 samples a median of 36
+  reads (0.02% of the class) and at most 2,296 (1.6%) left it, and in
+  the nine of them run with both builds no segment state changed
+- a sample with fewer than 30% of its reads placed on a segment is
+  flagged: a column of the run overview gives the share of the reads
+  placed, tinted below 30%, the sample carries the remark "only N% of
+  the reads placed on a segment", tinted, and the JSON summary the flag
+  few_reads_placed and the share (reads_placed); of the 104 validation
+  samples it flags the two whose reads map to influenza at 1.3% and 15%

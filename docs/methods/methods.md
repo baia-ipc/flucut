@@ -3712,8 +3712,14 @@ the read ends not located, a segment with 10% or more of its depth
 internally primed or 50% or more from reads with an internal deletion, a
 cleavage site the reads do not settle, and fewer than 30% of the reads
 placed on a segment. The last one says that the references describe
-little of the sample: its reads are mostly something else, and its
-segments, coverage and subtype rest on the few that are not.
+little of the sample: its segments, coverage and subtype rest on the few
+reads that were placed. It is shown as a problem, tinted, both as the
+remark and in a column of the run overview with the share of the reads
+placed. In the 104 Nanopore samples of the HA I351K validation the share
+has median 99.2% and is 63% or more in 102 samples; the other two, at
+1.4% and 15%, are the two whose reads map to influenza at 1.3% and 15%.
+The threshold of 30% lies about halfway between them on a logarithmic
+scale.
 
 The subtype of the sample is the H of the reference of its HA and the N
 of the reference of its NA. If the references of the segments found

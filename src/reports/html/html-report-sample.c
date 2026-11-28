@@ -86,7 +86,8 @@ void sample_status_line(html_writer_t *w, const report_t *r,
     sample_badge(w, r, &qc, false);
   }
   for (size_t i = 0; i < flags.n; i++)
-    markup_textf(w, "span", "chip", "%s", flags.flags[i].text);
+    markup_textf(w, "span", flags.flags[i].severe ? "chip bad" : "chip",
+                 "%s", flags.flags[i].text);
   html_close(w);
 }
 

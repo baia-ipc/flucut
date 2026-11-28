@@ -57,6 +57,8 @@
   .subtype { font-weight: 700; font-size: 1.1em; padding: 0 4px; }
   .chip { padding: 1px 9px; border-radius: 10px;
     border: 1px solid var(--grid); color: var(--ink2); }
+  .chip.bad { background: var(--badbg); border-color: var(--bad);
+    color: inherit; font-weight: 600; }
   .tiles { margin: 0.6em 0; }
   .tile { flex: 1 1 150px; min-width: 150px; }
   .tile .u { color: var(--ink2); font-size: 0.75em; }
@@ -183,7 +185,8 @@
   td.sc.warn { background: var(--warnbg); }
   td.sc.bad { background: var(--badbg); }
   td.hi { font-weight: 700; }
-  .samples td:nth-last-child(-n+4):not(.hi) { color: var(--ink2); }
+  td.hi.bad { background: var(--badbg); }
+  .samples td:nth-last-child(-n+5):not(.hi) { color: var(--ink2); }
   /* dashboard: the overview, or the sample chosen (the target of the */
   /* URL fragment), on the screen */
   .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }

@@ -173,6 +173,11 @@ sample:
        Not given for a segment with a mean depth below 20.
    * - reads by origin
      - the reads written, by origin, as a small bar
+   * - placed
+     - the share of the reads placed on a segment of the references;
+       bold and tinted red below 30%: the references describe only a
+       small part of the sample, and its segments, coverage and subtype
+       rest on the few reads that were placed
    * - both primers
      - the reads with the primers of both ends
 
@@ -229,12 +234,10 @@ apply, short remarks:
        allows
    * - N% of the read ends not located in the references
      - 50% or more
-   * - only N% of the reads placed on a segment: most of the reads are
-       of something else
+   * - only N% of the reads placed on a segment (tinted red)
      - fewer than 30% of the reads placed on a segment of the
-       references; the sample holds little of what the references
-       describe (e.g. few influenza reads among reads of something
-       else)
+       references (e.g. few influenza reads among reads of something
+       else); in the overview, the column *placed* is tinted as well
    * - HA 36% of depth internally primed
      - 10% or more of the depth of a segment
    * - PB2 90% of depth from reads with an internal deletion
