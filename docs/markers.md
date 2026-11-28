@@ -371,15 +371,16 @@ subtypes).
 ### What the kept part of a read removes
 
 Reading a marker only from the bases flucut keeps changed the value
-reported in 6 of 735 sample-marker pairs, and every one of the six
-moved to the residue the consensus of the same reads carries: four at
-PB2 627 from K to E, one at PB2 701 from W to D, one at the
-receptor-binding site from SKS to QSG. The disagreements with the
-consensus fell from 7 to 1.
+reported in 5 of the 746 sample-marker pairs with a value, and every
+one of the five moved to the residue the consensus of the same reads
+carries: four at PB2 627 from K to E, one at the receptor-binding site
+from SKS to QSG. The disagreements with the consensus fell from 6 to 1.
+Measured by running the same 104 samples on a build which reads the
+markers from the whole read instead.
 
 It costs reads only where the artefact was: the median number of reads
-giving a marker is unchanged for six of the nine, 84% of what it was
-for `PB1-F2`, 80% for `HA-226-228` and 39% for `PB2-627`, whose anchor
+giving a marker is unchanged for six of the nine, 98% of what it was
+for `PB1-F2` and 92% for `HA-226-228` and for `PB2-627`, whose anchor
 sits on an internal priming site of the Uni12 primer (flucut reports
 that site, at PB2 1913 to 1918, in its own table of internal priming).
 
