@@ -312,8 +312,11 @@ void cleavage_result_of(const cleavage_counts_t *counts, size_t chemistry,
       n++;
     }
     proteins[k].reads += counts->motifs[i].reads;
-    /* the most frequent spelling of these residues */
-    if (counts->motifs[i].reads > spelling_reads[k]) {
+    /* the most frequent spelling of these residues; among equally
+       frequent ones the first in alphabetical order */
+    if (counts->motifs[i].reads > spelling_reads[k] ||
+        (counts->motifs[i].reads == spelling_reads[k] &&
+         strcmp(counts->motifs[i].nt, proteins[k].nt) < 0)) {
       memcpy(proteins[k].nt, counts->motifs[i].nt, CLEAVAGE_SITE_NT + 1);
       spelling_reads[k] = counts->motifs[i].reads;
     }
@@ -370,7 +373,9 @@ void cleavage_result_of(const cleavage_counts_t *counts, size_t chemistry,
   if (f->reads > 0 && f->n > 0) {
     size_t best = 0;
     for (size_t k = 1; k < f->n; k++)
-      if (f->entries[k].reads > f->entries[best].reads)
+      if (f->entries[k].reads > f->entries[best].reads ||
+          (f->entries[k].reads == f->entries[best].reads &&
+           strcmp(f->entries[k].aa, f->entries[best].aa) < 0))
         best = k;
     snprintf(out->fusion_aa, sizeof(out->fusion_aa), "%s",
              f->entries[best].aa);

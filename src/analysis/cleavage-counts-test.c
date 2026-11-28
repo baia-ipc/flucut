@@ -239,6 +239,23 @@ static void test_fusion(void) {
   cleavage_result_of(&h3, CLEAVAGE_CHEMISTRY_R10, &r);
   test_eq_str(r.fusion_aa, "GIFGAIAG");
   test_assert(r.fusion_support > 0.99);
+  /* as many reads of either peptide, or of either spelling of a site:
+     the first in alphabetical order, whichever came first */
+  for (size_t order = 0; order < 2; order++) {
+    cleavage_counts_t tie;
+    cleavage_counts_clear(&tie);
+    const char *fusion[2] = {"GGACTGTTTGGGGCTATAGCAGGC",
+                             "GGAATTTTTGGGGCTATAGCAGGC"};
+    const char *spelling[2] = {"CAAAGAGAGAGAAGAAGAAAAAGG", HPAI_NT};
+    for (size_t k = 0; k < 2; k++) {
+      for (size_t i = 0; i < 10; i++)
+        cleavage_counts_add_fusion(&tie, fusion[(k + order) % 2]);
+      add_n(&tie, spelling[(k + order) % 2], 10);
+    }
+    cleavage_result_of(&tie, CLEAVAGE_CHEMISTRY_R10, &r);
+    test_eq_str(r.fusion_aa, "GIFGAIAG");
+    test_eq_str(r.nt, HPAI_NT);
+  }
 }
 
 static void test_readings(void) {

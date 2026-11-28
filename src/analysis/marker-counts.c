@@ -219,11 +219,23 @@ const char* marker_verdict_name(size_t verdict) {
   }
 }
 
+/* whether the entry <i> of <t> ranks before the entry <j> (-1: none):
+   more reads, or as many and the first in alphabetical order, so that
+   the ranking does not depend on the order of the reads, which differs
+   between runs with several threads */
+static bool ranks_before(const marker_tally_t *t, size_t i, long j) {
+  if (j < 0)
+    return true;
+  size_t a = t->entries[i].reads, b = t->entries[j].reads;
+  return a > b || (a == b && strcmp(t->entries[i].value,
+                                    t->entries[j].value) < 0);
+}
+
 /* the entry of <t> with the most reads, or -1 if it has none */
 static long most_frequent(const marker_tally_t *t) {
   long best = -1;
   for (size_t i = 0; i < t->n; i++)
-    if (best < 0 || t->entries[i].reads > t->entries[best].reads)
+    if (ranks_before(t, i, best))
       best = (long)i;
   return best;
 }
@@ -292,8 +304,7 @@ void marker_result_of(const marker_counts_t *counts, size_t marker,
   for (size_t k = 0; k < MARKER_TOP_VALUES; k++) {
     long at = -1;
     for (size_t i = 0; i < c->value.n; i++)
-      if (!taken[i] && (at < 0 ||
-                        c->value.entries[i].reads > c->value.entries[at].reads))
+      if (!taken[i] && ranks_before(&c->value, i, at))
         at = (long)i;
     if (at < 0 || c->value.entries[at].reads == 0)
       break;

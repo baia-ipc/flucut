@@ -228,6 +228,25 @@ static void test_reads(void) {
   marker_result_of(&c, MARKER_PB2_627, &r);
   test_eq_size(r.verdict, MARKER_UNRESOLVED);
 
+  /* values read by as many reads rank in alphabetical order, whichever
+     came first */
+  for (size_t order = 0; order < 2; order++) {
+    marker_counts_clear(&c);
+    const char *values[2] = {"K", "E"};
+    for (size_t k = 0; k < 2; k++)
+      for (size_t i = 0; i < 10; i++) {
+        marker_counts_searched(&c, MARKER_PB2_627);
+        marker_counts_add(&c, MARKER_PB2_627, values[(k + order) % 2]);
+        marker_counts_add_anchor(&c, MARKER_PB2_627,
+                                 k == order ? "QSRMQFSS" : "QSRMQFST");
+      }
+    marker_result_of(&c, MARKER_PB2_627, &r);
+    test_eq_str(r.value, "E");
+    test_eq_str(r.top[0].value, "E");
+    test_eq_str(r.top[1].value, "K");
+    test_eq_str(r.anchor_value, "QSRMQFSS");
+  }
+
   /* a read with an internal deletion gives the marker only where its
      anchor and its window lie on the same side of the junction: the
      bases before the junction come from another part of the segment */
