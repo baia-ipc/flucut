@@ -101,6 +101,8 @@ END {
   print "/* Generated from metadata/markers.yaml by scripts/markers-table.awk."
   print "   Do not edit: edit the metadata file. */"
   print ""
+  # the names are included once; the table is included by the one
+  # translation unit which asks for it, which may be after them
   print "#ifndef MARKERS_TABLE_H"
   print "#define MARKERS_TABLE_H"
   print ""
@@ -111,12 +113,13 @@ END {
   print "  MARKER_N_MARKERS"
   print "};"
   print ""
-  print "#ifdef MARKERS_TABLE_DEFINE"
+  print "#endif"
+  print ""
+  print "#if defined(MARKERS_TABLE_DEFINE) && !defined(MARKERS_TABLE_DEFINED)"
+  print "#define MARKERS_TABLE_DEFINED"
   print "static const marker_def_t MARKERS_TABLE[MARKER_N_MARKERS] = {"
   for (i = 0; i < n; i++)
     print rows[i]
   print "};"
-  print "#endif"
-  print ""
   print "#endif"
 }

@@ -1,6 +1,28 @@
 # The built-in primers of the influenza multisegment RT-PCR and the
 # schemes which use them (see the manual, Primers).
 #
+# All influenza A genomic segments end in the same conserved sequences:
+# the 12 nucleotides of the 3' end and the 13 nucleotides of the 5' end
+# of the vRNA are (almost) identical in all eight segments and in all
+# subtypes. The universal primers bind these termini. In a
+# double-stranded amplicon of a segment, the plus strand (the
+# orientation of the mRNA) is
+#
+#   [tail] AGCAAAAGCAGG ... segment ... CCTTGTTTCTACT [reverse tail]
+#
+# i.e. the Uni12 primer at the left end and the reverse complement of
+# the Uni13 primer at the right end.
+#
+# The segments of influenza B end in conserved sequences as well, but
+# shorter ones: 9 nucleotides at the start of the plus strand and 10 at
+# its end. Nine and ten bases are too few for a specific primer, so the
+# universal primers of influenza B reach past them, into the
+# untranslated bases next to the terminus, which are conserved in a
+# pattern shared by a few segments. One primer therefore does not bind
+# every segment. The 10 nt terminus has two forms, which differ at
+# their sixth base: the HA, the NA and the NS segments have one, the
+# other five the other; both are built in.
+#
 # The build turns this file into the tables of the program
 # (scripts/primers-table.awk writes obj/primers-table.h): a primer or a
 # scheme is added or changed here, not in the sources.

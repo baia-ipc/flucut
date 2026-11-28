@@ -108,6 +108,14 @@ $(MARKERS_INC): metadata/markers.yaml scripts/markers-table.awk | $(OBJDIR)
 	awk -f scripts/markers-table.awk $< > $@
 $(OBJS): | $(MARKERS_INC)
 
+# the primers and the schemes, from metadata/primers.yaml, in the same
+# way: the conserved termini and the tails as macros, the tables for
+# primers.c and scheme.c (see primers.h)
+PRIMERS_INC = $(OBJDIR)/primers-table.h
+$(PRIMERS_INC): metadata/primers.yaml scripts/primers-table.awk | $(OBJDIR)
+	awk -f scripts/primers-table.awk $< > $@
+$(OBJS): | $(PRIMERS_INC)
+
 # the banner shown in a terminal (docs/logo/flucut-banner.ans), embedded
 # in the same way
 BANNER_INC = $(OBJDIR)/flucut-banner-ans.inc

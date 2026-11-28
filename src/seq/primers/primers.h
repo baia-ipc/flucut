@@ -4,45 +4,25 @@
    The universal primers of the influenza multisegment RT-PCR, built in:
    Uni12/Uni13 for influenza A and the IBV-GA2 cocktail for influenza B.
 
-   All influenza A genomic segments end in the same conserved sequences:
-   the 12 nucleotides of the 3' end and the 13 nucleotides of the 5' end
-   of the vRNA are (almost) identical in all eight segments and in all
-   subtypes. The universal primers of the multisegment RT-PCR bind these
-   termini, so that every amplicon begins and ends with primer-derived
-   sequence (see trimming.h: the bases under a primer reflect the primer,
-   not the template).
+   The primers themselves - their sequences, the conserved termini they
+   bind, the segments each one binds and the publication each is quoted
+   from - are in metadata/primers.yaml, which the build turns into the
+   tables used here. What is here is what the program does with them.
 
-   The sequences below are quoted from the publications cited for each of
-   them; no sequence is derived or guessed. A sequence which cannot be
-   verified in a publication or protocol is not added.
-
-   In a double-stranded amplicon of a segment, the plus strand (the
-   orientation of the mRNA) is
-
-     [tail] AGCAAAAGCAGG ... segment ... CCTTGTTTCTACT [reverse tail]
-
-   i.e. the Uni12 primer at the left end and the reverse complement of
-   the Uni13 primer at the right end. A read can be sequenced in either
+   The primers bind the conserved termini of the segments, so every
+   amplicon begins and ends with primer-derived sequence: the bases
+   under a primer reflect the primer and not the template, and are
+   removed (see trimming.h). A read can be sequenced in either
    orientation, so both strands are searched (see primer-search.h).
 
-   The segments of influenza B end in conserved sequences as well, but
-   shorter ones: 9 nucleotides at the start of the plus strand and 10 at
-   its end. Nine and ten bases are too few for a specific primer, so the
-   universal primers of influenza B reach past them, into the
-   untranslated bases next to the terminus, which are conserved in a
-   pattern shared by a few segments (Zhou et al. 2014, below). One
-   primer therefore does not bind every segment, and its bases are the
-   template only at an end of a segment it was designed for: which
-   segments that is, is part of each primer (see primer_t.segments).
-
-   The 10 nt terminus of influenza B has two forms, which differ at
-   their sixth base: the HA, the NA and the NS segments have one, the
-   other five segments the other. Both are built in, in the primers
-   which use them.
+   A primer which reaches past the universal terminus, as those of
+   influenza B do, binds only the segments it was designed for, and its
+   bases are the template only at an end of one of them: which segments
+   those are is part of each primer (see primer_t.segments).
 
    Degenerate bases are written in the IUPAC code (R = A or G); they are
-   matched against any of the bases they stand for (see
-   iupac_bases() in iupac.h).
+   matched against any of the bases they stand for (see iupac_bases() in
+   iupac.h).
 */
 
 #ifndef PRIMERS_H
@@ -113,92 +93,25 @@ typedef struct {
   primer_segments_t segments;
 } primer_t;
 
-/* The conserved termini of influenza A (without any tail) */
-#define PRIMERS_TERMINUS_12 "AGCAAAAGCAGG"
-#define PRIMERS_TERMINUS_13 "AGTAGAAACAAGG"
 /*
-   The same 12 nt terminus with the degenerate fourth position (A or G),
-   which accommodates the variation of the segment termini
-*/
-#define PRIMERS_TERMINUS_12_R "AGCRAAAGCAGG"
+   The conserved termini and the tails the primers are made of, and the
+   built-in primers themselves, written by the build from
+   metadata/primers.yaml (scripts/primers-table.awk). The sequences, the
+   segments each primer binds and the publication each is quoted from
+   are in that file; a primer or a scheme is added or changed there and
+   not here.
 
-/* The 5' tail shared by the primers of Zhou et al. (2009) */
-#define PRIMERS_MBT_TAIL "ACGCGTGATCAG"
-
-/*
-   The conserved termini of influenza B: 9 bases at the start of the
-   plus strand, 10 at its end, the last in the two forms which differ
-   at the sixth base (PRIMERS_TERMINUS_B_10_T in the HA, the NA and the
-   NS, PRIMERS_TERMINUS_B_10 in the other five segments). They are the
-   first bases of the primers of Zhou et al. (2014) after the tail (see
-   below).
+   PRIMERS_TERMINUS_12 and PRIMERS_TERMINUS_13 are the conserved termini
+   of influenza A, PRIMERS_TERMINUS_12_R the first with the degenerate
+   fourth position; PRIMERS_TERMINUS_B_9 and PRIMERS_TERMINUS_B_10 (and
+   PRIMERS_TERMINUS_B_10_T, its form in the HA, the NA and the NS) are
+   those of influenza B.
 */
-#define PRIMERS_TERMINUS_B_9 "AGCAGAAGC"
-#define PRIMERS_TERMINUS_B_10 "AGTAGAAACA"
-#define PRIMERS_TERMINUS_B_10_T "AGTAGTAACA"
-
-/*
-   The 5' tails of the IBV-GA2 primers of Zhou et al. (2014): six bases
-   on the primers of the left end, ten on those of the right end. They
-   are the promoter and terminator sequences of the reverse-genetics
-   plasmid, not influenza sequence, and are always removed.
-*/
-#define PRIMERS_IBV_TAIL_LEFT "GGGGGG"
-#define PRIMERS_IBV_TAIL_RIGHT "CCGGGTTATT"
+#include "primers-table.h"
 
 /*
    The built-in primers, by name (case is ignored); NULL if there is no
    primer with that name.
-
-   The names and the sequences:
-
-   - "uni12"       AGCAAAAGCAGG
-   - "uni13"       AGTAGAAACAAGG
-     The conserved termini, used as primers without a tail. They are
-     commonly called Uni12 and Uni13 after the universal primer set of
-     Hoffmann et al. 2001, Arch Virol 146:2275-2289,
-     https://doi.org/10.1007/s007050170002; the sequences used here are
-     those quoted as Uni12 and Uni13 by Zhou et al. 2009 (see below),
-     which are also the 3' ends of mbtuni-12 and mbtuni-13.
-   - "uni12r"      AGCRAAAGCAGG
-     The 12 nt terminus with the degenerate fourth position.
-   - "mbtuni-12"   ACGCGTGATCAGCAAAAGCAGG
-   - "mbtuni-13"   ACGCGTGATCAGTAGAAACAAGG
-     The tailed primers of the single-reaction multisegment RT-PCR of
-     Zhou et al. 2009, J Virol 83:10309-10313,
-     https://doi.org/10.1128/JVI.01109-09. The common 5' tail
-     ACGCGTGATCAG carries an MluI site (ACGCGT) used for cloning in that
-     protocol.
-   - "mbtuni-12.4r" ACGCGTGATCAGCRAAAGCAGG
-     The tailed Uni12 primer with the degenerate fourth position, used
-     in place of (or mixed with) mbtuni-12 by Licheri et al. 2025,
-     Genome Med 17:103, https://doi.org/10.1186/s13073-025-01512-x
-     (there MBTuni-12.4R; mixed with mbtuni-12 in a 1:4 ratio in the
-     reverse transcription step).
-
-   The primers of influenza B, with the segments each one binds:
-
-   - "b-pbs-unif", "b-pbs-unir"     PB1 and PB2
-   - "b-pa-unif", "b-pa-unir"       PA
-   - "b-hana-unif", "b-hana-unir"   HA and NA
-   - "b-np-unif", "b-np-unir"       NP
-   - "b-m-uni3f", "b-mg-uni3f"      M (two forms of the primer of the
-                                    left end, both in the cocktail)
-   - "b-m-uni3r"                    M
-   - "b-ns-uni3f", "b-ns-uni3r"     NS
-
-     The universal IBV-GA2 primer cocktail of Zhou et al. 2014, J Clin
-     Microbiol 52:1330-1337, https://doi.org/10.1128/JCM.03265-13
-     (Table 1; the names are those of the table, in lower case). Six
-     pairs amplify the eight segments: each primer is a 5' tail
-     (PRIMERS_IBV_TAIL_LEFT or PRIMERS_IBV_TAIL_RIGHT, not influenza
-     sequence) followed by the conserved terminus of its end and by
-     five or eight further bases, which are the untranslated bases next
-     to the terminus in the segments the primer binds.
-
-     The cocktail mixes the primers in the proportions of Table 1; the
-     proportions do not matter to flucut, which searches every primer
-     of the scheme in every read.
 */
 const primer_t* primers_builtin(const char *name);
 

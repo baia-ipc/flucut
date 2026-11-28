@@ -20,29 +20,18 @@ typedef struct {
   const char *right[SCHEME_MAX_PRIMERS];
 } builtin_scheme_t;
 
-/* the primers of influenza B of each end (the IBV-GA2 cocktail, see
-   primers.h), written once as they are used by two schemes */
-#define IBV_GA2_LEFT "b-pbs-unif", "b-pa-unif", "b-hana-unif", \
-  "b-np-unif", "b-m-uni3f", "b-mg-uni3f", "b-ns-uni3f"
-#define IBV_GA2_RIGHT "b-pbs-unir", "b-pa-unir", "b-hana-unir", \
-  "b-np-unir", "b-m-uni3r", "b-ns-uni3r"
+/* the built-in schemes, written by the build from
+   metadata/primers.yaml (scripts/primers-table.awk) */
+#define SCHEMES_TABLE_DEFINE
+#include "primers-table.h"
 
-static const builtin_scheme_t builtin[] = {
-  {SCHEME_DEFAULT_BOTH, {"uni12r", IBV_GA2_LEFT, NULL},
-   {"mbtuni-13", IBV_GA2_RIGHT, NULL}},
-  {SCHEME_DEFAULT_A, {"uni12r", NULL}, {"mbtuni-13", NULL}},
-  {SCHEME_DEFAULT_B, {IBV_GA2_LEFT, NULL}, {IBV_GA2_RIGHT, NULL}},
-  {"mbt", {"mbtuni-12", "mbtuni-12.4r", NULL}, {"mbtuni-13", NULL}},
-  {"uni", {"uni12", "uni12r", NULL}, {"uni13", NULL}},
-};
-#define N_BUILTIN ((size_t)(sizeof(builtin) / sizeof(builtin[0])))
 
-static const char *builtin_names[N_BUILTIN + 1];
+static const char *builtin_names[SCHEMES_N_BUILTIN + 1];
 
 const char* const* scheme_builtin_names(void) {
-  for (size_t i = 0; i < N_BUILTIN; i++)
-    builtin_names[i] = builtin[i].name;
-  builtin_names[N_BUILTIN] = NULL;
+  for (size_t i = 0; i < SCHEMES_N_BUILTIN; i++)
+    builtin_names[i] = SCHEMES_BUILTIN[i].name;
+  builtin_names[SCHEMES_N_BUILTIN] = NULL;
   return builtin_names;
 }
 
@@ -97,16 +86,16 @@ static void load_primers(const char *const *names, size_t n,
 scheme_t* scheme_new_builtin(const char *name, Logger *logger) {
   assert(name != NULL);
   const builtin_scheme_t *b = NULL;
-  for (size_t i = 0; i < N_BUILTIN && b == NULL; i++)
-    if (name_eq(name, builtin[i].name))
-      b = builtin + i;
+  for (size_t i = 0; i < SCHEMES_N_BUILTIN && b == NULL; i++)
+    if (name_eq(name, SCHEMES_BUILTIN[i].name))
+      b = SCHEMES_BUILTIN + i;
   if (b == NULL) {
     strbuf_t known;
     strbuf_init(&known);
-    for (size_t i = 0; i < N_BUILTIN; i++) {
+    for (size_t i = 0; i < SCHEMES_N_BUILTIN; i++) {
       if (i > 0)
         strbuf_append_str(&known, ", ");
-      strbuf_append_str(&known, builtin[i].name);
+      strbuf_append_str(&known, SCHEMES_BUILTIN[i].name);
     }
     strbuf_append_char(&known, '\0');
     lprintf(logger, LOG_ERROR, "Unknown primer scheme \"%s\" (known "
@@ -218,6 +207,6 @@ void scheme_test(void) {
   /* the names of the built-in schemes: the default first, NULL-ended */
   const char *const *names = scheme_builtin_names();
   test_eq_str(names[0], SCHEME_DEFAULT);
-  test_assert(names[N_BUILTIN] == NULL);
+  test_assert(names[SCHEMES_N_BUILTIN] == NULL);
   delete_logger(logger);
 }
