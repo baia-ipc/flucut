@@ -37,10 +37,16 @@ alignment:
    the reference between them has at least 100 bases more than the
    read, that is a deletion. Bases of the read which fit both flanks of
    a deletion are counted once, with the second flank. A flank of
-   fewer than 30 bases cannot be mapped: where an alignment has no
-   primer, a primer 12 to 60 bases before it, with the bases between
-   them at the terminus of the segment, is such a flank. A primer between two alignments means two
-   amplicons joined end to end.
+   fewer than 30 bases cannot be mapped: a primer 6 to 60 bases before
+   an alignment, with the bases between them those of the segment next
+   to its terminus, is such a flank, and the end is terminal. This
+   holds also where the primer is close enough to the alignment to pass
+   for bases the aligner clipped (step 4): a deleted genome which keeps
+   only the last 9 bases of HA would otherwise look like internal
+   priming. A flank of fewer than 12 bases may differ from the segment
+   end at one base from 9 bases on, at none below, so that a few
+   bases do not fit the terminus by chance. A primer between two
+   alignments means two amplicons joined end to end.
 4. **Primers** (`primers.py`). At each end of an amplicon the conserved
    terminus of each primer (Uni12 `AGCRAAAGCAGG`, Uni13
    `AGTAGAAACAAGG`) is searched where the alignment begins, with up to
@@ -54,6 +60,11 @@ alignment:
 5. **Origin**. An end is terminal within 10 bases of the terminus of
    the segment, internal otherwise. If the reference lacks its
    terminus, bases of the read beyond the reference end are allowed for.
+   The 10 bases are template bases after the conserved terminus.
+   flucut's `--terminal-window` (60) counts instead from the first base
+   of its reference record: on a record which carries the 12 or 13
+   bases of the terminus, a normal amplicon's probe begins 12 or 13
+   bases in, and the window reaches 47 or 46 template bases.
 6. **Coverage** (`pipeline.py`). The aligned intervals of each
    amplicon, by category.
 7. **Comparison** (`flucut_tags.py`, `flucut_summary.py`, `irma.py`).

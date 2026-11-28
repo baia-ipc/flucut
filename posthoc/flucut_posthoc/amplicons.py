@@ -37,7 +37,7 @@ class Params:
     gap: int = 10                # clipped template between primer and
     edge_gap: int = 40           # alignment; at an incomplete reference end
     tail_len: int = 10           # bases before a primer which are reported
-    short_flank: tuple = (12, 60)  # bases of a flank too short to map
+    short_flank: tuple = (6, 60)   # bases of a flank too short to map
     min_aligned: int = 30        # shorter alignments are ignored
     min_deletion: int = 100      # shorter deletions are indels of a read
     read_window: int = 100       # primer search in a read not mapped
@@ -148,18 +148,31 @@ def _searched(aln: Alignment, ref: Reference, p: Params
                  is not None for i in range(N_CONTROLS))
     rctl = tuple(search_left(rc, n - aln.qe, p.oligos, rgap, p.error_rate,
                              i) is not None for i in range(N_CONTROLS))
+    # a flank too short to map: without a primer at a boundary, or with
+    # one some bases away from it, which may be the bases of the segment
+    # end beyond a deletion rather than template the aligner clipped
+    lflank = rflank = None
+    if left is None or aln.qs - left.end >= p.short_flank[0]:
+        lflank = _short_flank(seq, aln.qs, ref.seq, ref.first_template,
+                              aln.rs, p)
+        left = None if lflank else left
+    if right is None or n - aln.qe - right.end >= p.short_flank[0]:
+        rflank = _short_flank(rc, n - aln.qe, revcomp(ref.seq), ref.t13,
+                              ref.length - aln.re, p)
+        right = None if rflank else right
     ltail = seq[max(0, left.start - p.tail_len):left.start] if left else ""
     rtail = rc[max(0, right.start - p.tail_len):right.start] if right \
         else ""
-    # without a primer at a boundary: a flank too short to map?
-    lflank = rflank = None
-    if left is None:
-        lflank = _short_flank(seq, aln.qs, ref.seq, ref.first_template,
-                              aln.rs, p)
-    if right is None:
-        rflank = _short_flank(rc, n - aln.qe, revcomp(ref.seq), ref.t13,
-                              ref.length - aln.re, p)
     return left, right, lctl, rctl, ltail, rtail, lflank, rflank
+
+
+def _flank_errors(length: int) -> int:
+    """Differences allowed between a short flank and the segment end: a
+    fifth of its bases, but fewer for the shortest, which would otherwise
+    fit the 20 or so positions searched by chance."""
+    if length >= 12:
+        return length // 5
+    return 1 if length >= 9 else 0
 
 
 def _short_flank(seq: str, boundary: int, ref_seq: str, first_template: int,
@@ -183,7 +196,8 @@ def _short_flank(seq: str, boundary: int, ref_seq: str, first_template: int,
     target = "N" * pad + ref_seq[max(0, start):
                                  first_template + len(flank) + 8]
     found = edlib.align(flank, target, mode="HW", task="locations",
-                        k=len(flank) // 5, additionalEqualities=_ANY)
+                        k=_flank_errors(len(flank)),
+                        additionalEqualities=_ANY)
     if found["editDistance"] < 0:
         return None
     a, b = found["locations"][0]

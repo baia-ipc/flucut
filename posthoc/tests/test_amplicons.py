@@ -138,3 +138,37 @@ def test_short_flank_at_a_reference_without_its_terminus(params):
     (unit,), _, _ = build_units([aln], {"ref": ref}, params)
     assert unit.category == "deletion" and unit.left.kind == "12"
     assert unit.blocks == [(0, 16), (400, 596)]
+
+
+def test_deletion_with_a_flank_shorter_than_the_clipped_bases(reference,
+                                                               params):
+    # 9 bases of the end of the segment after the junction: too few to
+    # align, and few enough to pass for bases clipped before a primer
+    read = FLANK + reference.seq[:200] + reference.seq[578:] + FLANK
+    aln = exact_alignment(reference, read, 30, 0, 200)
+    (unit,), _, _ = units_of(reference, params, [aln])
+    assert unit.category == "deletion"
+    assert (unit.right.kind, unit.right.origin, unit.right.pos) == \
+        ("13", "terminal", 586)
+    assert unit.blocks == [(0, 200), (578, 587)]
+    assert unit.deletions == [(200, 578)]
+
+
+def test_same_at_the_start_of_the_segment(reference, params):
+    read = FLANK + reference.seq[:21] + reference.seq[400:] + FLANK
+    aln = exact_alignment(reference, read, 51, 400, 200)
+    (unit,), _, _ = units_of(reference, params, [aln])
+    assert unit.category == "deletion"
+    assert (unit.left.kind, unit.left.origin, unit.left.pos) == \
+        ("12", "terminal", 12)
+    assert unit.deletions == [(21, 400)]
+
+
+def test_bases_clipped_before_an_internal_primer_stay_internal(reference,
+                                                               params):
+    read = FLANK + reference.seq[:300] + random_seq(7, 41) + UNI13_RC + \
+        FLANK
+    aln = exact_alignment(reference, read, 30, 0, 300)
+    (unit,), _, _ = units_of(reference, params, [aln])
+    assert unit.category == "internal3"
+    assert (unit.right.kind, unit.right.origin) == ("13", "internal")
