@@ -1114,7 +1114,7 @@ segment terminus) or internal (line 14), and the part of the read to
 keep is computed (lines 15–17). The result is given in the positions of
 the read as it was (lines 18–19).
 
-> **Source:** `analyze` in `src/seq/reads/amplicon.c`
+> **Source:** `analyze` in `src/seq/amplicon/amplicon.c`
 
 > **Called from:** FLUCUT_RUN (A1), ALLOWED_ERROR_PERCENT (A2) and
 > REMOVE_ADAPTERS (A12)
@@ -1190,7 +1190,7 @@ keeps the one nearest the read end, then the one with fewer errors, then
 the longer (line 4).
 
 > **Source:** `search_layout`, `search_end`, `better_hit` in
-> `src/seq/reads/amplicon.c`
+> `src/seq/amplicon/amplicon.c`
 
 ```
 LAYOUT(seq, w_left, w_right)
@@ -1261,7 +1261,7 @@ PRIMER_AT_END tries first a primer that lies inside the read (line 3),
 and only if there is none one that overhangs it (line 4).
 
 > **Source:** `primer_search_end` in `src/seq/search/primer-search.c`;
-> `missing_costs`, `search_primer_end` in `src/seq/reads/amplicon.c`
+> `missing_costs`, `search_primer_end` in `src/seq/amplicon/amplicon.c`
 
 The primer is aligned to the read end by a dynamic programming in which
 the alignment may begin at any outer primer position, at a cost. The
@@ -1369,8 +1369,8 @@ reported, never trimmed. Between the primers of the two ends (lines
 allowed in a primer (lines 6–7). Of matches that overlap, the best is
 kept, and at most 8 in all (lines 8–10).
 
-> **Source:** `src/seq/reads/internal-matches.c`; `search_internal` in
-> `src/seq/reads/amplicon.c`
+> **Source:** `src/seq/amplicon/internal-matches.c`; `search_internal` in
+> `src/seq/amplicon/amplicon.c`
 
 ```
 MATCHES_INSIDE(seq, a)
@@ -1426,7 +1426,7 @@ the segment the probe was located in (lines 9 and 13). For a universal
 primer of influenza A this is always so; for one of influenza B it is
 so only in the segments it was designed for.
 
-> **Source:** `classify_ends` in `src/seq/reads/amplicon.c`
+> **Source:** `classify_ends` in `src/seq/amplicon/amplicon.c`
 
 ![The origin of an end, from where its probe lies](figures/origin.svg)
 
@@ -1623,7 +1623,7 @@ of the primer of the opposite end, as when two amplicons are joined
 without a primer between them. That copy and what lies beyond it are
 removed as well (lines 1–7).
 
-> **Source:** `compute_keep`, `cut_facing_primer` in `src/seq/reads/amplicon.c`
+> **Source:** `compute_keep`, `cut_facing_primer` in `src/seq/amplicon/amplicon.c`
 
 ![The part of a read that is kept, in four cases](figures/keep.svg)
 
@@ -1704,7 +1704,7 @@ a primer only within 5 bases of where an adapter was (lines 13–15). The
 second analysis is used unless it finds fewer primers than the first
 (line 16).
 
-> **Source:** `analyze_with_adapters` in `src/seq/reads/amplicon.c`;
+> **Source:** `analyze_with_adapters` in `src/seq/amplicon/amplicon.c`;
 > `src/seq/search/adapters.c`, `src/seq/search/adaptor-search.c`
 
 ![An adapter removed at an end without a primer, and the second analysis](figures/adapter_removal.svg)
@@ -1814,7 +1814,7 @@ only one is found this way, both remain without a position: one probe
 alone can match by chance (LOCATE_ENDS_FROM_INSIDE lines 10–12).
 
 > **Source:** `src/seq/reads/placement.c`; `locate_inner_ends`,
-> `locate_from_inside`, `inner_end_position` in `src/seq/reads/amplicon.c`.
+> `locate_from_inside`, `inner_end_position` in `src/seq/amplicon/amplicon.c`.
 
 These positions serve the coverage analysis only: the trimming and the
 origins of A9 do not change.
@@ -1963,7 +1963,7 @@ together have the fewest errors (JUNCTION_BY_ALIGNMENT lines 3–8). It is
 reported only if the fit is good (line 9) and at least 100 bases are
 missing (line 12).
 
-> **Source:** `src/seq/reads/junction.c`; `find_junction` in `src/seq/reads/amplicon.c`
+> **Source:** `src/seq/reads/junction.c`; `find_junction` in `src/seq/amplicon/amplicon.c`
 
 ![The bisection for the junction of an internal deletion](figures/junction.svg)
 
@@ -3748,7 +3748,7 @@ location of a probe: fewer errors; of two equally good ones the nearer
 to the end of the segment, and if they are on different references the
 hit is marked ambiguous (BETTER_HIT lines 2–6).
 
-> **Source:** `analyze`, `better_hit` in `src/seq/reads/amplicon.c`;
+> **Source:** `analyze`, `better_hit` in `src/seq/amplicon/amplicon.c`;
 > `align_window` in `src/seq/references/reference.c`
 
 > **Called from:** ANALYSE_ENDS (A5), BEST_PRIMER (A6) and LOCATE
