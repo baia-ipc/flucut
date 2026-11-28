@@ -284,23 +284,31 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
   read_cleavage_site(self, seq, len, &cover, category, counts);
   /* the markers of the segment of the read; a read which is not
      located (the reads of a fragment, see marker-read.h) is searched
-     for every marker. A read with an internal deletion gives only the
-     markers which lie whole between the cuts of its junction and of
-     the short deletions beside it; one whose junction was not located
-     gives none, as which of its bases belong together is then not
-     known */
+     for every marker. A read gives only the markers which lie whole on
+     a stretch where it follows its reference: between the cuts of an
+     internal deletion, and clear of a primer which matched inside it,
+     whose bases are the primer and not the template. A read with an
+     internal deletion whose junction was not located gives none, as
+     which of its bases belong together is then not known */
   long cuts[1 + FLANK_DELETIONS_MAX_CUTS];
-  size_t n_cuts = 0;
+  marker_blocked_t blocked[AMPLICON_MAX_INTERNAL];
+  marker_breaks_t breaks = {cuts, 0, blocked, 0};
   bool readable = category != READ_CATEGORY_DELETION || a->junction.found;
-  if (readable && category == READ_CATEGORY_DELETION) {
-    cuts[n_cuts++] = a->junction_at;
-    for (size_t i = 0; i < a->n_flank_cuts; i++)
-      cuts[n_cuts++] = a->flank_cuts[i];
-  }
-  if (readable)
+  if (readable) {
+    if (category == READ_CATEGORY_DELETION) {
+      cuts[breaks.n_cuts++] = a->junction_at;
+      for (size_t i = 0; i < a->n_flank_cuts; i++)
+        cuts[breaks.n_cuts++] = a->flank_cuts[i];
+    }
+    for (size_t i = 0; i < a->n_internal; i++) {
+      blocked[breaks.n_blocked].from = a->internal[i].start;
+      blocked[breaks.n_blocked].to = a->internal[i].end;
+      breaks.n_blocked++;
+    }
     counter_add_markers(counts, self->markers,
-                        cover.located ? (long)cover.ref : -1, cuts, n_cuts,
+                        cover.located ? (long)cover.ref : -1, &breaks,
                         seq, len, self->config->probe_error_rate);
+  }
   if (!write || (self->config->filtered != NULL &&
                  self->config->filtered[category])) {
     counter_add_filtered(counts, category);

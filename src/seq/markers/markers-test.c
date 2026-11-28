@@ -146,11 +146,11 @@ static void read_n_at(const marker_reference_t *const *chosen, long ref,
     long junction, const char *seq, size_t n, marker_counts_t *counts) {
   char rc[512];
   size_t len = strlen(seq);
-  size_t n_cuts = junction < 0 ? 0 : 1;
+  marker_breaks_t breaks = {&junction, junction < 0 ? 0 : 1, NULL, 0};
   reverse_complement(seq, len, rc);
   for (size_t i = 0; i < n; i++) {
-    marker_read_sites(chosen, ref, &junction, n_cuts, seq, len, 0.2, counts);
-    marker_read_sites(chosen, ref, &junction, n_cuts, rc, len, 0.2, counts);
+    marker_read_sites(chosen, ref, &breaks, seq, len, 0.2, counts);
+    marker_read_sites(chosen, ref, &breaks, rc, len, 0.2, counts);
   }
 }
 
@@ -232,8 +232,9 @@ static void test_reads(void) {
   marker_counts_clear(&c);
   size_t pb2_len = strlen(PB2_627E);
   long at = (long)strlen(PB2_HEAD) + 3;   /* the first base of the anchor */
+  marker_breaks_t at_anchor = {&at, 1, NULL, 0};
   for (size_t i = 0; i < 30; i++)
-    marker_read_sites(chosen, 0, &at, 1, PB2_627E, pb2_len, 0.2, &c);
+    marker_read_sites(chosen, 0, &at_anchor, PB2_627E, pb2_len, 0.2, &c);
   marker_result_of(&c, MARKER_PB2_627, &r);
   test_eq_size(r.searched, 30);
   /* the window lies before the junction and the anchor after it: no
@@ -243,11 +244,25 @@ static void test_reads(void) {
   /* a junction past the whole site: the value is read */
   marker_counts_clear(&c);
   long past = (long)pb2_len;
+  marker_breaks_t beyond = {&past, 1, NULL, 0};
   for (size_t i = 0; i < 30; i++)
-    marker_read_sites(chosen, 0, &past, 1, PB2_627E, pb2_len, 0.2, &c);
+    marker_read_sites(chosen, 0, &beyond, PB2_627E, pb2_len, 0.2, &c);
   marker_result_of(&c, MARKER_PB2_627, &r);
   test_eq_size(r.reads, 30);
   test_eq_str(r.value, "E");
+
+  /* a primer which matched inside the read: its bases are the primer
+     and not the template, so a window which overlaps it gives nothing */
+  marker_counts_clear(&c);
+  long at_primer = (long)strlen(PB2_HEAD);
+  marker_blocked_t primer = {at_primer, at_primer + 2};
+  marker_breaks_t inside = {NULL, 0, &primer, 1};
+  for (size_t i = 0; i < 30; i++)
+    marker_read_sites(chosen, 0, &inside, PB2_627E, pb2_len, 0.2, &c);
+  marker_result_of(&c, MARKER_PB2_627, &r);
+  test_eq_size(r.searched, 30);
+  test_eq_size(r.reads, 0);
+  test_assert(r.anchor_reads > 0);
 
   /* the C-terminus of a protein, and the length of a stretch, read in
      both orientations */

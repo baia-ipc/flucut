@@ -21,11 +21,14 @@ static long span_of(const anchor_hit_t *first, const anchor_hit_t *second) {
   return span > 0 ? span : -1;
 }
 
-/* whether the read is contiguous on its reference from <from> to <to>,
-   i.e. none of the <n_cuts> cuts falls inside that interval */
-static bool contiguous(const long *cuts, size_t n_cuts, long from, long to) {
-  for (size_t i = 0; i < n_cuts; i++)
-    if (cuts[i] > from && cuts[i] <= to)
+/* whether the read follows its reference from <from> to <to>: no cut
+   falls inside that interval and no blocked stretch overlaps it */
+static bool unbroken(const marker_breaks_t *breaks, long from, long to) {
+  for (size_t i = 0; i < breaks->n_cuts; i++)
+    if (breaks->cuts[i] > from && breaks->cuts[i] <= to)
+      return false;
+  for (size_t i = 0; i < breaks->n_blocked; i++)
+    if (breaks->blocked[i].from <= to && breaks->blocked[i].to >= from)
       return false;
   return true;
 }
@@ -33,7 +36,7 @@ static bool contiguous(const long *cuts, size_t n_cuts, long from, long to) {
 /* whether the anchor matched, and the window beside it was read, on a
    contiguous stretch of the read */
 static bool window_whole(const anchor_hit_t *hit, size_t len,
-    const long *cuts, size_t n_cuts, long offset, size_t n) {
+    const marker_breaks_t *breaks, long offset, size_t n) {
   long from, to;
   if (!anchor_window_span(hit, len, offset, n, &from, &to))
     return false;
@@ -41,12 +44,12 @@ static bool window_whole(const anchor_hit_t *hit, size_t len,
     from = hit->start;
   if (hit->end > to)
     to = hit->end;
-  return contiguous(cuts, n_cuts, from, to);
+  return unbroken(breaks, from, to);
 }
 
 /* read one marker out of a read */
 static void read_marker(const marker_reference_t *site, size_t marker,
-    const char *read, size_t len, const long *cuts, size_t n_cuts,
+    const char *read, size_t len, const marker_breaks_t *breaks,
     double max_error_rate, marker_counts_t *counts) {
   const marker_def_t *def = marker_def(marker);
   marker_counts_set_reference(counts, marker, site->value, site->anchor_aa);
@@ -69,9 +72,9 @@ static void read_marker(const marker_reference_t *site, size_t marker,
       return;
     long span = span_of(&hit, &hit2);
     if (span < 0 ||
-        !contiguous(cuts, n_cuts,
-                    hit.start < hit2.start ? hit.start : hit2.start,
-                    hit.end > hit2.end ? hit.end : hit2.end))
+        !unbroken(breaks,
+                  hit.start < hit2.start ? hit.start : hit2.start,
+                  hit.end > hit2.end ? hit.end : hit2.end))
       return;
     marker_span_value(span, value);
     marker_counts_add(counts, marker, value);
@@ -79,7 +82,7 @@ static void read_marker(const marker_reference_t *site, size_t marker,
   }
   long offset = def->offset < 0 ? def->offset
                                 : (long)anchor_hit_len(&hit) + def->offset;
-  if (!window_whole(&hit, len, cuts, n_cuts, offset, def->window))
+  if (!window_whole(&hit, len, breaks, offset, def->window))
     return;
   bool got = def->offset < 0 ?
       anchor_bases_window(&hit, read, len, def->offset, def->window, nt) :
@@ -92,9 +95,10 @@ static void read_marker(const marker_reference_t *site, size_t marker,
 }
 
 void marker_read_sites(const marker_reference_t *const *chosen, long ref,
-    const long *cuts, size_t n_cuts, const char *read, size_t len,
+    const marker_breaks_t *breaks, const char *read, size_t len,
     double max_error_rate, marker_counts_t *counts) {
   assert(chosen != NULL);
+  assert(breaks != NULL);
   assert(counts != NULL);
   if (read == NULL || len == 0)
     return;
@@ -103,7 +107,6 @@ void marker_read_sites(const marker_reference_t *const *chosen, long ref,
       continue;
     if (ref >= 0 && (size_t)ref != chosen[m]->anchor.ref)
       continue;
-    read_marker(chosen[m], m, read, len, cuts, n_cuts, max_error_rate,
-                counts);
+    read_marker(chosen[m], m, read, len, breaks, max_error_rate, counts);
   }
 }

@@ -29,21 +29,37 @@
    markers taken from it are looked for; negative where the read was
    not located, and then every marker is.
 
-   <cuts>: the <n_cuts> positions at which the read is not contiguous
-   on its reference - the junction of an internal deletion and the short
-   deletions beside it (amplicon.h), each the first base after the
-   missing stretch. A marker is read from such a read only where its
-   anchor and its window lie between two of them. Without this, the
-   sites which happen to lie beside the junction of a defective genome
-   are read across it, and a sample full of such genomes reports the
-   residue of another part of the segment.
+   <breaks>: where the read does not follow its reference. A marker is
+   read only from a stretch which has none of them, because the bases
+   there are not the ones the position is named after:
 
-   The cuts are those of the read as it arrived, whether or not the
+   - a cut is a position at which the read is not contiguous - the
+     junction of an internal deletion and the short deletions beside it
+     (amplicon.h). A read with one is two flanks of the segment joined,
+     and the bases before the junction come from somewhere else;
+   - a blocked stretch is one whose bases are not the template: a
+     primer which matched inside the read (amplicon.h). A read joined
+     at a segment terminus carries the primer there, and a window read
+     across it reads the primer: the terminus AGCAAAAGCAGG gives K at a
+     marker which reads one codon, and SKS at one which reads three.
+
+   The breaks are those of the read as it arrived, whether or not the
    output is written in pieces (--deletions): what a marker says is
    about the sample, not about how the reads are written.
 */
+typedef struct {
+  long from, to;   /* 0-based, the last one included */
+} marker_blocked_t;
+
+typedef struct {
+  const long *cuts;
+  size_t n_cuts;
+  const marker_blocked_t *blocked;
+  size_t n_blocked;
+} marker_breaks_t;
+
 void marker_read_sites(const marker_reference_t *const *chosen, long ref,
-    const long *cuts, size_t n_cuts, const char *read, size_t len,
+    const marker_breaks_t *breaks, const char *read, size_t len,
     double max_error_rate, marker_counts_t *counts);
 
 #endif

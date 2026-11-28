@@ -33,6 +33,7 @@
 #include "fasta.h"
 #include "lengths.h"
 #include "marker-counts.h"
+#include "marker-read.h"
 #include "read-cover.h"
 #include "read-metadata.h"
 #include "read-stats.h"
@@ -178,12 +179,13 @@ const cleavage_counts_t* counter_cleavage(const counter_t *self);
 /*
    Read the markers of <chosen> out of the <len> bases of <read> and
    count them (marker-read.h); <ref>: the reference the read was located
-   on, negative where it was not; <cuts>: the <n_cuts> positions at
-   which the read is not contiguous on its reference
+   on, negative where it was not; <breaks>: where the read does not
+   follow its reference (marker-read.h)
 */
 void counter_add_markers(counter_t *self,
-    const marker_reference_t *const *chosen, long ref, const long *cuts,
-    size_t n_cuts, const char *read, size_t len, double max_error_rate);
+    const marker_reference_t *const *chosen, long ref,
+    const marker_breaks_t *breaks, const char *read, size_t len,
+    double max_error_rate);
 
 /* What the reads carry at each marker */
 const marker_counts_t* counter_markers(const counter_t *self);
