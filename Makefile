@@ -151,6 +151,15 @@ $(SEGMENTS_INC): metadata/segments.yaml $(METADATA_AWK) \
 	  $< > $@
 $(OBJS): | $(SEGMENTS_INC)
 
+# the real sequences used as examples in the unit tests, from
+# metadata/examples.yaml, in the same way
+EXAMPLES_INC = $(OBJDIR)/examples-table.h
+$(EXAMPLES_INC): metadata/examples.yaml $(METADATA_AWK) \
+                 scripts/examples-table.awk | $(OBJDIR)
+	awk -f scripts/metadata-records.awk -f scripts/examples-table.awk \
+	  $< > $@
+$(OBJS): | $(EXAMPLES_INC)
+
 # the banner shown in a terminal (docs/logo/flucut-banner.ans), embedded
 # in the same way
 BANNER_INC = $(OBJDIR)/flucut-banner-ans.inc

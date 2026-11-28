@@ -7,14 +7,15 @@
 #include "cleavage-counts-test.h"
 #include "cleavage-counts.h"
 #include "codons.h"
+#include "examples-table.h"
 #include "test.h"
 
 /* --- unit tests --- */
 
-/* the cleavage site of an H5 of clade 2.3.4.4b (PQRERRRKR) and of a low
-   pathogenic H9 (PARSSR), as the 8 codons before HA2 */
-#define HPAI_NT "CAAAGAGAGAGAAGAAGAAAAAGA"
-#define LPAI_NT "AATGTTCCTGCAAGATCTTCAAGA"
+/* the cleavage site of a highly pathogenic and of a low pathogenic
+   haemagglutinin, as the reads carry them (metadata/examples.yaml) */
+#define HPAI_NT EXAMPLE_CLEAVAGE_SITE_MULTIBASIC
+#define LPAI_NT EXAMPLE_CLEAVAGE_SITE_MONOBASIC
 
 static void add_n(cleavage_counts_t *c, const char *nt, size_t n) {
   for (size_t i = 0; i < n; i++) {

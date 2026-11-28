@@ -5,6 +5,7 @@
 #include <string.h>
 #include "anchor-site.h"
 #include "codons.h"
+#include "examples-table.h"
 #include "edlib.h"
 #include "edlib-iupac.h"
 #include "iupac.h"
@@ -157,10 +158,10 @@ bool anchor_bases_after(const anchor_hit_t *hit, const char *read,
 
 /* --- unit tests --- */
 
-/* the fusion peptide GLFGAIAG, which begins HA2 */
-#define FUSION_NT "GGACTGTTTGGGGCTATAGCAGGC"
-/* the cleavage site before it in an H5 of clade 2.3.4.4b: PQRERRRKR */
-#define SITE_NT "CCTCAAAGAGAGAGAAGAAGAAAAAGA"
+/* the fusion peptide which begins HA2, and the cleavage site before it
+   in a highly pathogenic H5 (metadata/examples.yaml) */
+#define FUSION_NT EXAMPLE_FUSION_PEPTIDE
+#define SITE_NT EXAMPLE_CLEAVAGE_SITE_H5_HPAI
 
 void anchor_site_test(void) {
   const char *ha = "ATGGAAAAA" SITE_NT FUSION_NT "TTTATAGAGGGA";

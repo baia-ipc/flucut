@@ -1,0 +1,35 @@
+# Real influenza sequences used as examples in the unit tests.
+#
+# The build turns this file into constants of the program
+# (scripts/examples-table.awk writes obj/examples-table.h). They are
+# here rather than in the tests so that every real sequence in the
+# repository is in one place, with what it is and where it comes from,
+# and so that a test reads as what it checks rather than as a string of
+# bases. Sequences made up for a test - a stretch of A, a synthetic
+# reference built codon by codon - are not here: they belong to the
+# test which uses them.
+#
+# Records
+#
+#   example   a sequence, by a name used only here. It becomes the
+#             constant EXAMPLE_<name>, upper case with - becoming _
+#     bases   the bases
+#     note    what it is and where it is from
+#
+# Avoid ": " and "#" in the values.
+
+- example: fusion-peptide
+  bases: GGACTGTTTGGGGCTATAGCAGGC
+  note: the eight codons of the fusion peptide GLFGAIAG which begins HA2, from an H5 haemagglutinin. They are the anchor of the cleavage site
+
+- example: cleavage-site-h5-hpai
+  bases: CCTCAAAGAGAGAGAAGAAGAAAAAGA
+  note: the nine codons PQRERRRKR of the cleavage site of a highly pathogenic H5 of clade 2.3.4.4b, directly before the fusion peptide
+
+- example: cleavage-site-multibasic
+  bases: CAAAGAGAGAGAAGAAGAAAAAGA
+  note: the eight codons QRERRRKR which flucut reads at the site, the last eight of the same H5 site - a run of basic residues
+
+- example: cleavage-site-monobasic
+  bases: AATGTTCCTGCAAGATCTTCAAGA
+  note: the eight codons NVPARSSR of the cleavage site of a low pathogenic haemagglutinin - a single basic residue before HA2
