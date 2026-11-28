@@ -55,7 +55,8 @@
 
 /* Fill <seq> with a deterministic pseudo-random DNA sequence and add a
    terminator. <seq> must have room for <len> + 1 bytes. */
-static inline void random_seq(char *seq, size_t len, unsigned long *state) {
+static inline void test_random_dna_seq(char *seq, size_t len,
+    unsigned long *state) {
   for (size_t i = 0; i < len; i++) {
     *state = *state * 6364136223846793005UL + 1442695040888963407UL;
     seq[i] = "ACGT"[(*state >> 33) & 3];
