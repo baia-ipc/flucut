@@ -36,6 +36,11 @@
 #include "outfiles.h"
 #include "progress.h"
 #include "reads-reader.h"
+#include "fasta.h"
+#include "iupac.h"
+#include "pattern-scan-test.h"
+#include "read-stats.h"
+#include "read-metadata.h"
 #include "edit-distance.h"
 #include "minknow-metadata.h"
 #include "numutils.h"
@@ -122,6 +127,8 @@ static bool only_txt(const char *name, const char *path, void *data) {
   (*(size_t *)data)++;
   return str_has_suffix(name, ".txt");
 }
+
+static void fasta_tmp_test(const char *tmpdir) { fasta_test(tmpdir); }
 
 static void file_utils_test(const char *tmpdir) {
   char *joined = path_join("out", "S01.fastq.gz");
@@ -412,6 +419,9 @@ static test_group_t test_groups[] = {
   {'u', "sequence utilities", sequtil_test, NULL, false},
   {'E', "edit distance of short sequences", edit_distance_test, NULL, false},
   {'K', "k-mer index", kmer_index_test, NULL, false},
+  {'F', "FASTA and IUPAC sequences", NULL, fasta_tmp_test, false},
+  {'P', "approximate pattern scan", pattern_scan_test, NULL, false},
+  {'Q', "read statistics", read_stats_test, NULL, false},
   {'r', "FASTQ reader", NULL, fastq_reader_test, false},
   {'x', "FASTQ writer", fastq_writer_test, NULL, false},
   {'m', "BAM reader", NULL, bam_reader_test, false},
@@ -419,6 +429,7 @@ static test_group_t test_groups[] = {
   {'S', "SAM tags", sam_tags_test, NULL, false},
   {'A', "SAM header", NULL, sam_header_test, false},
   {'j', "MinKNOW read metadata", minknow_metadata_test, NULL, false},
+  {'J', "read title metadata", read_metadata_test, NULL, false},
   {'d', "reads reader (FASTQ or BAM)", NULL, reads_reader_test, false},
   {'t', "output files", NULL, outfiles_test, false},
   {'w', "barcode whitelist", NULL, whitelist_test, false},
