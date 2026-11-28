@@ -28,7 +28,7 @@ The built-in primers of influenza A
 -----------------------------------
 
 flucut knows the primers by name; their sequences are quoted from the
-publications, each one documented in ``src/seq/primers.h``.
+publications, each one documented in ``src/seq/primers/primers.h``.
 
 .. list-table::
    :header-rows: 1

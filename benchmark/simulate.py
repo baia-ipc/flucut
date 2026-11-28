@@ -86,7 +86,7 @@ UNI13 = "AGTAGAAACAAGG"
 # left end of an amplicon and the primer of its right end, each as it is
 # ordered (5' -> 3'), with the length of its 5' tail (the rest is the
 # sequence of the segment at that end). They are the primers built into
-# flucut, see src/primers.h.
+# flucut, see src/seq/primers/primers.h.
 #
 # Influenza A has one pair for every segment; the pairs of influenza B
 # (the IBV-GA2 cocktail) each serve one or two segments, and the

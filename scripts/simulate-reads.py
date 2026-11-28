@@ -3,7 +3,7 @@
 
 The reads are built from one segment reference (a real record, see
 testdata/README.md) and one pair of the primers built into flucut
-(src/seq/primers.c). Each read covers one situation the trimmer has to
+(src/seq/primers/primers.c). Each read covers one situation the trimmer has to
 handle: complete amplicons in both orientations, flanking bases,
 sequencing errors, a read starting inside the primer, internally primed
 amplicons (at arbitrary positions: they are simulated, not the site of
@@ -47,7 +47,7 @@ def revcomp(seq):
 # The pairs of primers, as they are ordered (5' -> 3'), with the number
 # of their trailing bases which are the sequence of the segment (the
 # rest is the tail of the protocol); they are those built into flucut,
-# see src/seq/primers.c. A read of the plus strand of an amplicon begins
+# see src/seq/primers/primers.c. A read of the plus strand of an amplicon begins
 # with the left primer and ends with the reverse complement of the
 # right one.
 PAIRS = {

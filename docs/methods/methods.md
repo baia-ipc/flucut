@@ -108,7 +108,7 @@ in one reaction:
 The tailed primers carry the 5′ tail `ACGCGTGATCAG`, whose last two
 bases are also the first two of the terminus. Each primer is therefore
 stored whole, with the offset at which its conserved terminus begins
-(`src/seq/primers.h`). This offset is what allows a cut *inside* a primer,
+(`src/seq/primers/primers.h`). This offset is what allows a cut *inside* a primer,
 between tail and terminus.
 
 Nine and ten bases are too few for a specific primer, so the universal
@@ -123,7 +123,7 @@ its sequence, the segments whose terminus it is (`primer_t.segments`):
 its bases are the template only there.
 
 A **scheme** (option `-s`) names the primers expected at each end of an
-amplicon (`src/seq/scheme.h`):
+amplicon (`src/seq/primers/scheme.h`):
 
 | scheme | left end | right end |
 |---|---|---|
@@ -457,7 +457,7 @@ located 10% of the reads, complete segments 86%. A warning is given when
 the references start at a start codon and end at a stop codon
 (`src/flucut.c`). The subtype of each reference is parsed from its FASTA
 description (e.g. `(H5N1)`), and its segment from `segment <n>` or a
-gene or protein name (`src/seq/segments.c`).
+gene or protein name (`src/seq/primers/segments.c`).
 
 ### Threads, reproducibility, live mode
 
