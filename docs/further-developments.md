@@ -63,12 +63,17 @@ support the trimming; they are not the purpose of the program.
   one threshold); to check on real runs of R9 and R10 flow cells, and
   whether the error rate of the reads should also set the window or the
   probe errors.
-- **Errors next to a primer** (measured, kept as it is): at equal cost,
-  the alignment of a primer is extended inward, and can take one
-  template base (e.g. the last primer base deleted in the read). Without
-  the extension, on the reads of the benchmark, 208 fewer template bases
-  were removed but 317 more primer bases kept (also at 1% and 12%
-  errors: `benchmark/RESULTS.md`): no gain.
+- **A template base taken for the last primer base**: where the read
+  cannot tell primer from template at the inner end of a primer (ends of
+  equal cost), the base is kept as template. One template base is still
+  removed where the read lost a primer base equal to the template base
+  after it (one G deleted where the primer's last G meets a template G,
+  as at the I351K site): the alignment with fewer errors then takes the
+  template G for the primer's. On the simulated reads of the benchmark,
+  12 bases in 3200 reads at 4% errors, 79 at 12%
+  (`benchmark/RESULTS.md`, 2026-11-28). With references, the template
+  base after the primer is known, and such a shortened run could be
+  given to the primer. Not done: few bases.
 - **Reads cut too deep** (6 of 3200 reads, about 70 template bases each):
   internally primed reads whose primer was cut to 4-5 bases after a
   flank; a primer-like sequence of the template within the window is

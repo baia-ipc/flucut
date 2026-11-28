@@ -5,7 +5,7 @@ SUCCESS | Trimming testdata/adapters.fastq...
 SUCCESS | OUTDIR/adapters.fastq.gz: 8 of 8 reads written (6 with both primers, 2 with one, 0 with none; 0 too short, of which 0 dimers)
 SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_dashboard.html, OUTDIR/flucut_summary.json
 == adapters.fastq.gz ==
-md5: 8e0b33c234d5f6303f55558054056a45
+md5: c2ae4b8c36c46d598a40196a9e22fdd8
 @full_plus_broken simulated, with adapters	fs:Z:+	fr:Z:mbtuni-13	tl:i:46	tr:i:68	a5:Z:nb
 1705 GGGGAATTACTTAAC...AACATTTGTATATAA
 @full_plus_lsk simulated, with adapters	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:39	tr:i:68
@@ -18,13 +18,13 @@ md5: 8e0b33c234d5f6303f55558054056a45
 1703 GGAATTACTTAACTA...AACATTTGTATATAA
 @flanked_plus_lsk simulated, with adapters	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:54	tr:i:78
 1703 GGAATTACTTAACTA...AACATTTGTATATAA
-@errors_plus_broken simulated, with adapters	fs:Z:+	fr:Z:mbtuni-13	tl:i:46	tr:i:69	a5:Z:nb
-1704 GGGGAATTACTTAAC...CAACATTTGTATATA
-@errors_plus_lsk simulated, with adapters	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:39	tr:i:69
-1702 GGAATTACTTAACTA...CAACATTTGTATATA
+@errors_plus_broken simulated, with adapters	fs:Z:+	fr:Z:mbtuni-13	tl:i:46	tr:i:68	a5:Z:nb
+1705 GGGGAATTACTTAAC...AACATTTGTATATAA
+@errors_plus_lsk simulated, with adapters	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:39	tr:i:68
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
 == summary.tsv ==
 output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	filtered	with_internal_match	split	cut_at_junction	cut_again	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
-adapters	8	14566	8	13626	6	2	0	2	0	0	0	0	0	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+adapters	8	14566	8	13628	6	2	0	2	0	0	0	0	0	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 adapters	all	1700	6
@@ -53,7 +53,7 @@ adapters	all	1700	6
   "trim_policy": "primer",
   "references": null,
   "settings": {
-    "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0242, "reads": 8, "file": "testdata/adapters.fastq"},
+    "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0244, "reads": 8, "file": "testdata/adapters.fastq"},
     "platform": "nanopore",
     "platform_check": {
       "given": "auto",
@@ -95,7 +95,7 @@ adapters	all	1700	6
       "in": 8,
       "bases_in": 14566,
       "written": 8,
-      "bases_written": 13626,
+      "bases_written": 13628,
       "both_primers": 6,
       "one_primer": 2,
       "no_primer": 0,
@@ -112,7 +112,7 @@ adapters	all	1700	6
     },
     "written_by_category": null,
     "filtered_by_category": null,
-    "read_lengths": {"input": {"reads": 8, "bases": 14566, "min": 1810, "max": 1844, "mean": 1820, "median": 1814, "n50": 1814}, "written": {"reads": 8, "bases": 13626, "min": 1702, "max": 1705, "mean": 1703, "median": 1703, "n50": 1703}},
+    "read_lengths": {"input": {"reads": 8, "bases": 14566, "min": 1810, "max": 1844, "mean": 1820, "median": 1814, "n50": 1814}, "written": {"reads": 8, "bases": 13628, "min": 1703, "max": 1705, "mean": 1703, "median": 1703, "n50": 1703}},
     "read_quality": {"input": {"reads": 8, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 8, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
     "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
     "sample": null,
@@ -139,7 +139,7 @@ adapters	all	1700	6
         "in": 8,
         "bases_in": 14566,
         "written": 8,
-        "bases_written": 13626,
+        "bases_written": 13628,
         "both_primers": 6,
         "one_primer": 2,
         "no_primer": 0,
@@ -156,7 +156,7 @@ adapters	all	1700	6
       },
       "written_by_category": null,
       "filtered_by_category": null,
-      "read_lengths": {"input": {"reads": 8, "bases": 14566, "min": 1810, "max": 1844, "mean": 1820, "median": 1814, "n50": 1814}, "written": {"reads": 8, "bases": 13626, "min": 1702, "max": 1705, "mean": 1703, "median": 1703, "n50": 1703}},
+      "read_lengths": {"input": {"reads": 8, "bases": 14566, "min": 1810, "max": 1844, "mean": 1820, "median": 1814, "n50": 1814}, "written": {"reads": 8, "bases": 13628, "min": 1703, "max": 1705, "mean": 1703, "median": 1703, "n50": 1703}},
       "read_quality": {"input": {"reads": 8, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 8, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
       "sample": null,

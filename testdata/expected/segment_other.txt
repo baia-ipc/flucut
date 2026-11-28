@@ -6,15 +6,15 @@ SUCCESS | OUTDIR/reads.fastq.gz: 10 of 12 reads written (10 with both primers, 1
 WARNING | OUTDIR/reads.fastq.gz: PA segment: 1 of 1 complete amplicons shorter than the closest reference (QB023392.1, 2224 bases), most at 20-29 bases: internal priming or deletions
 SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_dashboard.html, OUTDIR/flucut_summary.json
 == reads.fastq.gz ==
-md5: ad65300d5f0ec2ed6aa3cfa8aadbab84
+md5: a8a1823f0012f03dff6f92a83f02533a
 @full_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	ct:Z:unknown	tl:i:12	tr:i:23
 1703 GGAATTACTTAACTA...AACATTTGTATATAA
 @full_minus simulated	fs:Z:-	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	ct:Z:unknown	tl:i:23	tr:i:12
 1703 TTATATACAAATGTT...TAGTTAAGTAATTCC
 @flanked_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	ct:Z:unknown	tl:i:27	tr:i:33
 1703 GGAATTACTTAACTA...AACATTTGTATATAA
-@errors_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	ct:Z:unknown	tl:i:12	tr:i:24
-1702 GGAATTACTTAACTA...CAACATTTGTATATA
+@errors_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	ct:Z:unknown	tl:i:12	tr:i:23
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
 @partial_left simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	ct:Z:unknown	tl:i:7	tr:i:23
 1703 GGAATTACTTAACTA...AACATTTGTATATAA
 @internal12_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:unknown	ct:Z:unknown	tl:i:12	tr:i:23
@@ -29,7 +29,7 @@ md5: ad65300d5f0ec2ed6aa3cfa8aadbab84
 500 GGAATTACTTAACTA...TACAGGAGTATGAGA
 == summary.tsv ==
 output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	filtered	with_internal_match	split	cut_at_junction	cut_again	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
-reads	12	12635	10	12220	10	1	1	2	1	2	0	0	0	0	0	0	1	10	0	1	9	1	0	0	0	0	0	10	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+reads	12	12635	10	12221	10	1	1	2	1	2	0	0	0	0	0	0	1	10	0	1	9	1	0	0	0	0	0	10	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 reads	QB023392.1	20	1
@@ -109,7 +109,7 @@ reads	not_located	1700	5
       "in": 12,
       "bases_in": 12635,
       "written": 10,
-      "bases_written": 12220,
+      "bases_written": 12221,
       "both_primers": 10,
       "one_primer": 1,
       "no_primer": 1,
@@ -126,7 +126,7 @@ reads	not_located	1700	5
     },
     "written_by_category": {"full": 0, "internal": 0, "deletion": 0, "fragment": 0, "unplaced": 0, "unknown": 10},
     "filtered_by_category": {"full": 0, "internal": 0, "deletion": 0, "fragment": 0, "unplaced": 0, "unknown": 0},
-    "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 10, "bases": 12220, "min": 300, "max": 1703, "mean": 1222, "median": 1003, "n50": 1702}},
+    "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 10, "bases": 12221, "min": 300, "max": 1703, "mean": 1222, "median": 1003, "n50": 1703}},
     "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 10, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
     "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
     "sample": {
@@ -204,7 +204,7 @@ reads	not_located	1700	5
         "in": 12,
         "bases_in": 12635,
         "written": 10,
-        "bases_written": 12220,
+        "bases_written": 12221,
         "both_primers": 10,
         "one_primer": 1,
         "no_primer": 1,
@@ -221,7 +221,7 @@ reads	not_located	1700	5
       },
       "written_by_category": {"full": 0, "internal": 0, "deletion": 0, "fragment": 0, "unplaced": 0, "unknown": 10},
       "filtered_by_category": {"full": 0, "internal": 0, "deletion": 0, "fragment": 0, "unplaced": 0, "unknown": 0},
-      "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 10, "bases": 12220, "min": 300, "max": 1703, "mean": 1222, "median": 1003, "n50": 1702}},
+      "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 10, "bases": 12221, "min": 300, "max": 1703, "mean": 1222, "median": 1003, "n50": 1703}},
       "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 10, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
       "sample": {

@@ -89,8 +89,9 @@ Other options:
   from this: **with** `-r`, the conserved termini are kept at the ends
   confidently classified as terminal (complete segment ends) and the
   whole primer is removed everywhere else (an internal or an
-  unclassified end: cut when unsure, so a primer base never reaches the
-  consensus unless the end is a known terminus); **without** `-r`, every
+  unclassified end: cut when unsure, so a primer base that differs from
+  the template never reaches the consensus unless the end is a known
+  terminus); **without** `-r`, every
   primer-derived base is removed. The references are indexed by their
   k-mers, so that the time hardly depends on their number
 - `--virus a|b|both` says which types a run may hold. The default is `both`,

@@ -5,15 +5,15 @@ SUCCESS | Trimming testdata/reads.fastq...
 SUCCESS | OUTDIR/reads.fastq.gz: 11 of 12 reads written (8 with both primers, 3 with one, 1 with none; 1 too short, of which 1 dimers)
 SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_dashboard.html, OUTDIR/flucut_summary.json
 == reads.fastq.gz ==
-md5: bbe7f06d1802e82763290f87ea0034ba
+md5: fefd279344425e230d87bec30afe6ba7
 @full_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
 1703 GGAATTACTTAACTA...AACATTTGTATATAA
 @full_minus simulated	fs:Z:-	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:23	tr:i:12
 1703 TTATATACAAATGTT...TAGTTAAGTAATTCC
 @flanked_plus simulated	fs:Z:+	fr:Z:mbtuni-13	tl:i:0	tr:i:33	ni:i:1
 1730 TGGCTAGTGTCACTG...AACATTTGTATATAA
-@errors_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:24
-1702 GGAATTACTTAACTA...CAACATTTGTATATA
+@errors_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
+1703 GGAATTACTTAACTA...AACATTTGTATATAA
 @partial_left simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:7	tr:i:23
 1703 GGAATTACTTAACTA...AACATTTGTATATAA
 @internal12_plus simulated	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:12	tr:i:23
@@ -30,7 +30,7 @@ md5: bbe7f06d1802e82763290f87ea0034ba
 500 GGAATTACTTAACTA...TACAGGAGTATGAGA
 == summary.tsv ==
 output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	filtered	with_internal_match	split	cut_at_junction	cut_again	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
-reads	12	12635	11	12302	8	3	1	2	1	1	0	2	0	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+reads	12	12635	11	12303	8	3	1	2	1	1	0	2	0	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 reads	all	20	1
@@ -104,7 +104,7 @@ reads	all	1700	4
       "in": 12,
       "bases_in": 12635,
       "written": 11,
-      "bases_written": 12302,
+      "bases_written": 12303,
       "both_primers": 8,
       "one_primer": 3,
       "no_primer": 1,
@@ -121,7 +121,7 @@ reads	all	1700	4
     },
     "written_by_category": null,
     "filtered_by_category": null,
-    "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 11, "bases": 12302, "min": 20, "max": 1730, "mean": 1118, "median": 1038, "n50": 1702}},
+    "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 11, "bases": 12303, "min": 20, "max": 1730, "mean": 1118, "median": 1038, "n50": 1703}},
     "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 11, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
     "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
     "sample": null,
@@ -148,7 +148,7 @@ reads	all	1700	4
         "in": 12,
         "bases_in": 12635,
         "written": 11,
-        "bases_written": 12302,
+        "bases_written": 12303,
         "both_primers": 8,
         "one_primer": 3,
         "no_primer": 1,
@@ -165,7 +165,7 @@ reads	all	1700	4
       },
       "written_by_category": null,
       "filtered_by_category": null,
-      "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 11, "bases": 12302, "min": 20, "max": 1730, "mean": 1118, "median": 1038, "n50": 1702}},
+      "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 11, "bases": 12303, "min": 20, "max": 1730, "mean": 1118, "median": 1038, "n50": 1703}},
       "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 11, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
       "sample": null,

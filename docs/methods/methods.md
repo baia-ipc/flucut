@@ -1271,8 +1271,8 @@ by dynamic programming, with the edit distance as cost: substitutions,
 insertions and deletions (lines 6–10). The match may begin anywhere in
 the read at no cost (line 5), and part-way into the primer at a cost
 (the arrays `edge` in line 7 and `skip` in line 10). The match with the
-lowest cost is taken if it is within the errors allowed (lines 11–12),
-and extended inwards where that costs nothing (lines 13–14).
+lowest cost is taken if it is within the errors allowed (lines 11–12);
+among equal ones, the one that ends outermost (line 11).
 MISSING_COSTS computes these costs: a truncated primer must retain at
 least half of its bases, and at least 8 (line 3) and is allowed one
 error fewer (line 6); a primer that overhangs the read start is allowed
@@ -1338,15 +1338,13 @@ ALIGN_END(p, s, skip, edge, K)
                           skip[q])                 // the primer begins here, q bases missing
 11  best = argmin(D[m, 1:n]) // at a tie: the smallest j, the outermost
 12  return NIL if D[m, best] > K
-13  while best < n and D[m, best + 1] ≤ D[m, best]
-14      INC(best) // extend inwards at no extra cost
-15  trace the alignment back from D[m, best], preferring at each cell
+13  trace the alignment back from D[m, best], preferring at each cell
             a match, then a start, then a substitution, then a gap
-16  let c be the cost of the start reached
-17  hp.start, hp.end = first and last read position of the alignment
-18  hp.errors = D[m, best] − c
-19  hp.terminus_start, hp.terminus_end = read positions of the terminus of p on the path
-20  return hp
+14  let c be the cost of the start reached
+15  hp.start, hp.end = first and last read position of the alignment
+16  hp.errors = D[m, best] − c
+17  hp.terminus_start, hp.terminus_end = read positions of the terminus of p on the path
+18  return hp
 ```
 
 A truncated primer is thus allowed one error fewer than its length
@@ -1358,9 +1356,29 @@ The alignment model is the edit distance; the primer must align
 completely, and IUPAC codes match any base they stand for, in the primer
 and in the read (an `N` in a read matches anything). A truncated form
 must match with one error fewer because a shorter sequence matches by
-chance more easily. The inner end of the alignment is extended while the
-cost does not rise, so that the last primer base is not left behind when
-an alignment could end one base earlier at equal cost.
+chance more easily.
+
+Where the alignment ends, inside the read, is the boundary between
+primer and template. When alignments ending at different read positions
+have the same lowest cost, the read alone cannot tell whether the bases
+between those positions come from the primer or from the template: for
+example, where the last primer base, G, meets a template G and the read
+has an error in the primer, the alignment ending at the template G (with
+an inserted base) costs as much as the one ending before it. The
+outermost end is taken (line 11), so that in such a case a base of
+template is kept rather than removed. The price is the opposite case: a
+primer base with an error in the read (e.g. its last base read as
+another) is kept when it could also be a template base after a deleted
+primer base. The opposite choice, the innermost of the ends of equal
+cost, would remove both: on simulated reads (`benchmark/RESULTS.md`,
+2026-11-28), 12 template bases and 10 primer bases in 3200 reads at 4%
+errors, 307 and 318 at 12%, and it never keeps a template base that the
+outermost end removes. The two are not of equal weight. A template base
+is a measurement that cannot be recovered. A primer base kept this way
+is almost always one of the last three bases of the primer (504 of 524
+in seven sets of simulated reads), which match the template wherever
+the primer anneals: it is the template's own base or a sequencing error,
+never a base of the primer that differs from the template.
 
 **Running time and memory.**
 
@@ -1683,7 +1701,9 @@ CUT_FACING_PRIMER(a, other, n)
 
 Removal is by position: the whole span of a primer alignment goes, with
 everything outside it, whether or not its bases differ from the primer.
-A primer base can reach the output only at an end classified TERMINAL.
+A primer base can reach the output only at an end classified TERMINAL,
+or at the inner end of a primer, where the read cannot tell it from
+template (A7).
 CUT_FACING_PRIMER removes a primer of the same end of the scheme found
 at the other end of the read (two amplicons joined without a primer
 between them).

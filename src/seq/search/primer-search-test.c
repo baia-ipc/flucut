@@ -133,6 +133,22 @@ static void test_end(primer_search_t *s) {
      1, no error) rather than an inner match with one error */
   snprintf(read, sizeof(read), "TTCAAAAGCAGG%sAGCAAATGCAGG%s", body, body);
   check_end(s, u12, read, true, skip, edge, 2, 2, 11, 0, 2, 12);
+  /*
+     Ends of equal cost: the outermost, so that a base which may be
+     template is kept. A simulated read whose Uni12 has two errors, the
+     second at its last base (G read as A), followed by the template G
+     of segment position 13: the alignments ending at the G before the
+     A (the last primer base deleted), at the A and at the template G
+     (the A inserted) all cost two errors. The template G is kept, and
+     so is the A.
+  */
+  end_costs(u12->seq_len, 0, 0, 0, 0, skip, edge);
+  check_end(s, u12, "TTTTTAGCAAATGCAGAGTAGATATTCCAAGG", true, skip, edge, 2,
+            5, 15, 2, 5, 16);
+  /* the price: the last primer base, with an error (G read as T), is
+     kept when it can also be a template base after the G deleted */
+  check_end(s, u12, "TTTTTAGCAAAAGCAGTCCTTAAGGTTCCAA", true, skip, edge, 2,
+            5, 15, 1, 5, 16);
   /* degenerate bases: the R of the primer, an N of the read */
   const primer_t *u12r = primers_builtin("uni12r");
   end_costs(u12r->seq_len, 0, 0, 0, 0, skip, edge);
@@ -163,6 +179,25 @@ static void test_end(primer_search_t *s) {
   /* the read ends inside the terminus: it ends one base after the read */
   snprintf(read, sizeof(read), "%s%.12s", body, rc.seq);
   check_end(s, &rc, read, false, skip, edge, 0, n, n + 11, 0, n, n + 13);
+
+  /*
+     A real Nanopore read of the Opti1 primers (SRR37040770) primed at
+     the internal site of HA nucleotide 1087 at both ends: its right end
+     is the reverse complement of opti1-f2 (tail and the 12 bases of
+     terminus-12-g) after the template base C (G on the plus strand).
+     The right primer of the scheme, opti1-r1, matches it with four
+     errors (its terminus has 13 bases) both with and without that C:
+     the C is kept.
+  */
+  const primer_t *r1 = primers_builtin("opti1-r1");
+  char rc1_seq[32] = "";
+  primer_t rc1;
+  primers_reverse(r1, rc1_seq, &rc1);
+  end_costs(rc1.seq_len, 0, 0, 0, 0, skip, edge);
+  snprintf(read, sizeof(read), "%sC%s%sTTTTT", body, "CCTGCTTTCGCT",
+           "GGCGCGTAAC");
+  check_end(s, &rc1, read, false, skip, edge, 4, n + 1, n + 22, 4, n + 1,
+            n + 13);
 }
 
 void primer_search_test(void) {

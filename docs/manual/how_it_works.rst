@@ -47,6 +47,17 @@ form is allowed fewer: the match with the fewest errors, counting this
 cost, is taken, and among equally good matches the outermost. The
 overhang is considered only if the primer is not found inside the read.
 
+Where the match ends inside the read is the boundary between primer and
+template. Sometimes the read cannot tell where it lies: where the last
+primer base, G, meets a template G and the read has an error in the
+primer, a match ending one base further in has as few errors as the one
+ending before it. The outer end is then taken, so that the base which
+may be template is kept. The price is the opposite case, about as
+frequent: one of the last primer bases, with a sequencing error, is kept
+where it could also be template. Those bases match the template
+wherever the primer anneals, so the base kept is the template's own or
+an error, never a primer base that differs from the template.
+
 With ``-e auto`` (the default), the errors allowed are decided from the
 first 1000 reads of the first input file: the primers are searched in
 them with 20% of the primer length, and the error rate of their
@@ -199,15 +210,18 @@ The mode follows from the references, there is no separate option:
 
 Without ``--references``
    every primer-derived base is removed, tail and conserved terminus
-   together. No base of the output comes from a primer. The consensus is
+   together. No base of the output comes from a primer, apart from a
+   last primer base which the read cannot tell from template (see
+   above). The consensus is
    shorter than the segment by the termini (12 and 13 bases): those
    bases would have been the primer's, not measured sequence.
 
 With ``--references``
    the conserved terminus is kept, but only at an end confidently
    classified as a segment terminus; the tail and anything outside the
-   primer are removed. This gives complete segment ends while a primer
-   base never reaches the consensus at an internal priming site. An end
+   primer are removed. This gives complete segment ends while the bases
+   of a primer that differ from the template never reach the consensus at
+   an internal priming site. An end
    that is internally primed, or whose origin cannot be determined
    (cut when unsure), has its whole primer removed
    (:doc:`internal_priming`). The kept terminus bases are those of the

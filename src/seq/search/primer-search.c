@@ -429,8 +429,17 @@ bool primer_search_end(primer_search_t *self, const primer_t *primer,
       row[j] = v;
     }
   }
-  /* the end with the lowest cost; among equal ones, the outermost,
-     extended inside while the cost does not increase */
+  /*
+     the end with the lowest cost; among equal ones, the outermost. Two
+     ends of equal cost differ by read bases which the read alone cannot
+     assign: the inner one takes them as primer, the outer one as
+     template. The outer one is taken, so that in doubt a base of
+     template is kept rather than removed: e.g. where the last primer
+     base, G, meets a template G and the read has an error in the primer,
+     an alignment ending one base further in costs the same, and would
+     remove the template G (the price: a primer base with an error in
+     the read, e.g. a substituted last base, is kept instead)
+  */
   const int *last = d + m * w;
   size_t best = 0;
   for (size_t j = 1; j <= n; j++)
@@ -440,8 +449,6 @@ bool primer_search_end(primer_search_t *self, const primer_t *primer,
     not_found(hit);
     return false;
   }
-  while (best < n && last[best + 1] <= last[best])
-    best++;
   XCHECKSPACEINC(self->ops, &self->ops_cap, m + n, 256);
   size_t q, j;
   int cost;
