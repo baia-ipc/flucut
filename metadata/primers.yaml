@@ -123,7 +123,7 @@
   seq: terminus-12
   terminus: terminus-12
   segments: all
-  source: the terminus used as a primer without a tail, commonly called Uni12 after Hoffmann et al. 2001 Arch Virol 146 2275-2289. The sequence is the one quoted as Uni12 by Zhou et al. 2009, which is also the 3' end of mbtuni-12
+  source: the terminus used as a primer without a tail, commonly called Uni12 after Hoffmann et al. 2001 Arch Virol 146 2275-2289 (doi 10.1007/s007050170002). The sequence is the one quoted as Uni12 by Zhou et al. 2009, which is also the 3' end of mbtuni-12
 
 - primer: uni12r
   virus: A
@@ -147,7 +147,7 @@
   seq: mbt-tail CAAAAGCAGG
   terminus: terminus-12
   segments: all
-  source: Zhou et al. 2009 J Virol 83 10309-10313, the tailed primer of the single-reaction multisegment RT-PCR
+  source: Zhou et al. 2009 J Virol 83 10309-10313 (doi 10.1128/JVI.01109-09), the tailed primer of the single-reaction multisegment RT-PCR
 
 - primer: mbtuni-12.4r
   virus: A
@@ -155,7 +155,7 @@
   seq: mbt-tail CRAAAGCAGG
   terminus: terminus-12-r
   segments: all
-  source: Licheri et al. 2025 Genome Med 17 103 (there MBTuni-12.4R), the tailed Uni12 primer with the degenerate fourth position, used in place of or mixed with mbtuni-12
+  source: Licheri et al. 2025 Genome Med 17 103 (doi 10.1186/s13073-025-01512-x; there MBTuni-12.4R), the tailed Uni12 primer with the degenerate fourth position, used in place of or mixed with mbtuni-12
 
 - primer: mbtuni-13
   virus: A
@@ -180,7 +180,7 @@
   seq: inf-tail-left terminus-12
   terminus: terminus-12
   segments: all
-  source: Hoffmann et al. 2001 Arch Virol 146 2275-2289 (there Uni12/Inf-1), the tailed primer of the left end with A at the fourth base of the terminus
+  source: Hoffmann et al. 2001 Arch Virol 146 2275-2289 (doi 10.1007/s007050170002; there Uni12/Inf-1), the tailed primer of the left end with A at the fourth base of the terminus
 
 - primer: uni12-inf3
   virus: A
@@ -242,7 +242,8 @@
 # --- influenza B (the IBV-GA2 cocktail) ------------------------------
 #
 # Every primer of the cocktail is Zhou et al. 2014 J Clin Microbiol 52
-# 1330-1337, Table 1, with the names of that table in lower case. Six
+# 1330-1337 (doi 10.1128/JCM.03265-13), Table 1, with the names of that
+# table in lower case. Six
 # pairs amplify the eight segments: a 5' tail, the conserved terminus of
 # its end, and five or eight further bases, which are the untranslated
 # bases next to the terminus in the segments the primer binds. The
