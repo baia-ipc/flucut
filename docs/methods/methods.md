@@ -446,7 +446,7 @@ trimming mode; there is no separate option.
 - The set named by the key `references` of the configuration file
   (`$XDG_CONFIG_HOME/flucut/config`, else `~/.config/flucut/config`),
   if there is one, instead of the built-in set: for instance a set
-  built from the seed sequences of IRMA (D7). `src/user-config.c`.
+  built from the seed sequences of IRMA (D7). `ext/libcbaia/src/io/user-config.c`.
 - `-r <file>`: a FASTA file of the user.
 - `-r off`: no references.
 

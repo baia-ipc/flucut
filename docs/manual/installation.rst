@@ -43,13 +43,28 @@ Directory                    Content
 ===========================  ===========================================
 ``src/core``                 the options and their parsing, the banner,
                              the settings decided at the start of a run
-                             (``-e auto``), the worker threads and the
-                             live mode
-``src/seq``                  primers, the scheme, references and
-                             segments; the search of primers and
-                             adapters; the analysis of an amplicon
-                             (chimeras, internal priming, junctions,
-                             placement) and the trimming of the reads
+                             (``-e auto``), the worker threads, the
+                             trimming of a batch of reads and the live
+                             mode
+``src/seq/primers``          what is searched in a read: the built-in
+                             primers, the primer schemes, the names of
+                             the segments and the types of influenza
+``src/seq/references``       the reference segments: the built-in set,
+                             the subtype of a reference (from its FASTA
+                             description), the k-mer index and the
+                             location of a probe
+``src/seq/search``           how a pattern is searched in a read: the
+                             alignment of a primer (whole, at an end of
+                             the read, at a segment terminus), of the
+                             Nanopore adapters and of an anchor site
+``src/seq/amplicon``         the analysis of the primers of a read: the
+                             primers at its ends, the primer matches
+                             inside it, the origin of each end and the
+                             part to keep
+``src/seq/reads``            the rest of the structure of a read: its
+                             placement on the references, the junction
+                             of an internal deletion and the split of a
+                             chimera
 ``src/analysis``             the counters and what is computed from
                              them: lengths, coverage by read origin,
                              quality summary and flags, subtype reads,
@@ -65,6 +80,10 @@ Directory                    Content
 ``src/reports/json``         the JSON summary
 ===========================  ===========================================
 
+In ``src/seq``, the references and the searches use the primers;
+``reads`` uses those three, and ``amplicon`` all four. No directory
+uses one which depends on it.
+
 As in libcbaia, a header is included by its name, without the
 directory (``#include "counter.h"``): the names are unique over all
 the directories, which the Makefile passes to the compiler, and the
@@ -72,6 +91,14 @@ objects are all in ``obj``. To add a module, put it in the directory of
 its purpose; the Makefile finds it (the list of directories is
 ``COMPONENTS``). ``tests/check-style.sh``, run by ``make test``,
 checks all of them.
+
+A large module is split into files by step, with one header for the
+rest of the program. The analysis of a read is used through
+``amplicon.h``; its steps (``amplicon-ends.c``, ``amplicon-cut.c``,
+``amplicon-adapters.c``, ``amplicon-locate.c``) share the state of the
+analyzer through ``amplicon-analyzer.h``, which only they include. The
+unit tests of such a module are in a file of their own
+(``amplicon-test.c``, ``reference-test.c``).
 
 Packages
 --------
