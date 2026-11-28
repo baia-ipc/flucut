@@ -1,7 +1,7 @@
 # (c) 2026 Giorgio Gonnella
 """The rule of flucut for the reference of each segment, from the votes.
 
-A copy of auto_settings_decide_references() (src/auto-settings.c),
+A copy of auto_settings_decide_references() (src/core/auto-settings.c),
 which chooses the subtype of a segment by the votes of all the
 references of each subtype together and then the reference with most
 votes in it, whose three constants can be changed, to see what other

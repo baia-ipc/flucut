@@ -2,7 +2,7 @@
 """Measure whether flucut names the subtype of a sample correctly.
 
 flucut names the subtype of a sample after the references it chooses
-for the HA and the NA (src/auto-settings.h). A sample of a subtype,
+for the HA and the NA (src/core/auto-settings.h). A sample of a subtype,
 lineage or region which the built-in references do not cover is named
 after the closest reference in them, which can be another subtype. This
 script measures how often that happens: reads are simulated from the

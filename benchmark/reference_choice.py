@@ -2,7 +2,7 @@
 """Measure what the choice of the reference of each segment costs.
 
 flucut chooses a reference for each segment from the votes of probes of
-the first reads (src/auto-settings.h). Here reads are simulated from
+the first reads (src/core/auto-settings.h). Here reads are simulated from
 genomes which are not in the reference set, so that the truth is known,
 and two things are measured for each genome and error rate:
 

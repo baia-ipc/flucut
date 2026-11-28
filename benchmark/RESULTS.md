@@ -751,7 +751,7 @@ seed the untranslated regions of a record of the same segment and
 subtype (the 8 seeds of influenza B are left out, as the primer scheme
 is that of influenza A). The votes of the references of a subtype
 are counted together before the reference is chosen within it
-(`src/auto-settings.c`), which is what makes several references per
+(`src/core/auto-settings.c`), which is what makes several references per
 subtype work at all:
 
 | references per subtype | records | votes counted | 17 genomes (51) | every subtype (48) | ends not located |
@@ -816,7 +816,7 @@ run. What does grow is the download (74 KB for 40 records, 113 KB for
 counted per subtype; the tables of the constants and of the termini
 below do not depend on that.)
 
-Which reference flucut picks for a segment (`src/auto-settings.h`:
+Which reference flucut picks for a segment (`src/core/auto-settings.h`:
 `AUTO_REFERENCE_CLOSE_SHARE`, `AUTO_REFERENCE_MIN_VOTES`,
 `AUTO_REFERENCE_MIN_SHARE`), measured on simulated reads of 17 genomes
 which are not in the built-in set (`benchmark/README.md`, "the choice

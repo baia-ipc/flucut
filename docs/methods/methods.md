@@ -346,7 +346,7 @@ part is written if it is long enough (lines 15 and 17), everything is
 counted (line 16), and at the end of the sample its tables and report
 are written (line 18).
 
-> **Source:** `src/flucut.c`, `src/worker.c`, `src/trimmer.c`
+> **Source:** `src/flucut.c`, `src/core/worker.c`, `src/trimmer.c`
 
 ![The steps of a run](figures/run_flow.svg)
 
@@ -461,12 +461,12 @@ gene or protein name (`src/segments.c`).
 
 ### Threads, reproducibility, live mode
 
-`src/worker.c`: `-j` workers each take a batch of 1000 reads in turn,
+`src/core/worker.c`: `-j` workers each take a batch of 1000 reads in turn,
 trim and compress it with their own objects, and write in input order.
 Each batch is its own gzip member (libdeflate), so the output is
 byte-identical for any number of threads.
 
-`src/live.c`: `--live` follows a MinKNOW run. The input directories are
+`src/core/live.c`: `--live` follows a MinKNOW run. The input directories are
 scanned every 10 s; a file is trimmed once it has not been modified for
 `--min-age` (60 s) and is structurally complete; its reads are appended
 to the output of the sample (gzip members concatenate) and all tables
@@ -526,7 +526,7 @@ error rate of their alignments is computed, as errors per aligned base
 (lines 4–7). If the rate is 4% or more 30% is allowed, otherwise 20%
 (line 8).
 
-> **Source:** `src/auto-settings.c`
+> **Source:** `src/core/auto-settings.c`
 
 ```
 ALLOWED_ERROR_PERCENT(file)
@@ -621,7 +621,7 @@ subtype (lines 32–33) or, with too few votes, keeps all its references
 (line 34). If a segment has too few votes, the count is
 extended once, to up to 20,000 reads (lines 7–8).
 
-> **Source:** `src/auto-settings.c`
+> **Source:** `src/core/auto-settings.c`
 
 When a segment has several references (e.g. one per subtype, as in the
 built-in set), a readset is classified against one of them only: the
@@ -760,7 +760,7 @@ The decision (lines 15–34) takes *O*(*M*) time, once per stage.
 
 ### Reads of a second HA or NA subtype
 
-> **Source:** `src/subtype-reads.c`; called from `src/auto-settings.c`
+> **Source:** `src/subtype-reads.c`; called from `src/core/auto-settings.c`
 
 The votes of a segment can be split between two references for two
 reasons, which the votes alone do not separate: one virus lying between

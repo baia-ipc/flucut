@@ -164,7 +164,7 @@ and the largest internal priming sites:
 ## The choice of the reference of each segment
 
 flucut picks one reference per segment for each sample, by the votes of
-probes taken from the first reads (`src/auto-settings.h`). Three
+probes taken from the first reads (`src/core/auto-settings.h`). Three
 constants decide: how many votes a reference needs
 (`AUTO_REFERENCE_MIN_VOTES`), the share of its segment's votes from
 which its lead is clear (`AUTO_REFERENCE_MIN_SHARE`), and the share of
@@ -268,7 +268,7 @@ and removed once scored; `accuracy.tsv` and `votes.tsv` remain.
 (the last argument is the number of samples simulated at a time.)
 
 `reference_rule.py` is the rule of flucut (`auto_settings_decide_
-references()` in `src/auto-settings.c`) with its three constants as
+references()` in `src/core/auto-settings.c`) with its three constants as
 parameters, so that other values can be applied to the votes of a run
 without rebuilding the program. It reproduces the choices of flucut in
 all 3672 decisions of the study.

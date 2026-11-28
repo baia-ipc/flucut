@@ -7,7 +7,7 @@
 project = "flucut"
 author = "Giorgio Gonnella"
 copyright = "2026, Giorgio Gonnella"
-# the version of the program (src/options.h)
+# the version of the program (src/core/options.h)
 version = "0.1"
 release = "0.1"
 
