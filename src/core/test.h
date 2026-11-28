@@ -53,6 +53,16 @@
 #define test_eq_char(FOUND, EXP) \
   test_eq(FOUND, EXP, char, "%c")
 
+/* Fill <seq> with a deterministic pseudo-random DNA sequence and add a
+   terminator. <seq> must have room for <len> + 1 bytes. */
+static inline void random_seq(char *seq, size_t len, unsigned long *state) {
+  for (size_t i = 0; i < len; i++) {
+    *state = *state * 6364136223846793005UL + 1442695040888963407UL;
+    seq[i] = "ACGT"[(*state >> 33) & 3];
+  }
+  seq[len] = '\0';
+}
+
 /* compare <len> characters at FOUND (not 0-terminated, e.g. the content of
    a strbuf_t) with the 0-terminated string EXP */
 #define test_eq_mem(FOUND, LEN, EXP) do {\
