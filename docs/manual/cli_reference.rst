@@ -60,6 +60,7 @@ Options
      first use (:doc:`internal_priming`);
    * ``-r <file>``: that FASTA file of segment references;
    * ``-r off``: no references, every primer-derived base removed.
+
    The messages and reports name a reference with its segment when its
    description (the header after the name) says it: ``segment <n>``
    (as in the NCBI records), or a gene or protein name (e.g. ``HA``,
