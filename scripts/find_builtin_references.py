@@ -22,7 +22,7 @@ places and decades found) which:
     natural isolate (see EXCLUDED and --exclude).
 
 It writes the accessions of the records found, in the order of the
-segments, ready for the list in src/seq/builtin-references.c, and a
+segments, ready for the list in src/seq/references/builtin-references.c, and a
 provenance table with the accession, description, length, the length
 of the untranslated regions and the fetch date.
 

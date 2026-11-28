@@ -983,7 +983,7 @@ The internal genes (not HA and NA):
 This is a property of the reference set, not of the choice: which
 reference of a segment is picked matters less than whether the
 references reach their termini. Replacing the accessions which lack
-their UTRs (`src/seq/builtin-references.c`) would gain more than any value
+their UTRs (`src/seq/references/builtin-references.c`) would gain more than any value
 of the three constants.
 
 ### Mixed infections: HA and NA, down to 1-2%

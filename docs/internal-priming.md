@@ -70,7 +70,7 @@ outside the coding sequences.
 When complete termini are needed, giving the references (`-r`) keeps
 them, and then tells the internally primed reads apart, as for them the
 primer bases are the artefact. This mode requires the references of the
-segments (`src/seq/reference.h`). The bases which follow the primer (the
+segments (`src/seq/references/reference.h`). The bases which follow the primer (the
 probe) are located in the references:
 
 - at the start (or, for the other primer, the end) of a segment: a

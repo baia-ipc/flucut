@@ -430,7 +430,7 @@ taken for the primer and the read cut there.
 
 ### References
 
-`src/seq/reference.c`, `src/seq/builtin-references.c`. The references decide the
+`src/seq/references/reference.c`, `src/seq/references/builtin-references.c`. The references decide the
 trimming mode; there is no separate option.
 
 - Default: a built-in set of complete segments (with UTRs), downloaded
@@ -1510,7 +1510,7 @@ every allowed reference (lines 14–17); this slow step is skipped for
 Illumina reads (line 13). A probe shorter than 16 bases is not located
 (line 2).
 
-> **Source:** `src/seq/reference.c`
+> **Source:** `src/seq/references/reference.c`
 
 ![A probe located through its seeds](figures/probe_location.svg)
 
@@ -3749,7 +3749,7 @@ to the end of the segment, and if they are on different references the
 hit is marked ambiguous (BETTER_HIT lines 2–6).
 
 > **Source:** `analyze`, `better_hit` in `src/seq/amplicon.c`;
-> `align_window` in `src/seq/reference.c`
+> `align_window` in `src/seq/references/reference.c`
 
 > **Called from:** ANALYSE_ENDS (A5), BEST_PRIMER (A6) and LOCATE
 > (A10)
@@ -3797,7 +3797,7 @@ Their running time and memory are given in A5, A6 and A10.
 How many bases lie between the location of a probe and the end of the
 segment from which its read would have started (line 1).
 
-> **Source:** `terminus_distance` in `src/seq/reference.c`
+> **Source:** `terminus_distance` in `src/seq/references/reference.c`
 
 > **Called from:** BETTER_HIT (D4), ORIGIN (A9) and COVER (A17)
 

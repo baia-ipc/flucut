@@ -52,8 +52,9 @@ def flucut(program, reads, references, outdir):
 
 
 # the subtype in a FASTA description: the first H<n>N<n> anywhere in
-# it, as src/seq/reference.c's parse_subtype() reads it (not only where
-# enclosed in parentheses, which is the usual but not the only case)
+# it, as src/seq/references/reference.c's parse_subtype() reads it (not
+# only where enclosed in parentheses, which is the usual but not the only
+# case)
 SUBTYPE = re.compile(r"H\d+N\d+")
 
 
