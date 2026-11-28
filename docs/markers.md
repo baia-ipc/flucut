@@ -203,10 +203,12 @@ codons, the second the distance between two anchors several hundred
 bases apart. One indel anywhere in such a window changes what is read,
 so on Nanopore reads they are often `unresolved` or read from too few
 reads, and the distribution of their values is spread over neighbouring
-lengths. They are reported that way rather than left out, because on
-Illumina reads, whose indel rate is far lower, they are not in that
-state. `NS1-tail` is read over 16 codons but does not suffer from this,
-because its value is read backwards from the stop codon.
+lengths: on the samples measured below, `PB1-F2` is unresolved in 71 of
+102 and `NA-stalk` has too few reads in 70. They are reported that way
+rather than left out, because on Illumina reads, whose indel rate is
+far lower, they are not in that state. `NS1-tail` is read over 16
+codons but does not suffer from this, because its value is read
+backwards from the stop codon, and is `firm` in 89 of the 102.
 
 ## Where the numbers come from
 
@@ -238,6 +240,107 @@ reference.
 In the influenza B set (32 records) **no anchor of the table is found at
 all**, so an influenza B sample reports no marker rather than a wrong
 one.
+
+### The values, against the consensus of the same reads
+
+The six markers read as single residues were compared with the IRMA
+consensus of the same reads, on 102 Nanopore samples of the
+multisegment RT-PCR (the set used for the cleavage site: almost all
+H5N1, 92 R10 and 10 R9 samples, chosen for a high share of defective
+genomes, so a hard case). The consensus was read at the same anchored
+position, so the two readings are of the same residue.
+
+| marker | agree | differ |
+|---|---|---|
+| `PB2-627` | 87 | 1 |
+| `PB2-701` | 87 | 0 |
+| `PA-38` | 102 | 0 |
+| `NA-275` | 99 | 0 |
+| `HA-226-228` | 99 | 0 |
+| `M2-31` | 95 | 0 |
+| **total** | **569** | **1** |
+
+The one difference is a sample whose reads carry both residues at PB2
+627, E in 76% and K in 22% of 85 reads, where the consensus has to pick
+one and picks the other.
+
+### What the reads said
+
+| marker | samples with a value | the values | `firm` | `confirm` | `unresolved` | too few reads |
+|---|---|---|---|---|---|---|
+| `PB2-627` | 97 | E 50, K 47 | 73 | 24 | – | 5 |
+| `PB2-701` | 102 | D 102 | 91 | 11 | – | – |
+| `PA-38` | 102 | I 102 | 97 | 5 | – | – |
+| `NA-275` | 99 | H 99 | 88 | 11 | – | 3 |
+| `HA-226-228` | 99 | QSG 76, QRG 22, LMG 1 | 97 | 2 | – | 3 |
+| `M2-31` | 102 | S 92, N 10 | 101 | 1 | – | – |
+| `NS1-tail` | 102 | ESEV* 96, EPEV* 2, other 4 | 89 | 13 | – | – |
+| `NA-stalk` | 11 | 429 (9), 431 (2) | – | 11 | 21 | 70 |
+| `PB1-F2` | 24 | 87 (9), 90 (6), 8 (4), 57 (4), 11 (1) | 7 | 17 | 71 | 7 |
+
+The residues are those of avian H5N1: no oseltamivir and no baloxavir
+residue, the avian receptor-binding pair in all but one sample, and the
+avian PDZ-binding motif ESEV. PB2 627 is lysine in about half of them,
+which the consensus of the same reads confirms in 87 of the 88 samples
+where both could be read.
+
+### What a consensus does not show
+
+In 45 cases a residue is carried by at least a tenth of the reads and
+is not the one in the consensus of those same reads: 31 at PB2 627, 5
+each at PB2 701 and the receptor-binding site, 4 at M2 31. The clearest
+are at M2 31, where the reads are many: asparagine in 41% of 22,645
+reads in one sample, in 35% of 14,588 in another, in 17% of 1,219 and
+15% of 1,900 in two more, with serine in the consensus of each. Those
+samples hold two M segments, one of which resists the adamantanes;
+reading the position off the consensus alone shows only the other.
+
+### How much the reads agree where nothing is difficult
+
+The share of the reads agreeing on the residues where the anchor
+matched, over all markers of all samples with at least 20 such reads:
+
+| chemistry | markers | median | 10th percentile |
+|---|---|---|---|
+| R10 | 822 | 0.864 | 0.723 |
+| R9 | 85 | 0.614 | 0.384 |
+
+The two chemistries separate by themselves, as the control windows of
+the cleavage site do, so the floor below which a minority is not told
+from the errors of the reads is read from the reads in hand and not
+from a rule naming the chemistry. It is also why a value below a tenth
+of the reads is not counted as one the sample holds: on R9 reads the
+disagreement at the anchor alone is of that size.
+
+### How many reads reach a marker
+
+The anchor is found in a median of 59% to 81% of the reads searched for
+the markers near a segment terminus (`PB2-701`, `PA-38`, `M2-31`,
+`NS1-tail`, `PB1-F2` and the first anchor of `NA-stalk`), and in 0.7%,
+2.6% and 15% for `PB2-627`, `HA-226-228` and `NA-275`, which lie in the
+middle of their segment. These samples were chosen for a high share of
+defective genomes, which keep the two ends of a segment and lose the
+middle, and the markers in the middle are also the ones whose reads an
+internal priming site takes away. The read counts reported say so.
+
+`NA-stalk` suffers most, because it needs both of its anchors, some 430
+bases apart, in one read: 70 of the 102 samples have too few such reads
+for any value.
+
+### What the kept part of a read removes
+
+Reading a marker only from the bases flucut keeps changed the value
+reported in 6 of 735 sample-marker pairs, and every one of the six
+moved to the residue the consensus of the same reads carries: four at
+PB2 627 from K to E, one at PB2 701 from W to D, one at the
+receptor-binding site from SKS to QSG. The disagreements with the
+consensus fell from 7 to 1.
+
+It costs reads only where the artefact was: the median number of reads
+giving a marker is unchanged for six of the nine, 84% of what it was
+for `PB1-F2`, 80% for `HA-226-228` and 39% for `PB2-627`, whose anchor
+sits on an internal priming site of the Uni12 primer (flucut reports
+that site, at PB2 1913 to 1918, in its own table of internal priming).
 
 ## What it does not do
 

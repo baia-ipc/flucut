@@ -178,7 +178,15 @@ A value carried by at least a tenth of the reads and by at least 3
 reads counts as one the sample holds. Where there is more than one, the
 sample holds a mixture, and the report shows each value with its share.
 Below a tenth a value is not told from the disagreement the reads
-already show at the anchor, where nothing is difficult.
+already show at the anchor, where nothing is difficult: on 102 Nanopore
+samples that disagreement is a median of 14% of the reads on R10 and
+39% on R9.
+
+This is where reading the reads differs from reading a consensus. On
+those samples 45 residues are carried by at least a tenth of the reads
+and are not the one in the consensus of the same reads — in four
+samples the amantadine residue M2 31N, in 41% of 22,645 reads in one of
+them, where the consensus shows only serine.
 
 ``PB1-F2`` and ``NA-stalk`` are read over far more than one codon, so
 one indel anywhere in the window changes what is read. On Nanopore

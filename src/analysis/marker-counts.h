@@ -112,7 +112,9 @@ bool marker_counts_load_line(marker_counts_t *self, char *line);
 
    A tenth, as at the cleavage site: below it a value is not told from
    the disagreement the reads of a sample already show at the anchor,
-   where nothing is difficult (docs/markers.md).
+   where nothing is difficult. On 102 Nanopore samples that
+   disagreement is a median of 14% of the reads on R10 and 39% on R9
+   (docs/markers.md).
 */
 #define MARKER_MIN_SHARE 0.10
 #define MARKER_MIN_VALUE_READS 3
