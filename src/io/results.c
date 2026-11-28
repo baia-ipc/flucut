@@ -21,7 +21,8 @@ static void summary_markers_header(FILE *f);
 static void summary_header(FILE *f) {
   fputs("output\treads_in\tbases_in\treads_out\tbases_out\t"
         "both_ends\tone_end\tno_end\tminus_strand\tdimers\ttoo_short\t"
-        "filtered\twith_internal_match\tsplit\tcut_at_junction\tleft_terminal\t"
+        "filtered\twith_internal_match\tsplit\tcut_at_junction\tcut_again\t"
+        "left_terminal\t"
         "left_internal\t"
         "left_unknown\tright_terminal\tright_internal\tright_unknown\t"
         "short_complete\tout_full\tout_internal\tout_deletion\t"
@@ -104,11 +105,11 @@ static void summary_line(FILE *f, const char *name, const counter_t *c,
     const counter_reads_t *s, bool refs, size_t short_complete,
     bool illumina) {
   fprintf(f, "%s\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu"
-          "\t%zu\t%zu\t%zu",
+          "\t%zu\t%zu\t%zu\t%zu",
           name, s->reads_in, s->bases_in, s->reads_out, s->bases_out,
           s->n_ends[2], s->n_ends[1], s->n_ends[0], s->minus, s->dimers,
           s->too_short, counter_reads_filtered(s), s->with_internal,
-          s->split, s->cut);
+          s->split, s->cut, s->cut_again);
   /* (the origins are only known with references) */
   static const end_origin_t order[] = {ORIGIN_TERMINAL, ORIGIN_INTERNAL,
                                        ORIGIN_UNKNOWN};

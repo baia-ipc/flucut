@@ -58,8 +58,9 @@ tag      meaning
          ``unknown`` (see :ref:`reads-by-category`)
 ``sp``   ``<k>/<n>``: the record is part ``k`` of the ``n`` parts of a
          read which contained several amplicons (see below)
-``jf``   ``<k>/2``: the record is flank ``k`` of a read cut at the
-         junction of its internal deletion (``--deletions cut``, the
+``jf``   ``<k>/<n>``: the record is piece ``k`` of the ``n`` pieces of
+         a read cut at the junction of its internal deletion, and at
+         the short deletions next to it (``--deletions cut``, the
          default, see :ref:`cut-deletions`)
 ======== ============================================================
 
@@ -173,10 +174,23 @@ for both, ``tl`` and ``tr`` are the bases removed at the two ends of the
 read. With ``--by-category`` both flanks are in the file of the
 deletions.
 
-A flank shorter than the minimum length (``-m``) is not written. A read
+Many reads of deletion-containing genomes also lack a few bases next to
+their junction: a second, short deletion, of a few to about 50 bases, a
+few dozen to about 200 bases from it, which the genomes carry and the
+full-length genomes do not. Left in the flank, it can enter the
+consensus where these reads are many, and break the reading frame. The
+250 bases of each flank next to the junction are therefore aligned to
+the reference, and the flank is cut again at each deletion of 6 bases
+or more found there. No base of the read is lost: the read is only cut
+into more pieces, numbered in the order of the read (``_j1``, ``_j2``,
+``_j3``, ... with ``jf`` ``1/3``, ``2/3``, ``3/3``, ...), so that no
+piece lacks a base inside it.
+
+A piece shorter than the minimum length (``-m``) is not written. A read
 whose ends tell an internal deletion but whose junction could not be
 located is written whole. The reads cut are counted in the column
-``cut_at_junction`` of ``summary.tsv``.
+``cut_at_junction`` of ``summary.tsv``, those cut again in
+``cut_again``.
 
 summary.tsv
 -----------
@@ -224,6 +238,9 @@ One line for each input, tab-separated, with a header:
      - reads with an internal deletion cut at their junction
        (``--deletions cut``); ``reads_out``, ``bases_out``,
        ``too_short`` and ``out_deletion`` count each flank as a read
+   * - ``cut_again``
+     - of those, the reads cut again at a short deletion next to the
+       junction (:ref:`cut-deletions`); each piece is counted as a read
    * - ``left_terminal``, ``left_internal``, ``left_unknown``, ``right_terminal``, ``right_internal``, ``right_unknown``
      - with ``-r``: the left and right ends found, by origin; ``NA`` without references
    * - ``short_complete``

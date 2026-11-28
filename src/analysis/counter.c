@@ -144,6 +144,7 @@ void counter_merge(counter_t *self, const counter_t *other) {
   s->with_internal += o->with_internal;
   s->split += o->split;
   s->cut += o->cut;
+  s->cut_again += o->cut_again;
   s->adapter_start += o->adapter_start;
   s->adapter_end += o->adapter_end;
   s->placed += o->placed;
@@ -201,8 +202,8 @@ static void count_end(counter_t *self, const amplicon_end_t *end,
 }
 
 /* the counts of counter_reads_t, in the order of the files of counts:
-   13 single counts, n_ends, origin, written, filtered */
-#define N_SINGLE_COUNTS 13
+   14 single counts, n_ends, origin, written, filtered */
+#define N_SINGLE_COUNTS 14
 #define N_READ_COUNTS (N_SINGLE_COUNTS + 3 + COUNTER_N_ENDS * 3 + \
                        2 * READ_N_CATEGORIES)
 
@@ -210,7 +211,7 @@ static void read_counts(counter_reads_t *r, size_t *out[N_READ_COUNTS]) {
   size_t *single[N_SINGLE_COUNTS] = {&r->reads_in, &r->bases_in,
       &r->reads_out, &r->bases_out, &r->too_short, &r->dimers, &r->minus,
       &r->with_internal, &r->split, &r->adapter_start, &r->adapter_end,
-      &r->cut, &r->placed};
+      &r->cut, &r->placed, &r->cut_again};
   size_t n = 0;
   for (size_t i = 0; i < N_SINGLE_COUNTS; i++)
     out[n++] = single[i];
@@ -226,7 +227,7 @@ static void read_counts(counter_reads_t *r, size_t *out[N_READ_COUNTS]) {
   assert(n == N_READ_COUNTS);
 }
 
-#define COUNTS_HEADER "flucut-counts 7"
+#define COUNTS_HEADER "flucut-counts 8"
 
 void counter_save(const counter_t *self, FILE *file) {
   assert(self != NULL);
@@ -491,6 +492,11 @@ void counter_add_input(counter_t *self, size_t len, const char *qual,
 void counter_add_cut(counter_t *self) {
   assert(self != NULL);
   self->reads.cut++;
+}
+
+void counter_add_cut_again(counter_t *self) {
+  assert(self != NULL);
+  self->reads.cut_again++;
 }
 
 void counter_add_written(counter_t *self, size_t len, size_t category,

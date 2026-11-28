@@ -35,6 +35,7 @@ static void write_reads(json_writer_t *w, const counter_reads_t *s) {
   json_count_member(w, "with_internal_match", s->with_internal);
   json_count_member(w, "split", s->split);
   json_count_member(w, "cut_at_junction", s->cut);
+  json_count_member(w, "cut_again", s->cut_again);
   json_count_member(w, "adapter_start", s->adapter_start);
   json_count_member(w, "adapter_end", s->adapter_end);
   json_close_block(w, '}', false);

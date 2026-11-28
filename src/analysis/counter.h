@@ -76,6 +76,9 @@ typedef struct {
      trimmer.h); each flank is then counted as a read in <reads_out>,
      <bases_out>, <written> and <too_short> */
   size_t cut;
+  /* of those, the reads cut again at a short deletion next to the
+     junction (flank-deletions.h); each piece is a read as above */
+  size_t cut_again;
   /* reads with an adapter removed at their start, at their end (see
      amplicon.h) */
   size_t adapter_start, adapter_end;
@@ -140,6 +143,10 @@ void counter_add_input(counter_t *self, size_t len, const char *qual,
 /* Count a read cut at the junction of its internal deletion (its flanks
    are counted by counter_add_written() or counter_add_too_short()) */
 void counter_add_cut(counter_t *self);
+
+/* Count a read cut at the junction which is also cut at a short deletion
+   next to it (counted by counter_add_cut() too) */
+void counter_add_cut_again(counter_t *self);
 
 /* Count a read of the category <category> filtered out (not written) */
 void counter_add_filtered(counter_t *self, size_t category);

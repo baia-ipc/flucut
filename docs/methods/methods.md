@@ -1970,8 +1970,19 @@ together have the fewest errors (JUNCTION_BY_ALIGNMENT lines 3–8). It is
 reported only if the fit is good (line 9) and at least 100 bases are
 missing (line 12).
 
-> **Source:** `src/seq/reads/junction.c`; `amplicon_find_junction` in
-> `src/seq/amplicon/amplicon-locate.c`
+Once the junction is located, the 250 bases of each flank next to it
+are aligned to the reference by edlib, from the junction outwards (the
+end of the reference free), and every deletion of at least 6 bases
+found there is a further cut point; deletion runs separated by at most
+3 bases of the read count as one, as an alignment by edit distance can
+break a deletion into pieces. Many reads of deletion-containing genomes
+carry such a short deletion a few dozen to about 200 bases from their
+junction; cut there, a flank lacks no base inside it, and a consensus
+built from the pieces takes the bases there from the full-length
+genomes. No base of the read is lost.
+
+> **Source:** `src/seq/reads/junction.c`; `src/seq/reads/flank-deletions.c`;
+> `amplicon_find_junction` in `src/seq/amplicon/amplicon-locate.c`
 
 ![The bisection for the junction of an internal deletion](figures/junction.svg)
 

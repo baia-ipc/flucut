@@ -34,6 +34,7 @@
 #include "file.h"
 #include "input-groups.h"
 #include "internal-matches.h"
+#include "flank-deletions.h"
 #include "junction.h"
 #include "logger.h"
 #include "markers-test.h"
@@ -114,6 +115,8 @@ static test_group_t test_groups[] = {
    false},
   {'J', "the junction of a read with an internal deletion",
    junction_test, false},
+  {'F', "the short deletions next to the junction",
+   flank_deletions_test, false},
   {'O', "the category of a read, from where it lies on its reference",
    read_cover_test, false},
   {'e', "the matches of the conserved termini in a read",

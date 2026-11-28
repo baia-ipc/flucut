@@ -204,6 +204,7 @@ void amplicon_locate_inner_ends(amplicon_analyzer_t *self, const char *seq,
 void amplicon_find_junction(amplicon_analyzer_t *self, const char *seq,
     size_t len, amplicon_t *a) {
   a->junction.found = false;
+  a->n_flank_cuts = 0;
   if (self->refs == NULL)
     return;
   const reference_hit_t *l = amplicon_end_position(&a->left),
@@ -237,7 +238,18 @@ void amplicon_find_junction(amplicon_analyzer_t *self, const char *seq,
                   &a->junction);
   /* (in a read of the minus strand of the reference, the right flank
      comes first) */
-  if (a->junction.found)
-    a->junction_at = template_from + (reversed ?
-        (long)n - a->junction.offset : a->junction.offset);
+  if (!a->junction.found)
+    return;
+  a->junction_at = template_from + (reversed ?
+      (long)n - a->junction.offset : a->junction.offset);
+  /* the cut points at the short deletions next to the junction, in the
+     read: in a read of the minus strand of the reference, in the reverse
+     order */
+  long cuts[FLANK_DELETIONS_MAX_CUTS];
+  size_t k = flank_deletions_find(self->refs, template, n, l->ref_index,
+                                  &a->junction, cuts);
+  for (size_t i = 0; i < k; i++)
+    a->flank_cuts[i] = template_from + (reversed ?
+        (long)n - cuts[k - 1 - i] : cuts[i]);
+  a->n_flank_cuts = k;
 }

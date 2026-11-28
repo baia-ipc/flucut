@@ -149,10 +149,11 @@ static void append_title(strbuf_t *t, const char *title, size_t title_len,
 /* the title of the record written for a read, or for the part <part>
    (from 1) of the <n_parts> parts of a split read, of length <len>: its
    title, then the tags; <category>: of the read (READ_CATEGORY_*);
-   <flank>: 1 or 2 for a flank of a read cut at its junction, else 0 */
+   <flank>: the piece (from 1) of the <n_flanks> pieces of a read cut at
+   its junction (and at the short deletions next to it), else 0 */
 static void make_title(trimmer_t *self, const char *title, size_t title_len,
     const amplicon_t *a, size_t category, size_t len, size_t part,
-    size_t n_parts, size_t flank) {
+    size_t n_parts, size_t flank, size_t n_flanks) {
   strbuf_t *t = &self->title;
   strbuf_clear(t);
   append_title(t, title, title_len, n_parts > 1 ? part : 0, flank);
@@ -188,8 +189,36 @@ static void make_title(trimmer_t *self, const char *title, size_t title_len,
   if (flank > 0) {
     sam_tag_start(t, "jf", 'Z');
     strbuf_append_long(t, (long)flank);
-    strbuf_append_str(t, "/2");
+    strbuf_append_char(t, '/');
+    strbuf_append_long(t, (long)n_flanks);
   }
+}
+
+/* the bounds of the pieces of the kept part of the read <a> cut at its
+   junction <cut> and at the short deletions next to it, in the order of
+   the read: the first base of each piece, then the base after the last
+   one, into <bounds>; their number */
+static size_t piece_bounds(const amplicon_t *a, long cut, long *bounds) {
+  /* the cut points in increasing order (few: an insertion sort) */
+  long points[FLANK_DELETIONS_MAX_CUTS + 1];
+  size_t n_points = 0;
+  points[n_points++] = cut;
+  for (size_t i = 0; i < a->n_flank_cuts; i++) {
+    size_t j = n_points++;
+    while (j > 0 && points[j - 1] > a->flank_cuts[i]) {
+      points[j] = points[j - 1];
+      j--;
+    }
+    points[j] = a->flank_cuts[i];
+  }
+  /* those inside the kept part, each once */
+  size_t n = 0;
+  bounds[n++] = a->keep_from;
+  for (size_t i = 0; i < n_points; i++)
+    if (points[i] > bounds[n - 1] && points[i] <= a->keep_to)
+      bounds[n++] = points[i];
+  bounds[n++] = a->keep_to + 1;
+  return n;
 }
 
 /* analyze, count and write the bases <from> to <to> of the read <rec>
@@ -282,17 +311,22 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
       category == READ_CATEGORY_DELETION ? amplicon_junction_cut(a) : -1;
   if (cut < 0) {
     make_title(self, data + rec->title_from, rec->title_len, a, category,
-               len, part, n_parts, 0);
+               len, part, n_parts, 0, 0);
     fastq_writer_record(out, self->title.s, self->title.len,
                         seq + a->keep_from, qual + a->keep_from, kept);
     counter_add_written(counts, kept, category, rec->qual_missing ? NULL :
                         qual + a->keep_from);
     return;
   }
-  /* the two flanks of the kept part, in the order of the read */
+  /* the pieces of the kept part, in the order of the read: its two
+     flanks, cut at the junction, and cut again at the short deletions
+     next to it */
   counter_add_cut(counts);
-  const long bounds[3] = {a->keep_from, cut, a->keep_to + 1};
-  for (size_t flank = 1; flank <= 2; flank++) {
+  long bounds[FLANK_DELETIONS_MAX_CUTS + 3];
+  size_t n_flanks = piece_bounds(a, cut, bounds) - 1;
+  if (n_flanks > 2)
+    counter_add_cut_again(counts);
+  for (size_t flank = 1; flank <= n_flanks; flank++) {
     long flank_from = bounds[flank - 1];
     size_t flank_len = (size_t)(bounds[flank] - flank_from);
     if (flank_len < self->config->min_length) {
@@ -300,7 +334,7 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
       continue;
     }
     make_title(self, data + rec->title_from, rec->title_len, a, category,
-               len, part, n_parts, flank);
+               len, part, n_parts, flank, n_flanks);
     fastq_writer_record(out, self->title.s, self->title.len,
                         seq + flank_from, qual + flank_from, flank_len);
     counter_add_written(counts, flank_len, category,
@@ -510,6 +544,24 @@ static void test_categories(const scheme_t *sc) {
     test_eq_mem(seq2 + len2 - 12, 12, "CCTGCTTTTGCT");
   }
   test_eq_size(counter_reads(counts)->cut, 2);
+  test_eq_size(counter_reads(counts)->cut_again, 0);
+  /* a short deletion next to the junction too (the bases 50 to 59 of the
+     interior, 30 bases before it): three pieces, cut at both */
+  char flanks2[512];
+  snprintf(flanks2, sizeof(flanks2), "%.50s%.30s%s", interior,
+           interior + 60, interior + 210);
+  snprintf(read, sizeof(read), "%s%s%s", uni12, flanks2, rc13);
+  one_record(&batch, "twice", read);
+  strbuf_clear(del);
+  trimmer_run(tr, &batch, 0, 1, out, counts);
+  strbuf_append_char(del, '\0');
+  test_eq_mem(del->s, 10, "@twice_j1\t");
+  test_assert(strstr(del->s, "\tjf:Z:1/3\n") != NULL);
+  test_assert(strstr(del->s, "\n@twice_j2\t") != NULL);
+  test_assert(strstr(del->s, "\n@twice_j3\t") != NULL);
+  test_assert(strstr(del->s, "\tjf:Z:3/3\n") != NULL);
+  test_eq_size(counter_reads(counts)->cut, 3);
+  test_eq_size(counter_reads(counts)->cut_again, 1);
   trimmer_delete(tr);
   /* filtered out: counted, not written, the other categories written */
   bool filtered[READ_N_CATEGORIES] = {false};

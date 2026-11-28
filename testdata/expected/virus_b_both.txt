@@ -29,8 +29,8 @@ md5: 7c3aa62686730b4f1bc989240f4f833c
 @other_segment_primer simulated	fs:Z:+	fl:Z:b-m-uni3f	ol:Z:terminal	ml:Z:KX058884.1:15:+	fr:Z:b-hana-unir	or:Z:terminal	mr:Z:KX058884.1:1870:-	ct:Z:full	tl:i:23	tr:i:10
 1871 ATTTTCTAATATCCA...GCTCTTGTTACTACT
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	filtered	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
-reads-b	13	15718	11	15366	11	1	1	2	1	2	0	0	0	0	9	2	1	8	2	1	4	8	2	0	1	0	0	PAKLLKER	6	0.8333	0.9167	0.0000	too few reads	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	filtered	with_internal_match	split	cut_at_junction	cut_again	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
+reads-b	13	15718	11	15366	11	1	1	2	1	2	0	0	0	0	0	9	2	1	8	2	1	4	8	2	0	1	0	0	PAKLLKER	6	0.8333	0.9167	0.0000	too few reads	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 reads-b	KX058884.1	20	1
@@ -101,6 +101,7 @@ reads-b	KX058884.1	1850	6
       "with_internal_match": 0,
       "split": 0,
       "cut_at_junction": 0,
+      "cut_again": 0,
       "adapter_start": 0,
       "adapter_end": 0
     },
@@ -202,6 +203,7 @@ reads-b	KX058884.1	1850	6
         "with_internal_match": 0,
         "split": 0,
         "cut_at_junction": 0,
+        "cut_again": 0,
         "adapter_start": 0,
         "adapter_end": 0
       },

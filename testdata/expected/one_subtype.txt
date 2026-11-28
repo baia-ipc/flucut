@@ -27,8 +27,8 @@ md5: ae4fa62571c1278639bb7c9a1a2a43c0
 @left_only simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	ct:Z:full	tl:i:0	tr:i:0
 512 AGCAAAAGCAGGGGA...TACAGGAGTATGAGA
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	filtered	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
-reads	12	12635	10	12391	10	1	1	2	1	2	0	0	0	0	8	2	1	7	2	1	4	7	2	0	1	0	0	NVPARSSR	5	0.8000	0.8000	0.0000	too few reads	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	filtered	with_internal_match	split	cut_at_junction	cut_again	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
+reads	12	12635	10	12391	10	1	1	2	1	2	0	0	0	0	0	8	2	1	7	2	1	4	7	2	0	1	0	0	NVPARSSR	5	0.8000	0.8000	0.0000	too few reads	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 reads	NC_004908.1	20	1
@@ -99,6 +99,7 @@ reads	NC_004908.1	1700	5
       "with_internal_match": 0,
       "split": 0,
       "cut_at_junction": 0,
+      "cut_again": 0,
       "adapter_start": 0,
       "adapter_end": 0
     },
@@ -230,6 +231,7 @@ reads	NC_004908.1	1700	5
         "with_internal_match": 0,
         "split": 0,
         "cut_at_junction": 0,
+        "cut_again": 0,
         "adapter_start": 0,
         "adapter_end": 0
       },

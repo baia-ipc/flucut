@@ -187,6 +187,7 @@
 #include <stddef.h>
 #include "adapters.h"
 #include "junction.h"
+#include "flank-deletions.h"
 #include "placement.h"
 #include "primer-search.h"
 #include "reference.h"
@@ -289,6 +290,11 @@ typedef struct {
      ORIGINAL read (the bases before it are one flank, those from it on
      the other) */
   long junction_at;
+  /* the first base after each short deletion of the flanks next to the
+     junction (flank-deletions.h) in the ORIGINAL read, in increasing
+     order */
+  long flank_cuts[FLANK_DELETIONS_MAX_CUTS];
+  size_t n_flank_cuts;
 } amplicon_t;
 
 /* Where to cut the kept part of the read <a> at the junction of its

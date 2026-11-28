@@ -205,8 +205,11 @@ Illumina: trim with `flucut -p illumina` and assemble with the paired
   `<read>_j2` (tag `jf:Z:1/2`, `jf:Z:2/2`): a mapper then gets two
   reads which each lie in one place, instead of one read with a gap, and
   the reads of the deletion genomes no longer bias the consensus at the
-  junctions. A read whose junction could not be located is written
-  whole
+  junctions. A flank is also cut at each short deletion (6 bases or
+  more) in its 250 bases next to the junction, which many deletion
+  genomes carry and which would otherwise enter the consensus: the read
+  is then written as more pieces (`_j1`, `_j2`, `_j3`, ...). A read whose
+  junction could not be located is written whole
 - `--deletions keep` writes these reads whole, `--deletions filter`
   leaves them out (an assembly of the reads without the deletion
   genomes):

@@ -72,8 +72,11 @@
    The records have the name of the read followed by _j1 and _j2, the
    tags of the read (tl and tr are the bases removed at the two ends of
    the read, ct is deletion) and the tag jf. A flank shorter than the
-   minimum length is not written. A read of the category deletion whose
-   junction was not located (the ends tell the deletion, the bases
+   minimum length is not written. Each flank is also cut at the short
+   deletions next to the junction (flank-deletions.h): the records are
+   then the pieces of the read, _j1, _j2, _j3, ..., with the tag jf
+   <k>/<n>. A read of the category deletion whose junction was not
+   located (the ends tell the deletion, the bases
    between them do not fit the two flanks) is written whole.
 
    Reads with several amplicons

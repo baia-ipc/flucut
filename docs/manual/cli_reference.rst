@@ -154,7 +154,9 @@ Options
    defective interfering genome; :ref:`cut-deletions`): ``cut`` (the
    default) writes its two flanks, cut at the junction, as two records,
    so that a program which maps the reads to the whole segment gets two
-   reads which each lie in one place, instead of one read with a gap;
+   reads which each lie in one place, instead of one read with a gap
+   (each flank is cut again at the short deletions next to the
+   junction);
    ``keep`` writes the read whole; ``filter`` writes nothing (for an
    assembly without the deletion genomes; the reads are still analyzed
    and counted). ``cut`` and ``filter`` need the references: with

@@ -123,7 +123,8 @@ enum {
   "                          (placed on no segment); needs the references\n" \
   "   --deletions <how>      a read with an internal deletion: keep\n" \
   "                          (written whole), cut (its two flanks, cut at\n" \
-  "                          the junction: <read>_j1, <read>_j2; default)\n" \
+  "                          the junction and at the short deletions next\n" \
+  "                          to it: <read>_j1, <read>_j2, ...; default)\n" \
   "                          or filter (not written); cut and filter need\n" \
   "                          the references (with -r off, the reads are\n" \
   "                          written whole)\n" \
