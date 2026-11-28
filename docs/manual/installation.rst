@@ -114,6 +114,52 @@ analyzer through ``amplicon-analyzer.h``, which only they include. The
 unit tests of such a module are in a file of their own
 (``amplicon-test.c``, ``reference-test.c``).
 
+What flucut knows about influenza
+---------------------------------
+
+The sequences and tables flucut carries - the primers, the markers, the
+adapters of the sequencing kits, the references it downloads, the
+segment names - are not in the C sources. They are in ``metadata``, one
+readable file per kind, which the build turns into the tables of the
+program:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - File
+     - Content
+   * - ``metadata/primers.yaml``
+     - the primers of the multisegment RT-PCR, the conserved termini
+       and tails they are made of, the segments each one binds, the
+       publication each sequence is quoted from, and the schemes
+   * - ``metadata/markers.yaml``
+     - the markers read from the reads (:doc:`markers`) and the
+       conserved peptide which anchors the HA cleavage site
+   * - ``metadata/adapters.yaml``
+     - the adapter and barcode sequences of the Nanopore kits
+   * - ``metadata/references.yaml``
+     - the NCBI accessions of the built-in reference sets, and the
+       version of each
+   * - ``metadata/segments.yaml``
+     - the eight segments and the words which name their genes in a
+       reference description
+   * - ``metadata/examples.yaml``
+     - the real sequences the unit tests use as examples
+
+Every file is a list of records, each a line naming the record and its
+kind followed by indented fields, with ``#`` comments. One reader
+(``scripts/metadata-records.awk``) reads them all; a script of its own
+writes each table (``scripts/<name>-table.awk``) into ``obj`` when the
+program is built, and the Makefile rebuilds it when the file changes.
+The generators are awk, so building flucut still needs nothing but a C
+compiler and ``make``.
+
+Several of them check the data as they write it: that the terminus of a
+primer really is the end of its oligonucleotide, that no accession is
+listed twice, that no word names two segments. A change to a record is
+therefore a change to flucut, and nothing in ``src`` changes with it.
+
 Packages
 --------
 

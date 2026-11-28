@@ -250,6 +250,22 @@ as pseudocode, with further explanations and figures, and is provided as PDF
 in `manual/flucut-methods.pdf` (sources in `docs/methods`;
 `make methods` rebuilds it, requiring Sphinx with `myst-parser`, matplotlib and XeLaTeX).
 
+## What flucut knows about influenza
+
+The sequences and tables flucut carries are not in the C sources. They are in
+`metadata/`, one readable file per kind, which the build turns into the tables
+of the program: `primers.yaml` (the primers, the conserved termini and tails,
+the segments each binds, the source of each sequence, and the schemes),
+`markers.yaml` (the markers and the anchor of the HA cleavage site),
+`adapters.yaml` (the Nanopore kit adapters), `references.yaml` (the accessions
+of the built-in reference sets), `segments.yaml` (the segments and the words
+which name their genes) and `examples.yaml` (the real sequences the unit tests
+use).
+
+Adding a primer, a marker or a kit is a record in one of those files; no C
+source changes with it. The generators are awk, so building still needs only a
+C compiler and `make`. See the manual, *Installation*.
+
 ## Supported primers
 
 These are the supported primer schemes:
