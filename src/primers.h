@@ -226,17 +226,17 @@ const char* primers_iupac_bases(char code);
 bool primers_is_iupac_seq(const char *seq, size_t len);
 
 /*
-   Append to <dest> the reverse complement of <seq> (length <len>),
+   Write the reverse complement of <seq> (length <len>) to <dest>,
    complementing the degenerate codes as well (e.g. R -> Y); <dest> must
-   have room for <len> characters. The sequence must be valid (see
-   primers_is_iupac_seq()).
+   have room for <len> + 1 characters. The result is 0-terminated. The
+   sequence must be valid (see primers_is_iupac_seq()).
 */
 void primers_reverse_complement(const char *seq, size_t len, char *dest);
 
 /*
    The reverse complement of the primer <p>, as it appears at the other
    end of an amplicon: its sequence is written to <seq_buf> (which must
-   have room for <p>->seq_len characters and must exist as long as
+   have room for <p>->seq_len + 1 characters and must exist as long as
    <dest> is used), and its terminus becomes its prefix. The name is that
    of <p>.
 */

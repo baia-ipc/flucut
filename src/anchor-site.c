@@ -7,28 +7,11 @@
 #include "codons.h"
 #include "edlib.h"
 #include "iupac.h"
+#include "sequtil.h"
 #include "test.h"
-
-static char complement(char c) {
-  switch (c) {
-    case 'A': case 'a': return 'T';
-    case 'C': case 'c': return 'G';
-    case 'G': case 'g': return 'C';
-    case 'T': case 't': case 'U': case 'u': return 'A';
-    default: return 'N';
-  }
-}
 
 static char upper(char c) {
   return c >= 'a' && c <= 'z' ? (char)(c - 'a' + 'A') : c;
-}
-
-/* write into <out> the reverse complement of the <len> characters of
-   <seq>, terminated */
-static void revcomp(const char *seq, size_t len, char *out) {
-  for (size_t i = 0; i < len; i++)
-    out[i] = complement(seq[len - 1 - i]);
-  out[len] = '\0';
 }
 
 bool anchor_of_peptide(anchor_t *self, size_t ref, const char *seq,
@@ -47,7 +30,7 @@ bool anchor_of_peptide(anchor_t *self, size_t ref, const char *seq,
   for (size_t i = 0; i < len; i++)
     self->seq[i] = upper(seq[pos + i]);
   self->seq[len] = '\0';
-  revcomp(self->seq, len, self->rev);
+  reverse_complement(self->seq, len, self->rev);
   return true;
 }
 

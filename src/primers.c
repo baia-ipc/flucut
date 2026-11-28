@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <string.h>
 #include "primers.h"
+#include "sequtil.h"
 #include "test.h"
 
 /* length of a string literal */
@@ -145,17 +146,6 @@ bool primers_is_iupac_seq(const char *seq, size_t len) {
   return true;
 }
 
-/* the complement of a IUPAC code (the code of the complemented bases) */
-static char complement(char code) {
-  static const char *from = "ACGTURYSWKMBDHVN";
-  static const char *to   = "TGCAAYRSWMKVHDBN";
-  if (code >= 'a' && code <= 'z')
-    code = (char)(code - 32);
-  /* (another character, e.g. a '.' or '-' in a read, is left as it is) */
-  const char *p = code != '\0' ? strchr(from, code) : NULL;
-  return p != NULL ? to[p - from] : code;
-}
-
 void primers_reverse(const primer_t *p, char *seq_buf, primer_t *dest) {
   assert(p != NULL);
   assert(seq_buf != NULL);
@@ -174,8 +164,7 @@ void primers_reverse(const primer_t *p, char *seq_buf, primer_t *dest) {
 void primers_reverse_complement(const char *seq, size_t len, char *dest) {
   assert(seq != NULL);
   assert(dest != NULL);
-  for (size_t i = 0; i < len; i++)
-    dest[i] = complement(seq[len - 1 - i]);
+  reverse_complement(seq, len, dest);
 }
 
 void primers_test(void) {
