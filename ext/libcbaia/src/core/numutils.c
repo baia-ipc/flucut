@@ -1,9 +1,12 @@
 /* (c) 2026 Giorgio Gonnella */
 
 #include <assert.h>
+#include <errno.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "numutils.h"
 #include "test.h"
 
@@ -52,6 +55,27 @@ percent_text_t percent_text(size_t part, size_t total) {
 
 percent_text_t fraction_percent_text(double fraction) {
   return percent_format(100.0 * fraction, fraction == 0.0, fraction == 1.0);
+}
+
+bool parse_double(const char *s, double *value) {
+  char *end;
+  errno = 0;
+  *value = strtod(s, &end);
+  return *s != '\0' && *end == '\0' && errno == 0 && isfinite(*value);
+}
+
+bool parse_percent(const char *s, double *value) {
+  char buf[32];
+  size_t len = strlen(s);
+  if (len < 2 || len > sizeof(buf) || s[len - 1] != '%')
+    return false;
+  memcpy(buf, s, len - 1);
+  buf[len - 1] = '\0';
+  double percent;
+  if (!parse_double(buf, &percent) || percent < 0 || percent >= 100)
+    return false;
+  *value = percent / 100;
+  return true;
 }
 
 void numutils_test(void) {
