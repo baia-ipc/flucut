@@ -15,8 +15,8 @@ src/<component>/  sources and headers of the modules of each component:
   core/           memory allocation, logging, files, strings, numeric
                   utilities, command line, unit test macros
   ds/             data structures
-  io/             external sorting, gzip and BGZF compression, MD5,
-                  HTML reports
+  html/           HTML reports and dashboards, templates and SVG
+  io/             external sorting, gzip and BGZF compression, MD5
   seq/            sequences, FASTQ and BAM files, SAM tags and headers,
                   barcodes, cells, library complexity
 tests/            unit test program

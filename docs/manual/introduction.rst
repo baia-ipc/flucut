@@ -62,7 +62,7 @@ whitelists) are fuzzed.
 Components
 ~~~~~~~~~~
 
-The modules are organized in four components (directories of ``src``),
+The modules are organized in five components (directories of ``src``),
 shown in :numref:`fig-components`:
 
 ``core``
@@ -77,10 +77,13 @@ shown in :numref:`fig-components`:
    data structures: bit operations, Bloom filter, set of integers, heap,
    HyperLogLog;
 
+``html``
+   HTML reports and dashboards: the element writer, templates, page
+   helpers and SVG primitives;
+
 ``io``
    handling of large files: sorting of files which do not fit in memory,
-   parallel gzip and BGZF compression, MD5 checksums; self-contained HTML
-   reports with plots;
+   parallel gzip and BGZF compression, MD5 checksums;
 
 ``seq``
    sequences and sequencing reads: reverse complement, FASTQ and BAM

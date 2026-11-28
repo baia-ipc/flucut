@@ -28,6 +28,7 @@ modules.
    conventions
    core
    ds
+   html
    io
    seq
    barcodes

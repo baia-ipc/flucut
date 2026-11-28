@@ -20,7 +20,7 @@
 
 # the components of the library (subdirectories of src), also used by
 # its Makefile
-CBAIA_COMPONENTS = core ds io seq
+CBAIA_COMPONENTS = core ds html io seq
 CBAIA_INCLUDES = $(addprefix -I$(CBAIA_DIR)/src/,$(CBAIA_COMPONENTS)) \
   -I$(CBAIA_DIR)/ext/khash
 CBAIA_LIB = $(CBAIA_DIR)/lib/libcbaia.a

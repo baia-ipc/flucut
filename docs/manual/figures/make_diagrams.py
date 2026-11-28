@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 
 # colors of the components (Okabe-Ito, colorblind-safe), as fill colors
-COLORS = {"core": "#E69F00", "ds": "#56B4E9", "io": "#009E73",
-          "seq": "#CC79A7", "ext": "#BBBBBB"}
+COLORS = {"core": "#E69F00", "ds": "#56B4E9", "html": "#009E73",
+          "io": "#0072B2", "seq": "#CC79A7", "ext": "#BBBBBB"}
 INK = "#222222"
 MUTED = "#666666"
 
@@ -47,7 +47,7 @@ def save(fig, outdir, name):
 
 def components(outdir):
   """the components, their modules, and the main dependencies"""
-  fig, ax = setup(9, 6.3)
+  fig, ax = setup(12, 6.3)
   W, H, DY = 1.9, 0.42, 0.6
   # component: (x of the frame, columns, modules)
   comps = [
@@ -56,9 +56,10 @@ def components(outdir):
                        "numutils"]),
     ("ds", 4.4, 1, ["bitwise", "bloom-filter", "set", "heap",
                      "hyperloglog"]),
-    ("io", 6.65, 1, ["file-sorter", "file-merger", "gzip-compressor",
-                      "bgzf-compressor", "md5", "html-writer",
-                      "html-template", "html-page"]),
+    ("html", 6.65, 1, ["html-writer", "html-template", "html-page",
+                        "svg-writer"]),
+    ("io", 8.9, 1, ["file-sorter", "file-merger", "gzip-compressor",
+                     "bgzf-compressor", "md5"]),
   ]
   top = 4.6
   pos = {}
@@ -116,6 +117,7 @@ def components(outdir):
   edge("file-merger", "heap")
   edge("html-page", "html-template")
   edge("html-template", "html-writer")
+  edge("svg-writer", "html-writer")
   # external code
   ex, ey = 7.3, stop - h
   box(ax, ex, ey + 1.0, 1.9, 0.42, "ext/zlib", COLORS["ext"], alpha=0.5)

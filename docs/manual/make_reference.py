@@ -11,6 +11,7 @@ import os
 import re
 
 COMPONENTS = [("core", "Core"), ("ds", "Data structures"),
+              ("html", "HTML reports and dashboards"),
               ("io", "Large files and compression"),
               ("seq", "Sequences and reads")]
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
