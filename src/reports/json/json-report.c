@@ -30,6 +30,7 @@ static void write_reads(json_writer_t *w, const counter_reads_t *s) {
   json_count_member(w, "no_primer", s->n_ends[0]);
   json_count_member(w, "dimers", s->dimers);
   json_count_member(w, "too_short", s->too_short);
+  json_count_member(w, "filtered", counter_reads_filtered(s));
   json_count_member(w, "minus_strand", s->minus);
   json_count_member(w, "with_internal_match", s->with_internal);
   json_count_member(w, "split", s->split);
@@ -39,11 +40,14 @@ static void write_reads(json_writer_t *w, const counter_reads_t *s) {
   json_close_block(w, '}', false);
 }
 
-/* the reads written, by category (null without references) */
+/* the reads written, and those filtered out, by category (null without
+   references) */
 static void write_categories(json_writer_t *w, const report_t *r,
     const counter_reads_t *s) {
   json_member(w, "written_by_category");
   if (r->references == NULL) {
+    fputs("null", w->f);
+    json_member(w, "filtered_by_category");
     fputs("null", w->f);
     return;
   }
@@ -52,6 +56,14 @@ static void write_categories(json_writer_t *w, const report_t *r,
   for (size_t k = 0; k < READ_N_CATEGORIES; k++) {
     json_sep(w->f, &first);
     fprintf(w->f, "\"%s\": %zu", read_category_name(k), s->written[k]);
+  }
+  fputc('}', w->f);
+  json_member(w, "filtered_by_category");
+  fputc('{', w->f);
+  first = true;
+  for (size_t k = 0; k < READ_N_CATEGORIES; k++) {
+    json_sep(w->f, &first);
+    fprintf(w->f, "\"%s\": %zu", read_category_name(k), s->filtered[k]);
   }
   fputc('}', w->f);
 }
@@ -387,12 +399,16 @@ static void write_parameters(json_writer_t *w, const report_t *r) {
   segment_member(w, "report_segment", o->report_segment);
   json_member(w, "tags");
   fputs(o->tags ? "true" : "false", f);
-  json_member(w, "split");
-  fputs(o->split ? "true" : "false", f);
+  json_member(w, "chimeras");
+  fprintf(f, "\"%s\"", reads_action_name(o->chimeras));
+  json_member(w, "deletions");
+  fprintf(f, "\"%s\"", reads_action_name(o->deletions));
+  json_member(w, "unplaced");
+  fprintf(f, "\"%s\"", reads_action_name(o->unplaced));
+  json_member(w, "unknown");
+  fprintf(f, "\"%s\"", reads_action_name(o->unknown));
   json_member(w, "by_category");
   fputs(o->by_category ? "true" : "false", f);
-  json_member(w, "cut_deletions");
-  fputs(o->cut_deletions ? "true" : "false", f);
   json_count_member(w, "threads", o->threads);
   json_count_member(w, "compress_level", (size_t)o->compress_level);
   json_close_block(w, '}', false);

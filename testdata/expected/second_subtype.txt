@@ -35,8 +35,8 @@ md5: 94d20d71d673af507927dfe681ef1b66
 @errors_plus_h3 simulated	fs:Z:+	fl:Z:uni12r	ol:Z:unknown	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1713:-	ct:Z:full	tl:i:12	tr:i:10
 1716 GGAATTACTTAACTA...AACTGGGTTTCTACT
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
-reads-two-subtypes	16	19612	14	19255	14	1	1	3	1	2	0	0	0	8	2	5	11	2	1	4	11	2	0	1	0	0	NVPARSSR	5	0.8000	0.8000	0.0000	too few reads	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	filtered	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
+reads-two-subtypes	16	19612	14	19255	14	1	1	3	1	2	0	0	0	0	8	2	5	11	2	1	4	11	2	0	1	0	0	NVPARSSR	5	0.8000	0.8000	0.0000	too few reads	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 reads-two-subtypes	NC_004908.1	20	1
@@ -76,9 +76,11 @@ reads-two-subtypes	NC_004908.1	1700	9
     "segment": null,
     "report_segment": null,
     "tags": true,
-    "split": true,
+    "chimeras": "cut",
+    "deletions": "cut",
+    "unplaced": "keep",
+    "unknown": "keep",
     "by_category": false,
-    "cut_deletions": false,
     "threads": 4,
     "compress_level": 6
   },
@@ -100,6 +102,7 @@ reads-two-subtypes	NC_004908.1	1700	9
       "no_primer": 1,
       "dimers": 1,
       "too_short": 2,
+      "filtered": 0,
       "minus_strand": 3,
       "with_internal_match": 0,
       "split": 0,
@@ -108,6 +111,7 @@ reads-two-subtypes	NC_004908.1	1700	9
       "adapter_end": 0
     },
     "written_by_category": {"full": 11, "internal": 2, "deletion": 0, "fragment": 1, "unplaced": 0, "unknown": 0},
+    "filtered_by_category": {"full": 0, "internal": 0, "deletion": 0, "fragment": 0, "unplaced": 0, "unknown": 0},
     "read_lengths": {"input": {"reads": 16, "bases": 19612, "min": 35, "max": 1763, "mean": 1225, "median": 1737, "n50": 1737}, "written": {"reads": 14, "bases": 19255, "min": 300, "max": 1728, "mean": 1375, "median": 1716, "n50": 1716}},
     "read_quality": {"input": {"reads": 16, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 14, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
     "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
@@ -230,6 +234,7 @@ reads-two-subtypes	NC_004908.1	1700	9
         "no_primer": 1,
         "dimers": 1,
         "too_short": 2,
+        "filtered": 0,
         "minus_strand": 3,
         "with_internal_match": 0,
         "split": 0,
@@ -238,6 +243,7 @@ reads-two-subtypes	NC_004908.1	1700	9
         "adapter_end": 0
       },
       "written_by_category": {"full": 11, "internal": 2, "deletion": 0, "fragment": 1, "unplaced": 0, "unknown": 0},
+      "filtered_by_category": {"full": 0, "internal": 0, "deletion": 0, "fragment": 0, "unplaced": 0, "unknown": 0},
       "read_lengths": {"input": {"reads": 16, "bases": 19612, "min": 35, "max": 1763, "mean": 1225, "median": 1737, "n50": 1737}, "written": {"reads": 14, "bases": 19255, "min": 300, "max": 1728, "mean": 1375, "median": 1716, "n50": 1716}},
       "read_quality": {"input": {"reads": 16, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 14, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},

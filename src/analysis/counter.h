@@ -56,6 +56,10 @@ typedef struct {
   /* reads not written, as shorter than the minimum length after the
      trimming (dimers included) */
   size_t too_short;
+  /* reads not written, as filtered out (the categories filtered out, and
+     the parts of the reads with several amplicons with --chimeras
+     filter), by category (READ_CATEGORY_*) */
+  size_t filtered[READ_N_CATEGORIES];
   /* reads with both ends found and nothing between them */
   size_t dimers;
   /* reads by number of ends found (0, 1, 2) */
@@ -136,6 +140,12 @@ void counter_add_input(counter_t *self, size_t len, const char *qual,
 /* Count a read cut at the junction of its internal deletion (its flanks
    are counted by counter_add_written() or counter_add_too_short()) */
 void counter_add_cut(counter_t *self);
+
+/* Count a read of the category <category> filtered out (not written) */
+void counter_add_filtered(counter_t *self, size_t category);
+
+/* The reads filtered out, all categories together */
+size_t counter_reads_filtered(const counter_reads_t *reads);
 
 /* Count a read written, with <len> bases, of the category <category>
    (READ_CATEGORY_*), with the qualities <qual> (NULL: none) */

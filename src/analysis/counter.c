@@ -132,8 +132,10 @@ void counter_merge(counter_t *self, const counter_t *other) {
   s->bases_in += o->bases_in;
   s->reads_out += o->reads_out;
   s->bases_out += o->bases_out;
-  for (size_t k = 0; k < READ_N_CATEGORIES; k++)
+  for (size_t k = 0; k < READ_N_CATEGORIES; k++) {
     s->written[k] += o->written[k];
+    s->filtered[k] += o->filtered[k];
+  }
   s->too_short += o->too_short;
   s->dimers += o->dimers;
   for (size_t i = 0; i < 3; i++)
@@ -199,10 +201,10 @@ static void count_end(counter_t *self, const amplicon_end_t *end,
 }
 
 /* the counts of counter_reads_t, in the order of the files of counts:
-   13 single counts, n_ends, origin, written */
+   13 single counts, n_ends, origin, written, filtered */
 #define N_SINGLE_COUNTS 13
 #define N_READ_COUNTS (N_SINGLE_COUNTS + 3 + COUNTER_N_ENDS * 3 + \
-                       READ_N_CATEGORIES)
+                       2 * READ_N_CATEGORIES)
 
 static void read_counts(counter_reads_t *r, size_t *out[N_READ_COUNTS]) {
   size_t *single[N_SINGLE_COUNTS] = {&r->reads_in, &r->bases_in,
@@ -219,10 +221,12 @@ static void read_counts(counter_reads_t *r, size_t *out[N_READ_COUNTS]) {
       out[n++] = r->origin[e] + i;
   for (size_t k = 0; k < READ_N_CATEGORIES; k++)
     out[n++] = r->written + k;
+  for (size_t k = 0; k < READ_N_CATEGORIES; k++)
+    out[n++] = r->filtered + k;
   assert(n == N_READ_COUNTS);
 }
 
-#define COUNTS_HEADER "flucut-counts 6"
+#define COUNTS_HEADER "flucut-counts 7"
 
 void counter_save(const counter_t *self, FILE *file) {
   assert(self != NULL);
@@ -568,6 +572,20 @@ void counter_add_too_short(counter_t *self) {
   self->reads.too_short++;
 }
 
+void counter_add_filtered(counter_t *self, size_t category) {
+  assert(self != NULL);
+  assert(category < READ_N_CATEGORIES);
+  self->reads.filtered[category]++;
+}
+
+size_t counter_reads_filtered(const counter_reads_t *reads) {
+  assert(reads != NULL);
+  size_t n = 0;
+  for (size_t k = 0; k < READ_N_CATEGORIES; k++)
+    n += reads->filtered[k];
+  return n;
+}
+
 const counter_reads_t* counter_reads(const counter_t *self) {
   assert(self != NULL);
   return &self->reads;
@@ -800,6 +818,7 @@ void counter_test(void) {
   a = test_amplicon(30, 29, 7);
   counter_add_read(c, &a, 60);
   counter_add_too_short(c);
+  counter_add_filtered(c, READ_CATEGORY_DELETION);
   const counter_reads_t *r = counter_reads(c);
   test_eq_size(r->reads_in, 2);
   test_eq_size(r->bases_in, 260);
@@ -809,6 +828,8 @@ void counter_test(void) {
   test_eq_size(r->n_ends[2], 2);
   test_eq_size(r->dimers, 1);
   test_eq_size(r->too_short, 1);
+  test_eq_size(r->filtered[READ_CATEGORY_DELETION], 1);
+  test_eq_size(counter_reads_filtered(r), 1);
   test_eq_size(r->origin[COUNTER_LEFT][ORIGIN_INTERNAL], 2);
   test_eq_size(r->origin[COUNTER_RIGHT][ORIGIN_TERMINAL], 2);
   /* both reads were placed on a reference by their ends */
@@ -853,6 +874,7 @@ void counter_test(void) {
   test_assert(counter_load(loaded, f));
   test_eq_size(counter_reads(loaded)->reads_in, 8);
   test_eq_size(counter_reads(loaded)->written[READ_CATEGORY_INTERNAL], 4);
+  test_eq_size(counter_reads(loaded)->filtered[READ_CATEGORY_DELETION], 4);
   test_eq_size(counter_reads(loaded)->placed, 8);
   test_eq_size(counter_reads(loaded)->origin[COUNTER_LEFT][ORIGIN_INTERNAL],
                8);

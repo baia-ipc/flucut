@@ -197,20 +197,32 @@ Illumina: trim with `flucut -p illumina` and assemble with the paired
   would.
 - this option needs the references, i.e. it is incompatible with `-r off`
 
-## Reads with an internal deletion, cut at the junction
+## Reads with an internal deletion, chimeras, reads on no segment
 
 - a read with an internal deletion (e.g. of a defective interfering
-  genome) is two flanks of a segment joined at a junction
-- with `--cut-deletions`, such a read is written as two records, its
-  two flanks, named `<read>_j1` and `<read>_j2` (tag `jf:Z:1/2`,
-  `jf:Z:2/2`); a mapper then gets two reads which each lie in one
-  place, instead of one read with a gap
-- command line example
+  genome) is two flanks of a segment joined at a junction. By default it
+  is written as two records, its two flanks, named `<read>_j1` and
+  `<read>_j2` (tag `jf:Z:1/2`, `jf:Z:2/2`): a mapper then gets two
+  reads which each lie in one place, instead of one read with a gap, and
+  the reads of the deletion genomes no longer bias the consensus at the
+  junctions. A read whose junction could not be located is written
+  whole
+- `--deletions keep` writes these reads whole, `--deletions filter`
+  leaves them out (an assembly of the reads without the deletion
+  genomes):
   ```
-  flucut --cut-deletions -o trimmed barcode01/
+  flucut --deletions filter -o trimmed barcode01/
   ```
-- a read whose junction could not be located is written whole
-- this option needs the references, i.e. it is incompatible with `-r off`
+- a read which contains several amplicons joined end to end (a chimera)
+  is cut into its amplicons by default; `--chimeras keep` writes it
+  whole, `--chimeras filter` leaves it out
+- `--unplaced filter` leaves out the complete amplicons the references
+  place on no segment, `--unknown filter` the other reads they place on
+  no segment (mostly not influenza)
+- a read left out is still analyzed and counted: the reports describe
+  all the reads of the sample, and give the reads left out (`filtered`)
+- `cut` and `filter` need the references; with `-r off` the reads with
+  an internal deletion are written whole
 
 ## Markers
 
@@ -320,7 +332,6 @@ Developer option:
 - `--exhaustive-search` aligns each read end to every reference, to
   check the index
 - `--no-tags`: do not add SAM tags to the read header lines
-- `--no-split`: do not split chimeric amplicons
 
 Advanced build settings:
 - `make SYSTEM_LIBS=1` uses the zlib and libyaml of the system instead of

@@ -88,14 +88,15 @@ static read_outputs_t** group_outputs(const input_group_t *groups,
   XMALLOC(outputs, sizeof(read_outputs_t *) * (n_groups + 1));
   for (size_t i = 0; i < n_groups; i++) {
     outputs[i] = read_outputs_new(opts->outdir, groups[i].name,
-                                  opts->by_category);
+                                  opts->by_category, opts->filtered);
     for (size_t j = 0; j < groups[i].n_files; j++)
       LCHECK(!read_outputs_has_path(outputs[i], groups[i].files[j]), logger,
              "%s: the input would be overwritten by the output\n",
              groups[i].files[j]);
     for (size_t j = 0; j < i; j++)
       for (size_t k = 0; k < outputs[i]->n; k++)
-        LCHECK(!read_outputs_has_path(outputs[j], outputs[i]->paths[k]),
+        LCHECK(outputs[i]->paths[k] == NULL ||
+               !read_outputs_has_path(outputs[j], outputs[i]->paths[k]),
                logger, "%s: the output file of two inputs (%s and %s)\n",
                outputs[i]->paths[k], groups[j].name, groups[i].name);
   }
@@ -197,7 +198,7 @@ static bool group_already_trimmed(const options_t *opts,
     same = strcmp(files[j], g->files[j]) == 0;
   group_state_free_files(files, n);
   for (size_t k = 0; same && k < out->n; k++)
-    same = access(out->paths[k], F_OK) == 0;
+    same = out->paths[k] == NULL || access(out->paths[k], F_OK) == 0;
   return same && group_state_load_counts(opts->outdir, g->name, counts);
 }
 
@@ -355,9 +356,9 @@ int main(int argc, char *argv[]) {
       .adapters = opts.adapters, .min_length = opts.min_length,
       .illumina = opts.illumina, .cleavage = cleavage,
       .markers = markers,
-      .tags = opts.tags, .split = opts.split,
-      .by_category = opts.by_category,
-      .cut_deletions = opts.cut_deletions};
+      .tags = opts.tags, .chimeras = opts.chimeras,
+      .deletions = opts.deletions, .filtered = opts.filtered,
+      .by_category = opts.by_category};
   run_report_t *report = run_report_new(&opts, VERSION, scheme, refs, argc,
                                         argv, logger);
   run_report_set_max_errors(report, &autos.max_errors);

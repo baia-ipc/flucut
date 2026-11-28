@@ -15,7 +15,10 @@ adapters	-r off testdata/adapters.fastq
 no_adapters	-r off --adapters none testdata/adapters.fastq
 illumina	-r off -p illumina testdata/reads.fastq
 illumina_references	-r testdata/ref-ha.fasta -p illumina testdata/reads.fastq
-no_split	-r off --no-split testdata/reads.fastq
+# the reads with several amplicons written whole, and left out (those
+# of the Illumina case, where some reads are split)
+chimeras_keep	-r off --chimeras keep testdata/reads.fastq
+chimeras_filter	-r testdata/ref-ha.fasta -p illumina --chimeras filter testdata/reads.fastq
 # two references, HA and PA (segment 3); the reads are of the HA: with
 # --segment HA they are classified as with both references; with
 # --segment PA their ends are not located in the HA (two are placed in
@@ -23,12 +26,16 @@ no_split	-r off --no-split testdata/reads.fastq
 segment	--segment HA -r testdata/ref-ha-pa.fasta testdata/reads.fastq
 segment_other	--segment PA -r testdata/ref-ha-pa.fasta testdata/reads.fastq
 report_segment	--report-segment PA -r testdata/ref-ha-pa.fasta testdata/reads.fastq
-# reads with an internal deletion (the tag ct); the reads written to a
-# file for each category, for each input
+# reads with an internal deletion (the tag ct), each written as its two
+# flanks, cut at the junction (the default); the same reads written
+# whole, and left out (with a file for each category but theirs); the
+# reads written to a file for each category, for each input
 deletion	-r testdata/ref-ha.fasta testdata/deletion.fastq
-# the same reads, each written as its two flanks, cut at the junction
-cut_deletions	--cut-deletions -r testdata/ref-ha.fasta testdata/deletion.fastq
+deletions_keep	--deletions keep -r testdata/ref-ha.fasta testdata/deletion.fastq
+deletions_filter	--deletions filter --by-category -r testdata/ref-ha.fasta testdata/deletion.fastq
 by_category	--by-category -r testdata/ref-ha.fasta testdata/reads.fastq testdata/deletion.fastq
+# the reads placed on no segment left out
+unplaced_unknown_filter	--unplaced filter --unknown filter -r testdata/ref-ha.fasta testdata/reads.fastq
 # influenza B: reads of its HA, simulated with the primer pair of the
 # HA and the NA (b-hana), against references of its HA and its M
 # segment. The last read was primed by the pair of the M segment: its

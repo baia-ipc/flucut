@@ -182,6 +182,11 @@ static void primer_counts(html_writer_t *w, const report_t *r,
 
 /* how the reads divide: by primers found, by origin (with references),
    and the smaller counts */
+/* the reads of the category <k>: written or filtered out */
+static size_t origin_reads(const counter_reads_t *s, size_t k) {
+  return s->written[k] + s->filtered[k];
+}
+
 static void write_reads(html_writer_t *w, const report_t *r,
     const counter_t *c) {
   const counter_reads_t *s = counter_reads(c);
@@ -195,13 +200,17 @@ static void write_reads(html_writer_t *w, const report_t *r,
   markup_bar(w, "Primers found", "reads", primers, 3);
   if (refs) {
     const markup_part_t origin[] = {
-      {"c-full", "full template", s->written[READ_CATEGORY_FULL]},
-      {"c-int", "internally primed", s->written[READ_CATEGORY_INTERNAL]},
-      {"c-del", "internal deletion", s->written[READ_CATEGORY_DELETION]},
-      {"c-frag", "fragment", s->written[READ_CATEGORY_FRAGMENT]},
-      {"c-unp", "not placed", s->written[READ_CATEGORY_UNPLACED]},
-      {"c-unk", "unknown", s->written[READ_CATEGORY_UNKNOWN]},
-      {"c-nw", "not written", s->too_short}};
+      /* (the reads filtered out included: the origins of the reads of
+         the sample) */
+      {"c-full", "full template", origin_reads(s, READ_CATEGORY_FULL)},
+      {"c-int", "internally primed",
+       origin_reads(s, READ_CATEGORY_INTERNAL)},
+      {"c-del", "internal deletion",
+       origin_reads(s, READ_CATEGORY_DELETION)},
+      {"c-frag", "fragment", origin_reads(s, READ_CATEGORY_FRAGMENT)},
+      {"c-unp", "not placed", origin_reads(s, READ_CATEGORY_UNPLACED)},
+      {"c-unk", "unknown", origin_reads(s, READ_CATEGORY_UNKNOWN)},
+      {"c-nw", "too short", s->too_short}};
     markup_bar(w, "Reads by origin", "reads", origin, 7);
   } else {
     const markup_part_t written[] = {
@@ -213,11 +222,14 @@ static void write_reads(html_writer_t *w, const report_t *r,
   primer_counts(w, r, c, analyzed);
   small_count(w, "minus strand", s->minus, analyzed);
   small_count(w, "split (several amplicons)", s->split, s->reads_in);
-  if (r->options->cut_deletions)
+  if (r->options->deletions == READS_CUT)
     small_count(w, "cut at the junction (internal deletion)", s->cut,
                 analyzed);
   small_count(w, "primer dimers", s->dimers, analyzed);
   small_count(w, "too short", s->too_short, analyzed);
+  if (counter_reads_filtered(s) > 0)
+    small_count(w, "filtered out (not written)", counter_reads_filtered(s),
+                analyzed);
   small_count(w, "primer match inside", s->with_internal, analyzed);
   if (!r->options->illumina) {
     small_count(w, "adapter at the start", s->adapter_start, analyzed);

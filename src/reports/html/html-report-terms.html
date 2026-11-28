@@ -18,7 +18,7 @@
     <tr><td>left, right end</td><td>The end of the amplicon with the Uni12 primer, with the Uni13 primer.</td></tr>
     <tr><td>complete amplicon</td><td>A read with both primers. Short: under {{short}}% of the length of its segment.</td></tr>
     <tr><td>split</td><td>A read with several amplicons joined end to end, written as one read for each.</td></tr>
-    <tr><td>cut at the junction</td><td>A read with an internal deletion, written as two reads, its two flanks (<code>--cut-deletions</code>).</td></tr>
+    <tr><td>cut at the junction</td><td>A read with an internal deletion, written as two reads, its two flanks (<code>--deletions cut</code>, the default).</td></tr>
     <tr><td>second subtype</td><td>Reads whose probes all match the references of another HA (or NA) subtype than most reads of the sample, counted in its first reads. A remark is made when they exceed those expected by chance by {{second_reads}} reads (3 reads where none is expected) and by {{second_share}}% of the reads counted. Such reads can come from a mixed infection, from a contamination of the sample, or from barcode crosstalk between the samples of a run: flucut cannot tell these apart. Two viruses of one subtype are not told apart, and the other six segments are not looked at.</td></tr>
     <tr><td>grey sample</td><td>Its segments cannot be judged: few reads, or most read ends not matched to the references (e.g. not influenza A). Its subtype then has a question mark, as when its HA or NA has a low depth.</td></tr>
   </table>

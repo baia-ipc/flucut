@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include "amplicon.h"
 #include "logger.h"
+#include "read-outputs.h"
 #include "virus.h"
 
 #define PROGRAM_NAME "flucut"
@@ -71,12 +72,15 @@ typedef struct {
   int report_segment;
   size_t min_length;
   bool tags;
-  bool split;                 /* split the reads with several amplicons
-                                 (chimera.h) */
+  /* what is written of the reads with several amplicons (chimera.h),
+     of those with an internal deletion (trimmer.h), of the complete
+     amplicons on no segment and of the other reads on no segment
+     (read-cover.h) */
+  reads_action_t chimeras, deletions, unplaced, unknown;
+  /* the categories filtered out (READ_CATEGORY_*): not written */
+  bool filtered[READ_N_CATEGORIES];
   bool by_category;           /* an output file for each category of
                                  reads (read-outputs.h) */
-  bool cut_deletions;         /* cut the reads with an internal deletion
-                                 at their junction (trimmer.h) */
   const char *adapters;       /* see adapters.h */
   size_t threads;
   int compress_level;         /* of the outputs (gzip) */

@@ -45,7 +45,7 @@ trimmer_t* trimmer_new(const trimmer_config_t *config) {
   self->config = config;
   self->analyzer = amplicon_analyzer_new(config->scheme, config->max_errors,
                                          config->policy, config->window);
-  self->chimera = config->split ?
+  self->chimera = config->chimeras != READS_KEEP ?
       chimera_finder_new(config->scheme, config->max_errors,
                          config->window) : NULL;
   /* every reference allowed until a sample restricts them */
@@ -238,9 +238,12 @@ static void read_cleavage_site(trimmer_t *self, const char *seq, size_t len,
       counter_add_cleavage_control(counts, i, window);
 }
 
+/* analyze, count and write a part of a read (the whole read, or one of
+   its amplicons); <write>: false for a part of a read with several
+   amplicons filtered out, which is counted as such */
 static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
     const fastq_record_t *rec, long from, long to, size_t part,
-    size_t n_parts, strbuf_t *out, counter_t *counts) {
+    size_t n_parts, bool write, strbuf_t *out, counter_t *counts) {
   const char *data = batch->data.s;
   const char *seq = data + rec->seq_from + from;
   size_t len = (size_t)(to - from + 1);
@@ -262,6 +265,11 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
                         category == READ_CATEGORY_DELETION ? a->junction_at
                                                            : -1,
                         seq, len, self->config->probe_error_rate);
+  if (!write || (self->config->filtered != NULL &&
+                 self->config->filtered[category])) {
+    counter_add_filtered(counts, category);
+    return;
+  }
   size_t kept = amplicon_kept_length(a);
   if (kept == 0 || kept < self->config->min_length) {
     counter_add_too_short(counts);
@@ -270,7 +278,7 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
   if (self->config->by_category)
     out += category;
   const char *qual = data + rec->qual_from + from;
-  long cut = self->config->cut_deletions &&
+  long cut = self->config->deletions == READS_CUT &&
       category == READ_CATEGORY_DELETION ? amplicon_junction_cut(a) : -1;
   if (cut < 0) {
     make_title(self, data + rec->title_from, rec->title_len, a, category,
@@ -318,14 +326,15 @@ void trimmer_run(trimmer_t *self, const fastq_batch_t *batch, size_t from,
                            rec->seq_len, parts);
     if (n_parts < 2) {
       /* (an empty read is analyzed as well, and counted) */
-      trim_part(self, batch, rec, 0, (long)rec->seq_len - 1, 1, 1, out,
-                counts);
+      trim_part(self, batch, rec, 0, (long)rec->seq_len - 1, 1, 1, true,
+                out, counts);
       continue;
     }
     size_t parts_len = 0;
+    bool write = self->config->chimeras != READS_FILTER;
     for (size_t p = 0; p < n_parts; p++) {
       trim_part(self, batch, rec, parts[p].from, parts[p].to, p + 1,
-                n_parts, out, counts);
+                n_parts, write, out, counts);
       parts_len += (size_t)(parts[p].to - parts[p].from + 1);
     }
     counter_add_split(counts, n_parts, rec->seq_len, parts_len);
@@ -436,7 +445,7 @@ static void test_categories(const scheme_t *sc) {
      sides) */
   char kept[512];
   snprintf(kept, sizeof(kept), "%s%sCCTTGTTTCTACT", uni12, flanks);
-  config.cut_deletions = true;
+  config.deletions = READS_CUT;
   tr = trimmer_new(&config);
   strbuf_clear(del);
   size_t written = counter_reads(counts)->written[READ_CATEGORY_DELETION];
@@ -502,6 +511,22 @@ static void test_categories(const scheme_t *sc) {
   }
   test_eq_size(counter_reads(counts)->cut, 2);
   trimmer_delete(tr);
+  /* filtered out: counted, not written, the other categories written */
+  bool filtered[READ_N_CATEGORIES] = {false};
+  filtered[READ_CATEGORY_DELETION] = true;
+  config.deletions = READS_FILTER;
+  config.filtered = filtered;
+  tr = trimmer_new(&config);
+  strbuf_clear(del);
+  trimmer_run(tr, &batch, 0, 1, out, counts);
+  test_eq_size(del->len, 0);
+  test_eq_size(counter_reads(counts)->filtered[READ_CATEGORY_DELETION], 1);
+  snprintf(read, sizeof(read), "%s%s%s", uni12, interior, rc13);
+  one_record(&batch, "whole", read);
+  strbuf_clear(out + READ_CATEGORY_FULL);
+  trimmer_run(tr, &batch, 0, 1, out, counts);
+  test_eq_mem(out[READ_CATEGORY_FULL].s, 7, "@whole\t");
+  trimmer_delete(tr);
   counter_delete(counts);
   for (size_t k = 0; k < TRIMMER_MAX_OUTPUTS; k++)
     strbuf_free(out + k);
@@ -545,7 +570,7 @@ void trimmer_test(void) {
 
   /* two amplicons in a read: one record for each, the name followed
      by the number of the part */
-  config.split = true;
+  config.chimeras = READS_CUT;
   trimmer_t *split = trimmer_new(&config);
   snprintf(read, sizeof(read), "%s%s%s%s%s%s", uni12, body, rc13, "ACGT",
            uni12, body);
@@ -565,7 +590,20 @@ void trimmer_test(void) {
   test_eq_size(stats->bases_in, strlen(uni12) + strlen(body) +
                strlen(rc13) + strlen(read));
   trimmer_delete(split);
-  config.split = false;
+  /* filtered out: the parts analyzed and counted, none written */
+  config.chimeras = READS_FILTER;
+  split = trimmer_new(&config);
+  counter_t *filter_counts = counter_new(sc, NULL);
+  strbuf_clear(&out);
+  trimmer_run(split, &batch, 0, 1, &out, filter_counts);
+  test_eq_size(out.len, 0);
+  test_eq_size(counter_reads(filter_counts)->split, 1);
+  test_eq_size(counter_reads(filter_counts)->filtered[READ_CATEGORY_UNKNOWN],
+               2);
+  test_eq_size(counter_reads(filter_counts)->reads_out, 0);
+  counter_delete(filter_counts);
+  trimmer_delete(split);
+  config.chimeras = READS_KEEP;
 
   /* a primer dimer is not written */
   snprintf(read, sizeof(read), "%s%s", uni12, rc13);

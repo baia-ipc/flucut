@@ -25,9 +25,11 @@ enum {
   OPT_PROBE_ERRORS,
   OPT_TERMINAL_WINDOW,
   OPT_NO_TAGS,
-  OPT_NO_SPLIT,
+  OPT_CHIMERAS,
   OPT_BY_CATEGORY,
-  OPT_CUT_DELETIONS,
+  OPT_DELETIONS,
+  OPT_UNPLACED,
+  OPT_UNKNOWN,
   OPT_EXHAUSTIVE,
   OPT_ADAPTERS,
   OPT_LIVE,
@@ -105,8 +107,10 @@ enum {
   " (default: " XSTR(WORKER_DEFAULT_COMPRESS_LEVEL) "; higher: smaller, " \
   "slower)\n" \
   "   --no-tags              do not append the tags to the read titles\n" \
-  "   --no-split             do not split the reads which contain\n" \
-  "                          several amplicons\n" \
+  "   --chimeras <how>       a read which contains several amplicons,\n" \
+  "                          joined end to end: keep (written whole), cut\n" \
+  "                          (each amplicon a record; default) or filter\n" \
+  "                          (not written)\n" \
   "   --by-category          write the reads of each input to six files,\n" \
   "                          by category (the tag ct), instead of one:\n" \
   "                          <name>.full.fastq.gz (full templates),\n" \
@@ -117,10 +121,18 @@ enum {
   "                          <name>.unplaced.fastq.gz (complete amplicons\n" \
   "                          on no segment) and <name>.unknown.fastq.gz\n" \
   "                          (placed on no segment); needs the references\n" \
-  "   --cut-deletions        write a read with an internal deletion as\n" \
-  "                          two records, its two flanks, cut at the\n" \
-  "                          junction (names: <read>_j1, <read>_j2);\n" \
-  "                          needs the references\n" \
+  "   --deletions <how>      a read with an internal deletion: keep\n" \
+  "                          (written whole), cut (its two flanks, cut at\n" \
+  "                          the junction: <read>_j1, <read>_j2; default)\n" \
+  "                          or filter (not written); cut and filter need\n" \
+  "                          the references (with -r off, the reads are\n" \
+  "                          written whole)\n" \
+  "   --unplaced <how>       a complete amplicon which the references\n" \
+  "                          place on no segment: keep (default) or filter\n" \
+  "                          (not written); filter needs the references\n" \
+  "   --unknown <how>        another read which the references place on no\n" \
+  "                          segment: keep (default) or filter (not\n" \
+  "                          written); filter needs the references\n" \
   "   --adapters <kits>      the Nanopore adapters searched at the read\n" \
   "                          ends without a primer: a comma-separated\n" \
   "                          list of " ADAPTERS_KITS ", or none\n" \
@@ -227,7 +239,10 @@ void options_parse(options_t *self, int argc, char *argv[],
   const char *segment_arg = NULL, *report_segment_arg = NULL;
   self->min_length = OPTIONS_DEFAULT_MIN_LENGTH;
   self->tags = true;
-  self->split = true;
+  self->chimeras = READS_CUT;
+  self->unplaced = READS_KEEP;
+  self->unknown = READS_KEEP;
+  bool deletions_given = false;
   self->adapters = ADAPTERS_DEFAULT;
   self->illumina = false;
   bool window_given = false, adapters_given = false;
@@ -238,7 +253,7 @@ void options_parse(options_t *self, int argc, char *argv[],
   self->live_scan_interval = OPTIONS_DEFAULT_SCAN_INTERVAL;
   self->resume = false;
   self->by_category = false;
-  self->cut_deletions = false;
+  self->deletions = READS_CUT;
   bool timeout_given = false, min_age_given = false,
        scan_interval_given = false;
   self->threads = OPTIONS_DEFAULT_THREADS;
@@ -254,9 +269,11 @@ void options_parse(options_t *self, int argc, char *argv[],
     {"threads", required_argument, NULL, 'j'},
     {"compress-level", required_argument, NULL, OPT_COMPRESS_LEVEL},
     {"no-tags", no_argument, NULL, OPT_NO_TAGS},
-    {"no-split", no_argument, NULL, OPT_NO_SPLIT},
+    {"chimeras", required_argument, NULL, OPT_CHIMERAS},
     {"by-category", no_argument, NULL, OPT_BY_CATEGORY},
-    {"cut-deletions", no_argument, NULL, OPT_CUT_DELETIONS},
+    {"deletions", required_argument, NULL, OPT_DELETIONS},
+    {"unplaced", required_argument, NULL, OPT_UNPLACED},
+    {"unknown", required_argument, NULL, OPT_UNKNOWN},
     {"adapters", required_argument, NULL, OPT_ADAPTERS},
     {"live", no_argument, NULL, OPT_LIVE},
     {"timeout", required_argument, NULL, OPT_TIMEOUT},
@@ -348,8 +365,10 @@ void options_parse(options_t *self, int argc, char *argv[],
       case OPT_NO_TAGS:
         self->tags = false;
         break;
-      case OPT_NO_SPLIT:
-        self->split = false;
+      case OPT_CHIMERAS:
+        if (!reads_action_parse(optarg, true, &self->chimeras))
+          PARSE_ERR("Option '--chimeras': keep, cut or filter expected "
+                    "('%s' found)", optarg);
         break;
       case OPT_LIVE:
         self->live = true;
@@ -382,8 +401,21 @@ void options_parse(options_t *self, int argc, char *argv[],
       case OPT_BY_CATEGORY:
         self->by_category = true;
         break;
-      case OPT_CUT_DELETIONS:
-        self->cut_deletions = true;
+      case OPT_DELETIONS:
+        if (!reads_action_parse(optarg, true, &self->deletions))
+          PARSE_ERR("Option '--deletions': keep, cut or filter expected "
+                    "('%s' found)", optarg);
+        deletions_given = true;
+        break;
+      case OPT_UNPLACED:
+        if (!reads_action_parse(optarg, false, &self->unplaced))
+          PARSE_ERR("Option '--unplaced': keep or filter expected ('%s' "
+                    "found)", optarg);
+        break;
+      case OPT_UNKNOWN:
+        if (!reads_action_parse(optarg, false, &self->unknown))
+          PARSE_ERR("Option '--unknown': keep or filter expected ('%s' "
+                    "found)", optarg);
         break;
       case OPT_ADAPTERS:
         if (!adapters_valid(optarg))
@@ -471,9 +503,26 @@ void options_parse(options_t *self, int argc, char *argv[],
   if (self->by_category && self->references_off)
     PARSE_ERR("Option '--by-category': the references are required (not "
               "-r off)");
-  if (self->cut_deletions && self->references_off)
-    PARSE_ERR("Option '--cut-deletions': the references are required "
-              "(not -r off)");
+  /* the categories need the references: without them the reads with an
+     internal deletion are written whole, unless something else was
+     asked */
+  if (self->references_off && self->deletions != READS_KEEP) {
+    if (deletions_given)
+      PARSE_ERR("Option '--deletions': %s needs the references (not -r "
+                "off)", reads_action_name(self->deletions));
+    self->deletions = READS_KEEP;
+  }
+  if (self->references_off && self->unplaced == READS_FILTER)
+    PARSE_ERR("Option '--unplaced': filter needs the references (not -r "
+              "off)");
+  if (self->references_off && self->unknown == READS_FILTER)
+    PARSE_ERR("Option '--unknown': filter needs the references (not -r "
+              "off)");
+  for (size_t k = 0; k < READ_N_CATEGORIES; k++)
+    self->filtered[k] = false;
+  self->filtered[READ_CATEGORY_DELETION] = self->deletions == READS_FILTER;
+  self->filtered[READ_CATEGORY_UNPLACED] = self->unplaced == READS_FILTER;
+  self->filtered[READ_CATEGORY_UNKNOWN] = self->unknown == READS_FILTER;
   /* the report of a run classified against one segment shows that
      segment (the others have no located reads) */
   if (self->segment != 0 && self->report_segment != 0 &&
@@ -533,9 +582,14 @@ void options_parse(options_t *self, int argc, char *argv[],
   PARSE_LOG("Minimum length: %zu\n", self->min_length);
   PARSE_LOG("Outputs: %s\n", self->by_category ?
             "a file for each category of reads" : "a file for each input");
-  if (self->cut_deletions)
-    PARSE_LOG("Reads with an internal deletion: %s\n",
-              "cut at the junction");
+  PARSE_LOG("Reads with several amplicons: %s\n",
+            reads_action_name(self->chimeras));
+  PARSE_LOG("Reads with an internal deletion: %s\n",
+            reads_action_name(self->deletions));
+  PARSE_LOG("Complete amplicons on no segment: %s\n",
+            reads_action_name(self->unplaced));
+  PARSE_LOG("Other reads on no segment: %s\n",
+            reads_action_name(self->unknown));
   PARSE_LOG("Adapters: %s\n", self->adapters);
   if (self->live) {
     PARSE_LOG("Live mode: timeout %ld s (0: none), minimum age %ld s, "

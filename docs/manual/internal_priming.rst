@@ -81,8 +81,8 @@ still shows that they continue the segment. A primer of the same end
 found at both ends of a read (two amplicons joined without a primer
 between them) is removed at both ends.
 
-``summary.tsv`` reports the reads split (``split``); ``--no-split`` turns
-the splitting off. Without references (``-r off``) only the first kind
+``summary.tsv`` reports the reads split (``split``); ``--chimeras keep``
+turns the splitting off, ``--chimeras filter`` leaves such reads out. Without references (``-r off``) only the first kind
 of junction is found.
 
 Classification against references

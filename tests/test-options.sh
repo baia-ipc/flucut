@@ -90,8 +90,26 @@ expect 0 --segment 4 --report-segment HA -r "$refs" "$reads"
 # a file for each category of reads: it needs the references
 expect 1 --by-category -r off "$reads"
 expect 0 --by-category -r "$refs" "$reads"
-expect 1 --cut-deletions -r off "$reads"
-expect 0 --cut-deletions -r "$refs" "$reads"
+# what is written of the kinds of reads: keep, cut or filter (cut only
+# for the reads with several amplicons and those with a deletion); the
+# deletions, the unplaced and the unknown reads need the references,
+# but for keep (and the default of --deletions, which falls back to keep)
+expect 1 --chimeras drop "$reads"
+expect 0 --chimeras keep -r off "$reads"
+expect 0 --chimeras filter -r off "$reads"
+expect 1 --deletions none -r "$refs" "$reads"
+expect 1 --deletions cut -r off "$reads"
+expect 1 --deletions filter -r off "$reads"
+expect 0 --deletions keep -r off "$reads"
+expect 0 -r off "$reads"
+expect 0 --deletions filter -r "$refs" "$reads"
+expect 1 --unplaced cut -r "$refs" "$reads"
+expect 1 --unplaced filter -r off "$reads"
+expect 0 --unplaced filter -r "$refs" "$reads"
+expect 1 --unknown cut -r "$refs" "$reads"
+expect 1 --unknown filter -r off "$reads"
+expect 0 --unknown keep -r off "$reads"
+expect 0 --unknown filter -r "$refs" "$reads"
 expect 1 --no-such-option "$reads"
 # inputs: missing, not a file of reads, two with the same output
 expect 1 testdata/no-such-file.fastq

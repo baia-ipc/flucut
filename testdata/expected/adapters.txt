@@ -22,8 +22,8 @@ md5: 8e0b33c234d5f6303f55558054056a45
 @errors_plus_lsk simulated, with adapters	fs:Z:+	fl:Z:uni12r	fr:Z:mbtuni-13	tl:i:39	tr:i:69
 1702 GGAATTACTTAACTA...CAACATTTGTATATA
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
-adapters	8	14566	8	13626	6	2	0	2	0	0	0	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	filtered	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
+adapters	8	14566	8	13626	6	2	0	2	0	0	0	0	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 adapters	all	1700	6
@@ -54,9 +54,11 @@ adapters	all	1700	6
     "segment": null,
     "report_segment": null,
     "tags": true,
-    "split": true,
+    "chimeras": "cut",
+    "deletions": "keep",
+    "unplaced": "keep",
+    "unknown": "keep",
     "by_category": false,
-    "cut_deletions": false,
     "threads": 4,
     "compress_level": 6
   },
@@ -78,6 +80,7 @@ adapters	all	1700	6
       "no_primer": 0,
       "dimers": 0,
       "too_short": 0,
+      "filtered": 0,
       "minus_strand": 2,
       "with_internal_match": 0,
       "split": 0,
@@ -86,6 +89,7 @@ adapters	all	1700	6
       "adapter_end": 0
     },
     "written_by_category": null,
+    "filtered_by_category": null,
     "read_lengths": {"input": {"reads": 8, "bases": 14566, "min": 1810, "max": 1844, "mean": 1820, "median": 1814, "n50": 1814}, "written": {"reads": 8, "bases": 13626, "min": 1702, "max": 1705, "mean": 1703, "median": 1703, "n50": 1703}},
     "read_quality": {"input": {"reads": 8, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 8, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
     "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
@@ -119,6 +123,7 @@ adapters	all	1700	6
         "no_primer": 0,
         "dimers": 0,
         "too_short": 0,
+        "filtered": 0,
         "minus_strand": 2,
         "with_internal_match": 0,
         "split": 0,
@@ -127,6 +132,7 @@ adapters	all	1700	6
         "adapter_end": 0
       },
       "written_by_category": null,
+      "filtered_by_category": null,
       "read_lengths": {"input": {"reads": 8, "bases": 14566, "min": 1810, "max": 1844, "mean": 1820, "median": 1814, "n50": 1814}, "written": {"reads": 8, "bases": 13626, "min": 1702, "max": 1705, "mean": 1703, "median": 1703, "n50": 1703}},
       "read_quality": {"input": {"reads": 8, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 8, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},

@@ -128,10 +128,15 @@ Options
 ``--no-tags``
    Do not append the tags to the read titles.
 
-``--no-split``
-   Do not split the reads which contain several amplicons
-   (:doc:`internal_priming`): one record is written for each read, and
-   the primers at the junctions inside it are left in place.
+``--chimeras <how>``
+   What is written of a read which contains several amplicons, joined
+   end to end (:doc:`internal_priming`): ``cut`` (the default) writes
+   each amplicon as a record of its own; ``keep`` writes the read whole,
+   with the primers at the junctions inside it left in place; ``filter``
+   writes nothing (the amplicons are still analyzed and counted).
+   Example::
+
+      flucut --chimeras keep -o trimmed barcode01/
 
 ``--by-category``
    Write the reads of each input to six files, one for each category of
@@ -144,15 +149,28 @@ Options
 
       flucut --by-category -o trimmed barcode01/
 
-``--cut-deletions``
-   Write a read with an internal deletion (e.g. of a defective
-   interfering genome) as two records, its two flanks, cut at the
-   junction (:ref:`cut-deletions`). A program which maps the reads to
-   the whole segment then gets two reads which each lie in one place,
-   instead of one read with a gap. It needs the references (not
-   ``-r off``). Example::
+``--deletions <how>``
+   What is written of a read with an internal deletion (e.g. of a
+   defective interfering genome; :ref:`cut-deletions`): ``cut`` (the
+   default) writes its two flanks, cut at the junction, as two records,
+   so that a program which maps the reads to the whole segment gets two
+   reads which each lie in one place, instead of one read with a gap;
+   ``keep`` writes the read whole; ``filter`` writes nothing (for an
+   assembly without the deletion genomes; the reads are still analyzed
+   and counted). ``cut`` and ``filter`` need the references: with
+   ``-r off`` the reads are written whole. Example::
 
-      flucut --cut-deletions -o trimmed barcode01/
+      flucut --deletions filter -o trimmed barcode01/
+
+``--unplaced <how>``
+   ``keep`` (the default) or ``filter``: whether the complete amplicons
+   which the references place on no segment are written
+   (:ref:`reads-by-category`). ``filter`` needs the references.
+
+``--unknown <how>``
+   ``keep`` (the default) or ``filter``: whether the other reads which
+   the references place on no segment, mostly not influenza, are
+   written (:ref:`reads-by-category`). ``filter`` needs the references.
 
 Classification against the references
 -------------------------------------

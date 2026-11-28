@@ -1,0 +1,348 @@
+exit status: 0
+== messages ==
+SUCCESS | Trimming testdata/reads.fastq...
+SUCCESS | OUTDIR/reads.fastq.gz: 10 of 12 reads written (10 with both primers, 1 with one, 1 with none; 1 too short, of which 1 dimers)
+WARNING | OUTDIR/reads.fastq.gz: HA segment: 4 of 9 complete amplicons shorter than the closest reference (NC_004908.1, 1714 bases), most at 1000-1009 bases: internal priming or deletions
+SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_dashboard.html, OUTDIR/flucut_summary.json
+== reads.fastq.gz ==
+md5: ae4fa62571c1278639bb7c9a1a2a43c0
+@full_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:full	tl:i:0	tr:i:10
+1728 AGCAAAAGCAGGGGA...AACCTTGTTTCTACT
+@full_minus simulated	fs:Z:-	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:full	tl:i:10	tr:i:0
+1728 AGTAGAAACAAGGTT...TCCCCTGCTTTTGCT
+@flanked_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:full	tl:i:15	tr:i:20
+1728 AGCAAAAGCAGGGGA...AACCTTGTTTCTACT
+@errors_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1713:-	ct:Z:full	tl:i:0	tr:i:10
+1728 AGCAAAAGCAGGGGA...AACTGGGTTTCTACT
+@partial_left simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:full	tl:i:0	tr:i:10
+1723 AAGCAGGGGAATTAC...AACCTTGTTTCTACT
+@internal12_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:internal	ml:Z:NC_004908.1:712:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:internal	tl:i:12	tr:i:10
+1016 AAGGCCCCTTGTCAA...AACCTTGTTTCTACT
+@internal12_minus simulated	fs:Z:-	fl:Z:uni12r	ol:Z:internal	ml:Z:NC_004908.1:712:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:internal	tl:i:22	tr:i:12
+1016 AGTAGAAACAAGGTT...TTGACAAGGGGCCTT
+@internal13_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:internal	mr:Z:NC_004908.1:911:-	ct:Z:full	tl:i:0	tr:i:23
+912 AGCAAAAGCAGGGGA...AATGTCAGACTGAAA
+@no_primer simulated	fs:Z:.	ct:Z:fragment	tl:i:0	tr:i:0
+300 AACAAACTCCACAGA...TTTTAGTTCCGCTAG
+@left_only simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	ct:Z:full	tl:i:0	tr:i:0
+512 AGCAAAAGCAGGGGA...TACAGGAGTATGAGA
+== summary.tsv ==
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	filtered	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
+reads	12	12635	10	12391	10	1	1	2	1	1	1	0	0	0	8	2	1	7	2	1	4	7	2	0	1	0	0	NVPARSSR	5	0.8000	0.8000	0.0000	too few reads	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+== lengths.tsv ==
+output	group	length	reads
+reads	NC_004908.1	20	1
+reads	NC_004908.1	900	1
+reads	NC_004908.1	1000	2
+reads	NC_004908.1	1700	5
+== flucut_summary.json ==
+{
+  "format": 1,
+  "program": "flucut",
+  "version": "0.1",
+  "updated": "DATE",
+  "running": false,
+  "command": "bin/flucut -o OUTDIR --unplaced filter --unknown filter -r testdata/ref-ha.fasta testdata/reads.fastq",
+  "scheme": {
+    "name": "uni12-mbt13+ibv-ga2",
+    "left": ["uni12r", "b-pbs-unif", "b-pa-unif", "b-hana-unif", "b-np-unif", "b-m-uni3f", "b-mg-uni3f", "b-ns-uni3f"],
+    "right": ["mbtuni-13", "b-pbs-unir", "b-pa-unir", "b-hana-unir", "b-np-unir", "b-m-uni3r", "b-ns-uni3r"]
+  },
+  "trim_policy": "terminus",
+  "references": {
+    "file": "testdata/ref-ha.fasta",
+    "sequences": [
+      {"name": "NC_004908.1", "length": 1714, "virus": "A", "segment": 4, "gene": "HA"}
+    ]
+  },
+  "settings": {
+    "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0084, "reads": 12, "file": "testdata/reads.fastq"},
+    "platform": "nanopore",
+    "window": 100,
+    "min_length": 50,
+    "probe_length": 32,
+    "probe_errors": 0.2,
+    "terminal_window": 60,
+    "exhaustive_search": false,
+    "segment": null,
+    "report_segment": null,
+    "tags": true,
+    "chimeras": "cut",
+    "deletions": "cut",
+    "unplaced": "filter",
+    "unknown": "filter",
+    "by_category": false,
+    "threads": 4,
+    "compress_level": 6
+  },
+  "length_bin": 10,
+  "length_max": 4000,
+  "short_fraction": 0.9,
+  "min_depth": 50,
+  "complete_fraction": 0.9,
+  "second_subtype_min_excess": 2.5,
+  "second_subtype_min_share": 0.01,
+  "all": {
+    "reads": {
+      "in": 12,
+      "bases_in": 12635,
+      "written": 10,
+      "bases_written": 12391,
+      "both_primers": 10,
+      "one_primer": 1,
+      "no_primer": 1,
+      "dimers": 1,
+      "too_short": 1,
+      "filtered": 1,
+      "minus_strand": 2,
+      "with_internal_match": 0,
+      "split": 0,
+      "cut_at_junction": 0,
+      "adapter_start": 0,
+      "adapter_end": 0
+    },
+    "written_by_category": {"full": 7, "internal": 2, "deletion": 0, "fragment": 1, "unplaced": 0, "unknown": 0},
+    "filtered_by_category": {"full": 0, "internal": 0, "deletion": 0, "fragment": 0, "unplaced": 0, "unknown": 1},
+    "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 10, "bases": 12391, "min": 300, "max": 1728, "mean": 1239, "median": 1016, "n50": 1727}},
+    "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 10, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
+    "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
+    "sample": {
+      "state": "few_reads",
+      "virus": "A",
+      "subtype": "H9N?",
+      "segments_expected": 8,
+      "segments_found": 1,
+      "segments_complete": 0,
+      "ends_not_located": 0.0952,
+      "reads_placed": 0.9167,
+      "subtype_reads": null,
+      "flags": ["few_reads", "cleavage_site"],
+      "segments": [
+        {"segment": 1, "gene": "PB2", "state": "missing"},
+        {"segment": 2, "gene": "PB1", "state": "missing"},
+        {"segment": 3, "gene": "PA", "state": "missing"},
+        {"segment": 4, "gene": "HA", "state": "low", "reference": "NC_004908.1", "length": 1714, "mean_depth": 7.1, "median_depth": 7, "median_full_depth": 6, "covered": 0.9936, "well_covered": 0.0000, "internal": 0.1639, "deletion": 0.0000, "minus_strand": 0.2266, "complete_amplicons": 9, "short_complete": 4},
+        {"segment": 5, "gene": "NP", "state": "missing"},
+        {"segment": 6, "gene": "NA", "state": "missing"},
+        {"segment": 7, "gene": "M", "state": "missing"},
+        {"segment": 8, "gene": "NS", "state": "missing"}
+      ]
+    },
+    "cleavage_site": {
+      "chemistry": "unknown",
+      "reads_searched": 8,
+      "reads": 5,
+      "distinct_motifs": 2,
+      "distinct_sites": 2,
+      "supported_sites": 1,
+      "motif": "AACGTGCCTGCTAGATCAAGTAGA",
+      "protein": "NVPARSSR",
+      "motif_reads": 4,
+      "support": 0.8000,
+      "multibasic_share": 0.0000,
+      "control_reads": 10,
+      "control_support": 0.8000,
+      "reads_disagree_beside_the_site": false,
+      "basic_residues": 2,
+      "reads_as": "monobasic",
+      "fusion_peptide": "GLFGAIAG",
+      "fusion_peptide_reads": 5,
+      "fusion_peptide_support": 0.8000,
+      "reference_fusion_peptide": "GLFGAIAG",
+      "reference_site": "NVPARSSR",
+      "disagrees_with_reference": false,
+      "verdict": "too few reads",
+      "sites": [
+        {"protein": "NVPARSSR", "motif": "AACGTGCCTGCTAGATCAAGTAGA", "reads": 4, "share": 0.8000, "reads_as": "monobasic"},
+        {"protein": "DVHARPSR", "motif": "GACGTGCATGCGAGACCAAGTAGA", "reads": 1, "share": 0.2000, "reads_as": "monobasic"}
+      ]
+    },
+    "markers": [
+      {
+        "name": "HA-226-228",
+        "protein": "HA",
+        "segment": 4,
+        "positions": "226, 227, 228",
+        "numbering": "H3 numbering of the mature HA1",
+        "meaning": "leucine at 226 with serine at 228 binds the receptors of the human airway; glutamine with glycine binds the avian ones",
+        "reads_searched": 12,
+        "reads": 8,
+        "distinct_values": 1,
+        "supported_values": 1,
+        "value": "LQG",
+        "value_reads": 8,
+        "support": 1.0000,
+        "reference_value": "LQG",
+        "differs_from_reference": false,
+        "anchor_reads": 8,
+        "anchor_support": 1.0000,
+        "reads_disagree_at_the_anchor": false,
+        "attention": true,
+        "attention_share": 1.0000,
+        "verdict": "too few reads",
+        "values": [
+          {"value": "LQG", "reads": 8, "share": 1.0000, "attention": true}
+        ]
+      }
+    ],
+    "primers": {
+      "left": {"uni12r": 11, "b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 0, "b-np-unif": 0, "b-m-uni3f": 0, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
+      "right": {"mbtuni-13": 10, "b-pbs-unir": 0, "b-pa-unir": 0, "b-hana-unir": 0, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
+    },
+    "ends": {
+      "left": {"terminal": 8, "internal": 2, "unknown": 1},
+      "right": {"terminal": 7, "internal": 2, "unknown": 1}
+    },
+    "internal_sites": [
+      {"reference": "NC_004908.1", "end": "left", "position": 712, "from": 712, "to": 712, "reads": 2},
+      {"reference": "NC_004908.1", "end": "right", "position": 31, "from": 31, "to": 31, "reads": 1},
+      {"reference": "NC_004908.1", "end": "right", "position": 911, "from": 911, "to": 911, "reads": 1}
+    ],
+    "short_complete": 4,
+    "complete_amplicons": [
+      {"group": "NC_004908.1", "reference_length": 1714, "amplicons": 9, "main_length": 1700, "short": 4, "short_main_length": 1000, "histogram": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]}
+    ],
+    "coverage": [
+      {"reference": "NC_004908.1", "length": 1714, "positions": [0, 8, 17, 25, 34, 43, 51, 60, 68, 77, 86, 94, 103, 111, 120, 129, 137, 146, 154, 163, 172, 180, 189, 197, 206, 215, 223, 232, 241, 249, 258, 266, 275, 284, 292, 301, 309, 318, 327, 335, 344, 352, 361, 370, 378, 387, 395, 404, 413, 421, 430, 439, 447, 456, 464, 473, 482, 490, 499, 507, 516, 525, 533, 542, 550, 559, 568, 576, 585, 593, 602, 611, 619, 628, 636, 645, 654, 662, 671, 680, 688, 697, 705, 714, 723, 731, 740, 748, 757, 766, 774, 783, 791, 800, 809, 817, 826, 834, 843, 852, 860, 869, 878, 886, 895, 903, 912, 921, 929, 938, 946, 955, 964, 972, 981, 989, 998, 1007, 1015, 1024, 1032, 1041, 1050, 1058, 1067, 1076, 1084, 1093, 1101, 1110, 1119, 1127, 1136, 1144, 1153, 1162, 1170, 1179, 1187, 1196, 1205, 1213, 1222, 1230, 1239, 1248, 1256, 1265, 1273, 1282, 1291, 1299, 1308, 1317, 1325, 1334, 1342, 1351, 1360, 1368, 1377, 1385, 1394, 1403, 1411, 1420, 1428, 1437, 1446, 1454, 1463, 1471, 1480, 1489, 1497, 1506, 1515, 1523, 1532, 1540, 1549, 1558, 1566, 1575, 1583, 1592, 1601, 1609, 1618, 1626, 1635, 1644, 1652, 1661, 1669, 1678, 1687, 1695, 1704, 1713], "depth": {"terminal_plus": [0, 0, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3], "terminal_minus": [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "internal_plus": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "internal_minus": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "no_primer": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}}
+    ]
+  },
+  "groups": [
+    {
+      "name": "reads",
+      "files": 1,
+      "processed": true,
+      "reads": {
+        "in": 12,
+        "bases_in": 12635,
+        "written": 10,
+        "bases_written": 12391,
+        "both_primers": 10,
+        "one_primer": 1,
+        "no_primer": 1,
+        "dimers": 1,
+        "too_short": 1,
+        "filtered": 1,
+        "minus_strand": 2,
+        "with_internal_match": 0,
+        "split": 0,
+        "cut_at_junction": 0,
+        "adapter_start": 0,
+        "adapter_end": 0
+      },
+      "written_by_category": {"full": 7, "internal": 2, "deletion": 0, "fragment": 1, "unplaced": 0, "unknown": 0},
+      "filtered_by_category": {"full": 0, "internal": 0, "deletion": 0, "fragment": 0, "unplaced": 0, "unknown": 1},
+      "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 10, "bases": 12391, "min": 300, "max": 1728, "mean": 1239, "median": 1016, "n50": 1727}},
+      "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 10, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
+      "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
+      "sample": {
+        "state": "few_reads",
+        "virus": "A",
+        "subtype": "H9N?",
+        "segments_expected": 8,
+        "segments_found": 1,
+        "segments_complete": 0,
+        "ends_not_located": 0.0952,
+        "reads_placed": 0.9167,
+        "subtype_reads": null,
+        "flags": ["few_reads", "cleavage_site"],
+        "segments": [
+          {"segment": 1, "gene": "PB2", "state": "missing"},
+          {"segment": 2, "gene": "PB1", "state": "missing"},
+          {"segment": 3, "gene": "PA", "state": "missing"},
+          {"segment": 4, "gene": "HA", "state": "low", "reference": "NC_004908.1", "length": 1714, "mean_depth": 7.1, "median_depth": 7, "median_full_depth": 6, "covered": 0.9936, "well_covered": 0.0000, "internal": 0.1639, "deletion": 0.0000, "minus_strand": 0.2266, "complete_amplicons": 9, "short_complete": 4},
+          {"segment": 5, "gene": "NP", "state": "missing"},
+          {"segment": 6, "gene": "NA", "state": "missing"},
+          {"segment": 7, "gene": "M", "state": "missing"},
+          {"segment": 8, "gene": "NS", "state": "missing"}
+        ]
+      },
+      "cleavage_site": {
+        "chemistry": "unknown",
+        "reads_searched": 8,
+        "reads": 5,
+        "distinct_motifs": 2,
+        "distinct_sites": 2,
+        "supported_sites": 1,
+        "motif": "AACGTGCCTGCTAGATCAAGTAGA",
+        "protein": "NVPARSSR",
+        "motif_reads": 4,
+        "support": 0.8000,
+        "multibasic_share": 0.0000,
+        "control_reads": 10,
+        "control_support": 0.8000,
+        "reads_disagree_beside_the_site": false,
+        "basic_residues": 2,
+        "reads_as": "monobasic",
+        "fusion_peptide": "GLFGAIAG",
+        "fusion_peptide_reads": 5,
+        "fusion_peptide_support": 0.8000,
+        "reference_fusion_peptide": "GLFGAIAG",
+        "reference_site": "NVPARSSR",
+        "disagrees_with_reference": false,
+        "verdict": "too few reads",
+        "sites": [
+          {"protein": "NVPARSSR", "motif": "AACGTGCCTGCTAGATCAAGTAGA", "reads": 4, "share": 0.8000, "reads_as": "monobasic"},
+          {"protein": "DVHARPSR", "motif": "GACGTGCATGCGAGACCAAGTAGA", "reads": 1, "share": 0.2000, "reads_as": "monobasic"}
+        ]
+      },
+      "markers": [
+        {
+          "name": "HA-226-228",
+          "protein": "HA",
+          "segment": 4,
+          "positions": "226, 227, 228",
+          "numbering": "H3 numbering of the mature HA1",
+          "meaning": "leucine at 226 with serine at 228 binds the receptors of the human airway; glutamine with glycine binds the avian ones",
+          "reads_searched": 12,
+          "reads": 8,
+          "distinct_values": 1,
+          "supported_values": 1,
+          "value": "LQG",
+          "value_reads": 8,
+          "support": 1.0000,
+          "reference_value": "LQG",
+          "differs_from_reference": false,
+          "anchor_reads": 8,
+          "anchor_support": 1.0000,
+          "reads_disagree_at_the_anchor": false,
+          "attention": true,
+          "attention_share": 1.0000,
+          "verdict": "too few reads",
+          "values": [
+            {"value": "LQG", "reads": 8, "share": 1.0000, "attention": true}
+          ]
+        }
+      ],
+      "primers": {
+        "left": {"uni12r": 11, "b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 0, "b-np-unif": 0, "b-m-uni3f": 0, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
+        "right": {"mbtuni-13": 10, "b-pbs-unir": 0, "b-pa-unir": 0, "b-hana-unir": 0, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
+      },
+      "ends": {
+        "left": {"terminal": 8, "internal": 2, "unknown": 1},
+        "right": {"terminal": 7, "internal": 2, "unknown": 1}
+      },
+      "internal_sites": [
+        {"reference": "NC_004908.1", "end": "left", "position": 712, "from": 712, "to": 712, "reads": 2},
+        {"reference": "NC_004908.1", "end": "right", "position": 31, "from": 31, "to": 31, "reads": 1},
+        {"reference": "NC_004908.1", "end": "right", "position": 911, "from": 911, "to": 911, "reads": 1}
+      ],
+      "short_complete": 4,
+      "complete_amplicons": [
+        {"group": "NC_004908.1", "reference_length": 1714, "amplicons": 9, "main_length": 1700, "short": 4, "short_main_length": 1000, "histogram": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]}
+      ],
+      "coverage": [
+        {"reference": "NC_004908.1", "length": 1714, "positions": [0, 8, 17, 25, 34, 43, 51, 60, 68, 77, 86, 94, 103, 111, 120, 129, 137, 146, 154, 163, 172, 180, 189, 197, 206, 215, 223, 232, 241, 249, 258, 266, 275, 284, 292, 301, 309, 318, 327, 335, 344, 352, 361, 370, 378, 387, 395, 404, 413, 421, 430, 439, 447, 456, 464, 473, 482, 490, 499, 507, 516, 525, 533, 542, 550, 559, 568, 576, 585, 593, 602, 611, 619, 628, 636, 645, 654, 662, 671, 680, 688, 697, 705, 714, 723, 731, 740, 748, 757, 766, 774, 783, 791, 800, 809, 817, 826, 834, 843, 852, 860, 869, 878, 886, 895, 903, 912, 921, 929, 938, 946, 955, 964, 972, 981, 989, 998, 1007, 1015, 1024, 1032, 1041, 1050, 1058, 1067, 1076, 1084, 1093, 1101, 1110, 1119, 1127, 1136, 1144, 1153, 1162, 1170, 1179, 1187, 1196, 1205, 1213, 1222, 1230, 1239, 1248, 1256, 1265, 1273, 1282, 1291, 1299, 1308, 1317, 1325, 1334, 1342, 1351, 1360, 1368, 1377, 1385, 1394, 1403, 1411, 1420, 1428, 1437, 1446, 1454, 1463, 1471, 1480, 1489, 1497, 1506, 1515, 1523, 1532, 1540, 1549, 1558, 1566, 1575, 1583, 1592, 1601, 1609, 1618, 1626, 1635, 1644, 1652, 1661, 1669, 1678, 1687, 1695, 1704, 1713], "depth": {"terminal_plus": [0, 0, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3], "terminal_minus": [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "internal_plus": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "internal_minus": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "no_primer": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}}
+      ]
+    }
+  ]
+}
+== flucut_report.html ==
+</html>
+<h2>reads</h2>
+<h3>Reads</h3>
+<h3>HA cleavage site</h3>
+<h3>Markers</h3>
+<h3>Internal priming sites</h3>
+<h3>Bases by segment</h3>
+<h3>Segments</h3>
+<h3>Read length and quality</h3>

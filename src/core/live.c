@@ -166,7 +166,8 @@ static live_group_t* get_group(live_t *w, const char *name) {
   XREALLOC(w->groups, sizeof(live_group_t) * (w->n_groups + 1));
   live_group_t *st = w->groups + w->n_groups++;
   st->name = xstrdup(name);
-  st->output = read_outputs_new(opts->outdir, name, opts->by_category);
+  st->output = read_outputs_new(opts->outdir, name, opts->by_category,
+                                opts->filtered);
   st->done = NULL;
   st->n_done = 0;
   st->done_cap = 0;

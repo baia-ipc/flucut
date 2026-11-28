@@ -1069,7 +1069,8 @@ The splitting is done first, so that every primer ends up at an end of
 a part. A match of a terminus is not by itself a junction, because a
 full-length read runs through the primer-like sites of its own segment.
 Each part is then treated as a read; its record is named `<read>_<k>`
-with the tag `sp:Z:k/n`. `--no-split` disables the splitting.
+with the tag `sp:Z:k/n`. `--chimeras keep` disables the splitting,
+`--chimeras filter` leaves such reads out.
 
 Why it matters: in a sample with few complete HA amplicons, the primers
 of internally primed amplicons buried inside joined reads can be enough

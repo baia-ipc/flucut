@@ -51,6 +51,10 @@
    needs references), one output for each: the parts of a split read
    are then written each to the output of its own category.
 
+   The reads of a category can be filtered out (<filtered>, which needs
+   references): they are analyzed and counted like the others (the
+   reports describe all the reads of the sample), but not written.
+
    Reads shorter than the minimum length after the trimming are not
    written (primer dimers, with nothing left, always).
 
@@ -59,7 +63,8 @@
 
    A read with an internal deletion is two flanks of a segment joined at
    a junction (junction.h). It can be written as two records, its two
-   flanks (<cut_deletions>, which needs references), so that a program
+   flanks (<deletions> READS_CUT, which needs references), so that a
+   program
    which maps the reads to the whole segment gets two reads which each
    lie in one place, instead of one read with a gap of hundreds of
    bases. The kept part of the read is cut at the junction: the bases
@@ -75,8 +80,10 @@
    ----------------------------
 
    A read which contains several amplicons is split at their junctions
-   (chimera.h), unless disabled: each part is analyzed, trimmed, counted
-   and written as a read of its own. The records of the parts have the
+   (chimera.h; <chimeras> READS_CUT): each part is analyzed, trimmed,
+   counted and written as a read of its own. With READS_FILTER the parts
+   are analyzed and counted, but not written; with READS_KEEP the read
+   is not split. The records of the parts have the
    name of the read followed by _<k> (the first word of the title), so
    that the names are still unique, and the tags (tl and tr included)
    are those of the part.
@@ -94,6 +101,7 @@
 #include "fasta.h"
 #include "fastq-reader.h"
 #include "read-cover.h"
+#include "read-outputs.h"
 #include "reference.h"
 #include "scheme.h"
 #include "strbuf.h"
@@ -126,10 +134,12 @@ typedef struct {
   const marker_anchors_t *markers;
   size_t min_length;          /* shorter reads are not written */
   bool tags;                  /* append the tags to the titles */
-  bool split;                 /* split the reads with several amplicons */
+  /* the reads with several amplicons, those with an internal deletion
+     (keep, cut or filter: see read-outputs.h) */
+  reads_action_t chimeras, deletions;
+  /* the categories filtered out (READ_CATEGORY_*; NULL: none) */
+  const bool *filtered;
   bool by_category;           /* an output for each category of reads */
-  bool cut_deletions;         /* cut the reads with an internal deletion
-                                 at their junction */
 } trimmer_config_t;
 
 /* the greatest number of outputs of a trimmer */

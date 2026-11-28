@@ -27,12 +27,31 @@ static char* category_path(const char *outdir, const char *group,
   return path;
 }
 
-/* the names of the categories as {full,internal,...} */
-static char* category_names(void) {
+const char* reads_action_name(reads_action_t action) {
+  static const char *const names[] = {"keep", "cut", "filter"};
+  assert(action <= READS_FILTER);
+  return names[action];
+}
+
+bool reads_action_parse(const char *name, bool cut, reads_action_t *action) {
+  assert(name != NULL);
+  assert(action != NULL);
+  for (reads_action_t a = READS_KEEP; a <= READS_FILTER; a++)
+    if (strcmp(name, reads_action_name(a)) == 0 && (cut || a != READS_CUT)) {
+      *action = a;
+      return true;
+    }
+  return false;
+}
+
+/* the names of the categories with a file as {full,internal,...} */
+static char* category_names(const char *const *paths) {
   strbuf_t names;
   strbuf_init(&names);
   for (size_t k = 0; k < READ_N_CATEGORIES; k++) {
-    strbuf_append_char(&names, k == 0 ? '{' : ',');
+    if (paths[k] == NULL)
+      continue;
+    strbuf_append_char(&names, names.len == 0 ? '{' : ',');
     strbuf_append_str(&names, read_category_name(k));
   }
   strbuf_append_char(&names, '}');
@@ -43,7 +62,7 @@ static char* category_names(void) {
 }
 
 read_outputs_t* read_outputs_new(const char *outdir, const char *group,
-    bool by_category) {
+    bool by_category, const bool *filtered) {
   assert(outdir != NULL);
   assert(group != NULL);
   read_outputs_t *self;
@@ -56,8 +75,9 @@ read_outputs_t* read_outputs_new(const char *outdir, const char *group,
   }
   self->n = READ_N_CATEGORIES;
   for (size_t k = 0; k < self->n; k++)
-    self->paths[k] = category_path(outdir, group, read_category_name(k));
-  char *names = category_names();
+    if (filtered == NULL || !filtered[k])
+      self->paths[k] = category_path(outdir, group, read_category_name(k));
+  char *names = category_names((const char *const *)self->paths);
   self->label = category_path(outdir, group, names);
   free(names);
   return self;
@@ -67,8 +87,9 @@ void read_outputs_open(read_outputs_t *self, bool append, Logger *logger) {
   assert(self != NULL);
   for (size_t k = 0; k < self->n; k++) {
     assert(self->files[k] == NULL);
-    self->files[k] = xfopen(self->paths[k], NULL, append ? "ab" : "wb",
-                            "trimmed reads", logger);
+    if (self->paths[k] != NULL)
+      self->files[k] = xfopen(self->paths[k], NULL, append ? "ab" : "wb",
+                              "trimmed reads", logger);
   }
 }
 
@@ -76,9 +97,9 @@ void read_outputs_write(read_outputs_t *self, size_t k, const char *data,
     size_t len, Logger *logger) {
   assert(self != NULL);
   assert(k < self->n);
-  assert(self->files[k] != NULL);
   if (len == 0)
     return;
+  assert(self->files[k] != NULL);
   LCHECK(fwrite(data, 1, len, self->files[k]) == len, logger,
          "%s: write error\n", self->paths[k]);
 }
@@ -106,7 +127,8 @@ void read_outputs_close(read_outputs_t *self, Logger *logger) {
 void read_outputs_remove(const read_outputs_t *self, Logger *logger) {
   assert(self != NULL);
   for (size_t k = 0; k < self->n; k++)
-    LCHECK(unlink(self->paths[k]) == 0 || errno == ENOENT, logger,
+    LCHECK(self->paths[k] == NULL || unlink(self->paths[k]) == 0 ||
+           errno == ENOENT, logger,
            "Deleting file '%s' failed, %s\n", self->paths[k],
            strerror(errno));
 }
@@ -114,7 +136,7 @@ void read_outputs_remove(const read_outputs_t *self, Logger *logger) {
 bool read_outputs_has_path(const read_outputs_t *self, const char *path) {
   assert(self != NULL);
   for (size_t k = 0; k < self->n; k++)
-    if (strcmp(self->paths[k], path) == 0)
+    if (self->paths[k] != NULL && strcmp(self->paths[k], path) == 0)
       return true;
   return false;
 }
@@ -146,7 +168,7 @@ static long test_size(const char *path) {
 void read_outputs_test(const char *tmpdir) {
   Logger *logger = new_logger(stderr, LOG_ERROR);
   /* one file */
-  read_outputs_t *o = read_outputs_new("out", "bc01", false);
+  read_outputs_t *o = read_outputs_new("out", "bc01", false, NULL);
   test_eq_size(o->n, 1);
   test_eq_str(o->paths[0], "out/bc01.fastq.gz");
   test_eq_str(o->label, "out/bc01.fastq.gz");
@@ -155,7 +177,7 @@ void read_outputs_test(const char *tmpdir) {
   read_outputs_delete(o);
   /* a file for each category: all created, written, appended to and
      removed */
-  o = read_outputs_new(tmpdir, "bc01", true);
+  o = read_outputs_new(tmpdir, "bc01", true, NULL);
   test_eq_size(o->n, READ_N_CATEGORIES);
   test_assert(strstr(o->paths[READ_CATEGORY_FULL],
                      "/bc01.full.fastq.gz") != NULL);
@@ -182,5 +204,27 @@ void read_outputs_test(const char *tmpdir) {
   test_eq_long(test_size(o->paths[READ_CATEGORY_INTERNAL]), -1);
   read_outputs_remove(o, logger);   /* (already removed) */
   read_outputs_delete(o);
+  /* a category filtered out: no file */
+  bool filtered[READ_N_CATEGORIES] = {false};
+  filtered[READ_CATEGORY_DELETION] = true;
+  o = read_outputs_new(tmpdir, "bc01", true, filtered);
+  test_assert(o->paths[READ_CATEGORY_DELETION] == NULL);
+  test_assert(strstr(o->label,
+      "/bc01.{full,internal,fragment,unplaced,unknown}.fastq.gz") != NULL);
+  read_outputs_open(o, false, logger);
+  read_outputs_write(o, READ_CATEGORY_DELETION, "", 0, logger);
+  read_outputs_close(o, logger);
+  test_eq_long(test_size(o->paths[READ_CATEGORY_FULL]), 20);
+  read_outputs_remove(o, logger);
+  read_outputs_delete(o);
+  /* the actions on the reads */
+  reads_action_t action;
+  test_assert(reads_action_parse("cut", true, &action));
+  test_eq_size(action, READS_CUT);
+  test_assert(reads_action_parse("filter", false, &action));
+  test_eq_size(action, READS_FILTER);
+  test_assert(!reads_action_parse("cut", false, &action));
+  test_assert(!reads_action_parse("drop", true, &action));
+  test_eq_str(reads_action_name(READS_KEEP), "keep");
   delete_logger(logger);
 }

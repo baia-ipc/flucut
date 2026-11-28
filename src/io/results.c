@@ -21,7 +21,7 @@ static void summary_markers_header(FILE *f);
 static void summary_header(FILE *f) {
   fputs("output\treads_in\tbases_in\treads_out\tbases_out\t"
         "both_ends\tone_end\tno_end\tminus_strand\tdimers\ttoo_short\t"
-        "with_internal_match\tsplit\tcut_at_junction\tleft_terminal\t"
+        "filtered\twith_internal_match\tsplit\tcut_at_junction\tleft_terminal\t"
         "left_internal\t"
         "left_unknown\tright_terminal\tright_internal\tright_unknown\t"
         "short_complete\tout_full\tout_internal\tout_deletion\t"
@@ -104,10 +104,11 @@ static void summary_line(FILE *f, const char *name, const counter_t *c,
     const counter_reads_t *s, bool refs, size_t short_complete,
     bool illumina) {
   fprintf(f, "%s\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu\t%zu"
-          "\t%zu\t%zu",
+          "\t%zu\t%zu\t%zu",
           name, s->reads_in, s->bases_in, s->reads_out, s->bases_out,
           s->n_ends[2], s->n_ends[1], s->n_ends[0], s->minus, s->dimers,
-          s->too_short, s->with_internal, s->split, s->cut);
+          s->too_short, counter_reads_filtered(s), s->with_internal,
+          s->split, s->cut);
   /* (the origins are only known with references) */
   static const end_origin_t order[] = {ORIGIN_TERMINAL, ORIGIN_INTERNAL,
                                        ORIGIN_UNKNOWN};
@@ -142,6 +143,19 @@ void results_log_counts(const char *name, const counter_reads_t *s, bool refs,
           "which %zu dimers)\n", name, s->reads_out, s->reads_in,
           s->n_ends[2], s->n_ends[1], s->n_ends[0], s->too_short,
           s->dimers);
+  size_t filtered = counter_reads_filtered(s);
+  if (filtered > 0) {
+    /* by category, those with reads */
+    char by[256] = "";
+    size_t len = 0;
+    for (size_t k = 0; k < READ_N_CATEGORIES && len < sizeof(by); k++)
+      if (s->filtered[k] > 0)
+        len += (size_t)snprintf(by + len, sizeof(by) - len, "%s%s %zu",
+                                len > 0 ? ", " : "", read_category_name(k),
+                                s->filtered[k]);
+    lprintf(logger, LOG_INFO, "%s: %zu reads filtered out, not written "
+            "(%s)\n", name, filtered, by);
+  }
   if (s->adapter_start + s->adapter_end > 0)
     lprintf(logger, LOG_INFO, "%s: adapters removed at the ends without "
             "a primer: %zu at the start of a read, %zu at the end\n", name,
