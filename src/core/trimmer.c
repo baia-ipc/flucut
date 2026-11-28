@@ -291,8 +291,9 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
      internal deletion whose junction was not located gives none, as
      which of its bases belong together is then not known */
   long cuts[1 + FLANK_DELETIONS_MAX_CUTS];
-  marker_blocked_t blocked[AMPLICON_MAX_INTERNAL];
-  marker_breaks_t breaks = {cuts, 0, blocked, 0};
+  marker_span_t blocked[AMPLICON_MAX_INTERNAL + 2];
+  marker_span_t covered[2];
+  marker_breaks_t breaks = {cuts, 0, blocked, 0, covered, 0};
   bool readable = category != READ_CATEGORY_DELETION || a->junction.found;
   if (readable) {
     if (category == READ_CATEGORY_DELETION) {
@@ -304,6 +305,30 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
       blocked[breaks.n_blocked].from = a->internal[i].start;
       blocked[breaks.n_blocked].to = a->internal[i].end;
       breaks.n_blocked++;
+    }
+    /* the bases outside the part kept are the ones flucut removes
+       because they are not the template: the whole primer at an
+       internally primed end, the flanks and the adapters. A window
+       which reads them reads the primer, and the AAA of the conserved
+       terminus gives a lysine at every marker beside an internal
+       priming site */
+    if (a->keep_from > 0)
+      blocked[breaks.n_blocked++] = (marker_span_t){0, a->keep_from - 1};
+    if (a->keep_to + 1 < (long)len)
+      blocked[breaks.n_blocked++] =
+          (marker_span_t){a->keep_to + 1, (long)len - 1};
+    /* the stretches of the reference the read covers: a marker whose
+       anchor lies outside them matched where the read does not reach */
+    if (cover.located) {
+      if (cover.cover == COVER_DELETION) {
+        covered[breaks.n_covered++] =
+            (marker_span_t){cover.from, cover.left_to - 1};
+        covered[breaks.n_covered++] =
+            (marker_span_t){cover.right_from, cover.to - 1};
+      } else {
+        covered[breaks.n_covered++] =
+            (marker_span_t){cover.from, cover.to - 1};
+      }
     }
     counter_add_markers(counts, self->markers,
                         cover.located ? (long)cover.ref : -1, &breaks,

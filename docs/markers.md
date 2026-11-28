@@ -128,6 +128,15 @@ the markers of that reference are looked for in it. A read of a fragment
 located at all: every marker is looked for, and the anchors themselves
 say which ones the read covers.
 
+**A marker is read only from the part of a read flucut keeps**, the
+bases it judges to be the template. The bases it removes are the whole
+primer at an internally primed end, the flanks and the adapters, and
+reading a window over them reads the primer: the conserved terminus
+`AGCAAAAGCAGG` ends in `AAA`, which is a lysine, so every marker whose
+window is the codon before its anchor reads K on a read primed just
+before that anchor. In one sample this turned PB2 627 into K in 89% of
+423 reads where the kept bases of the same sample say E in 78% of 54.
+
 **A read with an internal deletion gives a marker only where the anchor
 and the window lie on the same side of its junction.** Such a read is
 two flanks of the segment joined, and the bases before the junction come
