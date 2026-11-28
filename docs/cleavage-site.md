@@ -293,6 +293,7 @@ coding sequence works, as the site is inside the ORF.
 |---|---|
 | `ext/libcbaia/src/seq/codons.h`, `.c` | the genetic code: translation, and finding a peptide in a sequence |
 | `src/seq/search/anchor-site.h`, `.c` | an anchor: building it from a reference, finding it in a read, reading the bases beside it. Not specific to this site |
-| `src/analysis/cleavage-site.h`, `.c` | the anchors of the HA references, the motifs counted, and what the reads say |
+| `src/seq/markers/cleavage-site.h`, `.c` | the anchors of the HA references, and how the residues of a site read |
+| `src/analysis/cleavage-counts.h`, `.c` | the motifs counted over the reads of a sample, and what they say |
 | `src/core/trimmer.c` | which reads are read, per platform (`read_cleavage_site()`) |
 | `src/analysis/counter.c` | the motifs of a group of input files, merged over the threads and saved for `--resume` |

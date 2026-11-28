@@ -177,7 +177,7 @@ static void write_lengths(json_writer_t *w, const report_t *r,
 
 /*
    What the reads say about the cleavage site of the haemagglutinin
-   (cleavage-site.h); null when it was not read (no HA reference with
+   (cleavage-counts.h); null when it was not read (no HA reference with
    the fusion peptide, or no reference at all)
 */
 static void write_cleavage_site(json_writer_t *w, const report_t *r,

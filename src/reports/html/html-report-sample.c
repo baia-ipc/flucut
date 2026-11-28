@@ -302,7 +302,7 @@ static void write_sites(html_writer_t *w, const report_t *r,
 
 /*
    The cleavage site of the haemagglutinin as the reads carry it
-   (cleavage-site.h): the residues, how many reads they were read from
+   (cleavage-counts.h): the residues, how many reads they were read from
    and how many of them agree, and the other sites found, which show a
    sample holding the reads of more than one haemagglutinin
 */

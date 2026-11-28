@@ -28,7 +28,7 @@ static void summary_header(FILE *f) {
 }
 
 /* the cleavage site of the haemagglutinin read from the reads
-   (cleavage-site.h); NA where it was not read */
+   (cleavage-counts.h); NA where it was not read */
 static void summary_cleavage(FILE *f, const counter_t *c, bool illumina) {
   cleavage_result_t site;
   const read_metadata_t *m = counter_metadata(c);

@@ -26,7 +26,7 @@
 #include "read-metadata.h"
 #include "read-stats.h"
 #include "chimera.h"
-#include "cleavage-site.h"
+#include "cleavage-counts-test.h"
 #include "codons.h"
 #include "counter.h"
 #include "fasta.h"
@@ -131,7 +131,7 @@ static test_group_t test_groups[] = {
   {'k', "the genetic code", codons_test, false},
   {'E', "the anchor of a site inside a read", anchor_site_test, false},
   {'H', "the cleavage site of the haemagglutinin in the reads",
-   cleavage_site_test, false},
+   cleavage_counts_test, false},
   {'A', "the search of the adapters", adapters_test, false},
   {'u', "the automatic settings", auto_settings_test, false},
   {'G', "the agreement of the probes of a read", read_agreement_test,

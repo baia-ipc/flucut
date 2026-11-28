@@ -1,38 +1,13 @@
 /* (c) 2026 Giorgio Gonnella */
 
 /*
-   The cleavage site of the haemagglutinin, read from the reads.
+   What the reads carry at the cleavage site of the haemagglutinin
+   (cleavage-site.h), counted.
 
-   The site is the last residues of HA1, where the protein is cut in
-   two. In the highly pathogenic avian H5 and H7 viruses it is a run of
-   basic residues (e.g. PQRERRRKR), encoded by an A/G-rich stretch; in
-   the low pathogenic ones a single one (e.g. PQRETR). It is the residue
-   that decides the pathotype, so a consensus which is wrong there
-   reports the wrong virus.
-
-   That stretch is exactly the kind of low-complexity sequence the reads
-   get wrong, by an insertion or a deletion, and an assembler called
-   from few reads can carry such an error into the consensus: the
-   reading frames of HA1 and of HA2 then differ and the motif is
-   nonsense, or, with three bases too many, the run of basic residues
-   is silently one residue longer.
-
-   What is reported here is not an assembly: it is what the reads
-   themselves carry at the site, with how many of them agree. It is
-   available before any assembly, and tells whether the consensus that
-   follows can be trusted there.
-
-   Where it is read from
-   ---------------------
-
-   HA2 begins directly after the cleavage site with the fusion peptide
-   (GLFGAIAG and a few variants, see CLEAVAGE_FUSION_PEPTIDE), which
-   every haemagglutinin has and which lies outside the low-complexity
-   stretch. Those bases of the HA
-   reference are the anchor (anchor-site.h); the cleavage site is the
-   CLEAVAGE_SITE_NT bases of the read immediately before it, read back
-   in whole codons from the first base of HA2, so the frame is set by
-   the anchor and no indel elsewhere in the read can shift it.
+   What is reported is not an assembly: it is what the reads themselves
+   carry at the site, with how many of them agree. It is available
+   before any assembly, and tells whether the consensus that follows
+   can be trusted there.
 
    Which reads are read is left to the caller, because it is not the
    same on the two platforms (see trimmer.c): the reads of whole
@@ -53,34 +28,13 @@
    own number (see the thresholds below and docs/cleavage-site.md).
 */
 
-#ifndef CLEAVAGE_SITE_H
-#define CLEAVAGE_SITE_H
+#ifndef CLEAVAGE_COUNTS_H
+#define CLEAVAGE_COUNTS_H
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
-#include "anchor-site.h"
-#include "fasta.h"
-#include "logger.h"
-#include "reference.h"
-
-/*
-   The start of HA2, which anchors the site, and the bases of the anchor
-   taken from the reference.
-
-   The fusion peptide is GLFGAIAG in most haemagglutinins, GIFGAIAG in
-   the H3 of horses and pigs, GLLGAIAG in some others and GFFGAIAG in
-   influenza B, so the two residues which vary are left free. The
-   pattern is found exactly once in each of the 89 HA references of the
-   reference sets flucut ships, of every subtype H1 to H16 and of
-   influenza B.
-*/
-#define CLEAVAGE_FUSION_PEPTIDE "G..GAIAG"
-#define CLEAVAGE_ANCHOR_NT 24
-
-/* the cleavage site proper: the 8 codons before HA2 */
-#define CLEAVAGE_SITE_NT 24
-#define CLEAVAGE_SITE_AA (CLEAVAGE_SITE_NT / 3)
+#include "cleavage-site.h"
 
 /*
    The control windows: two of the width of the site, taken from the
@@ -157,13 +111,6 @@ enum { CLEAVAGE_CHEMISTRY_UNKNOWN,  /* Nanopore, chemistry not in the titles */
        CLEAVAGE_CHEMISTRY_ILLUMINA,
        CLEAVAGE_N_CHEMISTRIES };
 
-/* how a motif reads */
-enum { CLEAVAGE_MULTIBASIC,  /* a run of basic residues (R, K) */
-       CLEAVAGE_MONOBASIC,   /* one basic residue before HA2 */
-       CLEAVAGE_UNREADABLE,  /* a stop codon, an ambiguous base, or no
-                                basic residue before HA2 */
-       CLEAVAGE_N_READINGS };
-
 /* the motifs listed in the reports, most frequent first */
 #define CLEAVAGE_TOP_MOTIFS 5
 
@@ -191,48 +138,6 @@ enum { CLEAVAGE_FIRM,       /* enough reads agree */
                                the reads agree for it to stand alone */
        CLEAVAGE_TOO_FEW_READS,
        CLEAVAGE_N_VERDICTS };
-
-/*
-   The site of one HA reference: the anchor which finds it in a read,
-   and the site the reference itself carries, which the reads are
-   compared with. The reference of a sample is the one closest to its
-   reads, so a majority of the reads which does not read like it means
-   the sample holds the reads of more than one haemagglutinin.
-*/
-typedef struct {
-  anchor_t anchor;
-  char nt[CLEAVAGE_SITE_NT + 1];
-  char aa[CLEAVAGE_SITE_AA + 1];
-  size_t reading;                  /* CLEAVAGE_MULTIBASIC, ... */
-  char fusion[CLEAVAGE_SITE_AA + 1];   /* the anchor, translated */
-} cleavage_reference_t;
-
-/* the sites of the HA references of a run, built once and shared */
-typedef struct cleavage_anchors_t cleavage_anchors_t;
-
-/*
-   Build the anchors of the HA references of <references> (NULL: none),
-   which <index> says the segment of; NULL if none of them has the
-   fusion peptide (e.g. references which are not whole segments). The
-   references must exist as long as the anchors are used.
-*/
-cleavage_anchors_t* cleavage_anchors_new(const fasta_t *references,
-    const reference_index_t *index, Logger *logger);
-
-/*
-   The anchor to use for a sample, among the references <allowed> (NULL:
-   all of them; see auto_settings_choose_references()): the first HA
-   reference allowed which has one, or NULL. With the references of
-   several subtypes, one HA reference is allowed per sample, so this is
-   the anchor of the subtype of that sample.
-*/
-const cleavage_reference_t* cleavage_anchors_chosen(
-    const cleavage_anchors_t *self, const bool *allowed);
-
-/* How many of the references have an anchor */
-size_t cleavage_anchors_n(const cleavage_anchors_t *self);
-
-void cleavage_anchors_delete(cleavage_anchors_t *self);
 
 /*
    The motifs read from the reads of a group of input files. A counts
@@ -387,10 +292,6 @@ size_t cleavage_chemistry(bool illumina, const char *basecall_model);
 
 /* The names used in the reports */
 const char* cleavage_chemistry_name(size_t chemistry);
-const char* cleavage_reading_name(size_t reading);
 const char* cleavage_verdict_name(size_t verdict);
-
-/* Unit tests */
-void cleavage_site_test(void);
 
 #endif

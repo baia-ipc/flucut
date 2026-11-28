@@ -209,7 +209,7 @@ void segments_write(html_writer_t *w, const report_t *r, const counter_t *c,
 #define CLEAVAGE_SEGMENT 4
 
 /* the cell of the HA cleavage site: the residues the reads carry and
-   how far they can be trusted (cleavage-site.h) */
+   how far they can be trusted (cleavage-counts.h) */
 static void cleavage_cell(html_writer_t *w, const report_t *r,
     const counter_t *c) {
   cleavage_result_t site;

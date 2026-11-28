@@ -13,7 +13,7 @@
 #define QC_FLAGS_H
 
 #include <stddef.h>
-#include "cleavage-site.h"
+#include "cleavage-counts.h"
 #include "counter.h"
 #include "qc-summary.h"
 #include "subtype-reads.h"
@@ -55,7 +55,7 @@ typedef struct {
    (<refs>: with references, otherwise only the flags of the counts).
 
    <site> is what the reads said about the cleavage site of the
-   haemagglutinin (cleavage-site.h; NULL: not read): a site which is not
+   haemagglutinin (cleavage-counts.h; NULL: not read): a site which is not
    firm is pointed out here as well, so that it is seen in the run
    overview and not only in the sample.
 

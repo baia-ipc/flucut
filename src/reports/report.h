@@ -14,7 +14,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "run-resources.h"
-#include "cleavage-site.h"
+#include "cleavage-counts.h"
 #include "counter.h"
 #include "fasta.h"
 #include "lengths.h"
@@ -73,7 +73,7 @@ const char* report_end_name(size_t end);
 
 /*
    What the reads of <c> say about the cleavage site of the
-   haemagglutinin (cleavage-site.h), judged as the data of the run: the
+   haemagglutinin (cleavage-counts.h), judged as the data of the run: the
    platform from the options of <r> and the chemistry from the
    basecalling model in the titles of the reads
 */
