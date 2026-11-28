@@ -146,10 +146,11 @@ for each file; the reads of each file are counted in the columns
    The categories describe reads of whole amplicons, with a primer at
    each end. On fragmented reads without primers (paired Illumina data
    of the kind flucut is not built for) the primer search matches by
-   chance: on the simulated datasets of DIPScan flucut reported a
-   primer in about 20% of the reads and internal priming in about 15%,
-   and a few reads per sample (at most 105 of about a million) were
-   called ``deletion`` away from any junction.
+   chance: on the simulated datasets of DIPScan flucut (``-p
+   illumina``) reported a primer in 0.9 to 1.6% of the reads and
+   internal priming in 0.8 to 1.3%, and a few reads per sample (at most
+   105 of about a million) were called ``deletion`` away from any
+   junction.
 
 .. _cut-deletions:
 
