@@ -5,7 +5,7 @@
 At equal cost, the alignment of a primer to a read end now ends at the
 outermost position (methods A7): a base the read cannot tell from
 template is kept, where it was removed by an extension of the end
-inwards. Measured with flucut `1e359860` (before) and `11beec2a` (the
+inwards. Measured with flucut `811863c6` (before) and `f23bc6cd` (the
 change, and probes of Ns no longer located), both with their defaults,
 by `/home/baia/prj/flucut/primer_boundary/run.sh` (README there: every
 table, and the reads in each class).
