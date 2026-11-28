@@ -266,6 +266,16 @@ apart, and the other six segments are not looked at
 card is absent where nothing was counted: influenza B, references of
 one subtype only, and the page of a whole run of several samples.
 
+**Markers.** What the reads carry at each marker (:doc:`markers`): one
+row per marker, with the value, the value of the reference, the share
+of the reads agreeing and how far it can be trusted. A badge marks a
+value worth a look. Where the reads carry more than one value at a
+marker, *the markers at which the reads carry more than one value*
+lists each value with its share, which is the part of the sample
+carrying it; *what each marker is* gives the positions, the numbering
+convention and the meaning of each. The card is absent where no marker
+was read (no references, or no anchor in them).
+
 **Reads.** Two bars: the reads by primers found (both, one, none) and
 by origin (with the reads not written: too short after the trimming,
 dimers included). Under them the smaller counts: the primer of each end
@@ -375,7 +385,9 @@ report, in a documented format (version 1, described in
   ``sequencing`` (the metadata of the run in the titles of the reads),
   ``sample`` (with references: state, subtype, the reads of each HA
   and NA subtype in ``subtype_reads``, remarks and the eight
-  segments), ``primers``, ``ends`` and ``internal_sites`` (with
+  segments), ``cleavage_site`` and ``markers`` (what the reads carry
+  at the cleavage site and at each marker), ``primers``, ``ends`` and
+  ``internal_sites`` (with
   references), ``short_complete`` and ``complete_amplicons`` (with the
   histograms of the lengths).
 

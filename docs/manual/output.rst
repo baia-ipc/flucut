@@ -219,6 +219,20 @@ One line for each input, tab-separated, with a header:
      - with ``-r``: complete amplicons shorter than 90% of their reference; ``NA`` without references
    * - ``out_full``, ``out_internal``, ``out_deletion``, ``out_unplaced``, ``out_other``
      - with ``-r``: the reads written, by category (:ref:`reads-by-category`); their sum is ``reads_out``; ``NA`` without references
+   * - ``cleavage_site``, ``cleavage_reads``, ``cleavage_support``, ``cleavage_control``, ``cleavage_multibasic``, ``cleavage_verdict``
+     - the cleavage site of the haemagglutinin as the reads carry it
+       (:doc:`cleavage_site`): its residues, the reads it was read from,
+       the share of them agreeing, the share agreeing beside the site,
+       the share of the reads whose own site is multibasic, and how far
+       it can be trusted; ``NA`` where it was not read
+   * - ``pb2_627``, ``pb2_701``, ``pa_38``, ``na_275``, ``ha_226_228``, ``m2_31``, ``na_stalk``, ``ns1_tail``, ``pb1_f2``
+     - one column per marker (:doc:`markers`), named after it: the value
+       the reads carry at it, and ``NA`` where it was not read or the
+       reads agree on no value. The share of the reads carrying each
+       value is in the JSON summary
+   * - ``markers_attention``
+     - the markers of this sample whose residue deserves a look,
+       comma-separated; ``NA`` where there is none
 
 lengths.tsv
 -----------

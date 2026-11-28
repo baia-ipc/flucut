@@ -27,6 +27,10 @@ In a very fast pass over the reads, flucut will:
 - report reads of a second HA or NA subtype in a sample (a mixed infection, a contamination
   or barcode crosstalk: the reads do not say which)
 - analyze presence of patterns typical of low/high pathogenicity
+- read the amino-acid markers of host adaptation, receptor binding and antiviral
+  resistance (PB2 627 and 701, PA 38, NA 275, HA 226/228, M2 31, the NA stalk,
+  the NS1 C-terminus and PB1-F2) straight from the reads, with the share of the
+  reads carrying each residue, so that a minority a consensus would hide is seen
 
 It is mainly targeted to Nanopore reads, but also supports most functionality on Illumina reads as well.
 
@@ -206,6 +210,29 @@ Illumina: trim with `flucut -p illumina` and assemble with the paired
   ```
 - a read whose junction could not be located is written whole
 - this option needs the references, i.e. it is incompatible with `-r off`
+
+## Markers
+
+Besides the HA cleavage site, flucut reads a few positions of the influenza A
+proteins whose residue is worth knowing before anything is assembled, straight
+from the reads: PB2 627 and 701 (replication in a mammalian host), PA 38
+(baloxavir), NA 275 (oseltamivir), HA 226 and 228 (which receptors the virus
+binds), M2 31 (the adamantanes), the length of the NA stalk, the C-terminus of
+NS1 and the reading frame of PB1-F2.
+
+Each position is found by a short conserved peptide directly beside it, which
+is searched in the read itself, so no position in the sequence is used and a
+virus whose numbering is shifted still gives the right residue. What is
+reported is a distribution, not a call: the residue, the reads it was read
+from, and the share of those reads carrying each value, so that a residue
+present in a part of the sample is visible instead of being rounded away by a
+consensus.
+
+They are in the `markers` array of `flucut_summary.json`, in a column per
+marker in `summary.tsv`, and in the **Markers** card of each sample of the
+report and the dashboard. Clades and genotypes are deliberately not reported:
+they are defined by nomenclatures which are revised, which a table compiled
+into a program cannot follow. See `docs/markers.md` and the manual chapter.
 
 ## Evaluation suite
 

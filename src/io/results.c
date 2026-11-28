@@ -49,7 +49,11 @@ static void summary_markers_header(FILE *f) {
 /*
    The value of each marker, or NA where it was not read or the reads do
    not support one: a value the reads do not agree on is not a value of
-   the sample, and the shares which say so are in the JSON summary
+   the sample, and the shares which say so are in the JSON summary.
+
+   The last column names the markers worth a look, those the table marks
+   as a remark on the sample, so that it says the same as the flags of
+   the reports (qc-flags.h)
 */
 static void summary_markers(FILE *f, const counter_t *c) {
   const marker_counts_t *counts = counter_markers(c);
@@ -60,7 +64,7 @@ static void summary_markers(FILE *f, const counter_t *c) {
     bool held = m.found && (m.verdict == MARKER_FIRM ||
                             m.verdict == MARKER_CONFIRM);
     fprintf(f, "\t%s", held ? m.value : "NA");
-    any = any || (held && m.attention);
+    any = any || (held && m.attention && marker_def(i)->flag);
   }
   if (!any) {
     fputs("\tNA", f);
@@ -71,7 +75,7 @@ static void summary_markers(FILE *f, const counter_t *c) {
   for (size_t i = 0; i < MARKER_N_MARKERS; i++) {
     marker_result_t m;
     marker_result_of(counts, i, &m);
-    if (!m.found || !m.attention ||
+    if (!m.found || !m.attention || !marker_def(i)->flag ||
         (m.verdict != MARKER_FIRM && m.verdict != MARKER_CONFIRM))
       continue;
     fprintf(f, "%s%s", first ? "" : ",", marker_def(i)->name);

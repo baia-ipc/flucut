@@ -28,6 +28,7 @@ and every option.
    how_it_works
    internal_priming
    cleavage_site
+   markers
    output
    reports
    live
