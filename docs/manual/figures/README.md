@@ -5,7 +5,7 @@
 
       python3 docs/manual/figures/make_diagrams.py
 
-  The sequences are those of the primers (`src/primers.h`) and of the HA
+  The sequences are those of the primers (`src/seq/primers.h`) and of the HA
   of KF918483.1 at the internal priming site (see
   `benchmark/README.md`).
 

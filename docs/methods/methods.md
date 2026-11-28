@@ -108,7 +108,7 @@ in one reaction:
 The tailed primers carry the 5′ tail `ACGCGTGATCAG`, whose last two
 bases are also the first two of the terminus. Each primer is therefore
 stored whole, with the offset at which its conserved terminus begins
-(`src/primers.h`). This offset is what allows a cut *inside* a primer,
+(`src/seq/primers.h`). This offset is what allows a cut *inside* a primer,
 between tail and terminus.
 
 Nine and ten bases are too few for a specific primer, so the universal
@@ -123,7 +123,7 @@ its sequence, the segments whose terminus it is (`primer_t.segments`):
 its bases are the template only there.
 
 A **scheme** (option `-s`) names the primers expected at each end of an
-amplicon (`src/scheme.h`):
+amplicon (`src/seq/scheme.h`):
 
 | scheme | left end | right end |
 |---|---|---|
@@ -346,7 +346,7 @@ part is written if it is long enough (lines 15 and 17), everything is
 counted (line 16), and at the end of the sample its tables and report
 are written (line 18).
 
-> **Source:** `src/flucut.c`, `src/core/worker.c`, `src/trimmer.c`
+> **Source:** `src/flucut.c`, `src/core/worker.c`, `src/seq/trimmer.c`
 
 ![The steps of a run](figures/run_flow.svg)
 
@@ -430,7 +430,7 @@ taken for the primer and the read cut there.
 
 ### References
 
-`src/reference.c`, `src/builtin-references.c`. The references decide the
+`src/seq/reference.c`, `src/seq/builtin-references.c`. The references decide the
 trimming mode; there is no separate option.
 
 - Default: a built-in set of complete segments (with UTRs), downloaded
@@ -457,7 +457,7 @@ located 10% of the reads, complete segments 86%. A warning is given when
 the references start at a start codon and end at a stop codon
 (`src/flucut.c`). The subtype of each reference is parsed from its FASTA
 description (e.g. `(H5N1)`), and its segment from `segment <n>` or a
-gene or protein name (`src/segments.c`).
+gene or protein name (`src/seq/segments.c`).
 
 ### Threads, reproducibility, live mode
 
@@ -902,7 +902,7 @@ read stops: aligned to the reference where the amplicon side lies, the
 bases of the sample still fit it, while the bases of another amplicon do
 not.
 
-> **Source:** `src/terminus-matches.c`, `src/chimera.c`
+> **Source:** `src/seq/terminus-matches.c`, `src/seq/chimera.c`
 
 The patterns searched are the conserved terminus of each primer of the
 scheme and its reverse complement. On the strand of the read each is
@@ -1114,7 +1114,7 @@ segment terminus) or internal (line 14), and the part of the read to
 keep is computed (lines 15–17). The result is given in the positions of
 the read as it was (lines 18–19).
 
-> **Source:** `analyze` in `src/amplicon.c`
+> **Source:** `analyze` in `src/seq/amplicon.c`
 
 > **Called from:** FLUCUT_RUN (A1), ALLOWED_ERROR_PERCENT (A2) and
 > REMOVE_ADAPTERS (A12)
@@ -1190,7 +1190,7 @@ keeps the one nearest the read end, then the one with fewer errors, then
 the longer (line 4).
 
 > **Source:** `search_layout`, `search_end`, `better_hit` in
-> `src/amplicon.c`
+> `src/seq/amplicon.c`
 
 ```
 LAYOUT(seq, w_left, w_right)
@@ -1260,8 +1260,8 @@ errors in proportion to the part inside the read (line 10).
 PRIMER_AT_END tries first a primer that lies inside the read (line 3),
 and only if there is none one that overhangs it (line 4).
 
-> **Source:** `primer_search_end` in `src/primer-search.c`;
-> `missing_costs`, `search_primer_end` in `src/amplicon.c`
+> **Source:** `primer_search_end` in `src/seq/primer-search.c`;
+> `missing_costs`, `search_primer_end` in `src/seq/amplicon.c`
 
 The primer is aligned to the read end by a dynamic programming in which
 the alignment may begin at any outer primer position, at a cost. The
@@ -1369,8 +1369,8 @@ reported, never trimmed. Between the primers of the two ends (lines
 allowed in a primer (lines 6–7). Of matches that overlap, the best is
 kept, and at most 8 in all (lines 8–10).
 
-> **Source:** `src/internal-matches.c`; `search_internal` in
-> `src/amplicon.c`
+> **Source:** `src/seq/internal-matches.c`; `search_internal` in
+> `src/seq/amplicon.c`
 
 ```
 MATCHES_INSIDE(seq, a)
@@ -1426,7 +1426,7 @@ the segment the probe was located in (lines 9 and 13). For a universal
 primer of influenza A this is always so; for one of influenza B it is
 so only in the segments it was designed for.
 
-> **Source:** `classify_ends` in `src/amplicon.c`
+> **Source:** `classify_ends` in `src/seq/amplicon.c`
 
 ![The origin of an end, from where its probe lies](figures/origin.svg)
 
@@ -1510,7 +1510,7 @@ every allowed reference (lines 14–17); this slow step is skipped for
 Illumina reads (line 13). A probe shorter than 16 bases is not located
 (line 2).
 
-> **Source:** `src/reference.c`
+> **Source:** `src/seq/reference.c`
 
 ![A probe located through its seeds](figures/probe_location.svg)
 
@@ -1623,7 +1623,7 @@ of the primer of the opposite end, as when two amplicons are joined
 without a primer between them. That copy and what lies beyond it are
 removed as well (lines 1–7).
 
-> **Source:** `compute_keep`, `cut_facing_primer` in `src/amplicon.c`
+> **Source:** `compute_keep`, `cut_facing_primer` in `src/seq/amplicon.c`
 
 ![The part of a read that is kept, in four cases](figures/keep.svg)
 
@@ -1704,8 +1704,8 @@ a primer only within 5 bases of where an adapter was (lines 13–15). The
 second analysis is used unless it finds fewer primers than the first
 (line 16).
 
-> **Source:** `analyze_with_adapters` in `src/amplicon.c`;
-> `src/adapters.c`, `src/adaptor-search.c`
+> **Source:** `analyze_with_adapters` in `src/seq/amplicon.c`;
+> `src/seq/adapters.c`, `src/seq/adaptor-search.c`
 
 ![An adapter removed at an end without a primer, and the second analysis](figures/adapter_removal.svg)
 
@@ -1813,8 +1813,8 @@ the segment instead (lines 6–13). When neither end had a position and
 only one is found this way, both remain without a position: one probe
 alone can match by chance (LOCATE_ENDS_FROM_INSIDE lines 10–12).
 
-> **Source:** `src/placement.c`; `locate_inner_ends`,
-> `locate_from_inside`, `inner_end_position` in `src/amplicon.c`.
+> **Source:** `src/seq/placement.c`; `locate_inner_ends`,
+> `locate_from_inside`, `inner_end_position` in `src/seq/amplicon.c`.
 
 These positions serve the coverage analysis only: the trimming and the
 origins of A9 do not change.
@@ -1963,7 +1963,7 @@ together have the fewest errors (JUNCTION_BY_ALIGNMENT lines 3–8). It is
 reported only if the fit is good (line 9) and at least 100 bases are
 missing (line 12).
 
-> **Source:** `src/junction.c`; `find_junction` in `src/amplicon.c`
+> **Source:** `src/seq/junction.c`; `find_junction` in `src/seq/amplicon.c`
 
 ![The bisection for the junction of an internal deletion](figures/junction.svg)
 
@@ -3625,7 +3625,7 @@ sample (line 1), its internal priming sites (line 2) and its short
 amplicons (line 4), turns the counts per position into depths (lines
 5–7) and writes the tables and the report (lines 8–9).
 
-> **Source:** `src/trimmer.c`, `src/results.c`, `src/report.c`
+> **Source:** `src/seq/trimmer.c`, `src/results.c`, `src/report.c`
 
 > **Called from:** FLUCUT_RUN (A1)
 
@@ -3725,8 +3725,8 @@ location of a probe: fewer errors; of two equally good ones the nearer
 to the end of the segment, and if they are on different references the
 hit is marked ambiguous (BETTER_HIT lines 2–6).
 
-> **Source:** `analyze`, `better_hit` in `src/amplicon.c`;
-> `align_window` in `src/reference.c`
+> **Source:** `analyze`, `better_hit` in `src/seq/amplicon.c`;
+> `align_window` in `src/seq/reference.c`
 
 > **Called from:** ANALYSE_ENDS (A5), BEST_PRIMER (A6) and LOCATE
 > (A10)
@@ -3774,7 +3774,7 @@ Their running time and memory are given in A5, A6 and A10.
 How many bases lie between the location of a probe and the end of the
 segment from which its read would have started (line 1).
 
-> **Source:** `terminus_distance` in `src/reference.c`
+> **Source:** `terminus_distance` in `src/seq/reference.c`
 
 > **Called from:** BETTER_HIT (D4), ORIGIN (A9) and COVER (A17)
 

@@ -9,7 +9,7 @@ and <name>.png (for the HTML version) of:
   internal_priming  the internal priming site of the HA of KF918483.1
                     (the I348K artefact) and the amplicon it starts
 
-The sequences are those of the primers (src/primers.h) and of the HA
+The sequences are those of the primers (src/seq/primers.h) and of the HA
 record KF918483.1 (NCBI) at the site (see benchmark/README.md). The
 colors are the Okabe-Ito palette (colorblind-safe).
 

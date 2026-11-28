@@ -5,7 +5,7 @@ For the program tests of the adapter search (testdata/adapters.fastq):
 each read of the input (testdata/reads.fastq, see
 scripts/simulate-reads.py) gets the adapter of native barcode NB01 at
 its start and the reverse complement of the bottom adapter of NB01 at
-its end (the sequences of Dorado, see src/adapters.h); in addition, the
+its end (the sequences of Dorado, see src/seq/adapters.h); in addition, the
 outer bases of its primers are removed, as by a break of the molecule:
 
   <name>_broken      the first 10 bases removed (the read starts inside
@@ -30,7 +30,7 @@ def revcomp(seq):
   return seq.translate(COMPLEMENT)[::-1]
 
 
-# the adapters (src/adapters.h)
+# the adapters (src/seq/adapters.h)
 NB_START = "ATTGCTAAGGTTAA" + NB01 + "CAGCACCT"
 NB_END = revcomp("ATTGCTAAGGTTAA" + NB01 + "CAGCACC")
 LSK_START = "CCTGTACTTCGTTCAGTTACGTATTGC"
