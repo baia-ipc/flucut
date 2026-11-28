@@ -63,9 +63,23 @@
 # lies outside the low-complexity stretch of the site: GLFGAIAG in
 # most, GIFGAIAG in the H3 of horses and pigs, GLLGAIAG in some others
 # and GFFGAIAG in influenza B, so the two residues which vary are left
-# free. The pattern is found exactly once in each of the 89 HA
-# references of the sets flucut ships, of every subtype H1 to H16 and
-# of influenza B.
+# free.
+#
+# The pattern is found exactly once in each of the 84 HA references of
+# the sets flucut ships, and never more than once in 4484 HA records of
+# every subtype H1 to H16 and of influenza B downloaded from GenBank:
+# the anchor cannot be found in the wrong place in a read. In 39 of
+# those records it is not found at all, always because the peptide is
+# absent and never because its placement is ambiguous.
+#
+# Do not loosen it, and in particular do not put a class at its sixth
+# position. Twenty-one of those records carry a lysine there instead of
+# the isoleucine, spelled AAA in every one of them, across eight
+# subtypes: that is the residue internal priming by the Uni12 primer
+# writes over the start of HA2 (I351K, residue 6 of HA2, see
+# docs/internal-priming.md), deposited as if it were sequence. A
+# pattern which accepted it would read a cleavage site out of records
+# whose fusion peptide is a primer. Refusing them is the point.
 
 - site: cleavage
   fusion_peptide: G..GAIAG

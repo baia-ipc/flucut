@@ -27,9 +27,24 @@ which every haemagglutinin has and which lies outside the low-complexity
 stretch. It is `GLFGAIAG` in most of them, `GIFGAIAG` in the H3 of
 horses and pigs, `GLLGAIAG` in some others and `GFFGAIAG` in influenza
 B, so flucut looks for the pattern `G..GAIAG`, in which the two
-residues that vary are free. The pattern occurs exactly once in each of
-the 89 HA references of the reference sets flucut ships, of every
-subtype H1 to H16 and of influenza B. flucut takes those 24 bases of
+residues that vary are free. It occurs exactly once in each of the 84
+HA references of the reference sets flucut ships, and never more than
+once in 4484 HA records of every subtype H1 to H16 and of influenza B
+downloaded from GenBank, so the anchor cannot be found in the wrong
+place in a read. In 39 of those records it is not found at all, always
+because the peptide is absent and never because its placement is
+ambiguous.
+
+The pattern is deliberately no looser than this, and its sixth position
+in particular is fixed. Twenty-one of those records carry a lysine
+there instead of the isoleucine, spelled `AAA` in every one, across
+eight subtypes: that is what internal priming by the Uni12 primer
+writes over the start of HA2 (I351K, residue 6 of HA2, see
+`internal-priming.md`), deposited as if it were sequence. A pattern
+which accepted it would read a cleavage site out of records whose
+fusion peptide is a primer.
+
+flucut takes those 24 bases of
 the HA reference as an **anchor**, finds the anchor inside each read
 (edlib, infix, both orientations, the same error allowance as the
 probes), and reads the 24 bases immediately before the match, as the
