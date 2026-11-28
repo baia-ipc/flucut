@@ -36,13 +36,11 @@ because the peptide is absent and never because its placement is
 ambiguous.
 
 The pattern is deliberately no looser than this, and its sixth position
-in particular is fixed. Twenty-one of those records carry a lysine
-there instead of the isoleucine, spelled `AAA` in every one, across
-eight subtypes: that is what internal priming by the Uni12 primer
-writes over the start of HA2 (I351K, residue 6 of HA2, see
-`internal-priming.md`), deposited as if it were sequence. A pattern
-which accepted it would read a cleavage site out of records whose
-fusion peptide is a primer.
+in particular is fixed. That position is the isoleucine which internal
+priming by the Uni12 primer turns into a lysine (I351K, residue 6 of
+HA2, see `internal-priming.md`), and sequences carrying it exist. A
+pattern which accepted a lysine there would read a cleavage site out of
+a sequence whose fusion peptide is a primer.
 
 flucut takes those 24 bases of
 the HA reference as an **anchor**, finds the anchor inside each read
