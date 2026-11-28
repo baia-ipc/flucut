@@ -280,8 +280,9 @@ conserved terminus, so the tails are what is counted:
 The first 2000 reads are counted; unless both ends are then tailed, the
 reads up to the first 20000 are counted before deciding. On the public
 runs of the three protocols the tail of the protocol was in front of
-81% to 98% of the read ends with a terminus at each end, and in runs
-without a tail no tail was in front of more than 0.6% of them. The 5%
+74% to 99% of the read ends with a terminus at each end (the six bases of
+``GGGGGG`` at the lower end), and in runs without a tail no tail was in
+front of more than 0.5% of them. The 5%
 share is low on purpose: some runs mix a tailed and an untailed primer
 at an end, and the share of the tail is then anywhere between 13% and
 66%. A higher threshold would split such runs between two schemes; with
@@ -315,8 +316,14 @@ summary (``scheme.choice``). In the live mode, the scheme is chosen from
 the first file ready, and the reports are written from then on.
 
 The choice is a fixed cost, once per run, beside those of a scheme of
-both types (above): 0.08 s of processor time on a run of the Opti1 primers, where
-both ends carry a tail and 2000 reads decide, and 0.6 s on the run of
-171086 Nanopore reads of the default scheme, whose untailed left end
-makes it read 20000 (the median of seven repetitions, on a shared
-machine under load; ``-D`` prints it).
+both types (above). It takes 0.08 to 0.14 s of processor time where both
+ends carry a tail and 2000 reads decide (a run of the Opti1 primers), and
+0.6 to 1.1 s where it reads 20000, as on runs of the default protocol,
+whose left end is untailed (a run of 171086 Nanopore reads); ``-D``
+prints it. Of 50 public runs, 30 were decided at 2000 reads and 20 read
+20000. On whole runs the cost was too small to measure: five runs of
+each of those two files with ``-s auto`` and with the scheme it chose
+given differed by a median of 0.9 and 0.7 s of processor time, while the
+same command varied between 48 and 87 s from one repetition to the
+next. All of these were measured on a shared machine under load (load
+average 55 to 60), so they are upper bounds.

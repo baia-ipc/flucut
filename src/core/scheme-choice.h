@@ -90,8 +90,8 @@
 /* (with 50, a run of random cDNA had enough at one end: 61 in 20000
    reads; runs of amplicons have at least 167, Illumina reads included) */
 #define SCHEME_CHOICE_MIN_ENDS 100
-/* (a tail is not found in front of more than 0.6% of the read ends with
-   the terminus in public runs without it, and in front of 81-98% at an
+/* (a tail is not found in front of more than 0.5% of the read ends with
+   the terminus in public runs without it, and in front of 74-99% at an
    end of the runs with it; in runs which mix a tailed and an untailed
    primer at an end, its share is anywhere from 13 to 66%: a lower
    share keeps those runs together, as having the tail) */
