@@ -49,7 +49,7 @@ def save(fig, outdir, name):
 
 def components(outdir):
   """the components, their modules, and the main dependencies"""
-  fig, ax = setup(12, 6.3)
+  fig, ax = setup(15, 6.3)
   W, H, DY = 1.9, 0.42, 0.6
   # component: (x of the frame, columns, modules)
   comps = [
@@ -144,7 +144,7 @@ def components(outdir):
           "zlib: compressors,\nFASTQ and BAM readers;\nkhash: whitelist,\n"
           "cell caller;\noutfiles: BGZF\nend-of-file marker", fontsize=8,
           color=MUTED, va="top")
-  ax.set_xlim(-0.1, 9.3)
+  ax.set_xlim(-0.1, 13.3)
   ax.set_ylim(stop - h - 0.1, top + 0.1)
   save(fig, outdir, "components")
 

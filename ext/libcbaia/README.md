@@ -1,11 +1,9 @@
 # libcbaia
 
-libcbaia is a library of generic C modules for command line programs, in
-particular bioinformatics tools working with sequencing reads. It is shared
-by the C projects of BAIA at the Institut Pasteur du Cambodge (e.g.
-[Lumipore](https://github.com/baia-ipc/lumipore)). The modules are small,
-follow common conventions and depend only on the C standard library, POSIX
-and zlib.
+libcbaia is a library of generic C modules for command line programs,
+particularly bioinformatics tools working with sequencing reads. The
+modules are small, follow common conventions and depend only on the C
+standard library, POSIX and zlib.
 
 The modules are organized by shared infrastructure, file format, and
 sequencing domain:
@@ -15,13 +13,14 @@ sequencing domain:
 - `ds`: data structures (Bloom filter, set, heap, HyperLogLog);
 - `html`: HTML reports and dashboards, including the element writer,
   templates, page helpers and SVG primitives;
-- `io`: external sorting, destination output files, MD5;
+- `io`: external sorting, destination output files, user configuration,
+  MD5;
 - `formats/`: gzip, BGZF, JSON, SAM/BAM (including unaligned BAM), and
   FASTQ readers and writers;
+- `seq`: sequence utilities, a common FASTQ/BAM reader, edit distance of
+  short sequences and k-mer index of sequences;
 - `nanopore/`: MinKNOW read metadata;
 - `singlecell/`: barcode whitelists, cell calling and library complexity;
-- `seq`: sequence utilities, a common FASTQ/BAM reader, edit
-  distance of short sequences and k-mer index of sequences.
 
 ## Installation
 

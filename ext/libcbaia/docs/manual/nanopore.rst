@@ -7,8 +7,7 @@ Nanopore
 
 The ``nanopore`` directory contains modules specific to Oxford Nanopore
 sequencing data. ``minknow-metadata`` converts metadata fields in MinKNOW
-read titles to SAM tags. Its API and field mapping are described in the
-:ref:`read metadata section <minknow-metadata>` of the sequences chapter.
+read titles to SAM tags. Its API and field mapping are described below.
 
 Read metadata of MinKNOW (``minknow-metadata.h``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

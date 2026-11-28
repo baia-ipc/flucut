@@ -58,6 +58,17 @@ The output files of several destinations (``outfiles.h``,
 :ref:`outfiles`) write such compressed blocks, and add the BGZF
 end-of-file marker to BAM files.
 
+JSON output (``json-writer.h``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The JSON writer handles indentation and commas for nested objects and
+arrays. Callers write each value to the ``FILE`` in ``json_writer_t``;
+``json_member()`` starts an indented member, while ``json_open_block()``
+and ``json_close_block()`` manage nested ``{}`` and ``[]`` blocks.
+``json_sep()`` separates list values written on one line. The count and
+share helpers write numeric object members, with shares formatted to
+four decimal places.
+
 
 Reading FASTQ files (``fastq-reader.h``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

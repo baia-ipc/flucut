@@ -11,16 +11,17 @@ The library:
 ```
 Makefile          build, test and installation targets
 cbaia.mk          Makefile fragment for the projects vendoring the library
-src/<component>/  sources and headers of the modules of each component:
+src/<group>/      sources and headers arranged by responsibility:
   core/           memory allocation, logging, files, strings, numeric
                   utilities, command line, unit test macros
   ds/             data structures
   html/           HTML reports and dashboards, templates and SVG
-  io/             external sorting, destination output files, MD5
+  io/             external sorting, destination output files, user config,
+                  MD5
   formats/        gzip, bgzf, json, sam_bam, fastq readers and writers
+  seq/            sequences and common FASTQ/BAM reader
   nanopore/       MinKNOW read metadata
   singlecell/     barcode whitelists, cell calling, library complexity
-  seq/            sequences and common FASTQ/BAM reader
 tests/            unit test program
 dev/, scripts/    scripts for the build and the projects (object lists,
                   embedded data files, program tests)

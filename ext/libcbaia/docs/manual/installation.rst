@@ -153,7 +153,7 @@ cbaia-clean`` removes the build of the library.
 .. note::
 
    As the library is always built with the flags of the project, a
-   project compiled with link-time optimization (``-flto``, as Lumipore)
+   project compiled with link-time optimization (``-flto``
    can inline the functions of the library, e.g. in the inner loops, also
    after the library was built with other flags (e.g. by ``make test`` in
    its directory): the next build of the project rebuilds it with

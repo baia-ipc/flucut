@@ -16,13 +16,8 @@ compressed output in parallel, and some recurring data structures and
 algorithms.
 
 Instead of copying these modules from one project to the next (and
-fixing the same bugs in each copy), libcbaia collects them in a single
-place. It is used by the C projects of the bioinformatics group (BAIA)
-of the Institut Pasteur du Cambodge, e.g. Lumipore, a demultiplexer of
-Illumina libraries sequenced on Nanopore: most of the generic code of
-Lumipore (FASTQ and BAM input, output files, barcode correction, cell
-calling, library complexity) is part of libcbaia, so that other tools
-can use it.
+fixing the same bugs in each copy), libcbaia collects generic C modules
+in a standalone library that command-line programs can use.
 
 Design
 ~~~~~~
@@ -63,7 +58,7 @@ Components
 ~~~~~~~~~~
 
 The modules are organized in components and domain directories under
-``src``, shown in :numref:`fig-components`:
+``src``:
 
 ``core``
    the base functionality of a command line program, used by all other
@@ -83,7 +78,8 @@ The modules are organized in components and domain directories under
 
 ``io``
    file and destination I/O: sorting of files which do not fit in memory,
-   output files for several destinations, MD5 checksums;
+   output files for several destinations, program configuration files,
+   MD5 checksums;
 
 ``formats``
    reading and writing files in specific formats, in subdirectories for
@@ -100,14 +96,18 @@ The modules are organized in components and domain directories under
    barcode whitelists and correction, cell calling, and library
    complexity.
 
-.. _fig-components:
+.. code-block:: text
 
-.. figure:: figures/components.*
-   :width: 100%
-
-   The components and modules of libcbaia. The arrows show the main
-   dependencies between modules (all modules use ``alloc.h`` and
-   ``logger.h`` of ``core``); external code is shown in grey.
+   src/
+     core/                 shared program utilities
+     ds/                   data structures
+     html/                 HTML reports and dashboards
+     io/                   general file and destination I/O
+     formats/
+       gzip/ bgzf/ json/ sam_bam/ fastq/
+     seq/                  sequence utilities and common reads reader
+     nanopore/             MinKNOW metadata
+     singlecell/           barcode whitelists, cell calling, complexity
 
 The header names are unique over all components: the modules include
 each other, and are included by the programs, by their name (e.g.
@@ -119,7 +119,7 @@ What is not in the library
 
 The library contains generic functionality, which is useful to several
 programs. Code specific to one tool (e.g. the analysis of the structure
-of Illumina library molecules in Lumipore) stays in the tool. Code which
+of a particular library design) stays in the tool. Code which
 needs further libraries (e.g. alignment with edlib, YAML parsing with
 libyaml) also stays in the tools which use it, so that the library keeps
 its minimal dependencies. :ref:`contributing` describes when and how to
