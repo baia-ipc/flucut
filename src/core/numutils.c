@@ -2,6 +2,8 @@
 
 #include <assert.h>
 #include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include "numutils.h"
 #include "test.h"
 
@@ -29,7 +31,45 @@ double nice_number(double v) {
   return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p;
 }
 
+/* the text of <percent>, of a part which is none, all or neither */
+static percent_text_t percent_format(double percent, bool none, bool all) {
+  percent_text_t out;
+  if (!none && percent < 0.1)
+    snprintf(out.s, sizeof(out.s), "<0.1%%");
+  else if (!all && percent > 99.9 && percent <= 100.0)
+    snprintf(out.s, sizeof(out.s), ">99.9%%");
+  else
+    snprintf(out.s, sizeof(out.s), "%.1f%%", percent);
+  return out;
+}
+
+percent_text_t percent_text(size_t part, size_t total) {
+  if (total == 0)
+    return percent_format(0.0, true, false);
+  return percent_format(100.0 * (double)part / (double)total, part == 0,
+                        part == total);
+}
+
+percent_text_t fraction_percent_text(double fraction) {
+  return percent_format(100.0 * fraction, fraction == 0.0, fraction == 1.0);
+}
+
 void numutils_test(void) {
+  test_eq_str(percent_text(0, 2000).s, "0.0%");
+  test_eq_str(percent_text(1, 2000).s, "<0.1%");
+  test_eq_str(percent_text(1, 1000).s, "0.1%");
+  test_eq_str(percent_text(423, 1000).s, "42.3%");
+  test_eq_str(percent_text(999, 1000).s, "99.9%");
+  test_eq_str(percent_text(1999, 2000).s, ">99.9%");
+  test_eq_str(percent_text(2000, 2000).s, "100.0%");
+  test_eq_str(percent_text(999999999, 1000000000).s, ">99.9%");
+  test_eq_str(percent_text(3, 2).s, "150.0%");
+  test_eq_str(percent_text(0, 0).s, "0.0%");
+  test_eq_str(fraction_percent_text(0.0).s, "0.0%");
+  test_eq_str(fraction_percent_text(0.0004).s, "<0.1%");
+  test_eq_str(fraction_percent_text(0.031).s, "3.1%");
+  test_eq_str(fraction_percent_text(0.9996).s, ">99.9%");
+  test_eq_str(fraction_percent_text(1.0).s, "100.0%");
   test_eq(floordiv(7, 2), 3L, long, "%ld");
   test_eq(floordiv(-7, 2), -4L, long, "%ld");
   test_eq(floordiv(7, -2), -4L, long, "%ld");

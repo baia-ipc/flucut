@@ -296,8 +296,8 @@ void html_hbars(html_writer_t *w, size_t n, const char *const *labels,
     html_tag_textf(w, "title", "%s: %s", labels[i], html_num(values[i]).s);
     html_close(w);
     svg_text(w, "muted halo", HTML_LABEL_WIDTH + bar + 5, text_y, NULL,
-             "%s (%.1f%%)", html_num(values[i]).s,
-             html_percent(values[i], total));
+             "%s (%s)", html_num(values[i]).s,
+             percent_text(values[i], total).s);
   }
   html_close(w);
 }

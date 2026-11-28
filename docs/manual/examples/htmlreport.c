@@ -82,8 +82,7 @@ int main(int argc, char *argv[]) {
   html_open(&w, "div");
   html_attr(&w, "class", "tiles");
   html_tile(&w, html_num(total).s, "reads");
-  snprintf(value, sizeof(value), "%.1f%%", html_percent(assigned, total));
-  html_tile(&w, value, "assigned to a sample");
+  html_tile(&w, percent_text(assigned, total).s, "assigned to a sample");
   snprintf(value, sizeof(value), "%zu bp",
            hist_median(hist, N_BINS, BIN_WIDTH, n_inserts));
   html_tile(&w, value, "median insert length");
