@@ -30,9 +30,27 @@ function kind_of(s) {
 }
 
 # the record read so far, written out
+# a site: each of its fields becomes a constant named after the site
+# and the field, a number as it is written and anything else as a string
+function site_macros(   key, out) {
+  out = ""
+  for (key in f)
+    out = out sprintf("#define %s_%s %s\n", toupper(name), toupper(key),
+                      f[key] ~ /^-?[0-9]+$/ ? f[key] : cstr(f[key]))
+  return out
+}
+
 function flush(   i) {
   if (kind == "")
     return
+  if (kind == "site") {
+    sites[n_sites] = site_macros()
+    n_sites++
+    kind = ""
+    name = ""
+    split("", f)
+    return
+  }
   if (kind != "marker")
     fail("unknown record \"" kind "\"")
   names[n] = name
@@ -59,7 +77,7 @@ function flush(   i) {
   split("", f)
 }
 
-BEGIN { n = 0 }
+BEGIN { n = 0; n_sites = 0 }
 
 END {
   if (n == 0) fail("no marker in the file")
@@ -71,6 +89,11 @@ END {
   print "#ifndef MARKERS_TABLE_H"
   print "#define MARKERS_TABLE_H"
   print ""
+  for (i = 0; i < n_sites; i++) {
+    print "/* a site read beside a conserved peptide, reported in its own"
+    print "   way (metadata/markers.yaml) */"
+    printf "%s\n", sites[i]
+  }
   print "/* the markers, in the order they are reported */"
   print "enum {"
   for (i = 0; i < n; i++)

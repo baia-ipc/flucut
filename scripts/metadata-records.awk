@@ -39,13 +39,13 @@ BEGIN { kind = ""; name = "" }
 {
   line = $0
   sub(/^- /, "  ", line)          # a record begins with "- "
-  if (line !~ /^  [a-z0-9]+: /)
+  if (line !~ /^  [a-z0-9_]+: /)
     fail("expected \"  key: value\"")
   key = line
   sub(/^  /, "", key)
   sub(/:.*/, "", key)
   value = line
-  sub(/^  [a-z0-9]+: /, "", value)
+  sub(/^  [a-z0-9_]+: /, "", value)
   sub(/[ \t]+$/, "", value)
   if (value ~ /^".*"$/)
     value = substr(value, 2, length(value) - 2)

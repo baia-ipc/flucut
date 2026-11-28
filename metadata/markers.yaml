@@ -49,6 +49,31 @@
 #
 # Avoid ": " and "#" in the values.
 
+# --- the sites read in the same way, each with a module of its own ---
+#
+#   site       a site read beside a conserved peptide as the markers
+#              are, but reported in its own way. Each of its fields
+#              becomes a constant of the program named after the site
+#              and the field
+#
+# The cleavage site of the haemagglutinin: the last residues of HA1,
+# where the protein is cut in two, which decide the pathotype of an H5
+# or H7 virus (see docs/cleavage-site.md). HA2 begins directly after it
+# with the fusion peptide, which every haemagglutinin has and which
+# lies outside the low-complexity stretch of the site: GLFGAIAG in
+# most, GIFGAIAG in the H3 of horses and pigs, GLLGAIAG in some others
+# and GFFGAIAG in influenza B, so the two residues which vary are left
+# free. The pattern is found exactly once in each of the 89 HA
+# references of the sets flucut ships, of every subtype H1 to H16 and
+# of influenza B.
+
+- site: cleavage
+  fusion_peptide: G..GAIAG
+  anchor_nt: 24
+  site_nt: 24
+
+# --- the markers -----------------------------------------------------
+
 - marker: PB2-627
   protein: PB2
   segment: 1

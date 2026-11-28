@@ -45,21 +45,15 @@
 #include "reference.h"
 
 /*
-   The start of HA2, which anchors the site, and the bases of the anchor
-   taken from the reference.
-
-   The fusion peptide is GLFGAIAG in most haemagglutinins, GIFGAIAG in
-   the H3 of horses and pigs, GLLGAIAG in some others and GFFGAIAG in
-   influenza B, so the two residues which vary are left free. The
-   pattern is found exactly once in each of the 89 HA references of the
-   reference sets flucut ships, of every subtype H1 to H16 and of
-   influenza B.
+   The fusion peptide which starts HA2 and anchors the site
+   (CLEAVAGE_FUSION_PEPTIDE), the bases of the anchor taken from the
+   reference (CLEAVAGE_ANCHOR_NT) and the width of the site
+   (CLEAVAGE_SITE_NT, the 8 codons before HA2): written by the build
+   from metadata/markers.yaml, where the peptide and its variants are
+   described.
 */
-#define CLEAVAGE_FUSION_PEPTIDE "G..GAIAG"
-#define CLEAVAGE_ANCHOR_NT 24
+#include "markers-table.h"
 
-/* the cleavage site proper: the 8 codons before HA2 */
-#define CLEAVAGE_SITE_NT 24
 #define CLEAVAGE_SITE_AA (CLEAVAGE_SITE_NT / 3)
 
 /* how a motif reads */
