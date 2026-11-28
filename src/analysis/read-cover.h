@@ -26,9 +26,13 @@
 
    The classes are those of the coverage plot of the report
    (counter_coverage()). The category of a read (READ_CATEGORY_*) merges
-   them into the five kinds of reads told apart in the output: the tag
+   them into the six kinds of reads told apart in the output: the tag
    ct of the records, and the files of the --by-category option (see
-   trimmer.h).
+   trimmer.h). A read placed on a segment without a 5' primer is a
+   fragment (a broken molecule or a truncated read); a read nothing in
+   the references places, other than a complete amplicon of the length
+   of a segment (unplaced), is unknown: most such reads are not
+   influenza, or too far from the references to tell.
 */
 
 #ifndef READ_COVER_H
@@ -59,10 +63,13 @@ enum { COVER_TERMINAL_PLUS,   /* started at a segment end, plus strand */
 enum { READ_CATEGORY_FULL,      /* a full template (terminal, any strand) */
        READ_CATEGORY_INTERNAL,  /* internal priming (any strand) */
        READ_CATEGORY_DELETION,  /* an internal deletion */
+       READ_CATEGORY_FRAGMENT,  /* placed on a segment, no 5' primer */
        READ_CATEGORY_UNPLACED,  /* a complete amplicon of the length of a
                                    segment, on no segment of the
                                    references */
-       READ_CATEGORY_OTHER,     /* no 5' primer, or not located */
+       READ_CATEGORY_UNKNOWN,   /* placed on no segment, and not a
+                                   complete amplicon of the length of
+                                   one (or no references) */
        READ_N_CATEGORIES };
 
 /* where a read lies on its reference */

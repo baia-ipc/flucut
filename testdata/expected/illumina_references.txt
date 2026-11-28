@@ -5,16 +5,16 @@ SUCCESS | OUTDIR/reads.fastq.gz: 14 of 12 reads written (10 with both primers, 1
 WARNING | OUTDIR/reads.fastq.gz: HA segment: 4 of 9 complete amplicons shorter than the closest reference (NC_004908.1, 1714 bases), most at 1000-1009 bases: internal priming or deletions
 SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_dashboard.html, OUTDIR/flucut_summary.json
 == reads.fastq.gz ==
-md5: d232312b2e25229d304c67d7ed7228db
+md5: 7013216f9542ebb0e7d75ce4ced6a581
 @full_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:full	tl:i:0	tr:i:10
 1728 AGCAAAAGCAGGGGA...AACCTTGTTTCTACT
 @full_minus simulated	fs:Z:-	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:full	tl:i:10	tr:i:0
 1728 AGTAGAAACAAGGTT...TCCCCTGCTTTTGCT
-@flanked_plus_1 simulated	fs:Z:.	ct:Z:other	tl:i:0	tr:i:0	sp:Z:1/3
+@flanked_plus_1 simulated	fs:Z:.	ct:Z:unknown	tl:i:0	tr:i:0	sp:Z:1/3
 15 TGGCTAGTGTCACTG...TGGCTAGTGTCACTG
 @flanked_plus_2 simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:full	tl:i:0	tr:i:10	sp:Z:2/3
 1728 AGCAAAAGCAGGGGA...AACCTTGTTTCTACT
-@flanked_plus_3 simulated	fs:Z:.	ct:Z:other	tl:i:0	tr:i:0	sp:Z:3/3
+@flanked_plus_3 simulated	fs:Z:.	ct:Z:unknown	tl:i:0	tr:i:0	sp:Z:3/3
 10 CGCACAGTAA...CGCACAGTAA
 @errors_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1713:-	ct:Z:full	tl:i:0	tr:i:10
 1728 AGCAAAAGCAGGGGA...AACTGGGTTTCTACT
@@ -22,21 +22,21 @@ md5: d232312b2e25229d304c67d7ed7228db
 1723 AAGCAGGGGAATTAC...AACCTTGTTTCTACT
 @internal12_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:internal	ml:Z:NC_004908.1:712:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:internal	tl:i:12	tr:i:10
 1016 AAGGCCCCTTGTCAA...AACCTTGTTTCTACT
-@internal12_minus_1 simulated	fs:Z:.	ct:Z:other	tl:i:0	tr:i:0	sp:Z:1/2
+@internal12_minus_1 simulated	fs:Z:.	ct:Z:unknown	tl:i:0	tr:i:0	sp:Z:1/2
 12 CTTCTGCTGACA...CTTCTGCTGACA
 @internal12_minus_2 simulated	fs:Z:-	fl:Z:uni12r	ol:Z:internal	ml:Z:NC_004908.1:712:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:internal	tl:i:10	tr:i:12	sp:Z:2/2
 1016 AGTAGAAACAAGGTT...TTGACAAGGGGCCTT
 @internal13_plus simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:internal	mr:Z:NC_004908.1:911:-	ct:Z:full	tl:i:0	tr:i:23
 912 AGCAAAAGCAGGGGA...AATGTCAGACTGAAA
-@no_primer simulated	fs:Z:.	ct:Z:other	tl:i:0	tr:i:0
+@no_primer simulated	fs:Z:.	ct:Z:fragment	tl:i:0	tr:i:0
 300 AACAAACTCCACAGA...TTTTAGTTCCGCTAG
 @short_amplicon simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:internal	mr:Z:NC_004908.1:31:-	ct:Z:full	tl:i:0	tr:i:23
 32 AGCAAAAGCAGGGGA...TACTTAACTAGCAAA
 @left_only simulated	fs:Z:+	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	ct:Z:full	tl:i:0	tr:i:0
 512 AGCAAAAGCAGGGGA...TACAGGAGTATGAGA
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_unplaced	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
-reads	12	12635	14	12460	10	1	4	2	1	1	0	2	0	8	2	1	7	2	1	4	8	2	0	0	4	NVPARSSR	7	0.8571	0.8571	0.0000	too few reads	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
+reads	12	12635	14	12460	10	1	4	2	1	1	0	2	0	8	2	1	7	2	1	4	8	2	0	1	0	3	NVPARSSR	7	0.8571	0.8571	0.0000	too few reads	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 reads	NC_004908.1	20	1
@@ -106,7 +106,7 @@ reads	NC_004908.1	1700	5
       "adapter_start": 0,
       "adapter_end": 0
     },
-    "written_by_category": {"full": 8, "internal": 2, "deletion": 0, "unplaced": 0, "other": 4},
+    "written_by_category": {"full": 8, "internal": 2, "deletion": 0, "fragment": 1, "unplaced": 0, "unknown": 3},
     "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 14, "bases": 12460, "min": 10, "max": 1728, "mean": 890, "median": 912, "n50": 1727}},
     "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 14, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
     "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
@@ -232,7 +232,7 @@ reads	NC_004908.1	1700	5
         "adapter_start": 0,
         "adapter_end": 0
       },
-      "written_by_category": {"full": 8, "internal": 2, "deletion": 0, "unplaced": 0, "other": 4},
+      "written_by_category": {"full": 8, "internal": 2, "deletion": 0, "fragment": 1, "unplaced": 0, "unknown": 3},
       "read_lengths": {"input": {"reads": 12, "bases": 12635, "min": 35, "max": 1763, "mean": 1052, "median": 1038, "n50": 1736}, "written": {"reads": 14, "bases": 12460, "min": 10, "max": 1728, "mean": 890, "median": 912, "n50": 1727}},
       "read_quality": {"input": {"reads": 12, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 14, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},

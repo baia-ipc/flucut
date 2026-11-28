@@ -11,8 +11,8 @@ md5: 564ba1743111c4573e6709803a319d3f
 @deletion_minus simulated	fs:Z:-	fl:Z:uni12r	ol:Z:terminal	ml:Z:NC_004908.1:12:+	fr:Z:mbtuni-13	or:Z:terminal	mr:Z:NC_004908.1:1714:-	ct:Z:deletion	tl:i:10	tr:i:0
 575 AGTAGAAACAAGGTT...TCCCCTGCTTTTGCT
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_unplaced	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
-deletion	2	1170	2	1150	2	0	0	1	0	0	0	0	0	2	0	0	2	0	0	2	0	0	2	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
+deletion	2	1170	2	1150	2	0	0	1	0	0	0	0	0	2	0	0	2	0	0	2	0	0	2	0	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 deletion	NC_004908.1	550	2
@@ -79,7 +79,7 @@ deletion	NC_004908.1	550	2
       "adapter_start": 0,
       "adapter_end": 0
     },
-    "written_by_category": {"full": 0, "internal": 0, "deletion": 2, "unplaced": 0, "other": 0},
+    "written_by_category": {"full": 0, "internal": 0, "deletion": 2, "fragment": 0, "unplaced": 0, "unknown": 0},
     "read_lengths": {"input": {"reads": 2, "bases": 1170, "min": 585, "max": 585, "mean": 585, "median": 585, "n50": 585}, "written": {"reads": 2, "bases": 1150, "min": 575, "max": 575, "mean": 575, "median": 575, "n50": 575}},
     "read_quality": {"input": {"reads": 2, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 2, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
     "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
@@ -171,7 +171,7 @@ deletion	NC_004908.1	550	2
         "adapter_start": 0,
         "adapter_end": 0
       },
-      "written_by_category": {"full": 0, "internal": 0, "deletion": 2, "unplaced": 0, "other": 0},
+      "written_by_category": {"full": 0, "internal": 0, "deletion": 2, "fragment": 0, "unplaced": 0, "unknown": 0},
       "read_lengths": {"input": {"reads": 2, "bases": 1170, "min": 585, "max": 585, "mean": 585, "median": 585, "n50": 585}, "written": {"reads": 2, "bases": 1150, "min": 575, "max": 575, "mean": 575, "median": 575, "n50": 575}},
       "read_quality": {"input": {"reads": 2, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 2, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},

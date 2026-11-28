@@ -161,10 +161,11 @@ void read_outputs_test(const char *tmpdir) {
                      "/bc01.full.fastq.gz") != NULL);
   test_assert(strstr(o->paths[READ_CATEGORY_UNPLACED],
                      "/bc01.unplaced.fastq.gz") != NULL);
-  test_assert(strstr(o->paths[READ_CATEGORY_OTHER],
-                     "/bc01.other.fastq.gz") != NULL);
+  test_assert(strstr(o->paths[READ_CATEGORY_UNKNOWN],
+                     "/bc01.unknown.fastq.gz") != NULL);
   test_assert(strstr(o->label,
-      "/bc01.{full,internal,deletion,unplaced,other}.fastq.gz") != NULL);
+      "/bc01.{full,internal,deletion,fragment,unplaced,unknown}.fastq.gz")
+      != NULL);
   test_assert(read_outputs_has_path(o, o->paths[READ_CATEGORY_DELETION]));
   read_outputs_open(o, false, logger);
   read_outputs_write(o, READ_CATEGORY_INTERNAL, "abc", 3, logger);

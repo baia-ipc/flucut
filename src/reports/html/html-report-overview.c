@@ -209,10 +209,10 @@ static void greatest_share_cell(html_writer_t *w, const qc_summary_t *qc,
 /* the cell of the reads written by origin: a small stacked bar */
 static void origin_cell(html_writer_t *w, const counter_reads_t *s) {
   static const char *const cls[READ_N_CATEGORIES] = {
-    "c-full", "c-int", "c-del", "c-unp", "c-oth"};
+    "c-full", "c-int", "c-del", "c-frag", "c-unp", "c-unk"};
   static const char *const name[READ_N_CATEGORIES] = {
     "full template", "internally primed", "internal deletion",
-    "not placed", "other"};
+    "fragment", "not placed", "unknown"};
   char all[250];
   size_t len = 0;
   for (size_t k = 0; k < READ_N_CATEGORIES; k++) {
@@ -402,8 +402,9 @@ static void write_table(html_writer_t *w, const report_t *r) {
   markup_swatch(w, "c-full", "full template");
   markup_swatch(w, "c-int", "internally primed");
   markup_swatch(w, "c-del", "internal deletion");
+  markup_swatch(w, "c-frag", "fragment");
   markup_swatch(w, "c-unp", "not placed");
-  markup_swatch(w, "c-oth", "other");
+  markup_swatch(w, "c-unk", "unknown");
   char placed[96];
   snprintf(placed, sizeof(placed), "below %.0f%% of the reads placed on a "
            "segment", 100 * QC_FLAGS_PLACED);

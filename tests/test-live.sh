@@ -222,9 +222,9 @@ $PREFIX $FLUCUT -o $TMP/cat_out --live --timeout 1s --min-age 0 \
 $FLUCUT -o $TMP/cat_dir --by-category $TMP/cat 2> /dev/null
 compare $TMP/cat_out $TMP/cat_dir
 [ "$(cd $TMP/cat_out && ls *.fastq.gz | tr '\n' ' ')" = \
-  "barcode01.deletion.fastq.gz barcode01.full.fastq.gz"\
-" barcode01.internal.fastq.gz barcode01.other.fastq.gz"\
-" barcode01.unplaced.fastq.gz " ] || \
+  "barcode01.deletion.fastq.gz barcode01.fragment.fastq.gz"\
+" barcode01.full.fastq.gz barcode01.internal.fastq.gz"\
+" barcode01.unknown.fastq.gz barcode01.unplaced.fastq.gz " ] || \
   fail "by category: not one file per category: $(ls $TMP/cat_out)"
 $PREFIX $FLUCUT -o $TMP/cat_out --live --timeout 1s --min-age 0 \
   --by-category $TMP/cat 2> /dev/null

@@ -39,8 +39,10 @@
 
      ct:Z:<name>    its category (see read-cover.h): full (a full
                     template), internal (internal priming), deletion (an
-                    internal deletion) or other (no 5' primer, or not
-                    located)
+                    internal deletion), fragment (placed, no 5' primer),
+                    unplaced (a complete amplicon of the length of a
+                    segment, on no segment) or unknown (placed on no
+                    segment)
 
    Reads by category
    -----------------

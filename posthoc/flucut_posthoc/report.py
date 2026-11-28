@@ -139,10 +139,11 @@ def _reads_card(s: dict) -> str:
         [(f"c-{key}", label, counts[key]) for key, label in order]))
     written = summary.get("written_by_category")
     if written:
-        # a complete amplicon flucut places on no segment ("unplaced")
-        # is one of its other reads here
+        # the fragments and the reads flucut places on no segment
+        # ("unplaced", "unknown") are the other reads here
         names = {"full": ("full",), "int": ("internal",),
-                 "del": ("deletion",), "oth": ("unplaced", "other")}
+                 "del": ("deletion",),
+                 "oth": ("fragment", "unplaced", "unknown")}
         parts.append(stacked_bar(
             "Reads by origin, flucut", "reads after splitting",
             [(f"c-{key}", label,

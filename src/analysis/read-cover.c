@@ -212,7 +212,7 @@ bool read_cover_locate(const fasta_t *refs, const reference_set_t *set,
 size_t read_cover_category(const read_cover_t *cover) {
   assert(cover != NULL);
   if (!cover->located)
-    return cover->by_length ? READ_CATEGORY_UNPLACED : READ_CATEGORY_OTHER;
+    return cover->by_length ? READ_CATEGORY_UNPLACED : READ_CATEGORY_UNKNOWN;
   switch (cover->cover) {
     case COVER_TERMINAL_PLUS:
     case COVER_TERMINAL_MINUS:
@@ -222,14 +222,14 @@ size_t read_cover_category(const read_cover_t *cover) {
       return READ_CATEGORY_INTERNAL;
     case COVER_DELETION:
       return READ_CATEGORY_DELETION;
-    default:
-      return READ_CATEGORY_OTHER;
+    default:  /* placed, without a 5' primer */
+      return READ_CATEGORY_FRAGMENT;
   }
 }
 
 const char* read_category_name(size_t category) {
   static const char *const names[READ_N_CATEGORIES] = {
-      "full", "internal", "deletion", "unplaced", "other"};
+      "full", "internal", "deletion", "fragment", "unplaced", "unknown"};
   assert(category < READ_N_CATEGORIES);
   return names[category];
 }
@@ -273,15 +273,16 @@ void read_cover_test(void) {
   test_eq_str(read_category_name(READ_CATEGORY_FULL), "full");
   test_eq_str(read_category_name(READ_CATEGORY_INTERNAL), "internal");
   test_eq_str(read_category_name(READ_CATEGORY_DELETION), "deletion");
+  test_eq_str(read_category_name(READ_CATEGORY_FRAGMENT), "fragment");
   test_eq_str(read_category_name(READ_CATEGORY_UNPLACED), "unplaced");
-  test_eq_str(read_category_name(READ_CATEGORY_OTHER), "other");
-  test_eq_size(READ_N_CATEGORIES, 5);
-  /* no references, or nothing located: other */
+  test_eq_str(read_category_name(READ_CATEGORY_UNKNOWN), "unknown");
+  test_eq_size(READ_N_CATEGORIES, 6);
+  /* no references, or nothing located: unknown */
   amplicon_t a = test_amplicon(300);
   test_assert(!read_cover_locate(NULL, NULL, &a, &c));
-  test_eq_size(read_cover_category(&c), READ_CATEGORY_OTHER);
+  test_eq_size(read_cover_category(&c), READ_CATEGORY_UNKNOWN);
   test_assert(!read_cover_locate(&refs, NULL, &a, &c));
-  test_eq_size(read_cover_category(&c), READ_CATEGORY_OTHER);
+  test_eq_size(read_cover_category(&c), READ_CATEGORY_UNKNOWN);
   /* a complete amplicon of the length of a segment, on no segment of
      the references: unplaced, and it covers nothing */
   a = test_amplicon(1050);
@@ -293,21 +294,21 @@ void read_cover_test(void) {
   /* not if its length is too far from that of any segment, or as near
      to that of two */
   a = test_amplicon(1100);
-  test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_OTHER);
+  test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_UNKNOWN);
   fasta_record_t close[2] = {{"r0", "", seq, 1040}, {"r1", "", seq2, 1000}};
   fasta_t close_refs = {close, 2};
   a = test_amplicon(1010);
-  test_eq_size(test_category(&close_refs, &a, &c), READ_CATEGORY_OTHER);
+  test_eq_size(test_category(&close_refs, &a, &c), READ_CATEGORY_UNKNOWN);
   /* unless they are of the same segment: the nearest */
   close[0].description = "A/x/1/2000(H1N1) segment 4";
   close[1].description = "A/y/2/2001(H3N2) segment 4";
   test_eq_size(test_category(&close_refs, &a, &c), READ_CATEGORY_UNPLACED);
   close[1].description = "A/y/2/2001(H3N2) segment 6";
-  test_eq_size(test_category(&close_refs, &a, &c), READ_CATEGORY_OTHER);
-  /* one primer only, whatever its length: other */
+  test_eq_size(test_category(&close_refs, &a, &c), READ_CATEGORY_UNKNOWN);
+  /* one primer only, whatever its length: unknown */
   a = test_amplicon(1050);
   a.right.found = false;
-  test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_OTHER);
+  test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_UNKNOWN);
   /* both ends mapped, as far apart as the template: full, by strand */
   a = test_amplicon(2000);
   test_map(&a.left, 0, ORIGIN_TERMINAL);
@@ -343,10 +344,10 @@ void read_cover_test(void) {
   test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_INTERNAL);
   test_eq_long(c.from, 701);
   test_eq_long(c.to, 1001);
-  /* located by an end, but without a 5' primer: other */
+  /* located by an end, but without a 5' primer: a fragment */
   a.left.found = false;
   a.left.inner = a.left.ref;
-  test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_OTHER);
+  test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_FRAGMENT);
   test_assert(c.located);
   test_eq_size(c.cover, COVER_NO_PRIMER);
   /* the right end only: the 5' end is where the length puts it, here
@@ -359,7 +360,7 @@ void read_cover_test(void) {
   a.right.ref.ref_start = 1690;
   test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_FULL);
   a.left.found = false;
-  test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_OTHER);
+  test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_FRAGMENT);
   /* placed by a probe from inside the read */
   a = test_amplicon(300);
   a.placement = (placement_t){.found = true, .ref_index = 0,
@@ -369,5 +370,5 @@ void read_cover_test(void) {
   a.placement.to = 310;
   test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_FULL);
   a.left.found = false;
-  test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_OTHER);
+  test_eq_size(test_category(&refs, &a, &c), READ_CATEGORY_FRAGMENT);
 }

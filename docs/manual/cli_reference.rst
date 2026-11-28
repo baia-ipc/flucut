@@ -134,11 +134,12 @@ Options
    the primers at the junctions inside it are left in place.
 
 ``--by-category``
-   Write the reads of each input to five files, one for each category of
+   Write the reads of each input to six files, one for each category of
    reads, instead of ``<name>.fastq.gz``: full templates, internal
-   priming, internal deletions, complete amplicons the references place
-   on no segment, and the other reads (:ref:`reads-by-category`). It
-   needs the references (not ``-r off``).
+   priming, internal deletions, fragments (no 5' primer), complete
+   amplicons the references place on no segment, and the other reads
+   placed on no segment (:ref:`reads-by-category`). It needs the
+   references (not ``-r off``).
    Example::
 
       flucut --by-category -o trimmed barcode01/

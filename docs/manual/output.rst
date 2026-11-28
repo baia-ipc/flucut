@@ -54,8 +54,8 @@ tag      meaning
          plus strand)
 ``mr``   the same for the right end
 ``ct``   with ``-r``: the category of the read: ``full``,
-         ``internal``, ``deletion``, ``unplaced`` or ``other``
-         (see :ref:`reads-by-category`)
+         ``internal``, ``deletion``, ``fragment``, ``unplaced`` or
+         ``unknown`` (see :ref:`reads-by-category`)
 ``sp``   ``<k>/<n>``: the record is part ``k`` of the ``n`` parts of a
          read which contained several amplicons (see below)
 ``jf``   ``<k>/2``: the record is flank ``k`` of a read cut at the
@@ -79,8 +79,8 @@ one record for each read.
 Reads by category
 -----------------
 
-With references, each read written belongs to one of five categories,
-given by its ``ct`` tag. The first three are the groups of the coverage
+With references, each read written belongs to one of six categories,
+given by its ``ct`` tag. The first four are the groups of the coverage
 plot of the HTML report (:doc:`reports`), which describes how the reads
 are told apart:
 
@@ -94,14 +94,18 @@ are told apart:
 ``deletion`` internal deletions: the two ends of a      internal
              segment joined, e.g. defective             deletion
              interfering genomes                        (purple)
+``fragment`` placed on a segment, but without a primer  fragment
+             at the 5' end: broken molecules and        (grey)
+             truncated reads
 ``unplaced`` complete amplicons (a primer at both ends) not shown
              which the references place on no segment
-``other``    reads without a 5' primer (fragments of    grey, or not
-             unknown origin), and reads which could     shown
-             not be located on the references
+``unknown``  the other reads which the references       not shown
+             place on no segment: in a sample of
+             influenza mostly not influenza, or too
+             far from the references to tell
 ============ ========================================== ================
 
-The first three categories need a segment: the probe after a primer, or
+The first four categories need a segment: the probe after a primer, or
 a probe found inside the read, must map to a reference. A read with a
 primer at both ends whose probes did not map is ``unplaced``, even when
 its length is that of a segment: a length is not an identification, so
@@ -114,7 +118,7 @@ mostly something else they are the bulk, and keeping them out of
 The category describes where the amplicon started (its 5' end), on
 either strand; the strand is in the ``fs`` tag.
 
-``--by-category`` writes the reads of each input to five files, one for
+``--by-category`` writes the reads of each input to six files, one for
 each category, instead of ``<name>.fastq.gz``::
 
    flucut --by-category -o trimmed barcode01/
@@ -122,17 +126,18 @@ each category, instead of ``<name>.fastq.gz``::
    trimmed/barcode01.full.fastq.gz
    trimmed/barcode01.internal.fastq.gz
    trimmed/barcode01.deletion.fastq.gz
+   trimmed/barcode01.fragment.fastq.gz
    trimmed/barcode01.unplaced.fastq.gz
-   trimmed/barcode01.other.fastq.gz
+   trimmed/barcode01.unknown.fastq.gz
 
-All five files are always written; one without reads is an empty gzip
+All six files are always written; one without reads is an empty gzip
 file. In each file the reads are in the order of the input, and together
-the five files contain the same reads as ``<name>.fastq.gz`` would. The
+the six files contain the same reads as ``<name>.fastq.gz`` would. The
 parts of a split read are each written to the file of their own
 category. The tables and the reports have one part for each input, not
 for each file; the reads of each file are counted in the columns
-``out_full``, ``out_internal``, ``out_deletion``, ``out_unplaced`` and
-``out_other`` of ``summary.tsv``.
+``out_full``, ``out_internal``, ``out_deletion``, ``out_fragment``,
+``out_unplaced`` and ``out_unknown`` of ``summary.tsv``.
 
 .. note::
 
@@ -217,7 +222,7 @@ One line for each input, tab-separated, with a header:
      - with ``-r``: the left and right ends found, by origin; ``NA`` without references
    * - ``short_complete``
      - with ``-r``: complete amplicons shorter than 90% of their reference; ``NA`` without references
-   * - ``out_full``, ``out_internal``, ``out_deletion``, ``out_unplaced``, ``out_other``
+   * - ``out_full``, ``out_internal``, ``out_deletion``, ``out_fragment``, ``out_unplaced``, ``out_unknown``
      - with ``-r``: the reads written, by category (:ref:`reads-by-category`); their sum is ``reads_out``; ``NA`` without references
    * - ``cleavage_site``, ``cleavage_reads``, ``cleavage_support``, ``cleavage_control``, ``cleavage_multibasic``, ``cleavage_verdict``
      - the cleavage site of the haemagglutinin as the reads carry it

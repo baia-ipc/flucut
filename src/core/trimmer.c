@@ -413,7 +413,8 @@ static void test_categories(const scheme_t *sc) {
   test_eq_mem(out[READ_CATEGORY_FULL].s, 7, "@whole\t");
   test_eq_mem(out[READ_CATEGORY_INTERNAL].s, 8, "@inside\t");
   test_eq_size(out[READ_CATEGORY_DELETION].len, 0);
-  test_eq_size(out[READ_CATEGORY_OTHER].len, 0);
+  test_eq_size(out[READ_CATEGORY_FRAGMENT].len, 0);
+  test_eq_size(out[READ_CATEGORY_UNKNOWN].len, 0);
   /* a read with an internal deletion (the bases 90 to 209 of the
      interior are missing): written whole */
   char flanks[512];

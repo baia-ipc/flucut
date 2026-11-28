@@ -198,10 +198,11 @@ static void write_reads(html_writer_t *w, const report_t *r,
       {"c-full", "full template", s->written[READ_CATEGORY_FULL]},
       {"c-int", "internally primed", s->written[READ_CATEGORY_INTERNAL]},
       {"c-del", "internal deletion", s->written[READ_CATEGORY_DELETION]},
+      {"c-frag", "fragment", s->written[READ_CATEGORY_FRAGMENT]},
       {"c-unp", "not placed", s->written[READ_CATEGORY_UNPLACED]},
-      {"c-oth", "other", s->written[READ_CATEGORY_OTHER]},
+      {"c-unk", "unknown", s->written[READ_CATEGORY_UNKNOWN]},
       {"c-nw", "not written", s->too_short}};
-    markup_bar(w, "Reads by origin", "reads", origin, 6);
+    markup_bar(w, "Reads by origin", "reads", origin, 7);
   } else {
     const markup_part_t written[] = {
       {"c-full", "written", s->reads_out},

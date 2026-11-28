@@ -17,18 +17,18 @@
 /* the bands of the plot: the classes of the reads (COVER_*) gathered in
    the categories of the output (the strands together), in the order in
    which they are stacked, from the bottom: the reads which cover the
-   whole segment evenly first (unknown origin, full templates), so that
+   whole segment evenly first (fragments, full templates), so that
    their bands are flat and the step of the internally primed reads above
    them is seen at its site; the reads with an internal deletion, which
    cover the two ends only, on top */
-enum { BAND_OTHER, BAND_FULL, BAND_INTERNAL, BAND_DELETION, N_BANDS };
+enum { BAND_FRAGMENT, BAND_FULL, BAND_INTERNAL, BAND_DELETION, N_BANDS };
 static const int band_of_cover[COVER_N_CATEGORIES] = {
-  BAND_FULL, BAND_FULL, BAND_INTERNAL, BAND_INTERNAL, BAND_OTHER,
-  BAND_OTHER, BAND_DELETION};
+  BAND_FULL, BAND_FULL, BAND_INTERNAL, BAND_INTERNAL, BAND_FRAGMENT,
+  BAND_FRAGMENT, BAND_DELETION};
 static const char *const band_class[N_BANDS] = {
-  "c-oth", "c-full", "c-int", "c-del"};
+  "c-frag", "c-full", "c-int", "c-del"};
 static const char *const band_label[N_BANDS] = {
-  "other", "full template", "internally primed", "internal deletion"};
+  "fragment", "full template", "internally primed", "internal deletion"};
 
 void plots_coverage_legend(html_writer_t *w, size_t min_depth) {
   char low[40];
@@ -36,7 +36,7 @@ void plots_coverage_legend(html_writer_t *w, size_t min_depth) {
   markup_open(w, "div", "lg");
   for (int b = BAND_FULL; b < N_BANDS; b++)
     markup_swatch(w, band_class[b], band_label[b]);
-  markup_swatch(w, band_class[BAND_OTHER], band_label[BAND_OTHER]);
+  markup_swatch(w, band_class[BAND_FRAGMENT], band_label[BAND_FRAGMENT]);
   markup_swatch(w, "c-low", low);
   html_close(w);
 }

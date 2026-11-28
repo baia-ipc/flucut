@@ -5,7 +5,7 @@ SUCCESS | OUTDIR/reads-b.fastq.gz: 11 of 13 reads written (11 with both primers,
 WARNING | OUTDIR/reads-b.fastq.gz: HA segment: 4 of 10 complete amplicons shorter than the closest reference (KX058884.1, 1885 bases), most at 1150-1159 bases: internal priming or deletions
 SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_dashboard.html, OUTDIR/flucut_summary.json
 == reads-b.fastq.gz ==
-md5: dd591e63eed7effbe08b44945d2d0fcf
+md5: 7c3aa62686730b4f1bc989240f4f833c
 @full_plus simulated	fs:Z:+	fl:Z:b-hana-unif	ol:Z:terminal	ml:Z:KX058884.1:15:+	fr:Z:b-hana-unir	or:Z:terminal	mr:Z:KX058884.1:1870:-	ct:Z:full	tl:i:6	tr:i:10
 1885 AGCAGAAGCAGAGCA...GCTCTTGTTACTACT
 @full_minus simulated	fs:Z:-	fl:Z:b-hana-unif	ol:Z:terminal	ml:Z:KX058884.1:15:+	fr:Z:b-hana-unir	or:Z:terminal	mr:Z:KX058884.1:1870:-	ct:Z:full	tl:i:10	tr:i:6
@@ -22,15 +22,15 @@ md5: dd591e63eed7effbe08b44945d2d0fcf
 1171 AGTAGTAACAAGAGC...GGCAGATGAGGTGAA
 @internal13_plus simulated	fs:Z:+	fl:Z:b-hana-unif	ol:Z:terminal	ml:Z:KX058884.1:15:+	fr:Z:b-hana-unir	or:Z:internal	mr:Z:KX058884.1:914:-	ct:Z:full	tl:i:6	tr:i:25
 914 AGCAGAAGCAGAGCA...GTGCGCAAGTGGCAG
-@no_primer simulated	fs:Z:.	ct:Z:other	tl:i:0	tr:i:0
+@no_primer simulated	fs:Z:.	ct:Z:fragment	tl:i:0	tr:i:0
 300 CCACATGTCGTCAAA...CCTAACCTTCTCCGA
 @left_only simulated	fs:Z:+	fl:Z:b-hana-unif	ol:Z:terminal	ml:Z:KX058884.1:15:+	ct:Z:full	tl:i:6	tr:i:0
 514 AGCAGAAGCAGAGCA...GGTCTTGCCCTAACA
 @other_segment_primer simulated	fs:Z:+	fl:Z:b-m-uni3f	ol:Z:terminal	ml:Z:KX058884.1:15:+	fr:Z:b-hana-unir	or:Z:terminal	mr:Z:KX058884.1:1870:-	ct:Z:full	tl:i:23	tr:i:10
 1871 ATTTTCTAATATCCA...GCTCTTGTTACTACT
 == summary.tsv ==
-output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_unplaced	out_other	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
-reads-b	13	15718	11	15366	11	1	1	2	1	2	0	0	0	9	2	1	8	2	1	4	8	2	0	0	1	PAKLLKER	6	0.8333	0.9167	0.0000	too few reads	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	with_internal_match	split	cut_at_junction	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
+reads-b	13	15718	11	15366	11	1	1	2	1	2	0	0	0	9	2	1	8	2	1	4	8	2	0	1	0	0	PAKLLKER	6	0.8333	0.9167	0.0000	too few reads	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 == lengths.tsv ==
 output	group	length	reads
 reads-b	KX058884.1	20	1
@@ -101,7 +101,7 @@ reads-b	KX058884.1	1850	6
       "adapter_start": 0,
       "adapter_end": 0
     },
-    "written_by_category": {"full": 8, "internal": 2, "deletion": 0, "unplaced": 0, "other": 1},
+    "written_by_category": {"full": 8, "internal": 2, "deletion": 0, "fragment": 1, "unplaced": 0, "unknown": 0},
     "read_lengths": {"input": {"reads": 13, "bases": 15718, "min": 45, "max": 1926, "mean": 1209, "median": 1207, "n50": 1901}, "written": {"reads": 11, "bases": 15366, "min": 300, "max": 1885, "mean": 1396, "median": 1871, "n50": 1885}},
     "read_quality": {"input": {"reads": 13, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 11, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
     "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
@@ -200,7 +200,7 @@ reads-b	KX058884.1	1850	6
         "adapter_start": 0,
         "adapter_end": 0
       },
-      "written_by_category": {"full": 8, "internal": 2, "deletion": 0, "unplaced": 0, "other": 1},
+      "written_by_category": {"full": 8, "internal": 2, "deletion": 0, "fragment": 1, "unplaced": 0, "unknown": 0},
       "read_lengths": {"input": {"reads": 13, "bases": 15718, "min": 45, "max": 1926, "mean": 1209, "median": 1207, "n50": 1901}, "written": {"reads": 11, "bases": 15366, "min": 300, "max": 1885, "mean": 1396, "median": 1871, "n50": 1885}},
       "read_quality": {"input": {"reads": 13, "median": 11.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 11, "median": 11.5, "q10": 1.0000, "q20": 0.0000}},
       "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},

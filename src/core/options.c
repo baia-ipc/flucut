@@ -107,15 +107,16 @@ enum {
   "   --no-tags              do not append the tags to the read titles\n" \
   "   --no-split             do not split the reads which contain\n" \
   "                          several amplicons\n" \
-  "   --by-category          write the reads of each input to five files,\n" \
+  "   --by-category          write the reads of each input to six files,\n" \
   "                          by category (the tag ct), instead of one:\n" \
   "                          <name>.full.fastq.gz (full templates),\n" \
   "                          <name>.internal.fastq.gz (internal priming),\n" \
   "                          <name>.deletion.fastq.gz (internal\n" \
-  "                          deletions), <name>.unplaced.fastq.gz\n" \
-  "                          (complete amplicons on no segment) and\n" \
-  "                          <name>.other.fastq.gz (no 5' primer, or not\n" \
-  "                          located); needs the references\n" \
+  "                          deletions), <name>.fragment.fastq.gz (placed\n" \
+  "                          on a segment, no 5' primer),\n" \
+  "                          <name>.unplaced.fastq.gz (complete amplicons\n" \
+  "                          on no segment) and <name>.unknown.fastq.gz\n" \
+  "                          (placed on no segment); needs the references\n" \
   "   --cut-deletions        write a read with an internal deletion as\n" \
   "                          two records, its two flanks, cut at the\n" \
   "                          junction (names: <read>_j1, <read>_j2);\n" \

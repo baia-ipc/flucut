@@ -81,9 +81,9 @@ def predicted_spans(part: dict, ref_lengths: dict[str, int]
     (`ml`, `mr`), as flucut does. The category is the one flucut wrote
     in the `ct` tag, with the strand; for reads without that tag it is
     worked out from the other tags too. A read which flucut placed by a
-    probe from inside it, and a complete amplicon it places on no
-    segment ("unplaced"), have no tag for their position: they have no
-    span, and without `ct` they are "not_located"."""
+    probe from inside it, and the reads it places on no segment
+    ("unplaced", "unknown"), have no tag for their position: they have
+    no span, and are "not_located"."""
     category, ref, spans = _spans_from_tags(part, ref_lengths)
     said = part.get("ct")
     if said is None:
@@ -93,8 +93,9 @@ def predicted_spans(part: dict, ref_lengths: dict[str, int]
         return CT_CATEGORIES[said] + strand, ref, spans
     if said == "deletion":
         return "deletion", ref, spans
-    if said == "unplaced":
+    if said in ("unplaced", "unknown"):
         return "not_located", None, []
+    # a fragment: placed, no 5' primer
     return ("no_primer" if spans else "not_located"), ref, spans
 
 

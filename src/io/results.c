@@ -25,7 +25,8 @@ static void summary_header(FILE *f) {
         "left_internal\t"
         "left_unknown\tright_terminal\tright_internal\tright_unknown\t"
         "short_complete\tout_full\tout_internal\tout_deletion\t"
-        "out_unplaced\tout_other\tcleavage_site\tcleavage_reads\t"
+        "out_fragment\tout_unplaced\tout_unknown\tcleavage_site\t"
+        "cleavage_reads\t"
         "cleavage_support\tcleavage_control\tcleavage_multibasic\t"
         "cleavage_verdict", f);
   summary_markers_header(f);
