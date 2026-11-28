@@ -110,12 +110,9 @@ bool marker_counts_load_line(marker_counts_t *self, char *line);
    worth looking at. A minority below it is still reported in the
    distribution, as a value, but not as one the sample holds.
 
-   A tenth, as at the cleavage site. On 104 Nanopore samples the reads
-   agree where the anchor matched in a median of 86% of them on R10 and
-   61% on R9 (docs/markers.md): a value carried by fewer than a tenth
-   of the reads is not told from that disagreement, and the values of
-   the second residue of a marker seen below it cluster between a
-   twentieth and a tenth, where the errors are.
+   A tenth, as at the cleavage site: below it a value is not told from
+   the disagreement the reads of a sample already show at the anchor,
+   where nothing is difficult (docs/markers.md).
 */
 #define MARKER_MIN_SHARE 0.10
 #define MARKER_MIN_VALUE_READS 3

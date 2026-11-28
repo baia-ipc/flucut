@@ -125,6 +125,17 @@ within the errors a read is searched with. Both are checked when a run
 starts; a reference which fails either is named at ``--debug`` and
 simply gives no marker.
 
+Finding the anchor is not enough: the bases beside it have to be the
+bases of that position. A marker is therefore read only from a stretch
+of a read which follows its reference — within the part flucut keeps,
+which is the part it judges to be the template, clear of the junction
+of an internal deletion and of any primer, and at a place the read
+actually covers. The bases flucut removes are the whole primer at an
+internally primed end, and reading over them reads the primer: the
+conserved terminus ``AGCAAAAGCAGG`` ends in ``AAA``, a lysine, so a
+marker whose window is the codon before its anchor would read K on
+every read primed just before it.
+
 How much to trust a value
 -------------------------
 
@@ -166,9 +177,8 @@ Each marker comes with three numbers and a verdict.
 A value carried by at least a tenth of the reads and by at least 3
 reads counts as one the sample holds. Where there is more than one, the
 sample holds a mixture, and the report shows each value with its share.
-On the 104 Nanopore samples the markers were measured on, the reads
-agree at the anchor in a median of 86% of them on R10 and 61% on R9: a
-value below a tenth of the reads is not told from that disagreement.
+Below a tenth a value is not told from the disagreement the reads
+already show at the anchor, where nothing is difficult.
 
 ``PB1-F2`` and ``NA-stalk`` are read over far more than one codon, so
 one indel anywhere in the window changes what is read. On Nanopore

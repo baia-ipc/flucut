@@ -140,11 +140,25 @@ before that anchor. In one sample this turned PB2 627 into K in 89% of
 **A read with an internal deletion gives a marker only where the anchor
 and the window lie on the same side of its junction.** Such a read is
 two flanks of the segment joined, and the bases before the junction come
-from somewhere else entirely. This is not a corner case: in a sample of
-the validation set, the junction of the defective genomes lies three
-bases before the anchor of PB2-701, and reading across it gave
-tryptophan in 80% of 112,000 reads where the residue is aspartate. A
-read whose junction was not located gives no marker at all.
+from somewhere else entirely. A read whose junction was not located
+gives no marker at all. The same
+holds for the short deletions beside the junction, which are missing
+stretches of the segment just as the junction is, and for a primer
+which matched inside a read.
+
+Together these say one thing: **a marker is read only from a stretch
+of a read which follows its reference**. It is not enough for the
+anchor to be found; the bases beside it have to be the bases of that
+position. The anchor must also lie in the stretch of the reference the
+read covers, so that an anchor found where the read does not reach
+gives nothing.
+
+What a marker says does not depend on how the reads are written: the
+cuts and the kept part are those of the read as it arrived, whether or
+not `--deletions` writes it in pieces, and a read a category filter
+leaves out of the output is still read for its markers. Which bases of
+a read are the template is a property of the data; which reads are
+written is a choice.
 
 ## How far it can be trusted
 
@@ -224,106 +238,6 @@ reference.
 In the influenza B set (32 records) **no anchor of the table is found at
 all**, so an influenza B sample reports no marker rather than a wrong
 one.
-
-### The values, against the consensus of the same reads
-
-The six markers read as single residues were compared with the IRMA
-consensus of the same reads, on the 104 Nanopore samples of the
-multisegment RT-PCR used for the cleavage site (101 H5N1, 2 H5N2, 1
-H9N2; 94 R10 and 10 R9 samples, selected for a high share of defective
-genomes, so a hard case). The consensus was read at the same anchored
-position, so the two readings are of the same residue.
-
-| marker | agree | differ |
-|---|---|---|
-| `PB2-627` | 84 | 5 |
-| `PB2-701` | 87 | 1 |
-| `PA-38` | 103 | 0 |
-| `NA-275` | 99 | 0 |
-| `HA-226-228` | 98 | 1 |
-| `M2-31` | 96 | 0 |
-| **total** | **567** | **7** |
-
-**In all seven disagreements the residue of the consensus is among the
-values flucut reports**: the two differ in which value is the majority,
-not in which residues are there. Six of the seven are positions where
-flucut reports both residues above a tenth of the reads — a mixture the
-consensus has to resolve one way. Five of the seven are not `firm`.
-
-### What the reads said
-
-| marker | samples with a value | the values | `firm` | `confirm` | `unresolved` | too few reads |
-|---|---|---|---|---|---|---|
-| `PB2-627` | 99 | K 51, E 47, F 1 | 75 | 24 | – | 5 |
-| `PB2-701` | 104 | D 102, W 1, K 1 | 93 | 11 | – | – |
-| `PA-38` | 103 | I 103 | 98 | 5 | – | 1 |
-| `NA-275` | 100 | H 99, T 1 | 89 | 11 | – | 4 |
-| `HA-226-228` | 100 | QSG 76, QRG 22, LMG 1, SKS 1 | 94 | 6 | – | 4 |
-| `M2-31` | 104 | S 93, N 11 | 102 | 2 | – | – |
-| `NS1-tail` | 104 | ESEV* 98, EPEV* 2, other 4 | 92 | 12 | – | – |
-| `NA-stalk` | 11 | 429 (9), 431 (2) | – | 11 | 21 | 72 |
-| `PB1-F2` | 22 | 87 (7), 90 (5), 8 (5), 57 (4), 11 (1) | 6 | 16 | 77 | 5 |
-
-The residues are those of avian H5N1: no oseltamivir and no baloxavir
-residue, the avian receptor-binding pair in all but two samples, and the
-avian PDZ-binding motif ESEV. Half the samples carry PB2 627K, and 41
-of them carry both 627K and 627E above a tenth of their reads — which
-is the kind of thing a consensus does not show.
-
-### How much the reads agree where nothing is difficult
-
-The share of the reads agreeing on the residues where the anchor
-matched, over all markers of all samples with at least 20 such reads:
-
-| chemistry | markers | median | 10th percentile |
-|---|---|---|---|
-| R10 | 836 | 0.863 | 0.722 |
-| R9 | 85 | 0.614 | 0.384 |
-
-The two chemistries separate by themselves, as the control windows of
-the cleavage site do, so the floor below which a minority is not told
-from the errors of the reads is read from the reads in hand and not from
-a rule naming the chemistry. It is also why a value below a tenth of the
-reads is not counted as one the sample holds: on R9 reads the
-disagreement at the anchor alone is of that size.
-
-### How many reads reach a marker
-
-In these samples the anchor is found in a median of 70% to 88% of the
-reads searched for the markers near a segment terminus (`PB2-701`,
-`PA-38`, `M2-31`, `NS1-tail`, `PB1-F2` and the first anchor of
-`NA-stalk`), and in 0.3%, 1.0% and 3.3% for `PB2-627`, `HA-226-228` and
-`NA-275`, which lie in the middle of their segment. The samples were
-chosen for a high share of defective genomes, which keep the two ends of
-a segment and lose the middle: the difference is coverage, and the read
-counts reported say so.
-
-`NA-stalk` suffers most, because it needs both of its anchors, some 430
-bases apart, in one read: 72 of the 104 samples have too few such reads
-for any value.
-
-### The junction of a defective genome
-
-Reading a window across the junction of a read with an internal deletion
-gives the residue of another part of the segment, reproducibly, because
-the junctions of the defective genomes of a sample cluster. In one
-sample the junction lies three bases before the anchor of `PB2-701`, and
-before this was fixed 80% of 112,000 reads gave tryptophan where the
-residue is aspartate. Reading a marker only where the anchor and the
-window lie on one side of the junction removes most of it; in that one
-sample the wrong value is still the majority, at 58%, with the right one
-at 32%, and the verdict is `confirm` rather than `firm`.
-
-### The markers read over a long window
-
-`NS1-tail` is read over 16 codons but is `firm` in 92 of the 104
-samples, because its value is read backwards from the stop codon and is
-five residues wide wherever in the window the protein ends.
-`PB1-F2`, which needs the position of the first stop codon in 92 codons,
-is `unresolved` in 77 of them: one indel anywhere in 276 bases creates a
-stop, and on Nanopore reads nearly every read has one. It is reported
-with that verdict rather than left out, and on Illumina reads, whose
-indel rate is far lower, it is not in that state.
 
 ## What it does not do
 
