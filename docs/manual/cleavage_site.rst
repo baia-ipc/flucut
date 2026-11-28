@@ -230,6 +230,14 @@ longer than that, as some highly pathogenic H7 carry, is shown only in
 part; the site still reads as multibasic, so only the residues printed
 are cut short.
 
+It does not assign a clade. The site and the clade are read in different
+ways and at different moments: the site from single reads beside the
+fusion peptide, before assembly; the clade from a near-complete
+haemagglutinin, after it. Assemble and then run a clade classifier on
+the consensus — Nextclade with an avian A(H5) dataset, or LABEL, which
+IRMA ships. :doc:`markers` says more about why the boundary is drawn
+there.
+
 Example
 -------
 

@@ -344,7 +344,14 @@ that site, at PB2 1913 to 1918, in its own table of internal priming).
 
 ## What it does not do
 
-- It does not call a clade, a genotype or a lineage.
+- It does not call a clade, a genotype or a lineage. A marker is a
+  residue beside a conserved anchor, readable from one read; a clade is
+  a placement on a tree, which needs a near-complete haemagglutinin and
+  a nomenclature that is revised. That work belongs to a classifier run
+  on the consensus afterwards — Nextclade with an avian A(H5) dataset,
+  or LABEL, which IRMA ships — with the dataset tag recorded beside the
+  result. The manual says the same in the user's terms
+  (`docs/manual/markers.rst`).
 - It does not predict a phenotype. A residue associated with resistance
   in the literature is reported as that residue, not as resistance; a
   susceptibility result needs a susceptibility assay.

@@ -238,6 +238,45 @@ A marker is a residue read from the reads, nothing more.
 * It does not replace a consensus: a marker is a handful of positions
   read early, and the rest of the segment still has to be assembled.
 
+Why there is no clade, and what to run instead
+----------------------------------------------
+
+If you see the marker residues and the cleavage site in the report, the
+next question is usually where the clade is. It is not there, and it is
+not coming.
+
+A marker is a residue; a clade is a placement on a tree. The residue can
+be read from one read, because a short conserved peptide sits directly
+beside it and says where it is. A clade has no such peptide: it is
+decided by the pattern of a whole haemagglutinin against the
+haemagglutinins of every other virus, so it needs a near-complete
+segment, which exists only once the reads have been assembled. The
+anchor flucut uses needs a fixed position in conserved context, which is
+the opposite of a site that is informative because it varies.
+
+There is a practical reason as well. Clade nomenclatures are revised,
+and a table built into a program cannot follow them: it would name a
+clade correctly this year and wrongly the next without anything in the
+program having changed. The tools that do assign clades are maintained
+with their nomenclature, which is what makes them right.
+
+So assemble first and then run one of them on the consensus:
+
+* **Nextclade** with an avian A(H5) dataset, which assigns the clade and
+  also reads the cleavage site from the assembled haemagglutinin. Pin
+  the dataset tag you used and record it beside the result: the same
+  sequence can be placed differently under a later dataset.
+* **LABEL**, which IRMA ships, if you already run IRMA. Its H5 module
+  classifies the haemagglutinin with hidden Markov models, independently
+  of Nextclade. Where the two disagree, the sequence is worth looking at.
+
+The two readings answer different questions and both are worth having.
+flucut tells you, while the run is still going and read by read, which
+residues the sample carries and in what proportion — including a residue
+present in only a part of the population, which a consensus rounds away.
+A clade classifier tells you, once a consensus exists, which lineage the
+virus belongs to. Neither replaces the other.
+
 Adding a marker
 ---------------
 
