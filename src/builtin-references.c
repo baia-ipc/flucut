@@ -207,7 +207,8 @@ const char* builtin_references_path(virus_set_t set, Logger *logger) {
   static char path[4096];
   /* a set of the configuration file, e.g. one built from the seeds of
      IRMA by scripts/irma_references.py (see user-config.h) */
-  const char *configured = user_config_value("references", logger);
+  const char *configured = user_config_value("flucut", "references",
+                                              logger);
   if (configured != NULL) {
     snprintf(path, sizeof(path), "%s", configured);
     if (file_ok(path)) {
