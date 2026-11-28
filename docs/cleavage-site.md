@@ -240,14 +240,28 @@ frameshifted samples from firm and leave the same 19 of 21 others firm.
 Pooled over leave-one-run-out folds both keep 10 of 12 from firm, and the
 refitted ones leave fewer of the others firm (79 of 92 against 83).
 
-Two things that refitting does say. The three thresholds are not jointly
-identified: 1248 triples reach the same best score, because a sample can
-be held back by any of them. And the floor on the support at the site is
-fitted at zero in nearly every fold — on these samples the read count
-and the control support already do its work, and the read count would
-rather be 40 to 50 than 20. That is not a reason to change them here,
-since the numbers as they stand generalise at least as well, but it is
-what the data say about which of the three is carrying the rule.
+What refitting does say is that the three are substitutes for one
+another. They are not jointly identified: 1248 triples reach the same
+best score, because a sample kept from firm by one of them is often kept
+from firm by another as well. Left to itself the fit raises the read
+floor to 40 or 50 and then sets the floor on the support at the site to
+zero, since at that read floor it has nothing left to do.
+
+That is a statement about the fit and not about the threshold. At the
+read floor of 20 which the rule actually uses, the floor on the support
+at the site is the only thing holding back 2 of the 12 frameshifted
+samples, and 2 of the 19 samples not called firm are held back by it
+alone. Only one sample is held back by the control support alone and
+three by the read count alone; the other 13 trip more than one. So none
+of the three is idle, and which one catches a given sample depends on
+where the other two are set.
+
+This is also where refitting on small sets goes wrong. In one of the
+five folds the fit kept the control floor and threw away both the read
+floor and the site-support floor, which on its own training samples cost
+nothing; the fold held out from it contained five frameshifted samples
+with high control support, and the two floors it had discarded were
+exactly what would have caught three of them.
 
 ## What other tools do
 
