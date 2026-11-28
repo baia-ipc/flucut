@@ -48,6 +48,42 @@ static bool placed(const marker_breaks_t *breaks, long at) {
   return false;
 }
 
+/*
+   Find <anchor> in the read. A read located on its reference carries
+   the anchor about where the stretches it covers put it: counted along
+   them from the first base kept of the read if the read runs along the
+   reference, from the last one if it runs the other way. The anchor is
+   looked for within a margin of those two places first - the reads of a
+   whole segment are long, and the anchor is short - and in the whole
+   read only if it is not found there, so that a read whose place was
+   estimated badly is still read. The margin allows for the error of the
+   placement and for the indels of a long read.
+*/
+static bool find_anchor(const anchor_t *anchor, const char *read,
+    size_t len, const marker_breaks_t *breaks, double max_error_rate,
+    anchor_hit_t *hit) {
+  long offset = -1, total = 0;
+  for (size_t i = 0; i < breaks->n_covered; i++) {
+    const marker_span_t *c = &breaks->covered[i];
+    if (offset < 0 && anchor->ref_pos >= c->from - MARKER_PLACEMENT_SLACK &&
+        anchor->ref_pos <= c->to + MARKER_PLACEMENT_SLACK)
+      offset = total + (anchor->ref_pos - c->from);
+    total += c->to - c->from + 1;
+  }
+  if (offset >= 0) {
+    long alen = (long)anchor->len;
+    long plus_at = breaks->read_from + offset;
+    long minus_at = breaks->read_from + total - offset - alen;
+    long plus_margin = MARKER_PLACEMENT_SLACK + offset / 10;
+    long minus_margin = MARKER_PLACEMENT_SLACK + (total - offset) / 10;
+    if (anchor_find_within(anchor, read, len, plus_at - plus_margin,
+            plus_at + alen - 1 + plus_margin, minus_at - minus_margin,
+            minus_at + alen - 1 + minus_margin, max_error_rate, hit))
+      return true;
+  }
+  return anchor_find(anchor, read, len, max_error_rate, hit);
+}
+
 /* whether the anchor matched, and the window beside it was read, on a
    contiguous stretch of the read */
 static bool window_whole(const anchor_hit_t *hit, size_t len,
@@ -72,7 +108,7 @@ static void read_marker(const marker_reference_t *site, size_t marker,
   if (!placed(breaks, site->anchor.ref_pos))
     return;
   anchor_hit_t hit;
-  if (!anchor_find(&site->anchor, read, len, max_error_rate, &hit))
+  if (!find_anchor(&site->anchor, read, len, breaks, max_error_rate, &hit))
     return;
   /* the anchor as the read carries it: the reads which agree on it are
      the ones the marker beside it is read from */
@@ -86,7 +122,8 @@ static void read_marker(const marker_reference_t *site, size_t marker,
   if (def->kind == MARKER_SPAN) {
     anchor_hit_t hit2;
     if (!placed(breaks, site->anchor2.ref_pos) ||
-        !anchor_find(&site->anchor2, read, len, max_error_rate, &hit2))
+        !find_anchor(&site->anchor2, read, len, breaks, max_error_rate,
+                     &hit2))
       return;
     long span = span_of(&hit, &hit2);
     if (span < 0 ||

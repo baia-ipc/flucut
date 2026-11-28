@@ -6,7 +6,8 @@
    Which reads are read is left to the caller, because it is not the
    same on the two platforms: a read of a whole amplicon (Nanopore) is
    located on a reference, so only the markers of that reference are
-   looked for in it, while a read of a fragment (Illumina) which covers
+   looked for in it, and near where the read covers them; one placed on
+   no segment is not read. A read of a fragment (Illumina) which covers
    a marker usually carries no primer and is not located at all, so
    every marker is looked for and the anchors themselves say which ones
    the read covers.
@@ -71,6 +72,11 @@ typedef struct {
      the anchor itself says where it is */
   const marker_span_t *covered;
   size_t n_covered;
+  /* the position in the read of the first base of the covered
+     stretches (the first base flucut keeps of it): with them, it says
+     about where the read carries an anchor, which is then looked for
+     near there first (marker-read.c) */
+  long read_from;
 } marker_breaks_t;
 
 void marker_read_sites(const marker_reference_t *const *chosen, long ref,

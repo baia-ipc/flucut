@@ -123,10 +123,14 @@ for would report the residue of the wrong place.
 ## Which reads are read
 
 A read of a whole amplicon (Nanopore) is located on a reference, so only
-the markers of that reference are looked for in it. A read of a fragment
-(Illumina) which covers a marker usually carries no primer and is not
-located at all: every marker is looked for, and the anchors themselves
-say which ones the read covers.
+the markers of that reference are looked for in it, and each anchor
+first near where the read's place on the reference puts it (the whole
+read is searched only if it is not found there). A Nanopore read placed
+on no segment gives no marker, as it gives no cleavage site: what it is
+a read of is not known. A read of a fragment (Illumina) which covers a
+marker usually carries no primer and is not located at all: every marker
+is looked for, and the anchors themselves say which ones the read
+covers.
 
 **A marker is read only from the part of a read flucut keeps**, the
 bases it judges to be the template. The bases it removes are the whole

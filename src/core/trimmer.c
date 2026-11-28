@@ -282,9 +282,11 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
   size_t category = read_cover_category(&cover);
   counter_add_located_read(counts, a, len, &cover);
   read_cleavage_site(self, seq, len, &cover, category, counts);
-  /* the markers of the segment of the read; a read which is not
-     located (the reads of a fragment, see marker-read.h) is searched
-     for every marker. A read gives only the markers which lie whole on
+  /* the markers of the segment of the read. As for the cleavage site,
+     a read of a fragment (Illumina) is not located and is searched for
+     every marker, while a read of a whole amplicon (Nanopore) which is
+     placed on no segment is not searched at all (see marker-read.h).
+     A read gives only the markers which lie whole on
      a stretch where it follows its reference: between the cuts of an
      internal deletion, and clear of a primer which matched inside it,
      whose bases are the primer and not the template. A read with an
@@ -293,8 +295,9 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
   long cuts[1 + FLANK_DELETIONS_MAX_CUTS];
   marker_span_t blocked[AMPLICON_MAX_INTERNAL + 2];
   marker_span_t covered[2];
-  marker_breaks_t breaks = {cuts, 0, blocked, 0, covered, 0};
-  bool readable = category != READ_CATEGORY_DELETION || a->junction.found;
+  marker_breaks_t breaks = {cuts, 0, blocked, 0, covered, 0, a->keep_from};
+  bool readable = (self->config->illumina || cover.located) &&
+                  (category != READ_CATEGORY_DELETION || a->junction.found);
   if (readable) {
     if (category == READ_CATEGORY_DELETION) {
       cuts[breaks.n_cuts++] = a->junction_at;

@@ -1,5 +1,6 @@
 /* (c) 2026 Giorgio Gonnella */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
@@ -146,7 +147,8 @@ static void read_n_at(const marker_reference_t *const *chosen, long ref,
     long junction, const char *seq, size_t n, marker_counts_t *counts) {
   char rc[512];
   size_t len = strlen(seq);
-  marker_breaks_t breaks = {&junction, junction < 0 ? 0 : 1, NULL, 0};
+  marker_breaks_t breaks = {.cuts = &junction,
+                            .n_cuts = junction < 0 ? 0 : 1};
   reverse_complement(seq, len, rc);
   for (size_t i = 0; i < n; i++) {
     marker_read_sites(chosen, ref, &breaks, seq, len, 0.2, counts);
@@ -232,7 +234,7 @@ static void test_reads(void) {
   marker_counts_clear(&c);
   size_t pb2_len = strlen(PB2_627E);
   long at = (long)strlen(PB2_HEAD) + 3;   /* the first base of the anchor */
-  marker_breaks_t at_anchor = {&at, 1, NULL, 0};
+  marker_breaks_t at_anchor = {.cuts = &at, .n_cuts = 1};
   for (size_t i = 0; i < 30; i++)
     marker_read_sites(chosen, 0, &at_anchor, PB2_627E, pb2_len, 0.2, &c);
   marker_result_of(&c, MARKER_PB2_627, &r);
@@ -244,7 +246,7 @@ static void test_reads(void) {
   /* a junction past the whole site: the value is read */
   marker_counts_clear(&c);
   long past = (long)pb2_len;
-  marker_breaks_t beyond = {&past, 1, NULL, 0};
+  marker_breaks_t beyond = {.cuts = &past, .n_cuts = 1};
   for (size_t i = 0; i < 30; i++)
     marker_read_sites(chosen, 0, &beyond, PB2_627E, pb2_len, 0.2, &c);
   marker_result_of(&c, MARKER_PB2_627, &r);
@@ -256,13 +258,55 @@ static void test_reads(void) {
   marker_counts_clear(&c);
   long at_primer = (long)strlen(PB2_HEAD);
   marker_span_t primer = {at_primer, at_primer + 2};
-  marker_breaks_t inside = {NULL, 0, &primer, 1};
+  marker_breaks_t inside = {.blocked = &primer, .n_blocked = 1};
   for (size_t i = 0; i < 30; i++)
     marker_read_sites(chosen, 0, &inside, PB2_627E, pb2_len, 0.2, &c);
   marker_result_of(&c, MARKER_PB2_627, &r);
   test_eq_size(r.searched, 30);
   test_eq_size(r.reads, 0);
   test_assert(r.anchor_reads > 0);
+
+  /* a located read is searched first where its placement puts the
+     anchor: a long read carrying a copy with K at its start and the
+     segment, with E, after 300 other bases, located from there */
+  char longread[700], longrc[700];
+  size_t pos = 0;
+  pos += (size_t)sprintf(longread + pos, "%s", PB2_627K);
+  for (size_t i = 0; i < 75; i++)
+    pos += (size_t)sprintf(longread + pos, "ACGT");
+  long kept = (long)pos;
+  pos += (size_t)sprintf(longread + pos, "%s", PB2_627E);
+  for (size_t i = 0; i < 25; i++)
+    pos += (size_t)sprintf(longread + pos, "ACGT");
+  reverse_complement(longread, pos, longrc);
+  marker_span_t segment = {0, (long)pb2_len - 1};
+  marker_breaks_t located = {.covered = &segment, .n_covered = 1,
+                             .read_from = kept};
+  /* the same read the other way: its kept part begins as far from its
+     start as the segment ends from the end of the read */
+  marker_breaks_t located_rc = located;
+  located_rc.read_from = (long)pos - kept - (long)pb2_len;
+  marker_counts_clear(&c);
+  marker_read_sites(chosen, 0, &located, longread, pos, 0.2, &c);
+  marker_read_sites(chosen, 0, &located_rc, longrc, pos, 0.2, &c);
+  marker_result_of(&c, MARKER_PB2_627, &r);
+  test_eq_size(r.value_reads, 2);
+  test_eq_str(r.value, "E");
+  /* not located: the whole read is searched, and the first copy read */
+  marker_breaks_t unplaced = {.n_covered = 0};
+  marker_counts_clear(&c);
+  marker_read_sites(chosen, 0, &unplaced, longread, pos, 0.2, &c);
+  marker_result_of(&c, MARKER_PB2_627, &r);
+  test_eq_size(r.reads, 1);
+  test_eq_str(r.value, "K");
+  /* placed where the read carries no anchor: the whole read is searched
+     then, so a read placed badly is still read */
+  marker_breaks_t misplaced = located;
+  misplaced.read_from = 200;
+  marker_counts_clear(&c);
+  marker_read_sites(chosen, 0, &misplaced, longread, pos, 0.2, &c);
+  marker_result_of(&c, MARKER_PB2_627, &r);
+  test_eq_size(r.reads, 1);
 
   /* the C-terminus of a protein, and the length of a stretch, read in
      both orientations */

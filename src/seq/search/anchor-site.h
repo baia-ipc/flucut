@@ -121,6 +121,20 @@ typedef struct {
 bool anchor_find(const anchor_t *self, const char *read, size_t read_len,
     double max_error_rate, anchor_hit_t *hit);
 
+/*
+   The same, searching the anchor only in a part of the read, for a
+   caller which knows about where the read carries it but not which way
+   the read runs: in the orientation of the reference between the
+   positions <fwd_from> and <fwd_to> of the read, and reverse
+   complemented between <rev_from> and <rev_to> (0-based, the last one
+   included; clamped to the read). The positions of <hit> are in the
+   whole read. A read of a whole segment is searched over a few hundred
+   bases instead of all of them.
+*/
+bool anchor_find_within(const anchor_t *self, const char *read,
+    size_t read_len, long fwd_from, long fwd_to, long rev_from, long rev_to,
+    double max_error_rate, anchor_hit_t *hit);
+
 /* The bases the anchor matched in the read: its length there, which
    differs from the length of the anchor where the read has an indel in
    it */

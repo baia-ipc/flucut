@@ -127,19 +127,35 @@ static long search(const char *query, size_t query_len, const char *target,
   return distance;
 }
 
-bool anchor_find(const anchor_t *self, const char *read, size_t read_len,
+/* the stretch of a read of <read_len> bases from <from> to <to> (0-based,
+   the last one included), clamped to the read: its first position in
+   <first>, and its length (0 if nothing of it is in the read) */
+static size_t clamp(long from, long to, size_t read_len, long *first) {
+  if (from < 0)
+    from = 0;
+  if (to > (long)read_len - 1)
+    to = (long)read_len - 1;
+  *first = from;
+  return to >= from ? (size_t)(to - from + 1) : 0;
+}
+
+bool anchor_find_within(const anchor_t *self, const char *read,
+    size_t read_len, long fwd_from, long fwd_to, long rev_from, long rev_to,
     double max_error_rate, anchor_hit_t *hit) {
   assert(self != NULL);
   assert(hit != NULL);
   memset(hit, 0, sizeof(anchor_hit_t));
   if (!self->found || read == NULL || read_len == 0)
     return false;
+  long fwd_first, rev_first;
+  size_t fwd_len = clamp(fwd_from, fwd_to, read_len, &fwd_first);
+  size_t rev_len = clamp(rev_from, rev_to, read_len, &rev_first);
   long max_errors = (long)(max_error_rate * (double)self->len);
   long fwd_start = 0, fwd_end = 0, rev_start = 0, rev_end = 0;
-  long fwd = search(self->seq, self->len, read, read_len, max_errors,
-                    &fwd_start, &fwd_end);
-  long rev = search(self->rev, self->len, read, read_len, max_errors,
-                    &rev_start, &rev_end);
+  long fwd = search(self->seq, self->len, read + fwd_first, fwd_len,
+                    max_errors, &fwd_start, &fwd_end);
+  long rev = search(self->rev, self->len, read + rev_first, rev_len,
+                    max_errors, &rev_start, &rev_end);
   if (fwd < 0 && rev < 0)
     return false;
   /* as good in both orientations: which side of the match a window is
@@ -148,9 +164,15 @@ bool anchor_find(const anchor_t *self, const char *read, size_t read_len,
     return false;
   hit->found = true;
   hit->reverse = !(rev < 0 || (fwd >= 0 && fwd < rev));
-  hit->start = hit->reverse ? rev_start : fwd_start;
-  hit->end = hit->reverse ? rev_end : fwd_end;
+  hit->start = hit->reverse ? rev_first + rev_start : fwd_first + fwd_start;
+  hit->end = hit->reverse ? rev_first + rev_end : fwd_first + fwd_end;
   return true;
+}
+
+bool anchor_find(const anchor_t *self, const char *read, size_t read_len,
+    double max_error_rate, anchor_hit_t *hit) {
+  return anchor_find_within(self, read, read_len, 0, (long)read_len - 1, 0,
+                            (long)read_len - 1, max_error_rate, hit);
 }
 
 bool anchor_window_span(const anchor_hit_t *hit, size_t read_len,
@@ -254,6 +276,22 @@ void anchor_site_test(void) {
   test_eq_str(out, "TTTATA");
   test_assert(anchor_bases_after(&hit, rc, strlen(rc), 6, 6, out));
   test_eq_str(out, "GAGGGA");
+  /* searched in a part of the read only: the positions are those of the
+     whole read; outside the part the anchor is not seen, and each
+     orientation is looked for in its own part */
+  long at = 9 + (long)strlen(SITE_NT);
+  test_assert(anchor_find_within(&a, ha, strlen(ha), at - 5, at + 30, 0, 0,
+                                 0.2, &hit));
+  test_assert(!hit.reverse);
+  test_eq_long(hit.start, at);
+  test_eq_long(hit.end, at + 23);
+  test_assert(!anchor_find_within(&a, ha, strlen(ha), 0, at - 1, 0,
+                                  (long)strlen(ha) - 1, 0.2, &hit));
+  test_assert(anchor_find_within(&a, rc, strlen(rc), 0, 0, -10, 1000, 0.2,
+                                 &hit));
+  test_assert(hit.reverse);
+  test_assert(!anchor_find_within(&a, rc, strlen(rc), 0,
+                                  (long)strlen(rc) - 1, 0, 10, 0.2, &hit));
   /* a read with errors in the anchor still finds it */
   char noisy[128];
   snprintf(noisy, sizeof(noisy), "ATGGAAAAA" SITE_NT
