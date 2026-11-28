@@ -1,12 +1,11 @@
 /* (c) 2026 Giorgio Gonnella */
 
-#include <errno.h>
 #include <math.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include "options.h"
+#include "numutils.h"
 #include "argparse-def.h"
 #include "amplicon.h"
 #include "auto-settings.h"
@@ -189,32 +188,6 @@ static void print_purpose(FILE *stream, const char *progname) {
 
 #undef PRINT_PURPOSE
 #define PRINT_PURPOSE(STREAM) print_purpose(STREAM, argv[0])
-
-/* parse a decimal number (the whole string); false if invalid */
-static bool parse_double(const char *s, double *value) {
-  char *end;
-  errno = 0;
-  *value = strtod(s, &end);
-  return *s != '\0' && *end == '\0' && errno == 0 && isfinite(*value);
-}
-
-/* parse a percentage, a decimal number followed by '%' (the whole
-   string), into the fraction it stands for (20% is 0.2); false if
-   <s> does not end with '%', or the number is invalid, negative or 100
-   or more */
-static bool parse_percent(const char *s, double *value) {
-  char buf[32];
-  size_t len = strlen(s);
-  if (len < 2 || len > sizeof(buf) || s[len - 1] != '%')
-    return false;
-  memcpy(buf, s, len - 1);
-  buf[len - 1] = '\0';
-  double percent;
-  if (!parse_double(buf, &percent) || percent < 0 || percent >= 100)
-    return false;
-  *value = percent / 100;
-  return true;
-}
 
 /* whether <s> is written as a percentage (it ends with '%') */
 static bool is_percent(const char *s) {
