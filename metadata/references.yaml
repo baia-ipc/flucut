@@ -1,0 +1,135 @@
+# The built-in reference set: the NCBI accessions flucut downloads on
+# first use and caches, so that a run can be classified against
+# references without the user providing any (see builtin-references.h).
+#
+# The build turns this file into the lists of the program
+# (scripts/references-table.awk writes obj/references-table.h): a
+# reference is added or changed here, not in the sources.
+#
+# Every record listed begins and ends with the conserved termini of the
+# segments, the targets of the universal primers, so that the ends of
+# the reads at a segment terminus are recognised as such, and every one
+# carries its subtype in its description. The script
+# scripts/find_builtin_references.py searches NCBI for records which
+# fulfil this and writes the lists below.
+#
+# The subtype of a sample is the subtype of the HA and of the NA its
+# reads are closest to, so every subtype needs references of its own:
+# several of them, as the lineages of one subtype can lie decades
+# apart, and the votes of the references of a subtype are counted
+# together (see auto-settings.h). The other segments differ little
+# between subtypes, and several isolates cover their diversity.
+#
+# Records
+#
+#   set        a set of references, by the type of influenza (A or B).
+#              The groups after it belong to it, until the next set
+#     version  the version of the set. The cache file is named after
+#              it, so a changed list needs a new version or an old
+#              cache would be reused
+#     note     what the set is
+#
+#   group      a group of accessions within the set, by a name used
+#              only here
+#     accessions  the accessions, space-separated
+#
+# Avoid ": " and "#" in the values.
+
+- set: A
+  version: v3
+  note: complete segments of influenza A, the HA of every subtype H1 to H16, the NA of every subtype N1 to N9, and the other six segments of isolates of several subtypes
+
+# the HA of each subtype: four references of each, of different
+# decades, hosts and places, as the lineages of a subtype can lie
+# decades apart
+
+- group: HA-H1
+  accessions: QB342831.1 AF091316.1 KC894804.1 MF872838.1
+- group: HA-H2
+  accessions: QB057580.1 KM213380.1 MG280380.1 KM885170.1
+- group: HA-H3
+  accessions: QB367364.1 KP202378.1 MF872855.1 KP202377.1
+- group: HA-H4
+  accessions: QB139075.1 GU066568.1 KX530513.2 GU066567.1
+- group: HA-H5
+  accessions: PV571614.1 MN037415.1 MH276986.1 MW132374.1
+- group: HA-H6
+  accessions: QB057598.1 MF575311.1 MW110064.1 MW110056.1
+- group: HA-H7
+  accessions: OL782158.1 AY338460.1 MF978398.1 AY338459.1
+- group: HA-H8
+  accessions: PZ231346.1 MG280398.1 MK995833.1 PZ229869.1
+- group: HA-H9
+  accessions: QB023536.1 KP100808.1 MN037524.1 KC821026.2
+- group: HA-H10
+  accessions: QB024178.1 GQ404728.2 KT887402.1 MG280186.1
+- group: HA-H11
+  accessions: QB023748.1 JN798212.2 MT818622.1 KF542875.1
+- group: HA-H12
+  accessions: QB024967.1 JX566034.1 MT818624.1 MT407041.1
+- group: HA-H13
+  accessions: PV450481.1 KP033522.1 MF575207.1 KJ372720.1
+- group: HA-H14
+  accessions: OP144199.1 KJ195668.1 MK928228.1 JN696316.2
+- group: HA-H15
+  accessions: QB024617.1 MF147992.1 MF147328.1 MF146641.1
+- group: HA-H16
+  accessions: QB024068.1 MK192316.1 MH158642.1 MZ015712.1
+
+# the NA of each subtype, likewise
+
+- group: NA-N1
+  accessions: QB024910.1 MF872852.1 QB342833.1 MW132361.1
+- group: NA-N2
+  accessions: QB367366.1 KC894807.1 MN037526.1 KC345623.1
+- group: NA-N3
+  accessions: QB023727.1 AY611526.1 KF885677.1 MW081048.1
+- group: NA-N4
+  accessions: PZ229867.1 MG280500.1 MG280039.1 PP829796.1
+- group: NA-N5
+  accessions: QB024743.1 M24740.1 MW132387.1 MT818788.1
+- group: NA-N6
+  accessions: QB024853.1 MW186789.1 MF575219.1 QB023868.1
+- group: NA-N7
+  accessions: QB024172.1 MW325955.1 MT406971.1 MK913511.1
+- group: NA-N8
+  accessions: QB025125.1 KP202376.1 MW132362.1 KP202374.1
+- group: NA-N9
+  accessions: QB057582.1 KF824506.1 MT773562.1 KF824505.1
+
+# the other segments (PB2, PB1, PA, NP, MP, NS) of isolates of
+# different subtypes, years and hosts
+
+- group: others-H1N1
+  accessions: QB367363.1 QB367331.1 QB342828.1 QB367360.1 QB367357.1 QB367329.1
+- group: others-H3N2
+  accessions: QB367355.1 QB367354.1 PZ944660.1 QB367352.1 QB367365.1 QB367367.1
+- group: others-H5N1
+  accessions: PQ064247.4 PZ598243.1 PZ598252.1 PZ599870.1 QB332476.1 QB024702.1
+- group: others-H5N8
+  accessions: PV410901.1 EU743133.2 PV410903.1 EU743131.2 PZ598696.1 PZ599841.1
+- group: others-H7N9
+  accessions: PQ756676.1 PQ756677.1 PQ756673.1 PQ756675.1 PQ756678.1 PQ756679.1
+- group: others-H9N2
+  accessions: QB023906.1 PZ768253.1 ON328346.1 PZ768255.1 QB214291.1 QB215690.1
+
+- set: B
+  version: v1
+  note: complete segments of influenza B, found the same way (scripts/find_builtin_references.py --virus b). Influenza B has no subtypes - its diversity is two lineages, Victoria and Yamagata, which the records rarely name - so the set holds four references of each segment instead, of different places and decades, and the reference of each segment closest to the reads of a sample is chosen from them as for influenza A
+
+- group: B-PB2
+  accessions: AF005737.1 AY504607.1 MN700020.1 PX491242.1
+- group: B-PB1
+  accessions: AY504608.1 MN700019.1 PZ093196.1 JX513083.1
+- group: B-PA
+  accessions: AF005738.1 KC866602.1 MN700021.1 PV226097.1
+- group: B-HA
+  accessions: EF626636.1 KX058884.1 PZ093207.1 PX494198.1
+- group: B-NP
+  accessions: MN700018.1 PX491246.1 EF626639.1 KC866605.1
+- group: B-NA
+  accessions: FJ766841.1 PZ093225.1 JQ396216.1 PX363335.1
+- group: B-MP
+  accessions: KC866607.1 MT040797.1 QB377036.1 KX351448.1
+- group: B-NS
+  accessions: KC866608.1 KM654633.1 PX363337.1 KC866606.1

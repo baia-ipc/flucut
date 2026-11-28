@@ -133,6 +133,15 @@ $(ADAPTERS_INC): metadata/adapters.yaml $(METADATA_AWK) \
 	  $< > $@
 $(OBJS): | $(ADAPTERS_INC)
 
+# the accessions of the built-in reference sets, from
+# metadata/references.yaml, in the same way (see builtin-references.h)
+REFERENCES_INC = $(OBJDIR)/references-table.h
+$(REFERENCES_INC): metadata/references.yaml $(METADATA_AWK) \
+                   scripts/references-table.awk | $(OBJDIR)
+	awk -f scripts/metadata-records.awk -f scripts/references-table.awk \
+	  $< > $@
+$(OBJS): | $(REFERENCES_INC)
+
 # the banner shown in a terminal (docs/logo/flucut-banner.ans), embedded
 # in the same way
 BANNER_INC = $(OBJDIR)/flucut-banner-ans.inc

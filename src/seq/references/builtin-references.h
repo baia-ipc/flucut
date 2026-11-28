@@ -6,7 +6,8 @@
    be classified against references without the user providing any. The
    set is not shipped with flucut; it is downloaded from NCBI on first
    use and cached, as it is the same for every run and may be updated
-   independently of the program.
+   independently of the program. Which records it holds, and why those,
+   is in metadata/references.yaml.
 
    builtin_references_path() returns the path to the cached FASTA of
    the types <set> (--virus, see virus.h), downloading it if it is not
