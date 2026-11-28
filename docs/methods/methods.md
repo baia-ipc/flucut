@@ -127,13 +127,17 @@ amplicon (`src/seq/primers/scheme.h`):
 
 | scheme | left end | right end |
 |---|---|---|
-| `uni12-mbt13+ibv-ga2` (default) | `uni12r`, the seven of influenza B | `mbtuni-13`, the six of influenza B |
+| `uni12-mbt13+ibv-ga2` | `uni12r`, the seven of influenza B | `mbtuni-13`, the six of influenza B |
 | `uni12-mbt13` | `uni12r` | `mbtuni-13` |
 | `ibv-ga2` | the seven of influenza B | the six of influenza B |
 | `mbt` | `mbtuni-12`, `mbtuni-12.4r` | `mbtuni-13` |
 | `uni` | `uni12`, `uni12r` | `uni13` |
 
-The default is the scheme of the types expected (`--virus`). The
+The default, `-s auto`, chooses the scheme of influenza A from the tails
+found directly in front of the conserved termini in the first reads
+(`src/core/scheme-choice.h`), and adds the primers of influenza B when
+the run may hold it; where no scheme is singled out, the scheme of the
+types expected (`--virus`, `uni12-mbt13+ibv-ga2` for both) is used. The
 right-end primers are stored reverse-complemented, as they appear in a
 read of the plus strand, so that both ends are searched in one
 orientation.

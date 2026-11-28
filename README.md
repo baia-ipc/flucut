@@ -93,10 +93,10 @@ Other options:
    which incurs in a small performance loss, of a fraction of a second per run.
 
 - `-s <scheme>`: the primer scheme, i.e. the primers searched at the read
-  ends (see "Supported primers" below). The default follows from `--virus`:
-  `uni12-mbt13` for `a`, `ibv-ga2` for `b` and `uni12-mbt13+ibv-ga2` for `both`.
-  `-s auto` chooses the scheme of influenza A from the primer tails found in
-  the first reads
+  ends (see "Supported primers" below). The default, `auto`, chooses the
+  scheme of influenza A from the primer tails found in the first reads; where
+  they do not single one out, the scheme of `--virus` is used: `uni12-mbt13`
+  for `a`, `ibv-ga2` for `b` and `uni12-mbt13+ibv-ga2` for `both`.
 
 References from the seeds of IRMA:
 - the seed sequences of IRMA hold the coding sequence of each segment only,
@@ -287,8 +287,9 @@ C compiler and `make`. See the manual, *Installation*.
 ## Supported primers
 
 These are the supported primer schemes:
-- `uni12-mbt13+ibv-ga2` (the default): the primers of both types
-  together, for a run which may hold samples of either;
+- `uni12-mbt13+ibv-ga2` (used when `-s auto` singles out no scheme): the
+  primers of both types together, for a run which may hold samples of
+  either;
 - `uni12-mbt13`: the untailed degenerate Uni12 primer and the tailed
   Uni13 primer, the combination used in practice for influenza A;
 - `mbt`: the tailed primers of the multisegment RT-PCR of influenza A;
@@ -301,10 +302,10 @@ These are the supported primer schemes:
   (Zhou et al. 2014), six pairs for the eight segments.
 
 Several schemes joined by `+` are one scheme with the primers of each
-(e.g. `opti+ibv-ga2`). `-s auto` chooses the scheme of influenza A from
-the tails found directly in front of the conserved termini in the first
-reads; the manual (*The primers*) says how, and what happens when no
-single scheme fits.
+(e.g. `opti+ibv-ga2`). `-s auto` (the default) chooses the scheme of
+influenza A from the tails found directly in front of the conserved
+termini in the first reads; the manual (*The primers*) says how, and
+what happens when no single scheme fits.
 
 ## SAM Tags
 

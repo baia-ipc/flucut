@@ -46,8 +46,8 @@ Options
    ``auto``: the scheme of influenza A chosen by the primer tails found
    in the first reads of the first input file (with ``ibv-ga2`` added
    when ``--virus`` includes influenza B). The choice and the counts it
-   was made on are in the messages and in the reports. Default: the
-   scheme of ``--virus``.
+   was made on are in the messages and in the reports. Default: ``auto``; a scheme given, e.g. ``uni12-mbt13+ibv-ga2``,
+   is used as it is.
 
 ``-r, --references <file>``
    The references against which each read end is classified as terminal or

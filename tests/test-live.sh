@@ -42,6 +42,11 @@ wait_for() {
   fail "timeout waiting for: $what"
 }
 
+# a scheme given, for the steps which look at the reports before the
+# first file is ready: with the default -s auto, they are written only
+# once the scheme is chosen from that file (step 6b)
+SCHEME="-s uni12-mbt13+ibv-ga2"
+
 # conditions for wait_for: a file contains a string; a file contains at
 # least <n> lines matching a pattern
 contains() { grep -q "$2" "$1" 2> /dev/null; }
@@ -153,7 +158,7 @@ echo "[OK] live: interruption"
 rm -rf $TMP/end $TMP/end_out
 mkdir -p $TMP/end/fastq_pass/barcode01
 cp $SRC/barcode01/part1.fastq $TMP/end/fastq_pass/barcode01/a.fastq
-$PREFIX $FLUCUT -j 2 -o $TMP/end_out --live --min-age 3600 \
+$PREFIX $FLUCUT $SCHEME -j 2 -o $TMP/end_out --live --min-age 3600 \
   $TMP/end/fastq_pass 2> $TMP/end.err &
 pid=$!
 wait_for "end of the run: first scan" test -f $TMP/end_out/flucut_summary.json
@@ -170,7 +175,7 @@ echo "[OK] live: end of the run"
 #    in a normal run
 rm -rf $TMP/auto $TMP/auto_out $TMP/auto_dir
 mkdir -p $TMP/auto
-$PREFIX $FLUCUT -v -o $TMP/auto_out --live --timeout 5s --min-age 0 \
+$PREFIX $FLUCUT $SCHEME -v -o $TMP/auto_out --live --timeout 5s --min-age 0 \
   $TMP/auto 2> $TMP/auto.err &
 pid=$!
 wait_for "auto: start without files" \
@@ -184,7 +189,7 @@ grep -q 'errors in a primer: 20% of its length (-e auto)' $TMP/auto.err || \
 grep -q '"max_errors": {"mode": "auto", "value": 0.2, ' \
   $TMP/auto_out/flucut_summary.json || \
   fail "auto: decision not in the summary"
-$FLUCUT -o $TMP/auto_dir $TMP/auto 2> /dev/null
+$FLUCUT $SCHEME -o $TMP/auto_dir $TMP/auto 2> /dev/null
 compare $TMP/auto_out $TMP/auto_dir
 echo "[OK] live: -e auto"
 
@@ -212,7 +217,7 @@ echo "[OK] live: -s auto"
 #    while empty, then processed completely
 rm -rf $TMP/empty $TMP/empty_out
 mkdir -p $TMP/empty
-$PREFIX $FLUCUT -o $TMP/empty_out --live --timeout 4s --min-age 0 \
+$PREFIX $FLUCUT $SCHEME -o $TMP/empty_out --live --timeout 4s --min-age 0 \
   $TMP/empty 2> $TMP/empty.err &
 pid=$!
 : > $TMP/empty/reads.fastq

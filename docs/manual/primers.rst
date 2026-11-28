@@ -167,11 +167,14 @@ opti                    opti1-f1, opti1-f2           opti1-r1
 uni-inf                 uni12-inf1, uni12-inf3       uni13-inf1
 ======================= ============================ ====================
 
-The default is the scheme of ``--virus``: ``uni12-mbt13+ibv-ga2`` for
-both types, ``uni12-mbt13`` for influenza A alone (the untailed
-degenerate Uni12 primer and the tailed Uni13 primer, the combination
-used at the Institut Pasteur du Cambodge) and ``ibv-ga2`` for influenza
-B alone. When a scheme has several primers at an end, the primer whose
+The default, ``-s auto``, chooses the scheme of influenza A from the
+reads (see below), and adds the primers of influenza B when ``--virus``
+includes it. Where the reads do not single out a scheme, the scheme of
+``--virus`` is used: ``uni12-mbt13+ibv-ga2`` for both types,
+``uni12-mbt13`` for influenza A alone (the untailed degenerate Uni12
+primer and the tailed Uni13 primer, the combination used at the
+Institut Pasteur du Cambodge); with ``--virus b`` it is always
+``ibv-ga2``, the only scheme of influenza B. When a scheme has several primers at an end, the primer whose
 match reaches furthest out is taken, then the one with fewest errors.
 Several schemes joined by ``+`` are one scheme with the primers of each,
 e.g. ``-s opti+ibv-ga2`` for a run of the Opti1 primers which may also
@@ -203,8 +206,8 @@ most of the read ends.
 Choosing the scheme from the reads
 ----------------------------------
 
-``-s auto`` chooses the scheme of influenza A from the first reads of
-the first input file. The schemes differ in the tail in front of the
+``-s auto``, the default, chooses the scheme of influenza A from the
+first reads of the first input file. The schemes differ in the tail in front of the
 conserved terminus, so the tails are what is counted:
 
 #. At the start of each read and of its reverse complement (within the

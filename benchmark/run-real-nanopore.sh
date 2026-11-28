@@ -9,9 +9,10 @@
 #
 # 1. the reads (single file, from ENA) and the 8 segments of the
 #    consensus of the isolate (GenBank) are downloaded;
-# 2. the reads are trimmed by each tool (timed), with the primers of the
-#    uni12-mbt13 scheme:
+# 2. the reads are trimmed by each tool (timed), the others with the
+#    primers of the uni12-mbt13 scheme:
 #    - flucut, in three or four configurations: default options (the
+#      scheme chosen from the reads, -s auto; the
 #      reads classified against the built-in references); -r off (no
 #      references); -r with the 8 segments of the isolate (coding
 #      sequences in most records: the terminal read ends are then not

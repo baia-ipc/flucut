@@ -1,5 +1,6 @@
 exit status: 0
 == messages ==
+WARNING | Primer scheme uni12-mbt13+ibv-ga2 (-s auto): too few read ends with a conserved terminus: the default is used, in the first 6 reads of testdata/barcode01/part1.fastq; left end: 5 read ends with the terminus, too few; right end: 5 read ends with the terminus, too few
 SUCCESS | Dashboard: OUTDIR/flucut_dashboard.html (open it in a web browser to follow the run)
 SUCCESS | Trimming barcode01, 2 files (1 of 2)...
 SUCCESS | Trimming testdata/reads.fastq (2 of 2)...
@@ -76,7 +77,15 @@ reads	all	1700	5
     "name": "uni12-mbt13+ibv-ga2",
     "left": ["uni12r", "b-pbs-unif", "b-pa-unif", "b-hana-unif", "b-np-unif", "b-m-uni3f", "b-mg-uni3f", "b-ns-uni3f"],
     "right": ["mbtuni-13", "b-pbs-unir", "b-pa-unir", "b-hana-unir", "b-np-unir", "b-m-uni3r", "b-ns-uni3r"],
-    "choice": null
+    "choice": {
+      "mode": "auto",
+      "outcome": "not_found",
+      "influenza_a_scheme": "uni12-mbt13",
+      "reads": 6,
+      "file": "testdata/barcode01/part1.fastq",
+      "left": {"state": "few", "read_ends_with_terminus": 5, "tails": {"ACGCGTGATC": 0, "GTTACGCGCC": 0, "GGGGGG": 0}},
+      "right": {"state": "few", "read_ends_with_terminus": 5, "tails": {"ACGCGTGATC": 5, "GTTACGCGCC": 0, "CGGGTTATT": 0}}
+    }
   },
   "trim_policy": "primer",
   "references": null,

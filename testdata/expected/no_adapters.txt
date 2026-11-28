@@ -1,5 +1,6 @@
 exit status: 0
 == messages ==
+WARNING | Primer scheme uni12-mbt13+ibv-ga2 (-s auto): too few read ends with a conserved terminus: the default is used, in the first 8 reads of testdata/adapters.fastq; left end: 6 read ends with the terminus, too few; right end: 6 read ends with the terminus, too few
 SUCCESS | Trimming testdata/adapters.fastq...
 SUCCESS | OUTDIR/adapters.fastq.gz: 8 of 8 reads written (6 with both primers, 2 with one, 0 with none; 0 too short, of which 0 dimers)
 SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_dashboard.html, OUTDIR/flucut_summary.json
@@ -39,7 +40,15 @@ adapters	all	1700	6
     "name": "uni12-mbt13+ibv-ga2",
     "left": ["uni12r", "b-pbs-unif", "b-pa-unif", "b-hana-unif", "b-np-unif", "b-m-uni3f", "b-mg-uni3f", "b-ns-uni3f"],
     "right": ["mbtuni-13", "b-pbs-unir", "b-pa-unir", "b-hana-unir", "b-np-unir", "b-m-uni3r", "b-ns-uni3r"],
-    "choice": null
+    "choice": {
+      "mode": "auto",
+      "outcome": "not_found",
+      "influenza_a_scheme": "uni12-mbt13",
+      "reads": 8,
+      "file": "testdata/adapters.fastq",
+      "left": {"state": "few", "read_ends_with_terminus": 6, "tails": {"ACGCGTGATC": 0, "GTTACGCGCC": 0, "GGGGGG": 0}},
+      "right": {"state": "few", "read_ends_with_terminus": 6, "tails": {"ACGCGTGATC": 5, "GTTACGCGCC": 0, "CGGGTTATT": 0}}
+    }
   },
   "trim_policy": "primer",
   "references": null,

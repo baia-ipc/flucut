@@ -63,10 +63,11 @@ enum {
   "Options:\n" \
   "   -o, --outdir <dir>     output directory (default: " \
   OPTIONS_DEFAULT_OUTDIR ")\n" \
-  "   -s, --scheme <name>    primer scheme (default: the one of\n" \
-  "                          --virus; see below), or auto: the scheme\n" \
-  "                          of influenza A chosen by the primer tails\n" \
-  "                          found in the first reads\n" \
+  "   -s, --scheme <name>    primer scheme (see below), or auto: the\n" \
+  "                          scheme of influenza A chosen by the primer\n" \
+  "                          tails found in the first reads, with the\n" \
+  "                          primers of influenza B if --virus has it\n" \
+  "                          (default: auto)\n" \
   "   --virus <a|b|both>     the types of influenza expected in the run\n" \
   "                          (default: both): it chooses the primers\n" \
   "                          searched and the references used; the type\n" \
@@ -468,8 +469,11 @@ void options_parse(options_t *self, int argc, char *argv[],
   }
   CHECK_MIN_NARGS(1);
   /* the primers of the types expected, unless a scheme was given */
+  /* the scheme of influenza A chosen from the reads, unless a scheme
+     was given (with --virus b, the scheme of influenza B: see
+     scheme_choice_init) */
   if (self->scheme == NULL)
-    self->scheme = scheme_default_for(self->virus);
+    self->scheme = OPTIONS_SCHEME_AUTO;
   /* a segment given by its number is in the numbering of the type
      expected (influenza B numbers PB1 1 and PB2 2, see segments.h); a
      gene name is the same in both types */

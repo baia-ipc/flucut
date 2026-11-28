@@ -1,5 +1,6 @@
 exit status: 0
 == messages ==
+WARNING | Primer scheme uni12-mbt13 (-s auto): too few read ends with a conserved terminus: the default is used, in the first 12 reads of testdata/reads.fastq; left end: 10 read ends with the terminus, too few; right end: 9 read ends with the terminus, too few
 SUCCESS | Trimming testdata/reads.fastq...
 SUCCESS | OUTDIR/reads.fastq.gz: 10 of 12 reads written (10 with both primers, 1 with one, 1 with none; 2 too short, of which 1 dimers)
 WARNING | OUTDIR/reads.fastq.gz: HA segment: 4 of 9 complete amplicons shorter than the closest reference (NC_004908.1, 1714 bases), most at 1000-1009 bases: internal priming or deletions
@@ -47,7 +48,15 @@ reads	NC_004908.1	1700	5
     "name": "uni12-mbt13",
     "left": ["uni12r"],
     "right": ["mbtuni-13"],
-    "choice": null
+    "choice": {
+      "mode": "auto",
+      "outcome": "not_found",
+      "influenza_a_scheme": "uni12-mbt13",
+      "reads": 12,
+      "file": "testdata/reads.fastq",
+      "left": {"state": "few", "read_ends_with_terminus": 10, "tails": {"ACGCGTGATC": 0, "GTTACGCGCC": 0, "GGGGGG": 0}},
+      "right": {"state": "few", "read_ends_with_terminus": 9, "tails": {"ACGCGTGATC": 9, "GTTACGCGCC": 0, "CGGGTTATT": 0}}
+    }
   },
   "trim_policy": "terminus",
   "references": {

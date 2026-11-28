@@ -1,5 +1,6 @@
 exit status: 0
 == messages ==
+WARNING | Primer scheme uni12-mbt13+ibv-ga2 (-s auto): too few read ends with a conserved terminus: the default is used, in the first 16 reads of testdata/reads-two-subtypes.fastq; left end: 14 read ends with the terminus, too few; right end: 12 read ends with the terminus, too few
 SUCCESS | Trimming testdata/reads-two-subtypes.fastq...
 SUCCESS | OUTDIR/reads-two-subtypes.fastq.gz: 14 of 16 reads written (14 with both primers, 1 with one, 1 with none; 2 too short, of which 1 dimers)
 WARNING | OUTDIR/reads-two-subtypes.fastq.gz: HA segment: 4 of 13 complete amplicons shorter than the closest reference (NC_004908.1, 1714 bases), most at 1000-1009 bases: internal priming or deletions
@@ -55,7 +56,15 @@ reads-two-subtypes	NC_004908.1	1700	9
     "name": "uni12-mbt13+ibv-ga2",
     "left": ["uni12r", "b-pbs-unif", "b-pa-unif", "b-hana-unif", "b-np-unif", "b-m-uni3f", "b-mg-uni3f", "b-ns-uni3f"],
     "right": ["mbtuni-13", "b-pbs-unir", "b-pa-unir", "b-hana-unir", "b-np-unir", "b-m-uni3r", "b-ns-uni3r"],
-    "choice": null
+    "choice": {
+      "mode": "auto",
+      "outcome": "not_found",
+      "influenza_a_scheme": "uni12-mbt13",
+      "reads": 16,
+      "file": "testdata/reads-two-subtypes.fastq",
+      "left": {"state": "few", "read_ends_with_terminus": 14, "tails": {"ACGCGTGATC": 0, "GTTACGCGCC": 0, "GGGGGG": 0}},
+      "right": {"state": "few", "read_ends_with_terminus": 12, "tails": {"ACGCGTGATC": 12, "GTTACGCGCC": 0, "CGGGTTATT": 0}}
+    }
   },
   "trim_policy": "terminus",
   "references": {
