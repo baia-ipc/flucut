@@ -56,6 +56,11 @@
 
 #define CLEAVAGE_SITE_AA (CLEAVAGE_SITE_NT / 3)
 
+/* the errors the anchor is reported against when a run starts (the
+   rate a probe is searched with); it is searched in the reads with the
+   rate of the run */
+#define CLEAVAGE_ANCHOR_ERROR_RATE 0.2
+
 /* how a motif reads */
 enum { CLEAVAGE_MULTIBASIC,  /* a run of basic residues (R, K) */
        CLEAVAGE_MONOBASIC,   /* one basic residue before HA2 */

@@ -64,6 +64,30 @@ bool anchor_of_peptide(anchor_t *self, size_t ref, const char *seq,
     size_t seq_len, const char *peptide, size_t len);
 
 /*
+   How often <peptide> occurs in the three reading frames of the
+   <seq_len> bases of <seq> together, as codons_find_peptide() matches
+   it ('.' matches any residue), and the position of the first base of
+   its first occurrence in <first> (-1 if it does not occur).
+
+   An anchor is worth using only where its peptide occurs once: one
+   which occurs twice could be found at either place in a read, and
+   nothing says which.
+*/
+size_t anchor_peptide_occurrences(const char *seq, size_t seq_len,
+    const char *peptide, long *first);
+
+/*
+   Whether the bases of <self> are found nowhere else in the <seq_len>
+   bases of <seq> than at <pos>, within <max_error_rate> of its length
+   as errors, which is how it is searched in a read. That the peptide
+   occurs once is not enough: the anchor is searched as bases, with
+   errors allowed, so a stretch elsewhere which is near enough to it
+   would be found instead in a read whose own site carries an error.
+*/
+bool anchor_bases_alone(const anchor_t *self, const char *seq,
+    size_t seq_len, long pos, double max_error_rate);
+
+/*
    The same for the anchor of <len> bases which begins at the 0-based
    position <pos> of the reference, for a caller which located it
    itself. False, and <self> not found, if the position is outside the

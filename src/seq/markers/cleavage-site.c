@@ -63,6 +63,17 @@ cleavage_anchors_t* cleavage_anchors_new(const fasta_t *references,
       continue;
     const fasta_record_t *rec = references->records + r;
     cleavage_reference_t *cr = self->refs + r;
+    /* what the anchor is worth in this reference, reported and not
+       acted on: how often its peptide occurs, and whether its bases are
+       found elsewhere in the segment within the errors a read is
+       searched with. A second occurrence of either would mean the
+       anchor could be found in the wrong place in a read */
+    long first = -1;
+    size_t n_peptide = anchor_peptide_occurrences(rec->seq, rec->seq_len,
+        CLEAVAGE_FUSION_PEPTIDE, &first);
+    if (n_peptide != 1)
+      lprintf(logger, LOG_DEBUG, "The fusion peptide occurs %zu times in "
+              "the HA reference %s\n", n_peptide, rec->name);
     if (!anchor_of_peptide(&cr->anchor, r, rec->seq, rec->seq_len,
                            CLEAVAGE_FUSION_PEPTIDE, CLEAVAGE_ANCHOR_NT)) {
       lprintf(logger, LOG_DEBUG,
@@ -83,6 +94,11 @@ cleavage_anchors_t* cleavage_anchors_new(const fasta_t *references,
     codons_translate(cr->nt, CLEAVAGE_SITE_NT, cr->aa);
     cr->reading = cleavage_reading_of(cr->aa);
     codons_translate(cr->anchor.seq, CLEAVAGE_ANCHOR_NT, cr->fusion);
+    if (!anchor_bases_alone(&cr->anchor, rec->seq, rec->seq_len, first,
+                            CLEAVAGE_ANCHOR_ERROR_RATE))
+      lprintf(logger, LOG_DEBUG, "The bases of the fusion peptide anchor "
+              "are found elsewhere in the HA reference %s as well\n",
+              rec->name);
     self->n_found++;
   }
   if (self->n_found == 0) {

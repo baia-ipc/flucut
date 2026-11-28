@@ -6,6 +6,7 @@
 #include "anchor-site.h"
 #include "codons.h"
 #include "examples-table.h"
+#include "alloc.h"
 #include "edlib.h"
 #include "edlib-iupac.h"
 #include "iupac.h"
@@ -14,6 +15,57 @@
 
 static char upper(char c) {
   return c >= 'a' && c <= 'z' ? (char)(c - 'a' + 'A') : c;
+}
+
+/* whether the <avail> residues at <aa> begin with <peptide>, in which
+   a '.' matches any residue (as codons_find_peptide()) */
+static bool peptide_matches(const char *peptide, const char *aa,
+    size_t avail) {
+  size_t i = 0;
+  for (const char *p = peptide; *p != '\0'; p++, i++) {
+    if (i >= avail)
+      return false;
+    if (*p != '.' && *p != aa[i])
+      return false;
+  }
+  return true;
+}
+
+size_t anchor_peptide_occurrences(const char *seq, size_t seq_len,
+    const char *peptide, long *first) {
+  assert(peptide != NULL);
+  assert(first != NULL);
+  *first = -1;
+  if (seq == NULL || seq_len < 3 || peptide[0] == '\0')
+    return 0;
+  char *protein;
+  XMALLOC(protein, seq_len / 3 + 1);
+  size_t n_found = 0;
+  size_t plen = strlen(peptide);
+  for (size_t frame = 0; frame < 3 && seq_len > frame; frame++) {
+    size_t n = codons_translate(seq + frame, seq_len - frame, protein);
+    for (size_t i = 0; i + plen <= n; i++)
+      if (peptide_matches(peptide, protein + i, n - i)) {
+        if (*first < 0)
+          *first = (long)frame + 3 * (long)i;
+        n_found++;
+      }
+  }
+  free(protein);
+  return n_found;
+}
+
+bool anchor_bases_alone(const anchor_t *self, const char *seq,
+    size_t seq_len, long pos, double max_error_rate) {
+  assert(self != NULL);
+  if (!self->found || seq == NULL || pos < 0)
+    return false;
+  anchor_hit_t hit;
+  size_t after = (size_t)pos + self->len;
+  return after <= seq_len &&
+         !anchor_find(self, seq, (size_t)pos, max_error_rate, &hit) &&
+         !anchor_find(self, seq + after, seq_len - after, max_error_rate,
+                      &hit);
 }
 
 bool anchor_of_peptide(anchor_t *self, size_t ref, const char *seq,
