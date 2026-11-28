@@ -89,18 +89,6 @@ typedef enum {
   MARKER_N_KINDS
 } marker_kind_t;
 
-/* the markers, in the order they are reported */
-enum { MARKER_PB2_627,     /* PB2 E627K */
-       MARKER_PB2_701,     /* PB2 D701N */
-       MARKER_PA_38,       /* PA I38T */
-       MARKER_NA_275,      /* NA H275Y */
-       MARKER_HA_RBS,      /* HA 226 and 228 */
-       MARKER_M2_31,       /* M2 S31N */
-       MARKER_NA_STALK,    /* the length of the neuraminidase stalk */
-       MARKER_NS1_TAIL,    /* the last residues of NS1 */
-       MARKER_PB1_F2,      /* the length of the PB1-F2 reading frame */
-       MARKER_N_MARKERS };
-
 /* one marker of the table */
 typedef struct {
   const char *name;        /* in the reports: "PB2-627" */
@@ -138,6 +126,14 @@ typedef struct {
   bool flag;
   const char *meaning;     /* one line, for the reports */
 } marker_def_t;
+
+/*
+   The markers and their number (MARKER_PB2_627, ..., MARKER_N_MARKERS),
+   and, where MARKERS_TABLE_DEFINE is defined, the table itself: all of
+   it written by the build from data/markers.yaml, so that a marker is
+   added or changed in that file and not in the sources
+*/
+#include "markers-table.h"
 
 /* The table, by marker (MARKER_PB2_627, ...) */
 const marker_def_t* marker_def(size_t marker);

@@ -6,116 +6,14 @@
 #include <string.h>
 #include "alloc.h"
 #include "codons.h"
+/* the table of the markers, written by the build from
+   data/markers.yaml (scripts/markers-table.awk) */
+#define MARKERS_TABLE_DEFINE
 #include "markers.h"
-
-/*
-   The table.
-
-   Each anchor was taken from the reference sets flucut uses and checked
-   there: it occurs exactly once, in one reading frame, in every
-   reference of its segment which carries the protein, and the residues
-   it gives are the published ones (docs/markers.md). A reference in
-   which it does not occur simply does not report that marker.
-*/
-static const marker_def_t TABLE[MARKER_N_MARKERS] = {
-  [MARKER_PB2_627] = {
-    .name = "PB2-627", .protein = "PB2", .segment = 1,
-    .peptide = "QSRMQFSS", .offset = -3, .window = 3,
-    .kind = MARKER_RESIDUES,
-    .numbering = "PB2, counted from the initiator methionine",
-    .positions = "627", .usual = "E", .attention = "K",
-    .flag = true,
-    .meaning = "lysine replicates in mammalian cells at their "
-               "temperature; glutamate is the avian residue",
-  },
-  [MARKER_PB2_701] = {
-    .name = "PB2-701", .protein = "PB2", .segment = 1,
-    .peptide = "KRYGPALS", .offset = -3, .window = 3,
-    .kind = MARKER_RESIDUES,
-    .numbering = "PB2, counted from the initiator methionine",
-    .positions = "701", .usual = "D", .attention = "N",
-    .flag = true,
-    .meaning = "asparagine adapts the polymerase to mammals, as 627K "
-               "does and without it",
-  },
-  [MARKER_PA_38] = {
-    .name = "PA-38", .protein = "PA", .segment = 3,
-    .peptide = "CTHLE.CF", .offset = -3, .window = 3,
-    .kind = MARKER_RESIDUES,
-    .numbering = "PA, counted from the initiator methionine",
-    .positions = "38", .usual = "I", .attention = "T",
-    .flag = true,
-    .meaning = "threonine lowers the susceptibility to baloxavir",
-  },
-  [MARKER_NA_275] = {
-    .name = "NA-275", .protein = "NA", .segment = 6,
-    .peptide = "EECSCY", .offset = -6, .window = 3,
-    .kind = MARKER_RESIDUES,
-    .numbering = "N1 numbering (274 in N2 numbering)",
-    .positions = "275", .usual = "H", .attention = "Y",
-    .flag = true,
-    .meaning = "tyrosine lowers the susceptibility to oseltamivir in "
-               "the N1 neuraminidases",
-  },
-  [MARKER_HA_RBS] = {
-    .name = "HA-226-228", .protein = "HA", .segment = 4,
-    .peptide = "R[IM][DENST][YFIHV][YFSH]W[TSALGMI][LIVM]",
-    .offset = -9, .window = 9, .kind = MARKER_RESIDUES,
-    .numbering = "H3 numbering of the mature HA1",
-    .positions = "226, 227, 228", .usual = "", .attention = "L.S",
-    .flag = true,
-    .meaning = "leucine at 226 with serine at 228 binds the receptors "
-               "of the human airway; glutamine with glycine binds the "
-               "avian ones",
-  },
-  [MARKER_M2_31] = {
-    .name = "M2-31", .protein = "M2", .segment = 7,
-    .peptide = "IIGILHLI", .offset = -3, .window = 3,
-    .kind = MARKER_RESIDUES,
-    .numbering = "M2, counted from the initiator methionine",
-    .positions = "31", .usual = "S", .attention = "N",
-    .meaning = "asparagine resists amantadine and rimantadine, and is "
-               "the residue of most viruses now circulating",
-  },
-  [MARKER_NA_STALK] = {
-    .name = "NA-stalk", .protein = "NA", .segment = 6,
-    .peptide = "MN.N..[IL][ITFL]", .peptide2 = "H[AS]N[DGN]T.[HK]DR",
-    .offset = 0, .window = 0, .kind = MARKER_SPAN,
-    .numbering = "bases from the start of NA to its conserved HxNxT "
-                 "peptide, compared with the reference",
-    .positions = "the stalk, between residues 36 and 90",
-    .usual = "", .attention = "", .attention_below = 9, .flag = true,
-    .meaning = "a shorter stretch is a deletion in the stalk, which "
-               "poultry-adapted viruses carry",
-  },
-  [MARKER_NS1_TAIL] = {
-    .name = "NS1-tail", .protein = "NS1", .segment = 8,
-    .peptide = "[DN]G[RG]P[SP]LPP", .offset = 0,
-    .window = 48, .kind = MARKER_TO_STOP,
-    .numbering = "the residues after the conserved GxPxLPP peptide, up "
-                 "to the stop codon",
-    .positions = "the C-terminus of NS1",
-    .usual = "", .attention = "",
-    .meaning = "the last four residues are the PDZ-binding motif, and "
-               "a stop before them is the truncated C-terminus of the "
-               "viruses circulating in humans",
-  },
-  [MARKER_PB1_F2] = {
-    .name = "PB1-F2", .protein = "PB1-F2", .segment = 2,
-    .peptide = "YTGDPPYS", .offset = 1, .window = 276,
-    .kind = MARKER_FRAME_LENGTH,
-    .numbering = "codons of PB1-F2, which begins directly after the "
-                 "conserved YTGDPPYS peptide of PB1",
-    .positions = "the whole reading frame",
-    .usual = "", .attention = "", .attention_below = 79,
-    .meaning = "a frame of 87 to 90 codons encodes the whole protein; "
-               "a stop codon early in it leaves a fragment",
-  },
-};
 
 const marker_def_t* marker_def(size_t marker) {
   assert(marker < MARKER_N_MARKERS);
-  return TABLE + marker;
+  return MARKERS_TABLE + marker;
 }
 
 /* --- the values read --- */

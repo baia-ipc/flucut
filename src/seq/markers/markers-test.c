@@ -97,7 +97,7 @@ static void test_values(void) {
   test_assert(!marker_value_attention(pb2, "E", ""));
   /* the haemagglutinin is read at three positions, of which the first
      and the third are the ones watched */
-  const marker_def_t *ha = marker_def(MARKER_HA_RBS);
+  const marker_def_t *ha = marker_def(MARKER_HA_226_228);
   test_assert(marker_value_attention(ha, "LSS", ""));
   test_assert(marker_value_attention(ha, "QSS", ""));
   test_assert(marker_value_attention(ha, "LSG", ""));
@@ -119,7 +119,7 @@ static void test_anchors(void) {
   test_assert(chosen[MARKER_NS1_TAIL] != NULL);
   test_assert(chosen[MARKER_NA_STALK] != NULL);
   /* the segments without a reference have none */
-  test_assert(chosen[MARKER_HA_RBS] == NULL);
+  test_assert(chosen[MARKER_HA_226_228] == NULL);
   test_assert(chosen[MARKER_PA_38] == NULL);
   /* what each reference itself carries */
   test_eq_str(chosen[MARKER_PB2_627]->value, "E");

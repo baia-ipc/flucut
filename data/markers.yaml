@@ -1,0 +1,171 @@
+# The markers flucut reads from the reads (docs/markers.md).
+#
+# One record per marker, in the order they are reported. The build turns
+# this file into the table of the program (scripts/markers-table.awk
+# writes obj/markers-table.h, included by markers.h): a marker is added
+# or changed here, not in the sources.
+#
+# A marker belongs here only if its evidence is settled - a published
+# phenotype which does not change with the naming of the clades - and if
+# a short conserved peptide lies directly beside it, so that the
+# position is found in the sequence itself. Clades and genotypes are
+# therefore not here.
+#
+# Fields
+#   name         in the reports, and the name of its column of
+#                summary.tsv (lower case, - becoming _)
+#   protein      the protein the position belongs to
+#   segment      1 to 8
+#   kind         residues     the residues of the window
+#                to_stop      the last residues before the first stop
+#                             codon after the anchor, the stop included
+#                frame_length the codons from the anchor to that stop
+#                span         the bases between anchor and anchor2
+#   anchor       the peptide beside the position, as a pattern: a
+#                residue, a . which any residue matches, or a class such
+#                as [AS]. The 24 bases from its first codon are the
+#                anchor searched in the reads
+#   anchor2      span only: the peptide of the second anchor
+#   offset       where the window lies beside the anchor: a negative
+#                number is bases before its first base, zero or more
+#                bases after its last base
+#   window       bases read (0 for span)
+#   usual        the residues usually carried (one per position of the
+#                window), for the documentation
+#   attention    the residues worth a look, one per position of the
+#                window, . where the position is not watched
+#   below        frame_length: a frame of fewer codons than this
+#                deserves a look; span: a stretch shorter than the one
+#                of the reference by at least this many bases does
+#   flag         yes: a value worth a look is also a remark on the
+#                sample. No for a residue nearly every virus now
+#                circulating carries, which would remark on every sample
+#   positions    the published positions
+#   numbering    what those positions are counted on. No marker uses a
+#                position in the sequence; this says which published
+#                residue it is
+#   meaning      one line, shown in the reports
+#
+# Avoid ": " and "#" in the values.
+
+- name: PB2-627
+  protein: PB2
+  segment: 1
+  kind: residues
+  anchor: QSRMQFSS
+  offset: -3
+  window: 3
+  usual: E
+  attention: K
+  flag: yes
+  positions: 627
+  numbering: PB2, counted from the initiator methionine
+  meaning: lysine replicates in mammalian cells at their temperature; glutamate is the avian residue
+
+- name: PB2-701
+  protein: PB2
+  segment: 1
+  kind: residues
+  anchor: KRYGPALS
+  offset: -3
+  window: 3
+  usual: D
+  attention: N
+  flag: yes
+  positions: 701
+  numbering: PB2, counted from the initiator methionine
+  meaning: asparagine adapts the polymerase to mammals, as 627K does and without it
+
+- name: PA-38
+  protein: PA
+  segment: 3
+  kind: residues
+  anchor: CTHLE.CF
+  offset: -3
+  window: 3
+  usual: I
+  attention: T
+  flag: yes
+  positions: 38
+  numbering: PA, counted from the initiator methionine
+  meaning: threonine lowers the susceptibility to baloxavir
+
+- name: NA-275
+  protein: NA
+  segment: 6
+  kind: residues
+  anchor: EECSCY
+  offset: -6
+  window: 3
+  usual: H
+  attention: Y
+  flag: yes
+  positions: 275
+  numbering: N1 numbering (274 in N2 numbering)
+  meaning: tyrosine lowers the susceptibility to oseltamivir in the N1 neuraminidases
+
+- name: HA-226-228
+  protein: HA
+  segment: 4
+  kind: residues
+  anchor: R[IM][DENST][YFIHV][YFSH]W[TSALGMI][LIVM]
+  offset: -9
+  window: 9
+  attention: L.S
+  flag: yes
+  positions: 226, 227, 228
+  numbering: H3 numbering of the mature HA1
+  meaning: leucine at 226 with serine at 228 binds the receptors of the human airway; glutamine with glycine binds the avian ones
+
+- name: M2-31
+  protein: M2
+  segment: 7
+  kind: residues
+  anchor: IIGILHLI
+  offset: -3
+  window: 3
+  usual: S
+  attention: N
+  flag: no
+  positions: 31
+  numbering: M2, counted from the initiator methionine
+  meaning: asparagine resists amantadine and rimantadine, and is the residue of most viruses now circulating
+
+- name: NA-stalk
+  protein: NA
+  segment: 6
+  kind: span
+  anchor: MN.N..[IL][ITFL]
+  anchor2: H[AS]N[DGN]T.[HK]DR
+  offset: 0
+  window: 0
+  below: 9
+  flag: yes
+  positions: the stalk, between residues 36 and 90
+  numbering: bases from the start of NA to its conserved HxNxT peptide, compared with the reference
+  meaning: a shorter stretch is a deletion in the stalk, which poultry-adapted viruses carry
+
+- name: NS1-tail
+  protein: NS1
+  segment: 8
+  kind: to_stop
+  anchor: "[DN]G[RG]P[SP]LPP"
+  offset: 0
+  window: 48
+  flag: no
+  positions: the C-terminus of NS1
+  numbering: the residues before the stop codon after the conserved GxPxLPP peptide
+  meaning: the last four residues are the PDZ-binding motif, and a stop before them is the truncated C-terminus of the viruses circulating in humans
+
+- name: PB1-F2
+  protein: PB1-F2
+  segment: 2
+  kind: frame_length
+  anchor: YTGDPPYS
+  offset: 1
+  window: 276
+  below: 79
+  flag: no
+  positions: the whole reading frame
+  numbering: codons of PB1-F2, which begins directly after the conserved YTGDPPYS peptide of PB1
+  meaning: a frame of 87 to 90 codons encodes the whole protein; a stop codon early in it leaves a fragment
