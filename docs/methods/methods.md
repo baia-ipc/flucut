@@ -760,7 +760,7 @@ The decision (lines 15–34) takes *O*(*M*) time, once per stage.
 
 ### Reads of a second HA or NA subtype
 
-> **Source:** `src/subtype-reads.c`; called from `src/core/auto-settings.c`
+> **Source:** `src/analysis/subtype-reads.c`; called from `src/core/auto-settings.c`
 
 The votes of a segment can be split between two references for two
 reasons, which the votes alone do not separate: one virus lying between
@@ -2089,7 +2089,7 @@ SITES clusters the positions that are at most 5 apart into one site
 (lines 5–15), named after its position with most reads (lines 12–13),
 and lists the sites, the most used first (line 17).
 
-> **Source:** `count_end` in `src/counter.c`; `add_sites` in
+> **Source:** `count_end` in `src/analysis/counter.c`; `add_sites` in
 > `src/report.c`
 
 ![Starts of internally primed reads, clustered into sites](figures/sites.svg)
@@ -2153,7 +2153,7 @@ internally primed amplicons and of genomes with a deletion are (lines
 instead: the bins with at least 2% of the amplicons that are higher than
 their neighbours (lines 3–5).
 
-> **Source:** `count_length` in `src/counter.c`; `src/lengths.c`
+> **Source:** `count_length` in `src/analysis/counter.c`; `src/analysis/lengths.c`
 
 ![Histogram of the lengths of the complete amplicons of a segment](figures/lengths.svg)
 
@@ -2238,7 +2238,7 @@ own (lines 43–48); the others go to their category, by strand (lines
 49–51). An internal priming site shows in the coverage plot as a step in
 the depth of the internal category.
 
-> **Source:** `count_cover` in `src/counter.c`
+> **Source:** `count_cover` in `src/analysis/counter.c`
 
 ![Spans of reads by origin and the depth they give](figures/coverage.svg)
 
@@ -3563,7 +3563,7 @@ inside and adapters (lines 8–12), the origin and the primer of each end
 (lines 13–15), and the three summaries kept per position or length:
 sites, lengths and coverage profiles (lines 16–18).
 
-> **Source:** `src/counter.c`
+> **Source:** `src/analysis/counter.c`
 
 > **Called from:** FLUCUT_RUN (A1)
 
@@ -3683,7 +3683,7 @@ report is never read.
 
 ### The sample, segment by segment
 
-`src/qc-summary.c`. From the same counts, a summary of the sample is
+`src/analysis/qc-summary.c`. From the same counts, a summary of the sample is
 shown first in the report of each readset. For each of the eight
 segments, the reference with the greatest depth among those of the
 segment gives:
@@ -3795,7 +3795,7 @@ clipped to the reference (lines 1–2), by adding 1 where it begins and 1
 where it ends (lines 4–5): the depth is later a prefix sum, and no read
 needs to be stored.
 
-> **Source:** `count_cover`, `add_span` in `src/counter.c`
+> **Source:** `count_cover`, `add_span` in `src/analysis/counter.c`
 
 > **Called from:** COVER (A17)
 

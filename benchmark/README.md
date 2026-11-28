@@ -331,9 +331,9 @@ the same read vote for different references), or two strains in the
 sample (the probes of a read agree, the reads disagree with each
 other). flucut reports, for the HA and the NA, the reads of a second
 subtype among the first reads of a sample, in the HTML report and the
-JSON summary (`src/subtype-reads.h`), and the agreement of the probes
+JSON summary (`src/analysis/subtype-reads.h`), and the agreement of the probes
 within a read for each segment and reference in the messages (`-v`,
-`src/read-agreement.h`).
+`src/analysis/read-agreement.h`).
 
 `mixed_samples.py` simulates, at the three error rates and with two
 seeds each:

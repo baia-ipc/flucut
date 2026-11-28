@@ -3,7 +3,7 @@
 
 For each segment with several references, flucut reports the reference
 chosen and how (-v), the votes of each reference (-D), and the
-agreement of the probes within a read (-v; see src/read-agreement.h).
+agreement of the probes within a read (-v; see src/analysis/read-agreement.h).
 """
 
 import re

@@ -4,7 +4,7 @@
 
 flucut reports, for the HA and the NA of a sample, the reads of a
 second subtype among the reads its references are chosen from
-(`src/subtype-reads.h`; HTML report and JSON summary): the reads with
+(`src/analysis/subtype-reads.h`; HTML report and JSON summary): the reads with
 several voting probes which all vote for references of another subtype
 than the leading one, beyond the number expected if each probe voted
 independently of its read. The references of one subtype are counted
@@ -992,7 +992,7 @@ A segment whose votes are split has two causes which the votes alone
 do not separate: one strain lying between two references (the probes
 of the same read vote for different references), or two strains in the
 sample (the probes of a read agree, the reads disagree with each
-other). `src/read-agreement.h` counts, per segment, the reads with
+other). `src/analysis/read-agreement.h` counts, per segment, the reads with
 several voting probes which all vote for one reference, and the number
 expected if each probe voted independently of its read. It is reported
 in the `-v` log only and changes no reference.

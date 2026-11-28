@@ -3,9 +3,9 @@
 mixed samples.
 
 flucut reports, for the HA and the NA, the reads of a second subtype
-among the first reads of a sample (src/subtype-reads.h; HTML report and
+among the first reads of a sample (src/analysis/subtype-reads.h; HTML report and
 JSON summary), and, for each segment, how often the probes of one read
-vote for the same reference (src/read-agreement.h; messages only). Here
+vote for the same reference (src/analysis/read-agreement.h; messages only). Here
 samples of one strain and mixes of two strains are simulated, to see
 how well the two statistics tell them apart.
 

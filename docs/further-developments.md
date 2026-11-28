@@ -87,7 +87,7 @@ support the trimming; they are not the purpose of the program.
   left) and the primers found whole or partial; the thresholds of the
   states (depth 50, 90% of the segment) as options.
 - **Reads of a second HA or NA subtype, next**: the report gives them
-  (`src/subtype-reads.h`), counted in the reads the references are
+  (`src/analysis/subtype-reads.h`), counted in the reads the references are
   chosen from: the first 2000 reads of the first file of a sample,
   which in the files MinKNOW writes are often fewer. Still possible:
   counting them over all the reads of a sample, which would see smaller
