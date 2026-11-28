@@ -250,6 +250,13 @@ void scheme_choice_judge(scheme_choice_t *self) {
     self->outcome = SCHEME_CHOICE_AMBIGUOUS;
     return;
   }
+  /* a scheme is chosen by a tail: without one, the default is kept (see
+     scheme-choice.h on why not the scheme without tails) */
+  if (self->ends[0].state != SCHEME_END_TAILED &&
+      self->ends[1].state != SCHEME_END_TAILED) {
+    self->outcome = SCHEME_CHOICE_UNTAILED;
+    return;
+  }
   /* the schemes which fit both ends: one is chosen; of several (an end
      not decided), the default if it is one of them */
   size_t n_fit = 0, fit = 0;
@@ -273,6 +280,8 @@ const char* scheme_choice_outcome_name(scheme_choice_outcome_t outcome) {
   switch (outcome) {
     case SCHEME_CHOICE_CHOSEN:
       return "chosen";
+    case SCHEME_CHOICE_UNTAILED:
+      return "untailed";
     case SCHEME_CHOICE_AMBIGUOUS:
       return "ambiguous";
     case SCHEME_CHOICE_NOT_FOUND:
@@ -299,6 +308,9 @@ const char* scheme_choice_outcome_text(scheme_choice_outcome_t outcome) {
   switch (outcome) {
     case SCHEME_CHOICE_CHOSEN:
       return "chosen by the tails in front of the conserved termini";
+    case SCHEME_CHOICE_UNTAILED:
+      return "no tail in front of the conserved termini: the default is "
+             "used";
     case SCHEME_CHOICE_AMBIGUOUS:
       return "two tails at an end, so no single scheme fits: the default "
              "is used";
@@ -361,9 +373,10 @@ static void log_choice(const scheme_choice_t *self, const char *name,
   char ends[2][256];
   for (size_t e = 0; e < 2; e++)
     scheme_choice_end_text(self, e, ends[e], sizeof(ends[e]));
-  lprintf(logger, self->outcome == SCHEME_CHOICE_CHOSEN ? LOG_INFO :
-          LOG_WARN, "Primer scheme %s (-s auto): %s, in the first %zu reads "
-          "of %s; %s; %s\n", name,
+  bool used = self->outcome == SCHEME_CHOICE_CHOSEN ||
+              self->outcome == SCHEME_CHOICE_UNTAILED;
+  lprintf(logger, used ? LOG_INFO : LOG_WARN, "Primer scheme %s (-s auto): "
+          "%s, in the first %zu reads of %s; %s; %s\n", name,
           scheme_choice_outcome_text(self->outcome), self->n_reads, file,
           ends[0], ends[1]);
 }
@@ -527,10 +540,16 @@ void scheme_choice_test(void) {
   test_eq_int((int)c.outcome, SCHEME_CHOICE_CHOSEN);
   test_eq_int((int)c.ends[0].state, SCHEME_END_UNTAILED);
   test_eq_str(c.chosen, SCHEME_DEFAULT_A);
-  /* untailed at both ends */
+  /* untailed at both ends: the default, not the scheme without tails */
   set_counts(&c, 1, 1900, "mbt", 5, NULL, 0);
   scheme_choice_judge(&c);
-  test_eq_str(c.chosen, "uni");
+  test_eq_int((int)c.outcome, SCHEME_CHOICE_UNTAILED);
+  test_eq_str(c.chosen, SCHEME_DEFAULT_A);
+  /* ... also with too few at the other end */
+  set_counts(&c, 0, 30, "opti", 1, NULL, 0);
+  scheme_choice_judge(&c);
+  test_eq_int((int)c.outcome, SCHEME_CHOICE_UNTAILED);
+  test_eq_str(c.chosen, SCHEME_DEFAULT_A);
   /* two tails at an end: ambiguous, the default */
   set_counts(&c, 0, 1900, "opti", 900, "mbt", 850);
   set_counts(&c, 1, 1900, "opti", 950, "mbt", 800);

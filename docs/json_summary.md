@@ -36,7 +36,7 @@ given with `-s`; with `-s auto`, an object:
 | key | type | description |
 |---|---|---|
 | `mode` | string | `"auto"` |
-| `outcome` | string or null | `"chosen"` (the scheme whose tails were found), `"ambiguous"` (two tails at an end), `"not_found"` (too few read ends with a conserved terminus) or `"no_scheme"` (no built-in scheme has the tails found); in the last three the default scheme was used. `null` until the first input file is read |
+| `outcome` | string or null | `"chosen"` (the scheme whose tails were found), `"untailed"` (no tail at either end), `"ambiguous"` (two tails at an end), `"not_found"` (too few read ends with a conserved terminus) or `"no_scheme"` (no built-in scheme has the tails found); in all but the first the default scheme was used. `null` until the first input file is read |
 | `influenza_a_scheme` | string | the scheme of influenza A used (to which `ibv-ga2` is added when the run may hold influenza B) |
 | `reads`, `file` | integer, string | the reads counted, at the start of this file |
 | `left`, `right` | object | for each end: `state` (`"tailed"`, `"untailed"`, `"ambiguous"` or `"few"`), `read_ends_with_terminus` (the read ends at which the conserved terminus was found) and `tails` (for each tail of the built-in schemes of influenza A at that end, the read ends at which it was found directly in front of the terminus) |

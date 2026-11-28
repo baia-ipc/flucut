@@ -46,8 +46,14 @@
      the terminus.
 
    The scheme chosen is the built-in scheme of influenza A whose tails
-   are those of the ends decided. The outcomes:
-   - a scheme is chosen (untailed at both ends: uni);
+   are those of the ends decided, if at least one end has a tail. The
+   outcomes:
+   - a scheme is chosen;
+   - untailed: no end has a tail. The scheme without tails (uni) is not
+     chosen then: its bare termini, twelve and thirteen bases, match
+     inside the template by chance more often than the tailed primer of
+     the default, and on simulated reads of untailed primers it removed
+     template bases which the default kept;
    - ambiguous: an end has two tails; no single scheme fits;
    - not found: neither end has enough read ends with the terminus,
      which on these libraries usually means that the reads are not of
@@ -81,7 +87,9 @@
 #define SCHEME_CHOICE_MORE_READS 20000
 #define SCHEME_CHOICE_TERMINUS_ERRORS 1
 #define SCHEME_CHOICE_TAIL_ERRORS 0.2
-#define SCHEME_CHOICE_MIN_ENDS 50
+/* (with 50, a run of random cDNA had enough at one end: 61 in 20000
+   reads; runs of amplicons have at least 167, Illumina reads included) */
+#define SCHEME_CHOICE_MIN_ENDS 100
 /* (a tail is not found in front of more than 0.6% of the read ends with
    the terminus in public runs without it, and in front of 81-98% at an
    end of the runs with it; in runs which mix a tailed and an untailed
@@ -119,6 +127,7 @@ typedef struct {
 
 typedef enum {
   SCHEME_CHOICE_CHOSEN,
+  SCHEME_CHOICE_UNTAILED,
   SCHEME_CHOICE_AMBIGUOUS,
   SCHEME_CHOICE_NOT_FOUND,
   SCHEME_CHOICE_NO_SCHEME,

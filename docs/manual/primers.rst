@@ -227,14 +227,14 @@ conserved terminus, so the tails are what is counted:
    - **two tails**, if it has the share but not the lead over the next
      one: a run holding more than one protocol;
    - **untailed**, if no tail has 5%;
-   - **too few**, if fewer than 50 read ends have the terminus.
+   - **too few**, if fewer than 100 read ends have the terminus.
 
    The share is over the read ends with the terminus, not over all the
    reads: on Illumina reads only a fragment starting at an amplicon end
    has a terminus.
 #. The scheme chosen is the one whose tails are those of the two ends
-   (an end with too few read ends fits any scheme). Untailed at both ends
-   gives ``uni``.
+   (an end with too few read ends fits any scheme), if at least one end
+   has a tail.
 
 The first 2000 reads are counted; unless both ends are then tailed, the
 reads up to the first 20000 are counted before deciding. On the public
@@ -246,9 +246,14 @@ at an end, and the share of the tail is then anywhere between 13% and
 66%. A higher threshold would split such runs between two schemes; with
 5% they are all seen as having the tail.
 
-Where no scheme can be chosen, the default scheme of influenza A
+Where no scheme is chosen, the default scheme of influenza A
 (``uni12-mbt13``) is used, and the reason is reported:
 
+- **no tail**: neither end has one. The scheme without tails (``uni``)
+  would match the reads, but it is not chosen: its bare termini, twelve
+  and thirteen bases, match inside the template by chance more often
+  than the tailed primer of the default, and on simulated reads of
+  untailed primers it removed template bases which the default kept;
 - **two tails at an end**: the run holds more than one protocol, and
   any single scheme would be wrong for part of it;
 - **too few read ends with a conserved terminus**: on libraries of this
