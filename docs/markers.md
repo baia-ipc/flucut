@@ -18,7 +18,7 @@ reads arrive.
 
 ## Adding or changing a marker
 
-The table is not in the program sources. It is `data/markers.yaml`, one
+The table is not in the program sources. It is `metadata/markers.yaml`, one
 record per marker, which the build turns into a header
 (`scripts/markers-table.awk`). Adding a marker is a record in that file:
 its anchor peptide, where the window lies beside it, the positions and
@@ -342,7 +342,7 @@ sample.
 | file | what it holds |
 |---|---|
 | `src/seq/search/anchor-site.h`, `.c` | an anchor: building it from a reference, finding it in a read, reading the bases beside it. Not specific to the markers |
-| `data/markers.yaml` | **the table itself**: one record per marker, with its anchor, its positions, their numbering convention and its meaning. A marker is added or changed here, not in the sources |
+| `metadata/markers.yaml` | **the table itself**: one record per marker, with its anchor, its positions, their numbering convention and its meaning. A marker is added or changed here, not in the sources |
 | `scripts/markers-table.awk` | turns that file into `obj/markers-table.h` when the program is built (awk only, so that building flucut still needs nothing but a C compiler and `make`) |
 | `src/seq/markers/markers.h`, `.c` | the patterns, and the anchors of each marker in each reference |
 | `src/seq/markers/marker-read.h`, `.c` | reading the markers out of one read |

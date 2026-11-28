@@ -223,8 +223,8 @@ A marker is a residue read from the reads, nothing more.
 Adding a marker
 ---------------
 
-The table is not in the program sources: it is the data file
-``data/markers.yaml`` of the repository, which the build turns into a
+The table is not in the program sources: it is the metadata file
+``metadata/markers.yaml`` of the repository, which the build turns into a
 header. A marker is added by writing a record there — its anchor
 peptide, where the window lies beside it, the positions with the
 convention they are counted in, and one line saying what the residue

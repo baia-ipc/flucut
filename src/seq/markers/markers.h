@@ -130,7 +130,7 @@ typedef struct {
 /*
    The markers and their number (MARKER_PB2_627, ..., MARKER_N_MARKERS),
    and, where MARKERS_TABLE_DEFINE is defined, the table itself: all of
-   it written by the build from data/markers.yaml, so that a marker is
+   it written by the build from metadata/markers.yaml, so that a marker is
    added or changed in that file and not in the sources
 */
 #include "markers-table.h"

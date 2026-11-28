@@ -68,8 +68,8 @@ Directory                    Content
 ``src/seq/markers``          the sites read from inside a read: the
                              markers, their anchors in the references
                              and the reading of one read. The table of
-                             the markers itself is the data file
-                             ``data/markers.yaml``, which the build
+                             the markers itself is
+                             ``metadata/markers.yaml``, which the build
                              turns into a header
 ``src/analysis``             the counters and what is computed from
                              them: lengths, coverage by read origin,

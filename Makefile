@@ -98,13 +98,13 @@ $(OBJDIR)/%-html.inc: %.html $(CBAIA_EMBED) | $(OBJDIR)
 	$(CBAIA_EMBED) $< > $@
 $(OBJDIR)/html-report.o $(OBJDIR)/html-report-run.o: | $(TEMPLATE_INCS)
 
-# the table of the markers: data/markers.yaml gives a header with their
+# the table of the markers: metadata/markers.yaml gives a header with their
 # names, their number and the table (see markers.h). It is written with
 # awk, so that building flucut still needs only a C compiler and make;
 # every object may include markers.h, so all of them wait for it (after
 # the first build the header dependency tracking knows which do)
 MARKERS_INC = $(OBJDIR)/markers-table.h
-$(MARKERS_INC): data/markers.yaml scripts/markers-table.awk | $(OBJDIR)
+$(MARKERS_INC): metadata/markers.yaml scripts/markers-table.awk | $(OBJDIR)
 	awk -f scripts/markers-table.awk $< > $@
 $(OBJS): | $(MARKERS_INC)
 

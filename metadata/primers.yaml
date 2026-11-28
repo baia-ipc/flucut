@@ -1,0 +1,265 @@
+# The built-in primers of the influenza multisegment RT-PCR and the
+# schemes which use them (see the manual, Primers).
+#
+# The build turns this file into the tables of the program
+# (scripts/primers-table.awk writes obj/primers-table.h): a primer or a
+# scheme is added or changed here, not in the sources.
+#
+# Every sequence below is quoted from the publication cited with it. No
+# sequence is derived or guessed, and one which cannot be verified in a
+# publication or a protocol is not added.
+#
+# Records
+#
+#   sequence   a named sequence, so that a terminus or a tail is written
+#              once and composed into the primers which use it
+#     bases    the bases, IUPAC (R = A or G)
+#     note     what it is
+#
+#   primer     a built-in primer, by name (case is ignored)
+#     virus    A or B, the type it was designed for
+#     end      left  the terminus at the 3' end of the vRNA, which is
+#                    the start of the plus strand of the amplicon
+#             right  the terminus at the 5' end of the vRNA
+#     seq      the oligonucleotide as it is ordered - a space-separated
+#              list of sequence names and literal bases, concatenated
+#     terminus the part of it which is the template, written the same
+#              way. It must be the end of seq; the build checks it and
+#              computes where it begins
+#     segments the segments whose terminus it binds: all, or a
+#              space-separated list of PB2 PB1 PA HA NP NA M NS. A
+#              primer which reaches past the universal terminus binds
+#              only the segments it was designed for, and its bases are
+#              the template at an end of those alone
+#     source   the publication the sequence is quoted from
+#
+#   scheme     a built-in primer scheme, by name
+#     left     the primers of the left end, space-separated
+#     right    the primers of the right end
+#
+# Avoid ": " and "#" in the values.
+
+# --- the conserved termini and the tails -----------------------------
+
+- sequence: terminus-12
+  bases: AGCAAAAGCAGG
+  note: the 12 nt terminus of influenza A at the 3' end of the vRNA
+
+- sequence: terminus-12-r
+  bases: AGCRAAAGCAGG
+  note: the same with the degenerate fourth position (A or G), which accommodates the variation of the segment termini
+
+- sequence: terminus-13
+  bases: AGTAGAAACAAGG
+  note: the 13 nt terminus of influenza A at the 5' end of the vRNA
+
+- sequence: mbt-tail
+  bases: ACGCGTGATCAG
+  note: the 5' tail shared by the primers of Zhou et al. 2009; it carries an MluI site (ACGCGT) used for cloning in that protocol
+
+- sequence: terminus-b-9
+  bases: AGCAGAAGC
+  note: the 9 nt terminus of influenza B at the start of the plus strand
+
+- sequence: terminus-b-10
+  bases: AGTAGAAACA
+  note: the 10 nt terminus of influenza B at the end of the plus strand, in the form of PB2 PB1 PA NP and M
+
+- sequence: terminus-b-10-t
+  bases: AGTAGTAACA
+  note: the same terminus in the form of HA NA and NS, which differ at its sixth base
+
+- sequence: ibv-tail-left
+  bases: GGGGGG
+  note: the 5' tail of the IBV-GA2 primers of the left end; it is the promoter sequence of a reverse-genetics plasmid, not influenza sequence, and is always removed
+
+- sequence: ibv-tail-right
+  bases: CCGGGTTATT
+  note: the 5' tail of the IBV-GA2 primers of the right end; it is the terminator sequence of that plasmid, not influenza sequence
+
+# --- influenza A (Uni12/Uni13) ---------------------------------------
+
+- primer: uni12
+  virus: A
+  end: left
+  seq: terminus-12
+  terminus: terminus-12
+  segments: all
+  source: the terminus used as a primer without a tail, commonly called Uni12 after Hoffmann et al. 2001 Arch Virol 146 2275-2289. The sequence is the one quoted as Uni12 by Zhou et al. 2009, which is also the 3' end of mbtuni-12
+
+- primer: uni12r
+  virus: A
+  end: left
+  seq: terminus-12-r
+  terminus: terminus-12-r
+  segments: all
+  source: the 12 nt terminus with the degenerate fourth position, used without a tail
+
+- primer: uni13
+  virus: A
+  end: right
+  seq: terminus-13
+  terminus: terminus-13
+  segments: all
+  source: the terminus used as a primer without a tail, commonly called Uni13 after Hoffmann et al. 2001. The sequence is the one quoted as Uni13 by Zhou et al. 2009, which is also the 3' end of mbtuni-13
+
+- primer: mbtuni-12
+  virus: A
+  end: left
+  seq: mbt-tail CAAAAGCAGG
+  terminus: terminus-12
+  segments: all
+  source: Zhou et al. 2009 J Virol 83 10309-10313, the tailed primer of the single-reaction multisegment RT-PCR
+
+- primer: mbtuni-12.4r
+  virus: A
+  end: left
+  seq: mbt-tail CRAAAGCAGG
+  terminus: terminus-12-r
+  segments: all
+  source: Licheri et al. 2025 Genome Med 17 103 (there MBTuni-12.4R), the tailed Uni12 primer with the degenerate fourth position, used in place of or mixed with mbtuni-12
+
+- primer: mbtuni-13
+  virus: A
+  end: right
+  seq: mbt-tail TAGAAACAAGG
+  terminus: terminus-13
+  segments: all
+  source: Zhou et al. 2009, the tailed primer of the right end
+
+# --- influenza B (the IBV-GA2 cocktail) ------------------------------
+#
+# Every primer of the cocktail is Zhou et al. 2014 J Clin Microbiol 52
+# 1330-1337, Table 1, with the names of that table in lower case. Six
+# pairs amplify the eight segments: a 5' tail, the conserved terminus of
+# its end, and five or eight further bases, which are the untranslated
+# bases next to the terminus in the segments the primer binds. The
+# cocktail mixes them in the proportions of Table 1; the proportions do
+# not matter here, as every primer of the scheme is searched in every
+# read.
+
+- primer: b-pbs-unif
+  virus: B
+  end: left
+  seq: ibv-tail-left terminus-b-9 GGAGC
+  terminus: terminus-b-9 GGAGC
+  segments: PB1 PB2
+  source: Zhou et al. 2014 Table 1
+
+- primer: b-pbs-unir
+  virus: B
+  end: right
+  seq: ibv-tail-right terminus-b-10 CGAGC
+  terminus: terminus-b-10 CGAGC
+  segments: PB1 PB2
+  source: Zhou et al. 2014 Table 1
+
+- primer: b-pa-unif
+  virus: B
+  end: left
+  seq: ibv-tail-left terminus-b-9 GGTGC
+  terminus: terminus-b-9 GGTGC
+  segments: PA
+  source: Zhou et al. 2014 Table 1
+
+- primer: b-pa-unir
+  virus: B
+  end: right
+  seq: ibv-tail-right terminus-b-10 CGTGC
+  terminus: terminus-b-10 CGTGC
+  segments: PA
+  source: Zhou et al. 2014 Table 1
+
+- primer: b-hana-unif
+  virus: B
+  end: left
+  seq: ibv-tail-left terminus-b-9 AGAGC
+  terminus: terminus-b-9 AGAGC
+  segments: HA NA
+  source: Zhou et al. 2014 Table 1
+
+- primer: b-hana-unir
+  virus: B
+  end: right
+  seq: ibv-tail-right terminus-b-10-t AGAGC
+  terminus: terminus-b-10-t AGAGC
+  segments: HA NA
+  source: Zhou et al. 2014 Table 1
+
+- primer: b-np-unif
+  virus: B
+  end: left
+  seq: ibv-tail-left terminus-b-9 ACAGC
+  terminus: terminus-b-9 ACAGC
+  segments: NP
+  source: Zhou et al. 2014 Table 1
+
+- primer: b-np-unir
+  virus: B
+  end: right
+  seq: ibv-tail-right terminus-b-10 ACAGC
+  terminus: terminus-b-10 ACAGC
+  segments: NP
+  source: Zhou et al. 2014 Table 1
+
+- primer: b-m-uni3f
+  virus: B
+  end: left
+  seq: ibv-tail-left terminus-b-9 ACGCACTT
+  terminus: terminus-b-9 ACGCACTT
+  segments: M
+  source: Zhou et al. 2014 Table 1
+
+- primer: b-mg-uni3f
+  virus: B
+  end: left
+  seq: ibv-tail-left terminus-b-9 AGGCACTT
+  terminus: terminus-b-9 AGGCACTT
+  segments: M
+  source: Zhou et al. 2014 Table 1, the second form of the primer of the left end of M, both in the cocktail
+
+- primer: b-m-uni3r
+  virus: B
+  end: right
+  seq: ibv-tail-right terminus-b-10 ACGCACTT
+  terminus: terminus-b-10 ACGCACTT
+  segments: M
+  source: Zhou et al. 2014 Table 1
+
+- primer: b-ns-uni3f
+  virus: B
+  end: left
+  seq: ibv-tail-left terminus-b-9 AGAGGATT
+  terminus: terminus-b-9 AGAGGATT
+  segments: NS
+  source: Zhou et al. 2014 Table 1
+
+- primer: b-ns-uni3r
+  virus: B
+  end: right
+  seq: ibv-tail-right terminus-b-10-t AGAGGATT
+  terminus: terminus-b-10-t AGAGGATT
+  segments: NS
+  source: Zhou et al. 2014 Table 1
+
+# --- the schemes -----------------------------------------------------
+
+- scheme: uni12-mbt13+ibv-ga2
+  left: uni12r b-pbs-unif b-pa-unif b-hana-unif b-np-unif b-m-uni3f b-mg-uni3f b-ns-uni3f
+  right: mbtuni-13 b-pbs-unir b-pa-unir b-hana-unir b-np-unir b-m-uni3r b-ns-uni3r
+
+- scheme: uni12-mbt13
+  left: uni12r
+  right: mbtuni-13
+
+- scheme: ibv-ga2
+  left: b-pbs-unif b-pa-unif b-hana-unif b-np-unif b-m-uni3f b-mg-uni3f b-ns-uni3f
+  right: b-pbs-unir b-pa-unir b-hana-unir b-np-unir b-m-uni3r b-ns-uni3r
+
+- scheme: mbt
+  left: mbtuni-12 mbtuni-12.4r
+  right: mbtuni-13
+
+- scheme: uni
+  left: uni12 uni12r
+  right: uni13

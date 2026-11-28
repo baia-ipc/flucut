@@ -1,11 +1,11 @@
-# Turn data/markers.yaml into the table of the program.
+# Turn metadata/markers.yaml into the table of the program.
 #
 # Writes a header with the names of the markers, their number and, for a
 # translation unit which defines MARKERS_TABLE_DEFINE, the table itself
 # (see markers.h). Run by the Makefile; it needs nothing but awk, so
 # that building flucut still needs only a C compiler and make.
 #
-# Usage: awk -f scripts/markers-table.awk data/markers.yaml > out.h
+# Usage: awk -f scripts/markers-table.awk metadata/markers.yaml > out.h
 
 function fail(msg) {
   print "markers-table.awk: " FILENAME " line " FNR ": " msg > "/dev/stderr"
@@ -98,8 +98,8 @@ BEGIN { n = 0; name = "" }
 END {
   flush()
   if (n == 0) fail("no marker in the file")
-  print "/* Generated from data/markers.yaml by scripts/markers-table.awk."
-  print "   Do not edit: edit the data file. */"
+  print "/* Generated from metadata/markers.yaml by scripts/markers-table.awk."
+  print "   Do not edit: edit the metadata file. */"
   print ""
   print "#ifndef MARKERS_TABLE_H"
   print "#define MARKERS_TABLE_H"

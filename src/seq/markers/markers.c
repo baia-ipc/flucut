@@ -7,7 +7,7 @@
 #include "alloc.h"
 #include "codons.h"
 /* the table of the markers, written by the build from
-   data/markers.yaml (scripts/markers-table.awk) */
+   metadata/markers.yaml (scripts/markers-table.awk) */
 #define MARKERS_TABLE_DEFINE
 #include "markers.h"
 
