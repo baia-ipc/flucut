@@ -195,7 +195,11 @@ These options are used with ``--references``.
 
 ``--terminal-window <n>``
    A probe mapped within ``<n>`` bases of an end of a segment is
-   terminal. Default: 60.
+   terminal. The bases are counted from the first (or last) base of the
+   reference record: on a record which carries the conserved terminus,
+   as the built-in ones do, a normal amplicon's probe begins 12 or 13
+   bases in, so that the default reaches 47 bases past the terminus at
+   the 5' end and 46 at the 3' end. Default: 60.
 
 ``--exhaustive-search``
    Align each probe to the whole of every reference, without the k-mer

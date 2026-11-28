@@ -95,8 +95,10 @@ the reverse complement of the bases before its primer) are located in
 the references:
 
 - at a terminus of a segment (within ``--terminal-window`` bases of it,
-  default 60, as references often lack some bases of the termini): a
-  normal amplicon (tags ``ol``/``or``: ``terminal``);
+  default 60, as references often lack some bases of the termini;
+  counted from the first base of the record, which on a record with the
+  conserved terminus puts a normal probe 12 or 13 bases in): a normal
+  amplicon (tags ``ol``/``or``: ``terminal``);
 - at an interior position: internal priming (``internal``); the tags
   ``ml``/``mr`` give the reference and the position;
 - not located (no reference of the subtype, a probe too short):
