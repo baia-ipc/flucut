@@ -1,5 +1,64 @@
 # Results
 
+## 2026-11-28: where the primer ends and the template begins
+
+At equal cost, the alignment of a primer to a read end now ends at the
+outermost position (methods A7): a base the read cannot tell from
+template is kept, where it was removed by an extension of the end
+inwards. Measured with flucut `1e359860` (before) and `11beec2a` (the
+change, and probes of Ns no longer located), both with their defaults,
+by `/home/baia/prj/flucut/primer_boundary/run.sh` (README there: every
+table, and the reads in each class).
+
+Simulated reads, 3200 per set; "now": bases kept by the change only, or
+by the earlier build only (by the truth of `simulate.py`):
+
+| reads | template removed | of it one base at a primer edge | template kept now | template lost now | primer bases kept now (among the last three of the primer) | internal site kept |
+|---|---|---|---|---|---|---|
+| 1% errors | 550 → 547 | 5 → 2 | 3 | 0 | 4 (4) | 1 → 5 |
+| 2% | 742 → 733 | 13 → 4 | 9 | 0 | 9 (8) | 11 → 20 |
+| 4% | 440 → 428 | 24 → 12 | 12 | 0 | 10 (10) | 23 → 28 |
+| 8% | 3846 → 3726 | 123 → 47 | 120 | 0 | 128 (127) | 54 → 82 |
+| 12% | 5993 → 5686 | 257 → 79 | 307 | 0 | 318 (300) | 101 → 125 |
+| barcoded | 136 → 111 | 37 → 14 | 25 | 0 | 29 (29) | 44 → 55 |
+| joined amplicons | 695 → 667 | 39 → 11 | 28 | 0 | 26 (26) | 28 → 39 |
+| MBTuni primers | 42 → 12 | 38 → 12 | 30 | 0 | 28 (28) | 21 → 35 |
+| Opti1 primers | 42 → 12 | 38 → 12 | 30 | 0 | 28 (28) | 21 → 35 |
+| Uni-12/Inf primers | 34 → 13 | 30 → 9 | 21 | 0 | 30 (30) | 2 → 20 |
+
+No read loses a template base. The template bases kept and the primer
+bases kept are about as many: the outermost end keeps a primer base with
+an error where the innermost removes a template base. The primer bases
+are the last of the primer, which match the template where it anneals
+(the "internal site kept" gained are of that kind: the last bases of
+Uni12 at the I351K site, equal to the template there). Most of the
+template still removed at 4% is not at the boundary: 405 bases in 6
+reads cut about 70 bases too deep (`docs/further-developments.md`). In
+0 to 50 ends of 6400, the probe, which now begins one base further out,
+is no longer located and a terminal end becomes unknown (0 to 32 the
+reverse): its terminus is removed.
+
+54 sequenced runs (the protocol-variation set and the four public runs
+of this benchmark; 19.9 million reads; bases classed by an alignment of
+the termini independent of flucut): 150,909 reads without N change by 1
+to 3 bases, all of them keeping more (52,757 template bases, none lost).
+49 reads without N lose template (1,101 bases), 47 of them in changes of
+more than 3 bases which follow from the end of the primer (a junction
+of an internal deletion, a chance primer match at the edge of the
+window), against 2,196 template bases kept in such changes. The larger
+changes are otherwise reads of Ns, in which a primer matches anywhere:
+reads of 35 Ns are no longer written, Ns at read ends are cut. The
+reads called internally primed are 1,174,623 instead of 1,174,641.
+
+Against the trimming of the default scheme before `-s auto` (flucut
+`5fe179a0`; `primer_scheme_choice/`), the reads of the tailed protocols
+that lose template bases with `-s auto`, most of them one base where the
+tailed primer of the protocol took a template base, become 98 instead of
+435 (MBTuni, 10 runs), 289 instead of 6,184 (Opti1) and 184 instead of
+548 (Uni-12/Inf); those losing exactly one base 0, 13 and 4 instead of
+316, 5,667 and 235. In the Opti1 run SRR37040770, 22 reads instead of
+1,306.
+
 ## 2026-11-28: reads of a second HA or NA subtype, in the report
 
 flucut reports, for the HA and the NA of a sample, the reads of a
