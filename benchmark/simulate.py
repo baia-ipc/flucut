@@ -9,10 +9,12 @@ amplicons of the default scheme of flucut for the type of the genome
 For influenza A (the default) both primers are the same in every
 segment: the degenerate untailed Uni12 primer (AGCRAAAGCAGG) at the
 start of each segment and the tailed Uni13 primer (mbtuni-13) at its
-end. For influenza B the primers are the IBV-GA2 cocktail, whose six
-pairs each serve one or two segments, so the pair of a segment is the
-one designed for it; each of its primers is a 5' tail and then the
-bases of the segment at that end.
+end; --scheme-a gives the primers of another protocol (mbt, opti,
+uni-inf or uni, as the schemes of flucut), which differ in the tails
+in front of the same termini. For influenza B the primers are the
+IBV-GA2 cocktail, whose six pairs each serve one or two segments, so
+the pair of a segment is the one designed for it; each of its primers
+is a 5' tail and then the bases of the segment at that end.
 
 The bases under a primer come from the primer, not from the segment: in
 particular the R of Uni12 is A or G at random in each read, whatever
@@ -81,6 +83,27 @@ import re
 UNI12 = "AGCRAAAGCAGG"
 MBT_TAIL = "ACGCGTGATC"
 UNI13 = "AGTAGAAACAAGG"
+# the tails of the other protocols of influenza A (metadata/primers.yaml)
+OPTI_TAIL = "GTTACGCGCC"
+INF_TAIL_LEFT = "GGGGGG"
+INF_TAIL_RIGHT = "CGGGTTATT"
+
+# The primer pair of influenza A of each protocol (--scheme-a), named
+# as the schemes of flucut: the primer of the left end and that of the
+# right end, each with the length of its tail. The fourth base of the
+# left terminus is R, drawn in each read, as the two primers of the
+# left end of opti and uni-inf (A and G there) and the degenerate ones
+# of uni12-mbt13 and mbt give.
+PRIMERS_A = {
+  "uni12-mbt13": ((UNI12, 0), (MBT_TAIL + UNI13, len(MBT_TAIL))),
+  "mbt": ((MBT_TAIL + UNI12, len(MBT_TAIL)),
+          (MBT_TAIL + UNI13, len(MBT_TAIL))),
+  "opti": ((OPTI_TAIL + UNI12, len(OPTI_TAIL)),
+           (OPTI_TAIL + UNI13, len(OPTI_TAIL))),
+  "uni-inf": ((INF_TAIL_LEFT + UNI12, len(INF_TAIL_LEFT)),
+              (INF_TAIL_RIGHT + UNI13, len(INF_TAIL_RIGHT))),
+  "uni": ((UNI12, 0), (UNI13, 0)),
+}
 
 # The primers of each segment, by type of influenza: the primer of the
 # left end of an amplicon and the primer of its right end, each as it is
@@ -94,8 +117,7 @@ UNI13 = "AGTAGAAACAAGG"
 # numbers PB1 1 and PB2 2). The M segment of influenza B has two
 # primers of the left end in the cocktail; the first is used here.
 PRIMERS = {
-  "a": {n: ((UNI12, 0), (MBT_TAIL + UNI13, len(MBT_TAIL)))
-        for n in range(1, 9)},
+  "a": {n: PRIMERS_A["uni12-mbt13"] for n in range(1, 9)},
   "b": {
       1: (("GGGGGGAGCAGAAGCGGAGC", 6),
           ("CCGGGTTATTAGTAGAAACACGAGC", 10)),       # PB1
@@ -275,6 +297,10 @@ def main():
       "--virus", default="a", choices=sorted(PRIMERS),
       help="the type of influenza the genome is, which chooses the "
            "primers of each segment (default: a)")
+  parser.add_argument(
+      "--scheme-a", default="uni12-mbt13", choices=sorted(PRIMERS_A),
+      help="influenza A: the protocol of the primers, named as the "
+           "scheme of flucut (default: uni12-mbt13)")
   parser.add_argument("--reads-per-segment", type=int, default=400)
   parser.add_argument(
       "--internal-share", type=float, default=0.6,
@@ -339,6 +365,8 @@ def main():
                      "needed in the genome")
   ha_name, ha_seq = ha[0]
   primers = PRIMERS[args.virus]
+  if args.virus == "a":
+    primers = {n: PRIMERS_A[args.scheme_a] for n in range(1, 9)}
   missing = [n for n in sorted(set(numbers.values())) if n not in primers]
   if missing:
     raise SystemExit("no primers of influenza %s for segment %s"
