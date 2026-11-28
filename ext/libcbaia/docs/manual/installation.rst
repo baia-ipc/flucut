@@ -184,4 +184,4 @@ the lines made only of a comment, ``/* ... */`` or ``<!-- ... -->``)::
      ;
 
 The library embeds its own data files (e.g. the style of the HTML pages,
-``src/io/html-page.css``) in the same way.
+``src/html/html-page.css``) in the same way.

@@ -178,6 +178,8 @@ Numeric utilities: integer division rounding towards minus infinity, the median 
    } percent_text_t;
    percent_text_t percent_text(size_t part, size_t total);
    percent_text_t fraction_percent_text(double fraction);
+   bool parse_double(const char *s, double *value);
+   bool parse_percent(const char *s, double *value);
 
 **progress.h**
 
@@ -192,6 +194,32 @@ Progress display in the style of the Python tqdm package, e.g.:
    void progress_finish(progress_t *self);
    size_t progress_count(const progress_t *self);
    void progress_delete(progress_t *self);
+
+**run-resources.h**
+
+The resources a run uses, for the dashboard and the report: elapsed time, CPU time, memory, and how many threads are busy.
+
+.. code-block:: c
+
+   typedef struct {
+     size_t threads;
+     double elapsed;
+     double cpu;
+     double load;
+     size_t memory;
+     size_t memory_peak;
+   } run_resources_t;
+   typedef struct {
+     double start, last_elapsed, last_cpu;
+     size_t memory_peak;
+   } run_clock_t;
+   void run_clock_start(run_clock_t *clock);
+   void run_resources_measure(run_clock_t *clock, size_t threads,
+       bool whole_run, run_resources_t *out);
+   typedef struct { char s[32]; } run_duration_t;
+   run_duration_t run_duration_text(double seconds);
+   typedef struct { char s[24]; } run_memory_text_t;
+   run_memory_text_t run_memory_text(size_t bytes);
 
 **strbuf.h**
 
@@ -242,6 +270,15 @@ Growable string buffer, for building output text without allocations for each pi
    #define test_eq_str(FOUND, EXP)
    #define test_eq_char(FOUND, EXP)
    #define test_eq_mem(FOUND, LEN, EXP)
+
+**user-config.h**
+
+The configuration file of flucut: $XDG_CONFIG_HOME/flucut/config, or ~/.config/flucut/config if XDG_CACHE_HOME is not set. It holds lines of "key = value"; a # starts a comment, and keys the program does not know are ignored, so that the tools around flucut can keep their own settings in the same file (scripts/irma_references.py writes where IRMA and its seed sequences are, to build the reference set again when IRMA updates them).
+
+.. code-block:: c
+
+   const char* user_config_value(const char *program, const char *key,
+       Logger *logger);
 
 Data structures (``ds``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -316,68 +353,8 @@ Implementation: - Sorted array S plus an unsorted buffer B - Query is by binary 
    bool set_query(const Set *set, set_elem_t key);
    void set_delete(Set *set);
 
-Large files and compression (``io``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**bgzf-compressor.h**
-
-BGZF compression (the format of BAM files): the data are compressed in blocks of at most 64 KiB, each a gzip member with an extra field (BC) containing the size of the block. As for the gzip members of gzip-compressor.h, blocks can be compressed in parallel and written in order; a BGZF file ends with an empty block (the end-of-file marker).
-
-.. code-block:: c
-
-   #define BGZF_EOF_LEN
-   extern const uint8_t bgzf_eof[BGZF_EOF_LEN];
-   typedef struct bgzf_compressor_t bgzf_compressor_t;
-   bgzf_compressor_t* bgzf_compressor_new(int level);
-   void bgzf_compressor_run(bgzf_compressor_t *self, const char *data,
-       size_t len, strbuf_t *out);
-   void bgzf_compressor_delete(bgzf_compressor_t *self);
-
-**file-merger.h**
-
-Merging of sorted files
-
-.. code-block:: c
-
-   typedef bool (*merge_getelem_f)(char **elem, size_t *elemsize, FILE *file,
-       Logger *logger);
-   typedef void (*merge_writeelem_f)(FILE *file, char *elem, Logger *logger);
-   typedef int (*merge_cmpelems_f)(const void *elem1, const void *elem2);
-   void merge_n_files(size_t nfiles, const char *basename, const char *sfx,
-       bool use_stdout, merge_getelem_f getelem, merge_writeelem_f writeelem,
-       merge_cmpelems_f cmpelems, Logger *logger);
-
-**file-sorter.h**
-
-Sorting of large files in parts which fit in memory (to be merged with merge_n_files() of file-merger.h)
-
-.. code-block:: c
-
-   size_t sort_file_parts(
-       const char *infname,
-       const char *infsfx,
-       const char *outfname,
-       const char *outfsfx,
-       size_t bufsize,
-       size_t elems_bufsize_init,
-       size_t read_elems(FILE *file, char *buffer, size_t bufsize,
-                         char ***elems, size_t *elemsbufsize, Logger *logger),
-       void sort_elems(char **elems, size_t nelems),
-       void output_sorted_elems(FILE *file, char **elems, size_t nelems,
-                                Logger *logger),
-       Logger *logger);
-
-**gzip-compressor.h**
-
-Compression of data blocks as gzip members; the concatenation of gzip members is a valid gzip file, thus blocks can be compressed in parallel and written in order.
-
-.. code-block:: c
-
-   typedef struct gzip_compressor_t gzip_compressor_t;
-   gzip_compressor_t* gzip_compressor_new(int level);
-   void gzip_compressor_run(gzip_compressor_t *self, const char *data,
-       size_t len, strbuf_t *out);
-   void gzip_compressor_delete(gzip_compressor_t *self);
+HTML reports and dashboards (``html``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **html-page.h**
 
@@ -464,6 +441,99 @@ Writing HTML (and inline SVG) element by element: the text and the attribute val
      __attribute__((format(printf, 3, 4)));
    size_t html_begin_lines(html_writer_t *w);
 
+**svg-writer.h**
+
+Small SVG primitives written through the HTML writer.
+
+.. code-block:: c
+
+   void svg_line(html_writer_t *w, const char *cls, double x1, double y1,
+       double x2, double y2);
+   void svg_label(html_writer_t *w, double x, double y, const char *anchor,
+       const char *fmt, ...) __attribute__((format(printf, 5, 6)));
+
+Large files and compression (``io``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**bgzf-compressor.h**
+
+BGZF compression (the format of BAM files): the data are compressed in blocks of at most 64 KiB, each a gzip member with an extra field (BC) containing the size of the block. As for the gzip members of gzip-compressor.h, blocks can be compressed in parallel and written in order; a BGZF file ends with an empty block (the end-of-file marker).
+
+.. code-block:: c
+
+   #define BGZF_EOF_LEN
+   extern const uint8_t bgzf_eof[BGZF_EOF_LEN];
+   typedef struct bgzf_compressor_t bgzf_compressor_t;
+   bgzf_compressor_t* bgzf_compressor_new(int level);
+   void bgzf_compressor_run(bgzf_compressor_t *self, const char *data,
+       size_t len, strbuf_t *out);
+   void bgzf_compressor_delete(bgzf_compressor_t *self);
+
+**file-merger.h**
+
+Merging of sorted files
+
+.. code-block:: c
+
+   typedef bool (*merge_getelem_f)(char **elem, size_t *elemsize, FILE *file,
+       Logger *logger);
+   typedef void (*merge_writeelem_f)(FILE *file, char *elem, Logger *logger);
+   typedef int (*merge_cmpelems_f)(const void *elem1, const void *elem2);
+   void merge_n_files(size_t nfiles, const char *basename, const char *sfx,
+       bool use_stdout, merge_getelem_f getelem, merge_writeelem_f writeelem,
+       merge_cmpelems_f cmpelems, Logger *logger);
+
+**file-sorter.h**
+
+Sorting of large files in parts which fit in memory (to be merged with merge_n_files() of file-merger.h)
+
+.. code-block:: c
+
+   size_t sort_file_parts(
+       const char *infname,
+       const char *infsfx,
+       const char *outfname,
+       const char *outfsfx,
+       size_t bufsize,
+       size_t elems_bufsize_init,
+       size_t read_elems(FILE *file, char *buffer, size_t bufsize,
+                         char ***elems, size_t *elemsbufsize, Logger *logger),
+       void sort_elems(char **elems, size_t nelems),
+       void output_sorted_elems(FILE *file, char **elems, size_t nelems,
+                                Logger *logger),
+       Logger *logger);
+
+**gzip-compressor.h**
+
+Compression of data blocks as gzip members; the concatenation of gzip members is a valid gzip file, thus blocks can be compressed in parallel and written in order.
+
+.. code-block:: c
+
+   typedef struct gzip_compressor_t gzip_compressor_t;
+   gzip_compressor_t* gzip_compressor_new(int level);
+   void gzip_compressor_run(gzip_compressor_t *self, const char *data,
+       size_t len, strbuf_t *out);
+   void gzip_compressor_delete(gzip_compressor_t *self);
+
+**json-writer.h**
+
+Writing the JSON summary: nested objects and arrays (blocks) with one member on each line, indented by the nesting level; the values of the members are written on their line by the caller (lists on one line: see json_sep()). The writer keeps, for each open block, whether it has a member yet, for the commas between the members.
+
+.. code-block:: c
+
+   #define JSON_WRITER_MAX_NESTING
+   typedef struct {
+     FILE *f;
+     int level;
+     bool empty[JSON_WRITER_MAX_NESTING];
+   } json_writer_t;
+   void json_open_block(json_writer_t *w, char c);
+   void json_member(json_writer_t *w, const char *k);
+   void json_close_block(json_writer_t *w, char c, bool compact);
+   void json_sep(FILE *f, bool *first);
+   void json_count_member(json_writer_t *w, const char *k, size_t n);
+   void json_share_member(json_writer_t *w, const char *k, double share);
+
 **md5.h**
 
 MD5 message digest (RFC 1321), e.g. for the checksums of files in metadata (as the md5 of the onlists of seqspec files) or for checking downloads. Not to be used for security purposes.
@@ -541,6 +611,16 @@ Identification of the cell barcodes of a single-cell library: the barcodes of a 
    size_t cell_caller_sorted_counts(const cell_caller_t *self,
        uint64_t **counts);
    void cell_caller_delete(cell_caller_t *self);
+
+**codons.h**
+
+Translation with the standard genetic code. A codon with a character which is not A, C, G or T (for example an ambiguous base) gives 'X'; an incomplete codon at the end is not translated.
+
+.. code-block:: c
+
+   char codons_residue(const char *codon);
+   size_t codons_translate(const char *seq, size_t len, char *out);
+   long codons_find_peptide(const char *seq, size_t len, const char *pattern);
 
 **complexity.h**
 

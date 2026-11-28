@@ -7,13 +7,14 @@ by the C projects of BAIA at the Institut Pasteur du Cambodge (e.g.
 follow common conventions and depend only on the C standard library, POSIX
 and zlib.
 
-The modules are organized in four components:
+The modules are organized in five components:
 
 - `core`: memory allocation, logging, command line interface, files,
   strings, numeric utilities, progress display, unit tests;
 - `ds`: data structures (Bloom filter, set, heap, HyperLogLog);
-- `io`: external sorting, parallel gzip and BGZF compression, MD5, HTML
-  reports;
+- `html`: HTML reports and dashboards, including the element writer,
+  templates, page helpers and SVG primitives;
+- `io`: external sorting, parallel gzip and BGZF compression, MD5;
 - `seq`: FASTQ and BAM reading and writing, SAM tags and headers, edit
   distance of short sequences, k-mer index of sequences, barcode
   whitelists, cell calling, library complexity.
