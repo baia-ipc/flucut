@@ -405,7 +405,7 @@ A read is never reverse-complemented: all positions refer to the read as given.
 
 ### Inputs and readsets
 
-`src/input-groups.c`. Each input is a FASTQ file (optionally gzipped),
+`src/io/input-groups.c`. Each input is a FASTQ file (optionally gzipped),
 an unaligned BAM, or a directory. A file is one readset; a directory is
 one readset of its files; a directory with `barcode*` subdirectories (a
 MinKNOW `fastq_pass`) gives one readset per barcode. A readset is one
@@ -3625,7 +3625,7 @@ sample (line 1), its internal priming sites (line 2) and its short
 amplicons (line 4), turns the counts per position into depths (lines
 5–7) and writes the tables and the report (lines 8–9).
 
-> **Source:** `src/seq/trimmer.c`, `src/results.c`, `src/report.c`
+> **Source:** `src/seq/trimmer.c`, `src/io/results.c`, `src/report.c`
 
 > **Called from:** FLUCUT_RUN (A1)
 
