@@ -10,6 +10,7 @@
 #define NUMUTILS_H
 
 #include <stddef.h>
+#include <stdbool.h>
 
 /* a / b rounded towards minus infinity (as // in Python); b != 0 */
 static inline long floordiv(long a, long b) {
@@ -54,6 +55,13 @@ percent_text_t percent_text(size_t part, size_t total);
 
 /* The same, for a <fraction> of 1 (0.0: none, 1.0: all) */
 percent_text_t fraction_percent_text(double fraction);
+
+/* Parse a finite decimal number written in the whole string. */
+bool parse_double(const char *s, double *value);
+
+/* Parse a percentage in [0, 100), written with a trailing '%', as a
+   fraction in [0, 1). */
+bool parse_percent(const char *s, double *value);
 
 /* Unit tests */
 void numutils_test(void);
