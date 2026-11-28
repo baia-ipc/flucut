@@ -113,7 +113,7 @@ reads	NC_004908.1	1700	5
       "ends_not_located": 0.0952,
       "reads_placed": 0.9167,
       "subtype_reads": {
-        "ha": {"leading": "H9", "second": null, "reads": 10, "leading_reads": 10, "second_reads": 0, "second_expected": 0.00, "second_excess": 0.00, "second_share": 0.0000, "above_threshold": false},
+        "ha": {"leading": "H9", "second": null, "reads": 10, "leading_reads": 10, "second_reads": 0, "second_expected": 0.00, "second_excess": 0.00, "second_share": 0.0000, "above_threshold": false, "scattered_reads": 0, "scattered_share": 0.0000, "distant_reference": false},
         "na": null
       },
       "flags": ["few_reads", "cleavage_site"],
@@ -242,7 +242,7 @@ reads	NC_004908.1	1700	5
         "ends_not_located": 0.0952,
         "reads_placed": 0.9167,
         "subtype_reads": {
-          "ha": {"leading": "H9", "second": null, "reads": 10, "leading_reads": 10, "second_reads": 0, "second_expected": 0.00, "second_excess": 0.00, "second_share": 0.0000, "above_threshold": false},
+          "ha": {"leading": "H9", "second": null, "reads": 10, "leading_reads": 10, "second_reads": 0, "second_expected": 0.00, "second_excess": 0.00, "second_share": 0.0000, "above_threshold": false, "scattered_reads": 0, "scattered_share": 0.0000, "distant_reference": false},
           "na": null
         },
         "flags": ["few_reads", "cleavage_site"],

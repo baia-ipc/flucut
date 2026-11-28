@@ -30,6 +30,10 @@ second subtype
    which most of its other reads belong to. Its reads can come from a
    mixed infection, from a contamination, or from barcode crosstalk.
 
+scattered reads
+   The reads whose probes vote for several subtypes at once. Many of
+   them mean that no reference of the set is close to that segment.
+
 scheme
    The primers expected at the two ends of an amplicon.
 

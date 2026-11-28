@@ -24,7 +24,25 @@ static void write_row(html_writer_t *w, size_t which,
               percent_text(e->second_reads, e->reads).s);
     markup_td(w, "%.1f", e->second_expected);
   }
+  markup_td(w, "%s (%s)", html_num(e->scattered_reads).s,
+            percent_text(e->scattered_reads, e->reads).s);
   html_close(w);
+}
+
+/* a segment whose reads fit no reference of the set */
+static void write_distant_note(html_writer_t *w, size_t which,
+    const subtype_reads_evidence_t *e) {
+  markup_note(w, "No close %s reference: in %s of %s reads (%s) the "
+              "probes of one read agree on no subtype. No reference of "
+              "the set is close to this segment, the subtype %c%d rests "
+              "on %s reads, and the read ends of the segment are "
+              "located less often. A second subtype reported beside it "
+              "may be that scatter and not another virus.",
+              subtype_reads_gene(which),
+              html_num(e->scattered_reads).s, html_num(e->reads).s,
+              percent_text(e->scattered_reads, e->reads).s,
+              subtype_reads_letter(which), e->leading,
+              html_num(e->leading_reads).s);
 }
 
 /* what was observed above the threshold, and what can cause it */
@@ -54,14 +72,18 @@ void subtypes_write(html_writer_t *w, const counter_t *c) {
   html_tag_text(w, "h3", "HA and NA subtypes in the reads");
   html_open(w, "table");
   markup_header_row(w, "", "subtype of most reads", "second subtype",
-                    "expected by chance", NULL);
+                    "expected by chance", "reads agreeing on no subtype",
+                    NULL);
   for (size_t which = 0; which < SUBTYPE_READS_N_SEGMENTS; which++)
     if (e[which].known)
       write_row(w, which, e + which);
   html_close(w);
-  for (size_t which = 0; which < SUBTYPE_READS_N_SEGMENTS; which++)
+  for (size_t which = 0; which < SUBTYPE_READS_N_SEGMENTS; which++) {
     if (e[which].above_threshold)
       write_remark(w, which, e + which);
+    if (e[which].distant_reference)
+      write_distant_note(w, which, e + which);
+  }
   markup_note(w, "Of the first reads of the sample, those with several "
               "probes located in the HA or NA references: a read is of a "
               "subtype when all its probes match that subtype best.");

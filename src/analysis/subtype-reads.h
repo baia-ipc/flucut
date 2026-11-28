@@ -34,6 +34,16 @@
    segments are not looked at: their references differ too little
    between subtypes for the probes of a read to agree on one.
 
+   A read whose probes do not agree on any subtype is counted apart.
+   Such reads are many when no reference of the set is close to the
+   segment: the probes of one read then match here one subtype and
+   there another, and the subtype named for that segment rests on few
+   reads. That is reported as a distant reference
+   (SUBTYPE_READS_SCATTERED_SHARE below), and it is what separates a
+   divergent segment from a second virus: a second virus gives reads
+   which agree among themselves on another subtype, a distant reference
+   gives reads which agree on nothing.
+
    The counts are those of a sample (subtype_reads_t), kept with its
    other counts (counter.h); the evidence is computed from them when
    the reports are written. Nothing here changes the references chosen.
@@ -73,6 +83,23 @@ enum { SUBTYPE_READS_HA, SUBTYPE_READS_NA, SUBTYPE_READS_N_SEGMENTS };
 #define SUBTYPE_READS_MIN_EXCESS 2.5
 #define SUBTYPE_READS_MIN_SHARE 0.01
 
+/*
+   When the reference of a segment is called distant: the share of the
+   reads with several voting probes whose probes agree on no subtype,
+   and the fewest such reads for the share to mean anything.
+
+   Measured on 177 HA and NA segments of 104 sequenced samples, each
+   compared with the identity of its IRMA consensus to the closest
+   record of the set (subtype_check/ of the analyses): no segment with
+   a record at least 90% identical reached 0.15, and every segment
+   above 0.5 had its closest record at most 88% identical. The
+   converse does not hold: most segments with a distant record stay
+   below 0.5, so this says that the reads of a segment fit no record
+   of the set, not how distant the closest one is.
+*/
+#define SUBTYPE_READS_SCATTERED_SHARE 0.5
+#define SUBTYPE_READS_SCATTERED_MIN_READS 20
+
 /* the counts of the HA or of the NA; the subtypes by their number */
 typedef struct {
   /* the voting probes located in the references of each subtype */
@@ -99,6 +126,11 @@ typedef struct {
   int leading, second;     /* numbers of the subtypes; 0: no second one */
   size_t reads;            /* the reads with several voting probes */
   size_t leading_reads, second_reads;   /* ... all for that subtype */
+  /* the reads whose probes agree on no subtype, and their share of
+     <reads>: many of them mean that no reference is close */
+  size_t scattered_reads;
+  double scattered_share;
+  bool distant_reference;
   /* the reads of the second subtype expected if the probes voted
      independently of their read, and the observed ones beyond them */
   double second_expected, second_excess;
@@ -134,6 +166,10 @@ void subtype_reads_evidence(const subtype_reads_t *self, size_t which,
 /* Whether the excess <excess> among <reads> reads with several voting
    probes is above the threshold */
 bool subtype_reads_above_threshold(double excess, size_t reads);
+
+/* Whether <scattered> of <reads> reads whose probes agree on no
+   subtype are enough to call the reference of the segment distant */
+bool subtype_reads_distant_reference(size_t scattered, size_t reads);
 
 /* The gene (HA, NA) and the letter of the subtypes (H, N) of <which> */
 const char* subtype_reads_gene(size_t which);

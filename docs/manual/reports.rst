@@ -254,8 +254,10 @@ too short), the reads with both primers.
 **HA and NA subtypes in the reads.** For the HA and for the NA, the
 subtype of most reads and the second one, each with its reads, among
 the first reads of the sample with several probes located in the
-references of that gene; and the reads of the second subtype expected
-by chance. When they exceed that number by 3 reads and by 1% of the
+references of that gene; the reads of the second subtype expected
+by chance; and the reads whose probes agree on no subtype, which are
+many when no reference of the set is close to that segment (a line
+under the table says so when they are half or more). When they exceed that number by 3 reads and by 1% of the
 reads counted, a line under the table says so, as the remark at the top
 of the sample does. It says what was observed, not what it means: such
 reads can come from a mixed infection, from a contamination of the

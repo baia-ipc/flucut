@@ -121,7 +121,7 @@ reads-two-subtypes	NC_004908.1	1700	9
       "ends_not_located": 0.2069,
       "reads_placed": 0.9375,
       "subtype_reads": {
-        "ha": {"leading": "H9", "second": "H3", "reads": 14, "leading_reads": 10, "second_reads": 4, "second_expected": 0.00, "second_excess": 4.00, "second_share": 0.2857, "above_threshold": true},
+        "ha": {"leading": "H9", "second": "H3", "reads": 14, "leading_reads": 10, "second_reads": 4, "second_expected": 0.00, "second_excess": 4.00, "second_share": 0.2857, "above_threshold": true, "scattered_reads": 0, "scattered_share": 0.0000, "distant_reference": false},
         "na": null
       },
       "flags": ["few_reads", "cleavage_site", "second_ha_subtype"],
@@ -251,7 +251,7 @@ reads-two-subtypes	NC_004908.1	1700	9
         "ends_not_located": 0.2069,
         "reads_placed": 0.9375,
         "subtype_reads": {
-          "ha": {"leading": "H9", "second": "H3", "reads": 14, "leading_reads": 10, "second_reads": 4, "second_expected": 0.00, "second_excess": 4.00, "second_share": 0.2857, "above_threshold": true},
+          "ha": {"leading": "H9", "second": "H3", "reads": 14, "leading_reads": 10, "second_reads": 4, "second_expected": 0.00, "second_excess": 4.00, "second_share": 0.2857, "above_threshold": true, "scattered_reads": 0, "scattered_share": 0.0000, "distant_reference": false},
           "na": null
         },
         "flags": ["few_reads", "cleavage_site", "second_ha_subtype"],

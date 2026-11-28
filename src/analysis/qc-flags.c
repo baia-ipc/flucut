@@ -101,14 +101,18 @@ static void add_markers(qc_flags_t *out, const marker_counts_t *markers) {
     add(out, "markers", "%s", text);
 }
 
-/* the reads of a second HA or NA subtype, where their excess is above
-   the threshold: what was observed, not what it means */
-static void add_second_subtypes(qc_flags_t *out,
+/* what the subtypes of the first reads say about the HA and the NA:
+   the reads of a second subtype, where their excess is above the
+   threshold, and a segment whose reads fit no reference of the set.
+   Both are what was observed, not what it means */
+static void add_subtype_reads(qc_flags_t *out,
     const subtype_reads_t *subtypes) {
   static const char *const keys[] = {"second_ha_subtype",
                                      "second_na_subtype"};
   if (subtypes == NULL)
     return;
+  static const char *const distant[] = {"distant_ha_reference",
+                                        "distant_na_reference"};
   for (size_t which = 0; which < SUBTYPE_READS_N_SEGMENTS; which++) {
     subtype_reads_evidence_t e;
     subtype_reads_evidence(subtypes, which, &e);
@@ -117,6 +121,10 @@ static void add_second_subtypes(qc_flags_t *out,
           "%zu, %.1f%%", subtype_reads_gene(which),
           subtype_reads_letter(which), e.second, e.second_reads, e.reads,
           100.0 * (double)e.second_reads / (double)e.reads);
+    if (e.distant_reference)
+      add(out, distant[which], "no close %s reference: the probes of %zu "
+          "of %zu reads agree on no subtype", subtype_reads_gene(which),
+          e.scattered_reads, e.reads);
   }
 }
 
@@ -158,7 +166,7 @@ void qc_flags(const counter_reads_t *s, const qc_summary_t *qc, bool refs,
                QC_FLAGS_DELETION);
   add_cleavage(out, site);
   add_markers(out, markers);
-  add_second_subtypes(out, subtypes);
+  add_subtype_reads(out, subtypes);
 }
 
 void qc_flags_test(void) {

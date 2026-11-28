@@ -22,9 +22,13 @@ static void write_evidence(FILE *f, size_t which,
   fprintf(f, ", \"reads\": %zu, \"leading_reads\": %zu, "
           "\"second_reads\": %zu, \"second_expected\": %.2f, "
           "\"second_excess\": %.2f, \"second_share\": %.4f, "
-          "\"above_threshold\": %s}", e->reads, e->leading_reads,
+          "\"above_threshold\": %s, \"scattered_reads\": %zu, "
+          "\"scattered_share\": %.4f, \"distant_reference\": %s}",
+          e->reads, e->leading_reads,
           e->second_reads, e->second_expected, e->second_excess,
-          e->second_share, e->above_threshold ? "true" : "false");
+          e->second_share, e->above_threshold ? "true" : "false",
+          e->scattered_reads, e->scattered_share,
+          e->distant_reference ? "true" : "false");
 }
 
 /* the member "subtype_reads": the reads of each HA and NA subtype among

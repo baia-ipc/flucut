@@ -123,6 +123,12 @@ bool subtype_reads_above_threshold(double excess, size_t reads) {
          excess >= SUBTYPE_READS_MIN_SHARE * (double)reads;
 }
 
+bool subtype_reads_distant_reference(size_t scattered, size_t reads) {
+  return reads >= SUBTYPE_READS_SCATTERED_MIN_READS &&
+         (double)scattered >=
+             SUBTYPE_READS_SCATTERED_SHARE * (double)reads;
+}
+
 /* the second subtype of <counts>, whose leading one is <out->leading>
    and whose votes are <total>: the other subtype with reads whose
    excess is largest */
@@ -149,9 +155,10 @@ void subtype_reads_evidence(const subtype_reads_t *self, size_t which,
   assert(which < SUBTYPE_READS_N_SEGMENTS);
   const subtype_reads_segment_t *counts = self->segments + which;
   memset(out, 0, sizeof(*out));
-  size_t total = 0;
+  size_t total = 0, agreeing = 0;
   for (int g = 1; g <= SUBTYPE_READS_MAX_NUMBER; g++) {
     total += counts->votes[g];
+    agreeing += counts->agreeing[g];
     if (counts->votes[g] > counts->votes[out->leading])
       out->leading = g;
   }
@@ -161,6 +168,10 @@ void subtype_reads_evidence(const subtype_reads_t *self, size_t which,
   if (!out->known)
     return;
   out->leading_reads = counts->agreeing[out->leading];
+  out->scattered_reads = out->reads > agreeing ? out->reads - agreeing : 0;
+  out->scattered_share = (double)out->scattered_reads / (double)out->reads;
+  out->distant_reference =
+      subtype_reads_distant_reference(out->scattered_reads, out->reads);
   second_subtype(counts, total, out);
   if (out->second == 0)
     return;
@@ -178,6 +189,12 @@ void subtype_reads_log(const subtype_reads_t *self, const char *file,
       continue;
     char letter = subtype_reads_letter(which);
     const char *gene = subtype_reads_gene(which);
+    if (e.distant_reference)
+      lprintf(logger, LOG_WARN, "%s: %s segment: the probes of %zu of "
+              "%zu reads agree on no subtype: no reference of the set is "
+              "close to this segment, and the subtype %c%d rests on %zu "
+              "reads\n", file, gene, e.scattered_reads, e.reads, letter,
+              e.leading, e.leading_reads);
     if (e.second == 0) {
       lprintf(logger, LOG_INFO, "%s subtypes in the reads of %s: %zu "
               "reads with several voting probes, %zu all for %c%d, none "
@@ -335,6 +352,43 @@ static void test_two_subtypes(void) {
   test_assert(!e.above_threshold);
 }
 
+/* a segment with no close reference: the probes of most reads agree on
+   no subtype, and the reads which agree are few */
+static void test_distant_reference(void) {
+  subtype_reads_t c;
+  subtype_reads_clear(&c);
+  c.samples = 1;
+  const size_t scattered[] = {0, 2, 1, 2}, h5[] = {0, 1, 0};
+  add_n(&c, test_segment, test_number, scattered, 4, 70);
+  add_n(&c, test_segment, test_number, h5, 3, 30);
+  subtype_reads_evidence_t e;
+  subtype_reads_evidence(&c, SUBTYPE_READS_HA, &e);
+  test_eq(e.leading, 5, int, "%d");
+  test_eq_size(e.reads, 100);
+  test_eq_size(e.leading_reads, 30);
+  test_eq_size(e.scattered_reads, 70);
+  test_assert(e.scattered_share > 0.69 && e.scattered_share < 0.71);
+  test_assert(e.distant_reference);
+  /* the reads of a second subtype agree among themselves: no scatter */
+  subtype_reads_clear(&c);
+  c.samples = 1;
+  const size_t h3[] = {2, 2};
+  add_n(&c, test_segment, test_number, h5, 3, 90);
+  add_n(&c, test_segment, test_number, h3, 2, 10);
+  subtype_reads_evidence(&c, SUBTYPE_READS_HA, &e);
+  test_eq_size(e.scattered_reads, 0);
+  test_assert(!e.distant_reference);
+  test_assert(e.above_threshold);
+  /* too few reads to say anything of the scatter */
+  subtype_reads_clear(&c);
+  c.samples = 1;
+  add_n(&c, test_segment, test_number, scattered, 4,
+        SUBTYPE_READS_SCATTERED_MIN_READS - 1);
+  subtype_reads_evidence(&c, SUBTYPE_READS_HA, &e);
+  test_eq_size(e.scattered_reads, SUBTYPE_READS_SCATTERED_MIN_READS - 1);
+  test_assert(!e.distant_reference);
+}
+
 /* the threshold: enough reads, and a large enough share of the reads */
 static void test_threshold(void) {
   test_assert(!subtype_reads_above_threshold(
@@ -347,6 +401,15 @@ static void test_threshold(void) {
                                              many));
   test_assert(subtype_reads_above_threshold(
       2 * SUBTYPE_READS_MIN_EXCESS, many));
+  test_assert(!subtype_reads_distant_reference(
+      SUBTYPE_READS_SCATTERED_MIN_READS,
+      SUBTYPE_READS_SCATTERED_MIN_READS - 1));
+  size_t reads = 10 * SUBTYPE_READS_SCATTERED_MIN_READS;
+  test_assert(subtype_reads_distant_reference(
+      (size_t)(SUBTYPE_READS_SCATTERED_SHARE * (double)reads), reads));
+  test_assert(!subtype_reads_distant_reference(
+      (size_t)(SUBTYPE_READS_SCATTERED_SHARE * (double)reads) - 1,
+      reads));
 }
 
 /* the counts saved and loaded are the same */
@@ -378,6 +441,7 @@ void subtype_reads_test(void) {
   test_numbers();
   test_one_virus();
   test_two_subtypes();
+  test_distant_reference();
   test_threshold();
   test_save();
 }

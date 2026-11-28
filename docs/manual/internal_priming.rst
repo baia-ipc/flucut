@@ -225,6 +225,34 @@ these apart: look at the other samples of the run (do they have that
 subtype?) and at the depth of the second subtype before concluding
 anything.
 
+A segment whose reads fit no reference
+......................................
+
+A read whose probes agree on no subtype is counted apart. Such reads
+are many when no reference of the set is close to that segment: the
+probes of one read then match here one subtype and there another, and
+the subtype named for the segment rests on few reads. When they are
+half or more of the reads counted (at least 20 of them), the report
+and the JSON summary say so::
+
+   no close NA reference: the probes of 111 of 154 reads agree on no
+   subtype
+
+This separates a divergent segment from a second virus: a second virus
+gives reads which agree among themselves on another subtype, a distant
+reference gives reads which agree on nothing. Where it appears, take
+the subtype of that segment as provisional and, if it matters, add a
+closer reference with ``-r``.
+
+It was measured on 177 HA and NA segments of 104 sequenced samples,
+each compared with the identity of its assembled consensus to the
+closest record of the set: no segment with a record at least 90%
+identical reached 0.15 scattered reads, and every segment above 0.5
+had its closest record at most 88% identical. Most segments with a
+distant record stay below 0.5, so the remark marks reads which fit no
+record, not how distant the closest record is, and its absence is no
+proof that the reference is close.
+
 How small a second virus it sees was measured on simulated reads of 17
 genomes outside the built-in set and of mixes of two of them, at mean
 error rates of 4, 8 and 12% (``benchmark/RESULTS.md``):
