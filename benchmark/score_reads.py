@@ -22,7 +22,9 @@ benchmark/simulate.py) then tells what was kept and what was removed:
                         (the bases which carry the artefact)
   not_found             written reads not found in their input read
   pieces                written reads which are pieces of a read split
-                        by the tool (named <read>_<n>, e.g. Porechop)
+                        by the tool (named <read>_<n>, e.g. Porechop;
+                        flucut writes a read with an internal deletion
+                        as its two flanks, <read>_j1 and <read>_j2)
   split_wrongly         reads written in more pieces than they have
                         amplicons (2 in a read of joined amplicons,
                         simulate.py --joined-share; otherwise 1)
@@ -88,7 +90,7 @@ def main():
   for name, seq in read_fastq(trimmed):
     c["reads_out"] += 1
     if name not in inputs:
-      m = re.match(r"(.*)_\d+$", name)
+      m = re.match(r"(.*?)(?:_\d+)?(?:_j\d+)?$", name)
       if m is None or m.group(1) not in inputs:
         sys.exit("%s: read not in the simulation" % name)
       name = m.group(1)
