@@ -111,8 +111,9 @@ bool primer_search_run_seq(primer_search_t *self, const char *seq,
    The outer bases of the primer (its first ones at the start of the
    read, its last ones at the end) may be missing, in a single
    alignment (dynamic programming, with the same equal characters as
-   edlib, see the IUPAC matching rules in iupac.h): the alignment may begin at any primer
-   position on the outer side, at a cost which depends on the number q
+   edlib, see the IUPAC matching rules in iupac.h): the alignment may
+   begin at any primer position on the outer side, at a cost which
+   depends on the number q
    of outer bases missing: <skip_cost>[q] when the primer begins inside
    the read (after flanking bases), <edge_cost>[q] when the read begins
    (or ends) with the rest of the primer (the primer overhangs the

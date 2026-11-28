@@ -10,9 +10,10 @@ void json_reads_lengths(FILE *f, const counter_t *c) {
   for (size_t k = 0; k < counter_read_stats(c)->n_sets; k++) {
     read_stats_summary_t s;
     read_stats_summarize(counter_read_stats(c), k, &s);
+    const char *name = read_stats_set_name(counter_read_stats(c), k);
     fprintf(f, "%s\"%s\": {\"reads\": %zu, \"bases\": %zu, \"min\": %zu, "
             "\"max\": %zu, \"mean\": %zu, \"median\": %zu, \"n50\": %zu}",
-            k > 0 ? ", " : "", read_stats_set_name(counter_read_stats(c), k), s.reads, s.bases,
+            k > 0 ? ", " : "", name, s.reads, s.bases,
             s.min_len, s.max_len, s.mean_len, s.median_len, s.n50);
   }
   fputc('}', f);

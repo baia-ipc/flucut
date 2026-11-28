@@ -351,9 +351,10 @@ static void search_layout(amplicon_analyzer_t *self, const char *seq,
              self->left_edge, sc->n_left, seq, left_len, true, false,
              &out->left);
   /* the primer must begin within the window */
-  if (out->left.found && out->left.hit.start > left_window)
+  if (out->left.found && out->left.hit.start > left_window) {
     out->left.found = false;
     out->left.keep_terminus = false;
+  }
   /* the right primer is searched after the left one, so that the two
      primers found belong to the same amplicon */
   long after_left = out->left.found ? out->left.hit.end + 1 : 0;
@@ -667,9 +668,15 @@ static void place(amplicon_analyzer_t *self, const char *seq,
 
 /* the template of the read, in the analyzed orientation: the bases
    between the primers, or, at an end without a primer, from the end of
-   the kept part */
+   the kept part; empty where nothing is kept (keep_from and keep_to
+   are then a sentinel pair, not real positions of the read) */
 static void template_span(const amplicon_t *a, size_t len, long *from,
     long *to) {
+  if (amplicon_kept_length(a) == 0) {
+    *from = 0;
+    *to = -1;
+    return;
+  }
   bool minus = a->strand == STRAND_MINUS;
   *from = a->left.found ? a->left.hit.end + 1 :
           (minus ? (long)len - 1 - a->keep_to : a->keep_from);
