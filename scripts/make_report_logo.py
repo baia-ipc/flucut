@@ -1,13 +1,14 @@
 """
-Generate src/report-logo-data.inc, the logo of the HTML report, from the
-wide logo of flucut (docs/logo/flucut-banner.png) and its variant for
-dark backgrounds (docs/logo/flucut-banner-dark.png): as data URIs (so
-that the report stays self-contained) of WebP images, 520 pixels wide
-(shown at about half size, sharp on high-resolution screens). The
-dark variant is read from its own file. Requires Pillow.
+Generate src/reports/html/report-logo-data.inc, the logo of the HTML
+report, from the wide logo of flucut (docs/logo/flucut-banner.png) and
+its variant for dark backgrounds (docs/logo/flucut-banner-dark.png): as
+data URIs (so that the report stays self-contained) of WebP images,
+520 pixels wide (shown at about half size, sharp on high-resolution
+screens). The dark variant is read from its own file. Requires Pillow.
 
 Usage: make_report_logo.py docs/logo/flucut-banner.png \
-         docs/logo/flucut-banner-dark.png > src/report-logo-data.inc
+         docs/logo/flucut-banner-dark.png \
+         > src/reports/html/report-logo-data.inc
 """
 import base64, io, sys
 from PIL import Image
