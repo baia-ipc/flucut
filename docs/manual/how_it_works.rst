@@ -60,7 +60,7 @@ than 20%, at the cost of about 3 times more template bases removed
 (``benchmark/RESULTS.md``). The rule has two values and
 one threshold, measured once, before the trimming.
 
-With ``-p illumina``, ``-e auto`` is 20% and nothing is measured. The
+With ``-p illumina``, ``-e auto`` is 15% and nothing is measured. The
 rule is one for the error rates of Nanopore reads, and on reads of
 fragments the measurement does not measure the reads: few of them start
 at an amplicon end, so most primers found in the first reads are chance
@@ -68,7 +68,28 @@ matches of part of a primer at a read start, with many errors. On four
 public Illumina runs of influenza B (paired reads of fragmented
 amplicons, about 0.15% of them starting at a segment terminus) it
 measured 7 to 11% and would have allowed 30%, which put a primer at the
-left end of 27 to 32% of the reads, about seven times as many as 20%.
+left end of 27 to 32% of the reads.
+
+The 15% was measured on the first 200,000 reads of those four runs and
+of an Illumina run of influenza A (SRR34913296), with 20, 15, 10 and 5%:
+
+======================== =================== ===================
+errors allowed           written as          reads beginning
+                         internally primed   with a terminus,
+                                             primer found
+======================== =================== ===================
+20%                      2.4-4.9% (A: 1.6%)  99.3-100% (A: 99.7%)
+15%                      0.5-0.8% (A: 0.6%)  98.6-100% (A: 99.3%)
+10%                      0.4-0.8% (A: 0.6%)  98.6-100% (A: 99.0%)
+5%                       0.4-0.7% (A: 0.6%)  95.6-98.3% (A: 97.0%)
+======================== =================== ===================
+
+From 20% to 15%, five to six times fewer reads are written as internally
+primed and the primers of the reads which begin at a segment terminus
+are still found; lower values remove almost nothing more and start to
+miss those primers. The 2.3 to 4.5% of the reads of influenza B which
+have a primer found without beginning at a terminus, at each of these
+values, are not explained by the errors allowed.
 
 The window
 ----------

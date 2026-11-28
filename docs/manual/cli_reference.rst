@@ -88,7 +88,7 @@ Options
    in Uni12), or 30% (3 errors) if that rate is at least 4%
    (:doc:`how_it_works`). The value
    decided and the rate measured are in the messages (``-v``) and in the
-   reports. With ``-p illumina``, ``auto`` is 20%, not measured.
+   reports. With ``-p illumina``, ``auto`` is 15%, not measured.
    Default: ``auto``.
 
 ``-p, --platform <p>``

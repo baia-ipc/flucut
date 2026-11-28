@@ -18,7 +18,7 @@
    2 to 4 times fewer bases of the internal priming site than 0.2, at the
    cost of 3 times more template bases removed.
 
-   With -p illumina the errors allowed are AUTO_MAX_ERRORS_LOW, and
+   With -p illumina the errors allowed are AUTO_MAX_ERRORS_ILLUMINA, and
    nothing is measured. The rule is one for the error rates of Nanopore
    reads, and on reads of fragments the measurement is not one of the
    reads: few of them start at an amplicon end, so most primers found
@@ -26,8 +26,14 @@
    errors. On four public Illumina runs of influenza B (paired reads of
    fragmented amplicons, of which about 0.15% start at a segment
    terminus) it measured 7 to 11% in each of the eight files and allowed
-   30%, which put a primer at the left end of 27 to 32% of the reads;
-   with 20%, about seven times fewer.
+   30%, which put a primer at the left end of 27 to 32% of the reads.
+   The value was chosen on the first 200,000 reads of those runs and of
+   an influenza A run (SRR34913296; ../influenza_b_real_runs of the
+   manuscript): from 20% to 15%, 5 to 6 times fewer reads were written
+   as internally primed (influenza B 2.4-4.9% to 0.5-0.8%, influenza A
+   1.6% to 0.6%), while the primer was still found in 98.6 to 100% of
+   the reads which begin with a conserved terminus; 10% removed at most
+   0.06 points more, and 5% missed the primer in 2 to 4% of those reads.
 */
 
 #ifndef AUTO_SETTINGS_H
@@ -71,6 +77,7 @@
 #define AUTO_MAX_ERRORS_LOW 0.2
 #define AUTO_MAX_ERRORS_HIGH 0.3
 #define AUTO_MAX_ERRORS_HIGH_RATE 0.04
+#define AUTO_MAX_ERRORS_ILLUMINA 0.15
 
 typedef struct {
   /* -e: the value, and if automatic the measurement (see report.h) */

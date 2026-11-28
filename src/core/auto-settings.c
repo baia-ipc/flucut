@@ -19,12 +19,13 @@ void auto_settings_init(auto_settings_t *self, const options_t *opts) {
   assert(self != NULL);
   assert(opts != NULL);
   bool is_auto = opts->max_errors == OPTIONS_MAX_ERRORS_AUTO;
-  /* Illumina reads: AUTO_MAX_ERRORS_LOW, not measured (see
+  /* Illumina reads: AUTO_MAX_ERRORS_ILLUMINA, not measured (see
      auto-settings.h) */
   bool automatic = is_auto && !opts->illumina;
   self->max_errors = (report_setting_t){.automatic = automatic,
       .pending = automatic,
-      .value = is_auto ? AUTO_MAX_ERRORS_LOW : opts->max_errors,
+      .value = !is_auto ? opts->max_errors :
+               opts->illumina ? AUTO_MAX_ERRORS_ILLUMINA : AUTO_MAX_ERRORS_LOW,
       .measured = 0, .n_reads = 0, .file = NULL};
   self->file = NULL;
 }
@@ -727,7 +728,7 @@ void auto_settings_test(void) {
     auto_settings_init(&autos, &opts);
     test_assert(!autos.max_errors.automatic &&
                 !auto_settings_pending(&autos));
-    test_eq(autos.max_errors.value, AUTO_MAX_ERRORS_LOW, double, "%g");
+    test_eq(autos.max_errors.value, AUTO_MAX_ERRORS_ILLUMINA, double, "%g");
     auto_settings_free(&autos);
     opts.max_errors = 0.1;
     auto_settings_init(&autos, &opts);
