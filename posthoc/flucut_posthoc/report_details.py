@@ -15,6 +15,11 @@ CATEGORY_LABELS = {
     "noprimer_fragment": "no primer at the 5′ end, starts inside",
     "deletion": "internal deletion"}
 SITES_LISTED = 40
+# a site whose template differs from the primer terminus at more bases is
+# not a site where the primer annealed: in the 104 samples of the HA I351K
+# validation the Uni12 sites with 2 to 5 mismatches carry 96% of the site
+# reads, and most sites with more lie at a breakpoint of a large junction
+ANNEALING_MISMATCHES = 5
 
 
 def _references(s: dict) -> str:
@@ -131,7 +136,11 @@ def _sites(s: dict) -> str:
         "Internal priming sites", table(headers, rows, left=4),
         note("Ends with a primer inside a segment, at most 5 bases apart. "
              "Template: the reference where the primer annealed; "
-             "mismatches: with the conserved terminus of the primer."),
+             "mismatches: with the conserved terminus of the primer. "
+             f"Where the template differs from the primer at more than "
+             f"{ANNEALING_MISMATCHES} bases, the primer cannot have annealed "
+             "there: it is joined to the segment, often at the junction of "
+             "a deleted genome whose other flank is too short to align."),
         hint=f"the largest of {s['internal_sites_total']:,}, with the "
              f"template under the primer")
 

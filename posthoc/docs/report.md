@@ -76,7 +76,11 @@ same and the depth is within its limits.
   mapped, primer dimers), the amplicons by origin and the primers
   found, each next to the same bar of flucut.
 - **Internal priming sites**: the largest sites, with the reads flucut
-  reports at the same place.
+  reports at the same place, and the template under the primer. A site
+  whose template differs from the primer at more than 5 bases is not
+  one where the primer annealed: the primer is joined to the segment
+  there, often at the junction of a deleted genome whose other flank is
+  too short to align.
 - **Reads assembled by IRMA** (with `-i`): for each kind of read, the
   share each IRMA run assembled.
 - **Segments**: one strip per segment. At the left, the numbers
