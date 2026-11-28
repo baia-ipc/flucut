@@ -2090,7 +2090,7 @@ SITES clusters the positions that are at most 5 apart into one site
 and lists the sites, the most used first (line 17).
 
 > **Source:** `count_end` in `src/analysis/counter.c`; `add_sites` in
-> `src/report.c`
+> `src/reports/report.c`
 
 ![Starts of internally primed reads, clustered into sites](figures/sites.svg)
 
@@ -3625,7 +3625,7 @@ sample (line 1), its internal priming sites (line 2) and its short
 amplicons (line 4), turns the counts per position into depths (lines
 5–7) and writes the tables and the report (lines 8–9).
 
-> **Source:** `src/seq/trimmer.c`, `src/io/results.c`, `src/report.c`
+> **Source:** `src/seq/trimmer.c`, `src/io/results.c`, `src/reports/report.c`
 
 > **Called from:** FLUCUT_RUN (A1)
 
