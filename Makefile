@@ -9,7 +9,7 @@ SRCDIR=src
 # objects are all in obj, the includes are not qualified by the directory
 # (so the names of the headers are unique over all components), and
 # vpath finds the sources
-COMPONENTS = core seq seq/primers seq/references analysis io reports reports/html reports/json
+COMPONENTS = core seq seq/primers seq/references seq/search analysis io reports reports/html reports/json
 COMPONENT_DIRS = $(SRCDIR) $(addprefix $(SRCDIR)/,$(COMPONENTS))
 vpath %.c $(COMPONENT_DIRS)
 vpath %.html $(COMPONENT_DIRS)

@@ -107,7 +107,7 @@ the usual window of the new end, a primer-like sequence of the template
 could otherwise be taken for it. The tags ``a5`` and ``a3`` tell which
 kit's adapter was removed at the start and at the end of a read.
 
-The search is that of ``src/seq/adaptor-search.c``; the adapters are searched only at the ends without a primer,
+The search is that of ``src/seq/search/adaptor-search.c``; the adapters are searched only at the ends without a primer,
 so the reads with both primers are trimmed as without it.
 
 The trimming

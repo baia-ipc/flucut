@@ -902,7 +902,7 @@ read stops: aligned to the reference where the amplicon side lies, the
 bases of the sample still fit it, while the bases of another amplicon do
 not.
 
-> **Source:** `src/seq/terminus-matches.c`, `src/seq/chimera.c`
+> **Source:** `src/seq/search/terminus-matches.c`, `src/seq/chimera.c`
 
 The patterns searched are the conserved terminus of each primer of the
 scheme and its reverse complement. On the strand of the read each is
@@ -1260,7 +1260,7 @@ errors in proportion to the part inside the read (line 10).
 PRIMER_AT_END tries first a primer that lies inside the read (line 3),
 and only if there is none one that overhangs it (line 4).
 
-> **Source:** `primer_search_end` in `src/seq/primer-search.c`;
+> **Source:** `primer_search_end` in `src/seq/search/primer-search.c`;
 > `missing_costs`, `search_primer_end` in `src/seq/amplicon.c`
 
 The primer is aligned to the read end by a dynamic programming in which
@@ -1705,7 +1705,7 @@ second analysis is used unless it finds fewer primers than the first
 (line 16).
 
 > **Source:** `analyze_with_adapters` in `src/seq/amplicon.c`;
-> `src/seq/adapters.c`, `src/seq/adaptor-search.c`
+> `src/seq/search/adapters.c`, `src/seq/search/adaptor-search.c`
 
 ![An adapter removed at an end without a primer, and the second analysis](figures/adapter_removal.svg)
 
