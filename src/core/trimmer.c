@@ -285,14 +285,21 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
   /* the markers of the segment of the read; a read which is not
      located (the reads of a fragment, see marker-read.h) is searched
      for every marker. A read with an internal deletion gives only the
-     markers which lie whole on one side of its junction; one whose
-     junction was not located gives none, as which of its bases belong
-     together is then not known */
-  if (category != READ_CATEGORY_DELETION || a->junction.found)
+     markers which lie whole between the cuts of its junction and of
+     the short deletions beside it; one whose junction was not located
+     gives none, as which of its bases belong together is then not
+     known */
+  long cuts[1 + FLANK_DELETIONS_MAX_CUTS];
+  size_t n_cuts = 0;
+  bool readable = category != READ_CATEGORY_DELETION || a->junction.found;
+  if (readable && category == READ_CATEGORY_DELETION) {
+    cuts[n_cuts++] = a->junction_at;
+    for (size_t i = 0; i < a->n_flank_cuts; i++)
+      cuts[n_cuts++] = a->flank_cuts[i];
+  }
+  if (readable)
     counter_add_markers(counts, self->markers,
-                        cover.located ? (long)cover.ref : -1,
-                        category == READ_CATEGORY_DELETION ? a->junction_at
-                                                           : -1,
+                        cover.located ? (long)cover.ref : -1, cuts, n_cuts,
                         seq, len, self->config->probe_error_rate);
   if (!write || (self->config->filtered != NULL &&
                  self->config->filtered[category])) {

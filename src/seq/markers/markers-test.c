@@ -146,10 +146,11 @@ static void read_n_at(const marker_reference_t *const *chosen, long ref,
     long junction, const char *seq, size_t n, marker_counts_t *counts) {
   char rc[512];
   size_t len = strlen(seq);
+  size_t n_cuts = junction < 0 ? 0 : 1;
   reverse_complement(seq, len, rc);
   for (size_t i = 0; i < n; i++) {
-    marker_read_sites(chosen, ref, junction, seq, len, 0.2, counts);
-    marker_read_sites(chosen, ref, junction, rc, len, 0.2, counts);
+    marker_read_sites(chosen, ref, &junction, n_cuts, seq, len, 0.2, counts);
+    marker_read_sites(chosen, ref, &junction, n_cuts, rc, len, 0.2, counts);
   }
 }
 
@@ -232,7 +233,7 @@ static void test_reads(void) {
   size_t pb2_len = strlen(PB2_627E);
   long at = (long)strlen(PB2_HEAD) + 3;   /* the first base of the anchor */
   for (size_t i = 0; i < 30; i++)
-    marker_read_sites(chosen, 0, at, PB2_627E, pb2_len, 0.2, &c);
+    marker_read_sites(chosen, 0, &at, 1, PB2_627E, pb2_len, 0.2, &c);
   marker_result_of(&c, MARKER_PB2_627, &r);
   test_eq_size(r.searched, 30);
   /* the window lies before the junction and the anchor after it: no
@@ -241,8 +242,9 @@ static void test_reads(void) {
   test_assert(r.anchor_reads > 0);
   /* a junction past the whole site: the value is read */
   marker_counts_clear(&c);
+  long past = (long)pb2_len;
   for (size_t i = 0; i < 30; i++)
-    marker_read_sites(chosen, 0, (long)pb2_len, PB2_627E, pb2_len, 0.2, &c);
+    marker_read_sites(chosen, 0, &past, 1, PB2_627E, pb2_len, 0.2, &c);
   marker_result_of(&c, MARKER_PB2_627, &r);
   test_eq_size(r.reads, 30);
   test_eq_str(r.value, "E");
