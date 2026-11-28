@@ -87,14 +87,6 @@
   bases: GTTACGCGCC
   note: the 5' tail shared by the Opti1 primers of Mena et al. 2016
 
-- sequence: inf-tail-left
-  bases: GGGGGG
-  note: the 5' tail of the Uni12/Inf primers of the left end; non-influenza bases, as in the IBV-GA2 primers
-
-- sequence: inf-tail-right
-  bases: CGGGTTATT
-  note: the 5' tail of the Uni13/Inf-1 primer of the right end; non-influenza bases
-
 - sequence: terminus-b-9
   bases: AGCAGAAGC
   note: the 9 nt terminus of influenza B at the start of the plus strand
@@ -164,39 +156,6 @@
   terminus: terminus-13
   segments: all
   source: Zhou et al. 2009, the tailed primer of the right end
-
-# --- influenza A (the Uni12/Inf set) ---------------------------------
-#
-# The tailed primers of Hoffmann et al. 2001, which are what "universal
-# primers" usually means when a protocol names Uni12 and Uni13 but the
-# reads carry a tail. The two primers of the left end differ at the
-# fourth base of the terminus, as the Opti1 pair does. Not to be
-# confused with uni12 and uni13 below, which are the conserved termini
-# used as primers with no tail at all.
-
-- primer: uni12-inf1
-  virus: A
-  end: left
-  seq: inf-tail-left terminus-12
-  terminus: terminus-12
-  segments: all
-  source: Hoffmann et al. 2001 Arch Virol 146 2275-2289 (doi 10.1007/s007050170002; there Uni12/Inf-1), the tailed primer of the left end with A at the fourth base of the terminus
-
-- primer: uni12-inf3
-  virus: A
-  end: left
-  seq: inf-tail-left terminus-12-g
-  terminus: terminus-12-g
-  segments: all
-  source: Hoffmann et al. 2001 (there Uni12/Inf-3), the same primer with G at the fourth base of the terminus
-
-- primer: uni13-inf1
-  virus: A
-  end: right
-  seq: inf-tail-right terminus-13
-  terminus: terminus-13
-  segments: all
-  source: Hoffmann et al. 2001 (there Uni13/Inf-1), the tailed primer of the right end
 
 # --- influenza A (the Opti1 set) -------------------------------------
 #
@@ -380,7 +339,3 @@
 - scheme: opti
   left: opti1-f1 opti1-f2
   right: opti1-r1
-
-- scheme: uni-inf
-  left: uni12-inf1 uni12-inf3
-  right: uni13-inf1
