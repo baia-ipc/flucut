@@ -59,6 +59,9 @@ expect 1 -w -1 "$reads"
 expect 1 -m 0 "$reads"
 expect 1 -j 0 "$reads"
 expect 1 -p pacbio "$reads"
+# --no-platform-check needs a platform given (not -p auto)
+expect 1 --no-platform-check "$reads"
+expect 1 -p auto --no-platform-check "$reads"
 expect 1 --adapters nb,xx "$reads"
 # live mode: its options require it, its inputs must be directories
 expect 1 --timeout 5m testdata/fastq_pass

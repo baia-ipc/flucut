@@ -16,6 +16,7 @@ struct run_report_t {
   const fasta_t *references;
   const report_setting_t *max_errors;
   const scheme_choice_t *scheme_choice;
+  const struct platform_check_t *platform_check;
   char *command_line, *html_path, *dashboard_path, *json_path;
   /* the reload interval of the HTML while a run is in progress; adapted
      by the live mode (run_report_set_refresh) */
@@ -62,6 +63,12 @@ void run_report_set_scheme_choice(run_report_t *self,
   self->scheme_choice = choice;
 }
 
+void run_report_set_platform_check(run_report_t *self,
+    const struct platform_check_t *check) {
+  assert(self != NULL);
+  self->platform_check = check;
+}
+
 void run_report_set_refresh(run_report_t *self, long refresh) {
   assert(self != NULL);
   self->refresh = refresh;
@@ -82,6 +89,7 @@ void run_report_write(run_report_t *self,
     .references = self->references, .sections = sections,
     .n_sections = n, .total = total, .max_errors = self->max_errors,
     .scheme_choice = self->scheme_choice,
+    .platform_check = self->platform_check,
     .refresh = running ? self->refresh : 0, .running = running,
     .dashboard = true, .report_file = RUN_REPORT_HTML_FILE,
     .resources = &resources};

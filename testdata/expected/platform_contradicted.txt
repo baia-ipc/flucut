@@ -1,0 +1,3 @@
+exit status: 1
+== messages ==
+ERROR | the reads look like Illumina reads, not nanopore (-p nanopore): none of the first 113 reads of testdata/fragments.fastq is longer than 151 bases, and 100.0% are within one base of the longest: reads of a fixed length, as an Illumina run gives. With the nanopore settings, the reads would be cut where a primer matches by chance inside a fragment, removing template, and short fragments dropped. Leave out -p, so that the platform is read from the reads, or pass -p illumina; to use the nanopore settings anyway, add --no-platform-check.

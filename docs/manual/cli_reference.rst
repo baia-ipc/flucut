@@ -88,11 +88,12 @@ Options
    in Uni12), or 30% (3 errors) if that rate is at least 4%
    (:doc:`how_it_works`). The value
    decided and the rate measured are in the messages (``-v``) and in the
-   reports. With ``-p illumina``, ``auto`` is 15%, not measured.
+   reports. On Illumina reads (``-p illumina``, or Illumina read from
+   the reads by ``-p auto``), ``auto`` is 15%, not measured.
    Default: ``auto``.
 
 ``-p, --platform <p>``
-   ``nanopore`` (default): reads of whole amplicons, with flanking bases
+   ``nanopore``: reads of whole amplicons, with flanking bases
    and adapters before the primers. ``illumina``: reads of fragments of
    the amplicons (e.g. after tagmentation), whose adapters were removed
    by the instrument: a primer, when there is one, is at the start of
@@ -106,16 +107,40 @@ Options
    slower on a run of milk samples). With the
    window of 100 bases, a primer-like site in the first 100 bases of an
    Illumina read would be taken for the primer (:doc:`performance`).
+   ``auto``: read from the lengths of the first 1000 reads of the first
+   input file. Reads of a fixed length, none longer than 320 bases, are
+   Illumina reads; anything else is taken as nanopore, so the settings
+   change only on clear evidence (:ref:`platform-check`). Default:
+   ``auto``.
+
+   A platform given is checked against the same reads. If they are
+   clearly of the other platform, flucut stops before trimming and says
+   what to pass instead, because the output would otherwise look
+   ordinary and be wrong: the nanopore settings cut Illumina fragments
+   where a primer matches by chance inside them and drop the short
+   ones; the Illumina settings miss the primers behind the flanks and
+   adapters of whole amplicons. If they only may be of the other
+   platform, flucut runs as asked and warns, and the reports say so::
+
+      flucut -p nanopore reads_R1.fastq.gz   # Illumina reads: stops
+      flucut reads_R1.fastq.gz reads_R2.fastq.gz   # read as Illumina
+
+``--no-platform-check``
+   Run with the platform of ``-p`` even if the first reads are clearly
+   of the other one (needs ``-p nanopore`` or ``-p illumina``). The
+   warning and the remark in the reports are still written. Use it only
+   to compare the settings of the two platforms on the same reads.
 
 ``-w, --window <n>``
    A primer is accepted at an end only if it begins (left end) or ends
    (right end) within ``<n>`` bases of that end of the read. Default:
-   100; with ``-p illumina``, 10.
+   100; on Illumina reads (``-p illumina``, or read from the reads),
+   10.
 
 ``-m, --min-length <n>``
    Reads shorter than ``<n>`` bases after the trimming are not written.
    Default: 50 (a few bases left between two primers, or after an
-   adapter, are not a read of a segment); with ``-p illumina``, 1, so
+   adapter, are not a read of a segment); on Illumina reads, 1, so
    that no read is dropped for its length and the two files of paired
    reads keep the same reads. Empty reads, e.g. primer dimers, are never
    written.

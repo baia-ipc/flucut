@@ -53,6 +53,17 @@ deletion	NC_004908.1	550	2
   "settings": {
     "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0000, "reads": 2, "file": "testdata/deletion.fastq"},
     "platform": "nanopore",
+    "platform_check": {
+      "given": "auto",
+      "stop_if_contradicted": false,
+      "reads_look": "too_few_reads",
+      "mismatch": false,
+      "reads": 2,
+      "longest": 585,
+      "share_at_longest": 1.0000,
+      "share_long_reads": 0.0000,
+      "file": "testdata/deletion.fastq"
+    },
     "window": 100,
     "min_length": 50,
     "probe_length": 32,

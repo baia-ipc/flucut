@@ -7,6 +7,7 @@
 #include "html-report-run.h"
 #include "html-template.h"
 #include "numutils.h"
+#include "platform-check.h"
 #include "segments.h"
 
 /* the rows of the table of the settings (html-report-*.html), embedded by
@@ -67,6 +68,56 @@ static void write_scheme_choice(html_writer_t *w, const report_t *r) {
   html_close(w);
 }
 
+/* the check of the platform against the reads (platform-check.h) */
+static void write_platform_check(html_writer_t *w, const report_t *r) {
+  const platform_check_t *c = r->platform_check;
+  if (c == NULL)
+    return;
+  markup_open_row(w);
+  markup_td(w, "platform check");
+  markup_open(w, "td", "seq");
+  if (c->pending)
+    html_text(w, c->automatic ? "automatic, at the first input file" :
+              "at the first input file");
+  else {
+    char evidence[512];
+    platform_check_evidence(c, evidence, sizeof(evidence));
+    if (c->reads == PLATFORM_READS_FEW)
+      html_textf(w, "not done: %s", evidence);
+    else if (c->mismatch)
+      html_textf(w, "the reads may be of the other platform: %s",
+                 evidence);
+    else if (c->automatic)
+      html_textf(w, "platform read from the reads: %s", evidence);
+    else
+      html_textf(w, "the reads agree: %s", evidence);
+    if (!c->automatic && !c->stop)
+      markup_textf(w, "span", "note", " (not stopping on a contradiction: "
+                   "--no-platform-check)");
+  }
+  html_close(w);
+  html_close(w);
+}
+
+/* where the reads look like the other platform than the one used, a
+   warning above the settings */
+static void write_platform_warning(html_writer_t *w, const report_t *r) {
+  const platform_check_t *c = r->platform_check;
+  if (c == NULL || c->pending || !c->mismatch)
+    return;
+  char evidence[512];
+  platform_check_evidence(c, evidence, sizeof(evidence));
+  const char *used = c->illumina ? "Illumina" : "nanopore";
+  const char *other = c->illumina ? "nanopore" : "Illumina";
+  markup_open(w, "p", "platformwarn");
+  html_tag_text(w, "b", "Platform");
+  html_textf(w, " \xc2\xb7 these reads may be %s reads, but the %s "
+             "settings were used: %s. If they are %s reads, run again "
+             "with -p %s.", other, used, evidence, other,
+             c->illumina ? "nanopore" : "illumina");
+  html_close(w);
+}
+
 /* all the settings, as a table */
 static void write_settings(html_writer_t *w, const report_t *r) {
   const options_t *o = r->options;
@@ -96,6 +147,7 @@ static void write_settings(html_writer_t *w, const report_t *r) {
                 "no_references", r->references == NULL ? "" : NULL);
   write_scheme_choice(w, r);
   write_max_errors(w, r);
+  write_platform_check(w, r);
   html_template(w, options_tmpl, "platform",
                 o->illumina ? "illumina" : "nanopore", "window", window,
                 "min_length", min_length,
@@ -170,6 +222,7 @@ void run_write(html_writer_t *w, const report_t *r) {
     html_close(w);
   }
   write_line(w, r);
+  write_platform_warning(w, r);
   markup_details_start(w, "Settings");
   write_settings(w, r);
   markup_details_end(w);

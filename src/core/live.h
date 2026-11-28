@@ -35,6 +35,7 @@
 #include "fasta.h"
 #include "logger.h"
 #include "options.h"
+#include "platform-check.h"
 #include "run-report.h"
 #include "scheme.h"
 #include "scheme-choice.h"
@@ -45,12 +46,14 @@
 
 /*
    Run the live mode, with the options <opts>, the trimming settings
-   <config> (its max_errors is set by <autos>, if pending), the <scheme>
-   (chosen by <choice>, if pending) and the <references> (NULL: none),
-   writing the reports with <report>
+   <config> (those of the platform set by <platform>, and its max_errors
+   by <autos>, if pending), the <scheme> (chosen by <choice>, if
+   pending) and the <references> (NULL: none), writing the reports with
+   <report>
 */
-void live_run(const options_t *opts, trimmer_config_t *config,
-    scheme_choice_t *choice, auto_settings_t *autos, scheme_t *scheme,
-    const fasta_t *references, run_report_t *report, Logger *logger);
+void live_run(options_t *opts, trimmer_config_t *config,
+    platform_check_t *platform, scheme_choice_t *choice,
+    auto_settings_t *autos, scheme_t *scheme, const fasta_t *references,
+    run_report_t *report, Logger *logger);
 
 #endif

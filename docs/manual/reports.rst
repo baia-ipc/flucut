@@ -112,8 +112,11 @@ the reads give them, the name of the experiment, the flow cell and the
 basecalling model. *Settings* opens the full table: command line,
 primer scheme (and, with ``-s auto``, how it was chosen: the tails found
 at each end and the reads they were counted in), references, errors
-allowed in a primer (and how ``-e auto`` decided), window, minimum
-length, probe, threads.
+allowed in a primer (and how ``-e auto`` decided), the platform check
+(what the lengths of the first reads say, :ref:`platform-check`),
+platform, window, minimum length, probe, threads. If the reads look like
+the other platform than the one used, a tinted line under the head says
+so, with the lengths that suggest it and the ``-p`` to run again with.
 
 Run overview
 ~~~~~~~~~~~~

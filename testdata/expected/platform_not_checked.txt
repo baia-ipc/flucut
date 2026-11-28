@@ -1,0 +1,390 @@
+exit status: 0
+== messages ==
+WARNING | the reads look like Illumina reads, not nanopore: none of the first 113 reads of testdata/fragments.fastq is longer than 151 bases, and 100.0% are within one base of the longest: reads of a fixed length, as an Illumina run gives. The nanopore settings are used as asked (-p nanopore, --no-platform-check), although with them the reads would be cut where a primer matches by chance inside a fragment, removing template, and short fragments dropped
+WARNING | Primer scheme uni12-mbt13+ibv-ga2 (-s auto): too few read ends with a conserved terminus: the default is used, in the first 113 reads of testdata/fragments.fastq; left end: 6 read ends with the terminus, too few; right end: 3 read ends with the terminus, too few
+SUCCESS | Trimming testdata/fragments.fastq...
+SUCCESS | OUTDIR/fragments.fastq.gz: 113 of 113 reads written (0 with both primers, 27 with one, 86 with none; 0 too short, of which 0 dimers)
+SUCCESS | Reports written: OUTDIR/flucut_report.html, OUTDIR/flucut_dashboard.html, OUTDIR/flucut_summary.json
+== fragments.fastq.gz ==
+md5: 0006758800de74d24b6549787eb3cb08
+@full_plus_0	fs:Z:+	fl:Z:uni12r	tl:i:12	tr:i:0
+139 GGAATTACTTAACTA...CACGCTAACAGAAAC
+@full_plus_100	fs:Z:.	tl:i:0	tr:i:0
+151 CGGCCACCAGTCAAC...ATTCTAGACACATGC
+@full_plus_200	fs:Z:-	fl:Z:uni12r	tl:i:0	tr:i:62
+89 GGAATGCTGTGTGCA...CAACCCTTCTTGTGA
+@full_plus_300	fs:Z:-	fl:Z:uni12r	tl:i:0	tr:i:4
+147 GAGGAAGAGAATGGT...TCTTCCCAGACACAA
+@full_plus_400	fs:Z:+	fl:Z:b-hana-unif	tl:i:81	tr:i:0
+70 ATGTTCAGGTTCATT...TACCCTGTTCAAGAC
+@full_plus_500	fs:Z:.	tl:i:0	tr:i:0
+151 AGGAGTATGAGATGG...TGTACATAAGAAACG
+@full_plus_600	fs:Z:.	tl:i:0	tr:i:0
+151 TACATCACCCACCCA...GGGAAGAATTGATTA
+@full_plus_700	fs:Z:.	tl:i:0	tr:i:0
+151 AGTGATAGGGCCAAG...TCAGGAGGGAGCCAT
+@full_plus_800	fs:Z:.	tl:i:0	tr:i:0
+151 GGGAATCTAATTGCT...CATTCCACAATATCA
+@full_plus_900	fs:Z:.	tl:i:0	tr:i:0
+151 GTCAGACTGAAAAAG...ATCAAGTAGAGGACT
+@full_plus_1000	fs:Z:.	tl:i:0	tr:i:0
+151 CAAACTGGCAGTCGG...GGGGTTGGTATGGCT
+@full_plus_1100	fs:Z:.	tl:i:0	tr:i:0
+151 GCTGGCTGGTATGGT...AAATAATTGATCATG
+@full_plus_1200	fs:Z:.	tl:i:0	tr:i:0
+151 TGAATAATATAGTCG...ATTGCTAGTACTACT
+@full_plus_1300	fs:Z:.	tl:i:0	tr:i:0
+151 TGACCAAATACAAGA...ATGGAAGATGGGAAA
+@full_plus_1400	fs:Z:.	tl:i:0	tr:i:0
+151 TATAACAAGGTGAAG...AGGAATCAAGACTAG
+@full_plus_1500	fs:Z:.	tl:i:0	tr:i:0
+151 TTCGGAACGGGACCT...TGTGCTTGCAATGGG
+@full_minus_0	fs:Z:-	fr:Z:mbtuni-13	tl:i:23	tr:i:0
+128 TTATATACAAATGTT...TTTTGTAAGTTCCCT
+@full_minus_100	fs:Z:.	tl:i:0	tr:i:0
+151 CAAGAGATGAGGCGA...AATTGTTTCCATGCA
+@full_minus_200	fs:Z:.	tl:i:0	tr:i:0
+151 CTCTCTATACTTTCT...TATAGATTGTTCACG
+@full_minus_300	fs:Z:.	tl:i:0	tr:i:0
+151 ATAGCATTGGAGCCC...CATCAATCTTATTAT
+@full_minus_400	fs:Z:.	tl:i:0	tr:i:0
+151 ATTCTGCATTATATG...CACCTTGGATGTTAT
+@full_minus_500	fs:Z:.	tl:i:0	tr:i:0
+151 TTCATATTGCTTGTT...GCGACTAGTCCTGGC
+@full_minus_600	fs:Z:.	tl:i:0	tr:i:0
+151 CCTTGATCATTTGAA...TGAGACTATTAACTC
+@full_minus_700	fs:Z:.	tl:i:0	tr:i:0
+151 ATCTAGCAGGCACGT...ACATTGCACTACACA
+@full_minus_800	fs:Z:.	tl:i:0	tr:i:0
+151 TGGCAATGTACTGTT...CCATTGGATCGTACT
+@full_minus_900	fs:Z:.	tl:i:0	tr:i:0
+151 GAAAGAACGTGTCCA...CTGGTTTGAAGGTCC
+@full_minus_1000	fs:Z:.	tl:i:0	tr:i:0
+151 CCTGCAGACCATTGA...TATGCCCCACACGAA
+@full_minus_1100	fs:Z:.	tl:i:0	tr:i:0
+151 CAAATTTGTTTGCTC...CTGTAGAATGAACCT
+@full_minus_1200	fs:Z:-	fl:Z:b-hana-unif	tl:i:0	tr:i:94
+57 TAAAAACCGCTCTTT...AATGAACCTGAACAT
+@full_minus_1300	fs:Z:.	tl:i:0	tr:i:0
+151 GGAAGATTTGGATTC...TCCCAACAGCAGGTC
+@full_minus_1400	fs:Z:+	fl:Z:uni12r	tl:i:49	tr:i:0
+102 TCACAAGAAGGGTTG...CCATTATGCTCTGTG
+@full_minus_1500	fs:Z:.	tl:i:0	tr:i:0
+151 ATGAGGGGATGTCCC...CGATGCAGATTTTAT
+@flanked_plus_0	fs:Z:+	fl:Z:uni12r	tl:i:27	tr:i:0
+124 GGAATTACTTAACTA...CACAGAAACTGTGGA
+@flanked_plus_100	fs:Z:.	tl:i:0	tr:i:0
+151 AGATAAAATCTGCAT...CTGGGACATCCCCTC
+@flanked_plus_200	fs:Z:-	fl:Z:uni12r	tl:i:0	tr:i:47
+104 CACACAGAGCATAAT...CAACCCTTCTTGTGA
+@flanked_plus_300	fs:Z:.	tl:i:0	tr:i:0
+151 GTGACCTGCTGTTGG...AAGAATCCAAATCTT
+@flanked_plus_400	fs:Z:+	fl:Z:b-hana-unif	tl:i:96	tr:i:0
+55 ATGTTCAGGTTCATT...CAAAAGAGCGGTTTT
+@flanked_plus_500	fs:Z:.	tl:i:0	tr:i:0
+151 TCAGGTTCATTCTAC...CCGAGCAAACAAATT
+@flanked_plus_600	fs:Z:.	tl:i:0	tr:i:0
+151 TTTTCGTGTGGGGCA...TGTCAATGGTCTGCA
+@flanked_plus_700	fs:Z:.	tl:i:0	tr:i:0
+151 TAGGACCTTCAAACC...TATGGACACGTTCTT
+@flanked_plus_800	fs:Z:.	tl:i:0	tr:i:0
+151 CGAGTACGATCCAAT...TAAACAGTACATTGC
+@flanked_plus_900	fs:Z:.	tl:i:0	tr:i:0
+151 ATTGTGTAGTGCAAT...GAACGTGCCTGCTAG
+@flanked_plus_1000	fs:Z:.	tl:i:0	tr:i:0
+151 AAGAGTTAATAGTCT...CATTCAAATGATCAA
+@flanked_plus_1100	fs:Z:.	tl:i:0	tr:i:9	a3:Z:lsk
+142 TGGCCAGGACTAGTC...TCGACAAGATGAACA
+@flanked_plus_1200	fs:Z:.	tl:i:0	tr:i:0
+151 AAATAACATCCAAGG...GGCATATAATGCAGA
+@flanked_plus_1300	fs:Z:.	tl:i:0	tr:i:0
+151 CAATAATAAGATTGA...CTGGGCTCCAATGCT
+@flanked_plus_1400	fs:Z:.	tl:i:0	tr:i:0
+151 AACGTGAACAATCTA...GGAGAAAGTATAGAG
+@flanked_plus_1500	fs:Z:.	tl:i:0	tr:i:0
+151 AGTGCATGGAAACAA...TGTCGCCTCATCTCT
+@flanked_plus_1600	fs:Z:+	fr:Z:mbtuni-13	tl:i:0	tr:i:21
+130 TGAGGGAACTTACAA...AACATTTGTATATAA
+@errors_plus_0	fs:Z:+	fl:Z:uni12r	tl:i:12	tr:i:0
+139 GGAATTACTTAACTA...CACGCTAACAGAAAC
+@errors_plus_100	fs:Z:.	tl:i:0	tr:i:0
+151 CGGCCACCAGTCAAC...ATTCTAGAAACATAC
+@errors_plus_200	fs:Z:-	fl:Z:uni12r	tl:i:0	tr:i:62
+89 GGAATGTTGTGTGCA...CACTCCTTCTAGTGA
+@errors_plus_300	fs:Z:.	tl:i:0	tr:i:0
+151 GAGGAAGAGAATGGT...CCCAGACACTACATG
+@errors_plus_400	fs:Z:+	fl:Z:b-hana-unif	tl:i:81	tr:i:0
+70 ATGTTCAGTTTCATT...TACCCTGTTCAAGAC
+@errors_plus_500	fs:Z:.	tl:i:0	tr:i:0
+151 TGGAGTATGAGATGG...TGTACATAAAAAACG
+@errors_plus_600	fs:Z:.	tl:i:0	tr:i:0
+151 TACAGCACCCACCCA...GGGAAGAATTGATTA
+@errors_plus_700	fs:Z:.	tl:i:0	tr:i:0
+151 AGTGATAGGGCCAAG...TCAGGAGGCAGCCAG
+@errors_plus_800	fs:Z:.	tl:i:0	tr:i:0
+151 GGGAATCTAATTGCT...CATTCCACAATATAA
+@errors_plus_900	fs:Z:.	tl:i:0	tr:i:0
+151 GTCAGACTGAAAAAG...ACCAAGTAGAGCACT
+@errors_plus_1000	fs:Z:.	tl:i:0	tr:i:0
+151 CAAACTGGCAGTCGT...GGGGATGGTATGGCT
+@errors_plus_1100	fs:Z:.	tl:i:0	tr:i:0
+151 TCTGGCTGGTATGGT...AAATAATTGATCATG
+@errors_plus_1200	fs:Z:.	tl:i:0	tr:i:0
+151 TGAATAATATAGTCG...ATTGCTAGTACTACT
+@errors_plus_1300	fs:Z:.	tl:i:0	tr:i:0
+151 TGACCAAATACAAGA...ATGGAAGATGGGAAA
+@errors_plus_1400	fs:Z:.	tl:i:0	tr:i:0
+151 TATAACAAGGTGAAG...AGGAATCAAGACTAG
+@errors_plus_1500	fs:Z:.	tl:i:0	tr:i:0
+151 TTCGGAACGGGACCT...TGGGCTTGCAATGGG
+@partial_left_0	fs:Z:+	fl:Z:uni12r	tl:i:7	tr:i:0
+144 GGAATTACTTAACTA...TAACAGAAACCAATG
+@partial_left_100	fs:Z:.	tl:i:0	tr:i:0
+151 ACCAGTCAACAAACT...AGACACATGCACTAT
+@partial_left_200	fs:Z:+	fr:Z:b-pa-unir	tl:i:0	tr:i:8
+143 GCTGTGTGCAACAAG...CATCAGCTGTAAATG
+@partial_left_300	fs:Z:.	tl:i:0	tr:i:0
+151 AGAGAATGGTCCTAC...ACACAACCTGGAATG
+@partial_left_400	fs:Z:+	fl:Z:b-hana-unif	tl:i:76	tr:i:0
+75 ATGTTCAGGTTCATT...TGTTCAAGACGCCCA
+@partial_left_500	fs:Z:.	tl:i:0	tr:i:0
+151 TATGAGATGGCTGAC...ATAAGAAACGACACA
+@partial_left_600	fs:Z:.	tl:i:0	tr:i:0
+151 CACCCACCCACCTAT...GAATTGATTATTATT
+@partial_left_700	fs:Z:.	tl:i:0	tr:i:0
+151 TAGGGCCAAGGCCCC...AGGGAGCCATGGAAG
+@partial_left_800	fs:Z:.	tl:i:0	tr:i:0
+151 TCTAATTGCTCCATG...CACAATATCAGTAAA
+@partial_left_900	fs:Z:.	tl:i:0	tr:i:0
+151 ACTGAAAAAGGTGGC...GTAGAGGACTATTTG
+@partial_left_1000	fs:Z:.	tl:i:0	tr:i:0
+151 TGGCAGTCGGTCTGA...TGGTATGGCTGCAGA
+@partial_left_1100	fs:Z:.	tl:i:0	tr:i:0
+151 CTGGTATGGTTTCCA...ATTGATCATGAATTC
+@partial_left_1200	fs:Z:.	tl:i:0	tr:i:0
+151 AATATAGTCGACAAG...TAGTACTACTTGAAA
+@partial_left_1300	fs:Z:.	tl:i:0	tr:i:0
+151 AAATACAAGACGTAT...AGATGGGAAAGGCTG
+@partial_left_1400	fs:Z:.	tl:i:0	tr:i:0
+151 CAAGGTGAAGAGGGC...TCAAGACTAGAAAGG
+@partial_left_1500	fs:Z:.	tl:i:0	tr:i:0
+151 AACGGGACCTATAAT...TTGCAATGGGGTTTG
+@internal12_plus_0	fs:Z:+	fl:Z:uni12r	tl:i:12	tr:i:0
+139 AAGGCCCCTTGTCAA...TCAGGAGGGAGCCAT
+@internal12_plus_100	fs:Z:.	tl:i:0	tr:i:0
+151 GGGAATCTAATTGCT...CATTCCACAATATCA
+@internal12_plus_200	fs:Z:.	tl:i:0	tr:i:0
+151 GTCAGACTGAAAAAG...ATCAAGTAGAGGACT
+@internal12_plus_300	fs:Z:.	tl:i:0	tr:i:0
+151 CAAACTGGCAGTCGG...GGGGTTGGTATGGCT
+@internal12_plus_400	fs:Z:.	tl:i:0	tr:i:0
+151 GCTGGCTGGTATGGT...AAATAATTGATCATG
+@internal12_plus_500	fs:Z:.	tl:i:0	tr:i:0
+151 TGAATAATATAGTCG...ATTGCTAGTACTACT
+@internal12_plus_600	fs:Z:.	tl:i:0	tr:i:0
+151 TGACCAAATACAAGA...ATGGAAGATGGGAAA
+@internal12_plus_700	fs:Z:.	tl:i:0	tr:i:0
+151 TATAACAAGGTGAAG...AGGAATCAAGACTAG
+@internal12_plus_800	fs:Z:.	tl:i:0	tr:i:0
+151 TTCGGAACGGGACCT...TGTGCTTGCAATGGG
+@internal12_minus_0	fs:Z:-	fr:Z:mbtuni-13	tl:i:35	tr:i:0
+116 TTATATACAAATGTT...AAATGGTGAGGATTT
+@internal12_minus_100	fs:Z:.	tl:i:0	tr:i:0
+151 CCATTGCAAGCACAA...GGTCCCGTTCCGAAT
+@internal12_minus_200	fs:Z:.	tl:i:0	tr:i:0
+151 TAGTCTTGATTCCTC...TTCACCTTGTTATAT
+@internal12_minus_300	fs:Z:.	tl:i:0	tr:i:0
+151 TTCCCATCTTCCATA...CTTGTATTTGGTCAT
+@internal12_minus_400	fs:Z:.	tl:i:0	tr:i:0
+151 GTAGTACTAGCAATT...GACTATATTATTCAC
+@internal12_minus_500	fs:Z:.	tl:i:0	tr:i:0
+151 ATGATCAATTATTTC...CCATACCAGCCAGCG
+@internal12_minus_600	fs:Z:.	tl:i:0	tr:i:0
+151 GCCATACCAACCCCT...CGACTGCCAGTTTGA
+@internal12_minus_700	fs:Z:.	tl:i:0	tr:i:0
+151 GTCCTCTACTTGATC...TTTTTCAGTCTGACA
+@internal12_minus_800	fs:Z:.	tl:i:0	tr:i:0
+151 GATATTGTGGAATGG...GCAATTAGATTCCCA
+@internal13_plus_0	fs:Z:+	fl:Z:uni12r	tl:i:12	tr:i:0
+139 GGAATTACTTAACTA...CACGCTAACAGAAAC
+@internal13_plus_100	fs:Z:.	tl:i:0	tr:i:0
+151 CGGCCACCAGTCAAC...ATTCTAGACACATGC
+@internal13_plus_200	fs:Z:-	fl:Z:uni12r	tl:i:0	tr:i:62
+89 GGAATGCTGTGTGCA...CAACCCTTCTTGTGA
+@internal13_plus_300	fs:Z:-	fl:Z:uni12r	tl:i:0	tr:i:4
+147 GAGGAAGAGAATGGT...TCTTCCCAGACACAA
+@internal13_plus_400	fs:Z:+	fl:Z:b-hana-unif	tl:i:81	tr:i:0
+70 ATGTTCAGGTTCATT...TACCCTGTTCAAGAC
+@internal13_plus_500	fs:Z:.	tl:i:0	tr:i:0
+151 AGGAGTATGAGATGG...TGTACATAAGAAACG
+@internal13_plus_600	fs:Z:.	tl:i:0	tr:i:0
+151 TACATCACCCACCCA...GGGAAGAATTGATTA
+@internal13_plus_700	fs:Z:.	tl:i:0	tr:i:0
+151 AGTGATAGGGCCAAG...TCAGGAGGGAGCCAT
+@no_primer_0	fs:Z:.	tl:i:0	tr:i:0
+151 AACAAACTCCACAGA...TGCACTATTGAAGGA
+@no_primer_100	fs:Z:-	fl:Z:uni12r	tl:i:0	tr:i:74
+77 GCAACAAGCCTGGGA...CAACCCTTCTTGTGA
+@left_only_0	fs:Z:+	fl:Z:uni12r	tl:i:12	tr:i:0
+139 GGAATTACTTAACTA...CACGCTAACAGAAAC
+@left_only_100	fs:Z:.	tl:i:0	tr:i:0
+151 CGGCCACCAGTCAAC...ATTCTAGACACATGC
+@left_only_200	fs:Z:-	fl:Z:uni12r	tl:i:0	tr:i:62
+89 GGAATGCTGTGTGCA...CAACCCTTCTTGTGA
+@left_only_300	fs:Z:-	fl:Z:uni12r	tl:i:0	tr:i:4
+147 GAGGAAGAGAATGGT...TCTTCCCAGACACAA
+== summary.tsv ==
+output	reads_in	bases_in	reads_out	bases_out	both_ends	one_end	no_end	minus_strand	dimers	too_short	filtered	with_internal_match	split	cut_at_junction	cut_again	left_terminal	left_internal	left_unknown	right_terminal	right_internal	right_unknown	short_complete	out_full	out_internal	out_deletion	out_fragment	out_unplaced	out_unknown	cleavage_site	cleavage_reads	cleavage_support	cleavage_control	cleavage_multibasic	cleavage_verdict	pb2_627	pb2_701	pa_38	na_275	ha_226_228	m2_31	na_stalk	ns1_tail	pb1_f2	markers_attention
+fragments	113	17063	113	15934	0	27	86	12	0	0	0	0	0	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+== lengths.tsv ==
+output	group	length	reads
+== flucut_summary.json ==
+{
+  "format": 1,
+  "program": "flucut",
+  "version": "0.1",
+  "updated": "DATE",
+  "running": false,
+  "command": "bin/flucut -o OUTDIR -r off -p nanopore --no-platform-check testdata/fragments.fastq",
+  "scheme": {
+    "name": "uni12-mbt13+ibv-ga2",
+    "left": ["uni12r", "b-pbs-unif", "b-pa-unif", "b-hana-unif", "b-np-unif", "b-m-uni3f", "b-mg-uni3f", "b-ns-uni3f"],
+    "right": ["mbtuni-13", "b-pbs-unir", "b-pa-unir", "b-hana-unir", "b-np-unir", "b-m-uni3r", "b-ns-uni3r"],
+    "choice": {
+      "mode": "auto",
+      "outcome": "not_found",
+      "influenza_a_scheme": "uni12-mbt13",
+      "reads": 113,
+      "file": "testdata/fragments.fastq",
+      "left": {"state": "few", "read_ends_with_terminus": 6, "tails": {"ACGCGTGATC": 0, "GTTACGCGCC": 0, "GGGGGG": 0}},
+      "right": {"state": "few", "read_ends_with_terminus": 3, "tails": {"ACGCGTGATC": 3, "GTTACGCGCC": 0, "CGGGTTATT": 0}}
+    }
+  },
+  "trim_policy": "primer",
+  "references": null,
+  "settings": {
+    "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0307, "reads": 113, "file": "testdata/fragments.fastq"},
+    "platform": "nanopore",
+    "platform_check": {
+      "given": "nanopore",
+      "stop_if_contradicted": false,
+      "reads_look": "illumina",
+      "mismatch": true,
+      "reads": 113,
+      "longest": 151,
+      "share_at_longest": 1.0000,
+      "share_long_reads": 0.0000,
+      "file": "testdata/fragments.fastq"
+    },
+    "window": 100,
+    "min_length": 50,
+    "probe_length": 32,
+    "probe_errors": 0.2,
+    "terminal_window": 60,
+    "exhaustive_search": false,
+    "segment": null,
+    "report_segment": null,
+    "tags": true,
+    "chimeras": "cut",
+    "deletions": "keep",
+    "unplaced": "keep",
+    "unknown": "keep",
+    "by_category": false,
+    "threads": 4,
+    "compress_level": 6
+  },
+  "length_bin": 10,
+  "length_max": 4000,
+  "short_fraction": 0.9,
+  "min_depth": 50,
+  "complete_fraction": 0.9,
+  "second_subtype_min_excess": 2.5,
+  "second_subtype_min_share": 0.01,
+  "all": {
+    "reads": {
+      "in": 113,
+      "bases_in": 17063,
+      "written": 113,
+      "bases_written": 15934,
+      "both_primers": 0,
+      "one_primer": 27,
+      "no_primer": 86,
+      "dimers": 0,
+      "too_short": 0,
+      "filtered": 0,
+      "minus_strand": 12,
+      "with_internal_match": 0,
+      "split": 0,
+      "cut_at_junction": 0,
+      "cut_again": 0,
+      "adapter_start": 0,
+      "adapter_end": 1
+    },
+    "written_by_category": null,
+    "filtered_by_category": null,
+    "read_lengths": {"input": {"reads": 113, "bases": 17063, "min": 151, "max": 151, "mean": 151, "median": 151, "n50": 151}, "written": {"reads": 113, "bases": 15934, "min": 55, "max": 151, "mean": 141, "median": 150, "n50": 150}},
+    "read_quality": {"input": {"reads": 113, "median": 10.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 113, "median": 10.5, "q10": 1.0000, "q20": 0.0000}},
+    "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
+    "sample": null,
+    "cleavage_site": null,
+    "markers": [],
+    "primers": {
+      "left": {"uni12r": 17, "b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 6, "b-np-unif": 0, "b-m-uni3f": 0, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
+      "right": {"mbtuni-13": 3, "b-pbs-unir": 0, "b-pa-unir": 1, "b-hana-unir": 0, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
+    },
+    "ends": null,
+    "internal_sites": null,
+    "short_complete": null,
+    "complete_amplicons": [],
+    "coverage": null
+  },
+  "groups": [
+    {
+      "name": "fragments",
+      "files": 1,
+      "processed": true,
+      "reads": {
+        "in": 113,
+        "bases_in": 17063,
+        "written": 113,
+        "bases_written": 15934,
+        "both_primers": 0,
+        "one_primer": 27,
+        "no_primer": 86,
+        "dimers": 0,
+        "too_short": 0,
+        "filtered": 0,
+        "minus_strand": 12,
+        "with_internal_match": 0,
+        "split": 0,
+        "cut_at_junction": 0,
+        "cut_again": 0,
+        "adapter_start": 0,
+        "adapter_end": 1
+      },
+      "written_by_category": null,
+      "filtered_by_category": null,
+      "read_lengths": {"input": {"reads": 113, "bases": 17063, "min": 151, "max": 151, "mean": 151, "median": 151, "n50": 151}, "written": {"reads": 113, "bases": 15934, "min": 55, "max": 151, "mean": 141, "median": 150, "n50": 150}},
+      "read_quality": {"input": {"reads": 113, "median": 10.5, "q10": 1.0000, "q20": 0.0000}, "written": {"reads": 113, "median": 10.5, "q10": 1.0000, "q20": 0.0000}},
+      "sequencing": {"flow_cell": null, "run": null, "basecall_model": null, "sample": null, "experiment": null, "instrument": null, "start_time": null},
+      "sample": null,
+      "cleavage_site": null,
+      "markers": [],
+      "primers": {
+        "left": {"uni12r": 17, "b-pbs-unif": 0, "b-pa-unif": 0, "b-hana-unif": 6, "b-np-unif": 0, "b-m-uni3f": 0, "b-mg-uni3f": 0, "b-ns-uni3f": 0},
+        "right": {"mbtuni-13": 3, "b-pbs-unir": 0, "b-pa-unir": 1, "b-hana-unir": 0, "b-np-unir": 0, "b-m-uni3r": 0, "b-ns-uni3r": 0}
+      },
+      "ends": null,
+      "internal_sites": null,
+      "short_complete": null,
+      "complete_amplicons": [],
+      "coverage": null
+    }
+  ]
+}
+== flucut_report.html ==
+</html>
+<h2>fragments</h2>
+<h3>Reads</h3>
+<h3>Complete amplicons by length (bases)</h3>
+<h3>Read length and quality</h3>

@@ -27,6 +27,11 @@ Errors in the command line
 ``the output directory is empty``
    ``-o ""`` was given.
 
+``Option '--no-platform-check': a platform is required``
+   ``--no-platform-check`` turns off the check of a platform given; with
+   ``-p auto`` (the default) there is none to check. Add ``-p nanopore``
+   or ``-p illumina``.
+
 Errors in the inputs
 --------------------
 
@@ -80,6 +85,31 @@ Errors in the references file
 
 Messages about the reads
 ------------------------
+
+``the reads look like Illumina reads, not nanopore (-p nanopore): ...``
+   ``-p nanopore`` was given, but the first reads are of a fixed length
+   no longer than 320 bases, as an Illumina run gives
+   (:ref:`platform-check`). flucut stops before trimming. Leave out
+   ``-p`` or pass ``-p illumina``.
+
+``the reads look like nanopore reads, not Illumina (-p illumina): ...``
+   ``-p illumina`` was given, but at least 1% of the first reads are
+   longer than 600 bases, which no Illumina read is. flucut stops before
+   trimming. Leave out ``-p`` or pass ``-p nanopore``.
+
+``the reads may not be <platform> reads: ...`` (warning)
+   The first reads lean to the other platform without being clearly of
+   it: e.g. no read longer than 600 bases but no fixed length (Illumina
+   reads trimmed to many lengths, or joined pairs; nanopore reads of a
+   library of short molecules), or a few long reads among Illumina-like
+   ones. flucut runs with the platform given (with ``-p auto``,
+   nanopore); the reports carry the remark. If the reads are of the
+   other platform, run again with its ``-p``.
+
+``Platform: Illumina, read from the reads (-p auto): ...``
+   Not a problem: the reads were read as Illumina reads, and trimmed
+   with the Illumina settings (window 10, minimum length 1, no adapter
+   search, 15% errors in a primer with ``-e auto``).
 
 ``not located in the references: <n> left, <n> right``
    Read ends whose probe was not found in the references. A few are

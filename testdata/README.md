@@ -68,6 +68,16 @@ both orientations, for the cases `deletion`, `cut_deletions` and `by_category`:
     python3 -I scripts/simulate-reads.py testdata/ref-ha.fasta deletion \
         > testdata/deletion.fastq
 
+`fragments.fastq`: windows of 151 bases of the reads of `reads.fastq`,
+every 100 bases (113 reads), as the fixed-length reads of an Illumina
+run of fragments, for the cases `platform_*` (the platform read from
+the reads):
+
+    awk 'NR%4==1{t=substr($1,2)} NR%4==2{s=$0} NR%4==0{q=$0;
+         for(o=0;o+151<=length(s);o+=100){print "@" t "_" o;
+         print substr(s,o+1,151); print "+"; print substr(q,o+1,151)}}' \
+        testdata/reads.fastq > testdata/fragments.fastq
+
 `barcode01/`: the same reads split into two files, the second one
 gzipped, as a directory input (the output must be identical to that of
 `reads.fastq`):

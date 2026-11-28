@@ -421,16 +421,29 @@ call a readset a "group".)
 
 Option `-p`:
 
-| | `nanopore` (default) | `illumina` |
+| | `nanopore` | `illumina` |
 |---|---|---|
 | read model | whole amplicons with flanks | fragments; primer at the read start |
 | window `-w` | 100 | 10 |
+| minimum length `-m` | 50 | 1 |
 | Nanopore adapters | searched | not searched |
+| errors in a primer with `-e auto` | measured: 20% or 30% | 15% |
 | probes not located by k-mers | aligned to every reference | left unlocated |
 
 The narrow Illumina window matters: with a window of 100 bases, a
 primer-like site within the first 100 bases of a short read would be
 taken for the primer and the read cut there.
+
+`src/core/platform-check.c`. By default (`-p auto`) the platform is read
+from the lengths of the first 1000 reads of the first input file:
+Illumina if none is longer than 320 bases and at least 20% are within
+one base of the longest (reads of a fixed number of cycles), nanopore
+otherwise. A platform given is checked against the same lengths: if
+they are clearly of the other platform (the Illumina rule above, or at
+least 1% of the reads longer than 600 bases, which no Illumina read is),
+flucut stops before trimming; if they lean to it without being clear,
+it warns and the reports say so. The read titles and file names are not
+used.
 
 ### References
 

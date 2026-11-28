@@ -72,9 +72,13 @@ groups with the same name are an error.
 `flucut -h` lists all options, with their defaults.
 
 Main options:
-- `-p`: the platform: `nanopore` (default; reads of whole amplicons)
-  or `illumina` (reads of fragments of the amplicons: the primer is at
-  the read start; window 10, minimum length 1, no adapter search);
+- `-p`: the platform: `nanopore` (reads of whole amplicons), `illumina`
+  (reads of fragments of the amplicons: the primer is at the read start;
+  window 10, minimum length 1, no adapter search) or `auto` (default:
+  Illumina if the first reads are of a fixed length of at most 320
+  bases, nanopore otherwise). A platform given is checked against the
+  first reads: flucut stops if they are clearly of the other platform
+  (`--no-platform-check` runs it anyway) and warns if they may be;
 - `-j`: worker threads (default 4), each trimming batches of 1000 reads
   in turn, written in the order of the input: the output does not
   depend on it;
@@ -170,8 +174,9 @@ the per-segment consensus to `irma/<barcode>/` (`A_HA_*.fasta`,
 `A_NA_*.fasta`, ...). IRMA accepts the tags flucut appends to the read
 titles (same consensus with and without them; `--no-tags` removes them).
 
-Illumina: trim with `flucut -p illumina` and assemble with the paired
-`FLU` module of IRMA instead of `FLU-minion`.
+Illumina: trim with `flucut` (the platform is read from the reads; or
+`-p illumina`) and assemble with the paired `FLU` module of IRMA instead
+of `FLU-minion`.
 
 ## Output by category
 
@@ -347,9 +352,9 @@ Advanced user options:
   the default: 20%, or 30% if the primers of the first 1000 reads have
   at least 4% errors;
 - `-w`: a primer must lie within this many bases of its end of the read
-  (default 100; 10 with `-p illumina`);
+  (default 100; 10 on Illumina reads);
 - `-m`: reads shorter than this after trimming are not written
-  (default 50; 1 with `-p illumina`, so that the two files of paired
+  (default 50; 1 on Illumina reads, so that the two files of paired
   reads keep the same reads; primer dimers are never written);
 - `--compress-level`: the gzip compression level of the outputs, 1 to
   12 (default 6; higher: smaller and slower; the outputs are compressed

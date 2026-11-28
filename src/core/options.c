@@ -9,6 +9,7 @@
 #include "argparse-def.h"
 #include "amplicon.h"
 #include "auto-settings.h"
+#include "platform-check.h"
 #include "live.h"
 #include "strutils.h"
 #include "worker.h"
@@ -39,6 +40,7 @@ enum {
   OPT_RESUME,
   OPT_COMPRESS_LEVEL,
   OPT_PLATFORM,
+  OPT_NO_PLATFORM_CHECK,
   OPT_REPORT_SEGMENT,
   OPT_SEGMENT,
   OPT_VIRUS,
@@ -88,12 +90,19 @@ enum {
   "                          have at least 4%% errors per base;\n" \
   "                          with -p illumina, auto is 15%%\n" \
   "                          (default: auto)\n" \
-  "   -p, --platform <p>     nanopore (default): whole amplicons, with\n" \
-  "                          flanks and adapters before the primers;\n" \
-  "                          illumina: fragments of the amplicons (e.g.\n" \
+  "   -p, --platform <p>     nanopore: whole amplicons, with flanks and\n" \
+  "                          adapters before the primers; illumina:\n" \
+  "                          fragments of the amplicons (e.g.\n" \
   "                          tagmentation), the primer only at the read\n" \
   "                          start: window " XSTR(OPTIONS_ILLUMINA_WINDOW) \
-  ", adapters none\n" \
+  ", adapters none; auto: read\n" \
+  "                          from the lengths of the first reads,\n" \
+  "                          nanopore unless they are clearly Illumina\n" \
+  "                          reads (default: auto). A platform given is\n" \
+  "                          checked against the first reads: flucut\n" \
+  "                          stops if they are clearly of the other one\n" \
+  "   --no-platform-check    run with the platform of -p even if the\n" \
+  "                          first reads are clearly of the other one\n" \
   "   -w, --window <n>       a primer must lie within <n> bases of its\n" \
   "                          end of the read (default: " \
   XSTR(AMPLICON_DEFAULT_WINDOW) "; illumina: " \
@@ -242,8 +251,11 @@ void options_parse(options_t *self, int argc, char *argv[],
   bool deletions_given = false;
   self->adapters = ADAPTERS_DEFAULT;
   self->illumina = false;
-  bool window_given = false, adapters_given = false;
-  bool min_length_given = false;
+  self->platform_auto = true;
+  self->platform_check = true;
+  self->window_given = false;
+  self->adapters_given = false;
+  self->min_length_given = false;
   self->live = false;
   self->live_timeout = 0;
   self->live_min_age = OPTIONS_DEFAULT_MIN_AGE;
@@ -259,6 +271,7 @@ void options_parse(options_t *self, int argc, char *argv[],
     {"outdir", required_argument, NULL, 'o'},
     {"scheme", required_argument, NULL, 's'},
     {"platform", required_argument, NULL, 'p'},
+    {"no-platform-check", no_argument, NULL, OPT_NO_PLATFORM_CHECK},
     {"references", required_argument, NULL, 'r'},
     {"max-errors", required_argument, NULL, 'e'},
     {"window", required_argument, NULL, 'w'},
@@ -332,19 +345,24 @@ void options_parse(options_t *self, int argc, char *argv[],
         break;
       case 'w':
         PARSE_INTEGER_OPT_MIN(c, &self->window, 0);
-        window_given = true;
+        self->window_given = true;
         break;
       case 'p':
-        if (strcmp(optarg, "nanopore") == 0)
+        self->platform_auto = strcmp(optarg, "auto") == 0;
+        if (strcmp(optarg, "nanopore") == 0 || self->platform_auto)
           self->illumina = false;
         else if (strcmp(optarg, "illumina") == 0)
           self->illumina = true;
         else
-          OPT_ERR(c, "nanopore or illumina expected ('%s' found)", optarg);
+          OPT_ERR(c, "nanopore, illumina or auto expected ('%s' found)",
+                  optarg);
+        break;
+      case OPT_NO_PLATFORM_CHECK:
+        self->platform_check = false;
         break;
       case 'm':
         PARSE_INTEGER_OPT_MIN(c, &self->min_length, 1);
-        min_length_given = true;
+        self->min_length_given = true;
         break;
       case 'j':
         PARSE_INTEGER_OPT_MIN_MAX(c, &self->threads, 1,
@@ -423,7 +441,7 @@ void options_parse(options_t *self, int argc, char *argv[],
                     ADAPTERS_KITS ", or none, expected ('%s' found)",
                     optarg);
         self->adapters = optarg;
-        adapters_given = true;
+        self->adapters_given = true;
         break;
       case OPT_EXHAUSTIVE:
         self->exhaustive_search = true;
@@ -534,13 +552,12 @@ void options_parse(options_t *self, int argc, char *argv[],
               "segment is expected (or leave it out)");
   if (self->segment != 0)
     self->report_segment = self->segment;
-  /* the settings of the platform, unless given */
-  if (self->illumina && !window_given)
-    self->window = OPTIONS_ILLUMINA_WINDOW;
-  if (self->illumina && !min_length_given)
-    self->min_length = OPTIONS_ILLUMINA_MIN_LENGTH;
-  if (self->illumina && !adapters_given)
-    self->adapters = "none";
+  if (self->platform_auto && !self->platform_check)
+    PARSE_ERR("Option '--no-platform-check': a platform is required (-p "
+              "nanopore or -p illumina)");
+  /* the settings of the platform, unless given (with -p auto, those of
+     nanopore until the reads are read) */
+  options_set_platform(self, self->illumina);
   /* the options of the live mode require it */
   if (timeout_given && !self->live)
     PARSE_ERR("Option '--timeout': the live mode (--live) is required");
@@ -580,7 +597,10 @@ void options_parse(options_t *self, int argc, char *argv[],
               100 * self->max_errors);
   else
     PARSE_LOG("Errors in a primer: %g\n", self->max_errors);
-  PARSE_LOG("Platform: %s\n", self->illumina ? "illumina" : "nanopore");
+  PARSE_LOG("Platform: %s%s\n", self->platform_auto ? "auto" :
+            self->illumina ? "illumina" : "nanopore",
+            self->platform_auto || self->platform_check ? "" :
+            " (not checked against the reads)");
   PARSE_LOG("Window: %ld\n", self->window);
   PARSE_LOG("Minimum length: %zu\n", self->min_length);
   PARSE_LOG("Outputs: %s\n", self->by_category ?
@@ -610,4 +630,16 @@ void options_parse(options_t *self, int argc, char *argv[],
               segments_gene(self->report_segment));
   PARSE_LOG("Threads: %zu\n", self->threads);
   PARSE_LOG("Compression level: %d\n", self->compress_level);
+}
+
+void options_set_platform(options_t *self, bool illumina) {
+  self->illumina = illumina;
+  if (!self->window_given)
+    self->window = illumina ? OPTIONS_ILLUMINA_WINDOW :
+                   AMPLICON_DEFAULT_WINDOW;
+  if (!self->min_length_given)
+    self->min_length = illumina ? OPTIONS_ILLUMINA_MIN_LENGTH :
+                       OPTIONS_DEFAULT_MIN_LENGTH;
+  if (!self->adapters_given)
+    self->adapters = illumina ? "none" : ADAPTERS_DEFAULT;
 }

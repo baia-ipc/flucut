@@ -32,6 +32,7 @@
 #include "live.h"
 #include "logger.h"
 #include "options.h"
+#include "platform-check.h"
 #include "read-outputs.h"
 #include "reference.h"
 #include "results.h"
@@ -207,16 +208,22 @@ static bool group_already_trimmed(const options_t *opts,
    groups, the tables and reports are also written before the first group
    and after each one (the dashboard, see run-report.h), so
    that a long run can be followed */
-static void trim_groups(const options_t *opts, trimmer_config_t *config,
-    scheme_choice_t *choice, auto_settings_t *autos, scheme_t *scheme,
-    const fasta_t *refs, run_report_t *report, Logger *logger) {
+static void trim_groups(options_t *opts, trimmer_config_t *config,
+    platform_check_t *platform, scheme_choice_t *choice,
+    auto_settings_t *autos, scheme_t *scheme, const fasta_t *refs,
+    run_report_t *report, Logger *logger) {
   size_t n_groups;
   input_group_t *groups = input_groups_new(opts->inputs, opts->n_inputs,
                                            &n_groups, false, true, logger);
   read_outputs_t **outputs = group_outputs(groups, n_groups, opts, logger);
   log_groups(groups, n_groups, logger);
-  /* -s auto, then -e auto (which measures the primers of the scheme):
-     from the first file */
+  /* the platform (whose window the scheme choice uses), -s auto, then
+     -e auto (which measures the primers of the scheme): from the first
+     file */
+  for (size_t i = 0; i < n_groups && platform->pending; i++)
+    if (groups[i].n_files > 0)
+      platform_check_decide(platform, opts, config, autos,
+                            groups[i].files[0], logger);
   for (size_t i = 0; i < n_groups && choice->pending; i++)
     if (groups[i].n_files > 0)
       scheme_choice_decide(choice, scheme, opts->virus, opts->window,
@@ -357,6 +364,11 @@ int main(int argc, char *argv[]) {
     lprintf(logger, LOG_INFO,
             "the markers will be read from the reads (%zu anchors in the "
             "references)\n", marker_anchors_n(markers));
+  /* the platform: checked against the first reads, or read from them
+     (-p auto); until then, the settings of the platform given, or of
+     nanopore (platform-check.h) */
+  platform_check_t platform;
+  platform_check_init(&platform, &opts);
   auto_settings_t autos;
   auto_settings_init(&autos, &opts);
   trimmer_config_t config = {.scheme = scheme,
@@ -377,18 +389,20 @@ int main(int argc, char *argv[]) {
   run_report_t *report = run_report_new(&opts, VERSION, scheme, refs, argc,
                                         argv, logger);
   run_report_set_max_errors(report, &autos.max_errors);
+  run_report_set_platform_check(report, &platform);
   if (choice.automatic)
     run_report_set_scheme_choice(report, &choice);
   if (opts.live)
-    live_run(&opts, &config, &choice, &autos, scheme, refs, report,
-             logger);
+    live_run(&opts, &config, &platform, &choice, &autos, scheme, refs,
+             report, logger);
   else
-    trim_groups(&opts, &config, &choice, &autos, scheme, refs, report,
-                logger);
+    trim_groups(&opts, &config, &platform, &choice, &autos, scheme, refs,
+                report, logger);
   run_report_delete(report);
   cleavage_anchors_delete(cleavage);
   marker_anchors_delete(markers);
   auto_settings_free(&autos);
+  platform_check_free(&platform);
   scheme_choice_free(&choice);
   reference_index_delete(index);
   fasta_delete(refs);

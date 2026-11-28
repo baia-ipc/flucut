@@ -15,6 +15,12 @@ adapters	-r off testdata/adapters.fastq
 no_adapters	-r off --adapters none testdata/adapters.fastq
 illumina	-r off -p illumina testdata/reads.fastq
 illumina_references	-r testdata/ref-ha.fasta -p illumina testdata/reads.fastq
+# the platform read from fragments of a fixed length (Illumina, -p auto);
+# nanopore given for them: flucut stops, or runs with
+# --no-platform-check, saying that the reads look like Illumina reads
+platform_auto	-r off testdata/fragments.fastq
+platform_contradicted	-r off -p nanopore testdata/fragments.fastq
+platform_not_checked	-r off -p nanopore --no-platform-check testdata/fragments.fastq
 # the reads with several amplicons written whole, and left out (those
 # of the Illumina case, where some reads are split)
 chimeras_keep	-r off --chimeras keep testdata/reads.fastq

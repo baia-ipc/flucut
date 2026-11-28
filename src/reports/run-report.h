@@ -54,6 +54,12 @@ void run_report_set_max_errors(run_report_t *self,
 void run_report_set_scheme_choice(run_report_t *self,
     const scheme_choice_t *choice);
 
+/* Set the check of the platform against the reads (platform-check.h;
+   <check> must exist as long as the report is used; it can change, e.g.
+   in a run in progress) */
+void run_report_set_platform_check(run_report_t *self,
+    const struct platform_check_t *check);
+
 /* Set the reload interval of the dashboard while a run is in progress
    (live mode; seconds); see live.c for the adaptive rule */
 void run_report_set_refresh(run_report_t *self, long refresh);

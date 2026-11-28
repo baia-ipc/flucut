@@ -10,6 +10,7 @@
 #include "json-markers.h"
 #include "json-reads.h"
 #include "json-report.h"
+#include "platform-check.h"
 #include "json-sample.h"
 #include "json-writer.h"
 #include "qc-summary.h"
@@ -353,6 +354,48 @@ static void write_scheme_choice(json_writer_t *w, const report_t *r) {
   json_close_block(w, '}', false);
 }
 
+/* the check of the platform against the reads (platform-check.h): null
+   if not done */
+static void write_platform_check(json_writer_t *w, const report_t *r) {
+  FILE *f = w->f;
+  const platform_check_t *c = r->platform_check;
+  json_member(w, "platform_check");
+  if (c == NULL) {
+    fputs("null", f);
+    return;
+  }
+  json_open_block(w, '{');
+  json_member(w, "given");
+  fputs(c->automatic ? "\"auto\"" : c->illumina ? "\"illumina\"" :
+        "\"nanopore\"", f);
+  json_member(w, "stop_if_contradicted");
+  fputs(c->stop && !c->automatic ? "true" : "false", f);
+  json_member(w, "reads_look");
+  const char *look = platform_reads_name(c->reads);
+  if (look == NULL)
+    fputs("null", f);
+  else
+    fputs_json_string(look, f);
+  json_member(w, "mismatch");
+  fputs(c->mismatch ? "true" : "false", f);
+  if (c->pending) {
+    fputs(", \"reads\": null, \"longest\": null, \"share_at_longest\": "
+          "null, \"share_long_reads\": null, \"file\": null", f);
+  } else {
+    const platform_lengths_t *l = &c->lengths;
+    double n = l->n_reads > 0 ? (double)l->n_reads : 1.0;
+    json_count_member(w, "reads", l->n_reads);
+    json_count_member(w, "longest", l->longest);
+    json_member(w, "share_at_longest");
+    fprintf(f, "%.4f", (double)l->at_longest / n);
+    json_member(w, "share_long_reads");
+    fprintf(f, "%.4f", (double)l->long_reads / n);
+    json_member(w, "file");
+    fputs_json_string(c->file, f);
+  }
+  json_close_block(w, '}', false);
+}
+
 /* the parameters of the run */
 static void write_parameters(json_writer_t *w, const report_t *r) {
   FILE *f = w->f;
@@ -427,6 +470,7 @@ static void write_parameters(json_writer_t *w, const report_t *r) {
   }
   json_member(w, "platform");
   fputs(o->illumina ? "\"illumina\"" : "\"nanopore\"", f);
+  write_platform_check(w, r);
   json_count_member(w, "window", (size_t)o->window);
   json_count_member(w, "min_length", o->min_length);
   json_count_member(w, "probe_length", o->probe_len);

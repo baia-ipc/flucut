@@ -46,7 +46,8 @@ Settings:
 | key | type | description |
 |---|---|---|
 | `max_errors` | object | the errors allowed in a primer (`-e`): `mode` (`"fixed"`), `value` (below 1: a fraction of the length of the primer, otherwise a number of bases) |
-| `platform` | string | `-p`: `"nanopore"` or `"illumina"` |
+| `platform` | string | the platform used: `"nanopore"` or `"illumina"` (given with `-p`, or read from the reads with `-p auto`) |
+| `platform_check` | object | the lengths of the first reads against the platform (see below) |
 | `window` | integer | `-w`: a primer must lie within this many bases of its end of the read |
 | `min_length` | integer | `-m`: shorter reads after the trimming are not written |
 | `probe_length`, `probe_errors`, `terminal_window`, `exhaustive_search` | integer, number, integer, boolean | the options of the classification against the references (used only with `-r`) |
@@ -60,6 +61,21 @@ Settings:
 | `by_category` | boolean | `--by-category`: the reads of each input are written to six files, one for each category of reads (full templates, internal priming, internal deletions, fragments, complete amplicons placed on no segment, other reads placed on no segment) |
 | `threads` | integer | `-j` |
 | `compress_level` | integer | `--compress-level`: the gzip compression level of the outputs |
+
+The platform check (`settings.platform_check`; how it decides: the
+manual, *How it works*, *The platform*):
+
+| key | type | description |
+|---|---|---|
+| `given` | string | `-p`: `"auto"`, `"nanopore"` or `"illumina"` |
+| `stop_if_contradicted` | boolean | a platform given, checked: flucut stops if the reads are clearly of the other one (`false` with `-p auto` or `--no-platform-check`) |
+| `reads_look` | string or null | what the lengths of the first reads say: `"illumina"`, `"nanopore"`, `"likely_illumina"`, `"likely_nanopore"` or `"too_few_reads"`; `null` while not read yet (live mode) |
+| `mismatch` | boolean | the reads look like the other platform than the one used, clearly or weakly: the HTML report shows a warning |
+| `reads` | integer or null | the reads looked at (at most 1000, at the start of `file`) |
+| `longest` | integer or null | the length of the longest of them |
+| `share_at_longest` | number or null | the share of them within one base of the longest (reads of a fixed length: Illumina) |
+| `share_long_reads` | number or null | the share of them longer than 600 bases (longer than any Illumina read: nanopore) |
+| `file` | string or null | the file looked at: the first file of the first input |
 
 Section (statistics of a set of reads):
 

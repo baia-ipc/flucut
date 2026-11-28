@@ -131,8 +131,9 @@ static void clear_group(const options_t *opts, const live_group_t *st,
 
 /* the live mode: the arguments of live_run() and its state */
 typedef struct {
-  const options_t *opts;
+  options_t *opts;
   trimmer_config_t *config;
+  platform_check_t *platform;
   auto_settings_t *autos;
   const scheme_t *scheme;
   const fasta_t *refs;
@@ -256,11 +257,15 @@ static void set_signals(Logger *logger) {
          "of SIGINT and SIGTERM failed, %s\n", strerror(errno));
 }
 
-/* -e auto: decided from the first file ready (also if already processed,
-   so that a resumed run uses the same) */
+/* the check of a platform given, then -e auto: decided from the first
+   file ready (also if already processed, so that a resumed run uses the
+   same) */
 static void decide_auto(live_t *w, const char *path) {
-  if (!auto_settings_pending(w->autos) || !file_ready(path, w->min_age))
+  if ((!w->platform->pending && !auto_settings_pending(w->autos)) ||
+      !file_ready(path, w->min_age))
     return;
+  platform_check_decide(w->platform, w->opts, w->config, w->autos, path,
+                        w->logger);
   auto_settings_decide(w->autos, w->config, path, w->logger);
 }
 
@@ -280,8 +285,11 @@ static void process_file(live_t *w, live_group_t *st, const char *path,
     long size) {
   const options_t *opts = w->opts;
   counter_clear(w->file_counts);
-  /* (-e auto is decided before the workers are created, also if the file
-     became ready just after decide_auto() looked at it) */
+  /* (the platform is checked and -e auto decided before the workers are
+     created, also if the file became ready just after decide_auto()
+     looked at it) */
+  platform_check_decide(w->platform, w->opts, w->config, w->autos, path,
+                        w->logger);
   auto_settings_decide(w->autos, w->config, path, w->logger);
   worker_t *workers = get_workers(w);
   /* each barcode is a different sample: classify it only against the
@@ -417,24 +425,33 @@ static char* first_ready_file(const options_t *opts, long min_age,
   return path;
 }
 
-/* -s auto: choose the scheme from the first file ready, waiting for one
-   (the counts and the reports depend on the scheme, so nothing is done
-   before); without one before the end of the mode, the scheme stays the
-   default */
-static void choose_scheme(const options_t *opts, scheme_choice_t *choice,
-    scheme_t *scheme, double interval, Logger *logger) {
-  if (!choice->pending)
+/* with -p auto the platform, and with -s auto the scheme: decided from
+   the first file ready, waiting for one (the settings, the counts and the
+   reports depend on them, so nothing is done before); without one before
+   the end of the mode, they stay the defaults. A platform given is
+   checked there too, if they wait, otherwise at the first file
+   processed (it changes no setting). */
+static void decide_from_first_file(options_t *opts,
+    trimmer_config_t *config, platform_check_t *platform,
+    auto_settings_t *autos, scheme_choice_t *choice, scheme_t *scheme,
+    double interval, Logger *logger) {
+  bool read_platform = platform->pending && platform->automatic;
+  if (!read_platform && !choice->pending)
     return;
-  lprintf(logger, LOG_PHASE, "Waiting for the first file, to choose the "
-          "primer scheme (-s auto)\n");
+  lprintf(logger, LOG_PHASE, "Waiting for the first file, to %s%s%s\n",
+          read_platform ? "read the platform (-p auto)" : "",
+          read_platform && choice->pending ? " and " : "",
+          choice->pending ? "choose the primer scheme (-s auto)" : "");
   time_t start = time(NULL);
   while (!live_stop) {
     bool ended = run_ended(opts);
     char *path = first_ready_file(opts, ended ? 0 : opts->live_min_age,
                                   logger);
     if (path != NULL) {
-      scheme_choice_decide(choice, scheme, opts->virus, opts->window, path,
-                           logger);
+      platform_check_decide(platform, opts, config, autos, path, logger);
+      if (choice->pending)
+        scheme_choice_decide(choice, scheme, opts->virus, opts->window,
+                             path, logger);
       free(path);
       return;
     }
@@ -445,9 +462,10 @@ static void choose_scheme(const options_t *opts, scheme_choice_t *choice,
   }
 }
 
-void live_run(const options_t *opts, trimmer_config_t *config,
-    scheme_choice_t *choice, auto_settings_t *autos, scheme_t *scheme,
-    const fasta_t *references, run_report_t *report, Logger *logger) {
+void live_run(options_t *opts, trimmer_config_t *config,
+    platform_check_t *platform, scheme_choice_t *choice,
+    auto_settings_t *autos, scheme_t *scheme, const fasta_t *references,
+    run_report_t *report, Logger *logger) {
   assert(opts != NULL);
   assert(config != NULL);
   assert(autos != NULL);
@@ -463,8 +481,10 @@ void live_run(const options_t *opts, trimmer_config_t *config,
   double interval = opts->live_timeout > 0 &&
                     opts->live_timeout < opts->live_scan_interval ?
                     (double)opts->live_timeout : opts->live_scan_interval;
-  choose_scheme(opts, choice, scheme, interval, logger);
-  live_t w = {.opts = opts, .config = config, .autos = autos,
+  decide_from_first_file(opts, config, platform, autos, choice, scheme,
+                         interval, logger);
+  live_t w = {.opts = opts, .config = config, .platform = platform,
+      .autos = autos,
       .scheme = scheme, .refs = references, .report = report,
       .logger = logger, .workers = NULL, .groups = NULL, .n_groups = 0,
       .file_counts = counter_new(scheme, references), .ended = false,

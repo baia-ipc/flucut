@@ -7,7 +7,7 @@
 # outputs and the tables must be the same as those of a normal run on the
 # final input. Then: --resume with a new file, restart without --resume,
 # interruption with SIGINT, end of the run (final summary of MinKNOW),
-# -e auto and -s auto with no file at the start, a file created
+# -e auto, -s auto and -p auto with no file at the start, a file created
 # empty, a file for each category of reads (--by-category).
 #
 # Usage: tests/test-live.sh <flucut command> [<prefix command>]
@@ -42,10 +42,11 @@ wait_for() {
   fail "timeout waiting for: $what"
 }
 
-# a scheme given, for the steps which look at the reports before the
-# first file is ready: with the default -s auto, they are written only
-# once the scheme is chosen from that file (step 6b)
-SCHEME="-s uni12-mbt13+ibv-ga2"
+# a scheme and a platform given, for the steps which look at the reports
+# before the first file is ready: with the defaults -s auto and -p auto,
+# they are written only once the scheme is chosen and the platform
+# checked from that file (step 6b)
+GIVEN="-s uni12-mbt13+ibv-ga2 -p nanopore"
 
 # conditions for wait_for: a file contains a string; a file contains at
 # least <n> lines matching a pattern
@@ -158,7 +159,7 @@ echo "[OK] live: interruption"
 rm -rf $TMP/end $TMP/end_out
 mkdir -p $TMP/end/fastq_pass/barcode01
 cp $SRC/barcode01/part1.fastq $TMP/end/fastq_pass/barcode01/a.fastq
-$PREFIX $FLUCUT $SCHEME -j 2 -o $TMP/end_out --live --min-age 3600 \
+$PREFIX $FLUCUT $GIVEN -j 2 -o $TMP/end_out --live --min-age 3600 \
   $TMP/end/fastq_pass 2> $TMP/end.err &
 pid=$!
 wait_for "end of the run: first scan" test -f $TMP/end_out/flucut_summary.json
@@ -175,7 +176,7 @@ echo "[OK] live: end of the run"
 #    in a normal run
 rm -rf $TMP/auto $TMP/auto_out $TMP/auto_dir
 mkdir -p $TMP/auto
-$PREFIX $FLUCUT $SCHEME -v -o $TMP/auto_out --live --timeout 5s --min-age 0 \
+$PREFIX $FLUCUT $GIVEN -v -o $TMP/auto_out --live --timeout 5s --min-age 0 \
   $TMP/auto 2> $TMP/auto.err &
 pid=$!
 wait_for "auto: start without files" \
@@ -189,7 +190,7 @@ grep -q 'errors in a primer: 20% of its length (-e auto)' $TMP/auto.err || \
 grep -q '"max_errors": {"mode": "auto", "value": 0.2, ' \
   $TMP/auto_out/flucut_summary.json || \
   fail "auto: decision not in the summary"
-$FLUCUT $SCHEME -o $TMP/auto_dir $TMP/auto 2> /dev/null
+$FLUCUT $GIVEN -o $TMP/auto_dir $TMP/auto 2> /dev/null
 compare $TMP/auto_out $TMP/auto_dir
 echo "[OK] live: -e auto"
 
@@ -202,7 +203,7 @@ $PREFIX $FLUCUT -v -s auto -o $TMP/sauto_out --live --timeout 5s \
   --min-age 0 $TMP/sauto 2> $TMP/sauto.err &
 pid=$!
 wait_for "-s auto: waiting for a file" \
-  contains $TMP/sauto.err "to choose the primer scheme"
+  contains $TMP/sauto.err "choose the primer scheme"
 [ ! -e $TMP/sauto_out/flucut_summary.json ] || \
   fail "-s auto: reports written before the scheme was chosen"
 cp testdata/reads.fastq $TMP/sauto/
@@ -213,11 +214,32 @@ $FLUCUT -s auto -o $TMP/sauto_dir $TMP/sauto 2> /dev/null
 compare $TMP/sauto_out $TMP/sauto_dir
 echo "[OK] live: -s auto"
 
+# 6c. -p auto, with no file at the start: the mode waits for the first
+#     file and reads the platform from it (fragments of a fixed length:
+#     Illumina); the outputs are those of a normal run with -p illumina
+rm -rf $TMP/pauto $TMP/pauto_out $TMP/pauto_dir
+mkdir -p $TMP/pauto
+$PREFIX $FLUCUT -v -s uni12-mbt13+ibv-ga2 -o $TMP/pauto_out --live \
+  --timeout 5s --min-age 0 $TMP/pauto 2> $TMP/pauto.err &
+pid=$!
+wait_for "-p auto: waiting for a file" \
+  contains $TMP/pauto.err "to read the platform"
+[ ! -e $TMP/pauto_out/flucut_summary.json ] || \
+  fail "-p auto: reports written before the platform was read"
+cp testdata/fragments.fastq $TMP/pauto/
+wait $pid || fail "-p auto: error: $(cat $TMP/pauto.err)"
+grep -q '"platform": "illumina",' $TMP/pauto_out/flucut_summary.json || \
+  fail "-p auto: platform not in the summary"
+$FLUCUT -s uni12-mbt13+ibv-ga2 -p illumina -o $TMP/pauto_dir $TMP/pauto \
+  2> /dev/null
+compare $TMP/pauto_out $TMP/pauto_dir
+echo "[OK] live: -p auto"
+
 # 7. a file created empty and written later (as by a copy): not processed
 #    while empty, then processed completely
 rm -rf $TMP/empty $TMP/empty_out
 mkdir -p $TMP/empty
-$PREFIX $FLUCUT $SCHEME -o $TMP/empty_out --live --timeout 4s --min-age 0 \
+$PREFIX $FLUCUT $GIVEN -o $TMP/empty_out --live --timeout 4s --min-age 0 \
   $TMP/empty 2> $TMP/empty.err &
 pid=$!
 : > $TMP/empty/reads.fastq

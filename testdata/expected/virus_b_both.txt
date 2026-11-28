@@ -71,6 +71,17 @@ reads-b	KX058884.1	1850	6
   "settings": {
     "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0000, "reads": 13, "file": "testdata/reads-b.fastq"},
     "platform": "nanopore",
+    "platform_check": {
+      "given": "auto",
+      "stop_if_contradicted": false,
+      "reads_look": "too_few_reads",
+      "mismatch": false,
+      "reads": 13,
+      "longest": 1926,
+      "share_at_longest": 0.0769,
+      "share_long_reads": 0.6923,
+      "file": "testdata/reads-b.fastq"
+    },
     "window": 100,
     "min_length": 50,
     "probe_length": 32,

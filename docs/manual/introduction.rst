@@ -63,5 +63,18 @@ What it does not do
 Platforms
 ---------
 
-flucut is not specific to a sequencing platform: the errors allowed in a
-primer are an option. The defaults are those of Oxford Nanopore reads.
+flucut trims the reads of two platforms, whose reads differ in what
+they contain:
+
+- Oxford Nanopore (``-p nanopore``): each read is a whole amplicon, with
+  flanking bases and an adapter before each primer;
+- Illumina (``-p illumina``): each read is a fragment of an amplicon,
+  whose adapters were removed by the instrument; a primer, when there is
+  one, is at the start of the read.
+
+The settings differ accordingly (the window in which a primer is
+searched, the minimum length, the adapters, the errors allowed). By
+default (``-p auto``) flucut reads the platform from the lengths of the
+first reads, and a platform given is checked against them: flucut stops
+if the reads are clearly of the other platform, and warns if they may
+be (:ref:`platform-check`).

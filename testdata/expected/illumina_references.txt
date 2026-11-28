@@ -76,6 +76,17 @@ reads	NC_004908.1	1700	5
   "settings": {
     "max_errors": {"mode": "fixed", "value": 0.15},
     "platform": "illumina",
+    "platform_check": {
+      "given": "illumina",
+      "stop_if_contradicted": true,
+      "reads_look": "too_few_reads",
+      "mismatch": false,
+      "reads": 12,
+      "longest": 1763,
+      "share_at_longest": 0.0833,
+      "share_long_reads": 0.6667,
+      "file": "testdata/reads.fastq"
+    },
     "window": 10,
     "min_length": 1,
     "probe_length": 32,

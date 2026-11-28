@@ -57,8 +57,14 @@ typedef struct {
   trim_policy_t policy;
   double max_errors;
   long window;
-  /* --platform: illumina (false: nanopore) */
+  /* --platform: the platform used, illumina (false: nanopore); with -p
+     auto (platform_auto) it is decided from the first reads
+     (platform-check.h), nanopore until then; platform_check: stop if
+     the reads clearly are of the other platform than the one given (not
+     --no-platform-check) */
   bool illumina;
+  bool platform_auto;
+  bool platform_check;
   /* the user's references file (-r <file>); NULL and references_off false:
      the built-in set (the default, see builtin-references.h) */
   const char *references;
@@ -75,6 +81,8 @@ typedef struct {
      per-reference parts of the HTML report are limited (0: all) */
   int report_segment;
   size_t min_length;
+  /* -w, -m, --adapters given (otherwise those of the platform) */
+  bool window_given, min_length_given, adapters_given;
   bool tags;
   /* what is written of the reads with several amplicons (chimera.h),
      of those with an internal deletion (trimmer.h), of the complete
@@ -107,5 +115,9 @@ typedef struct {
 */
 void options_parse(options_t *self, int argc, char *argv[],
     Logger **logger);
+
+/* Set the platform (illumina: true, otherwise nanopore) and its window,
+   minimum length and adapters, where not given */
+void options_set_platform(options_t *self, bool illumina);
 
 #endif

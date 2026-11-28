@@ -20,6 +20,7 @@
 #include "amplicon-test.h"
 #include "anchor-site.h"
 #include "auto-settings.h"
+#include "platform-check.h"
 #include "qc-flags.h"
 #include "qc-summary.h"
 #include "run-resources.h"
@@ -138,6 +139,7 @@ static test_group_t test_groups[] = {
    cleavage_counts_test, false},
   {'A', "the search of the adapters", adapters_test, false},
   {'u', "the automatic settings", auto_settings_test, false},
+  {'W', "the platform read from the reads", platform_check_test, false},
   {'x', "the choice of the primer scheme from the reads",
    scheme_choice_test, false},
   {'G', "the agreement of the probes of a read", read_agreement_test,

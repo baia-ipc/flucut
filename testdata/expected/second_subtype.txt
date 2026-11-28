@@ -77,6 +77,17 @@ reads-two-subtypes	NC_004908.1	1700	9
   "settings": {
     "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0120, "reads": 16, "file": "testdata/reads-two-subtypes.fastq"},
     "platform": "nanopore",
+    "platform_check": {
+      "given": "auto",
+      "stop_if_contradicted": false,
+      "reads_look": "too_few_reads",
+      "mismatch": false,
+      "reads": 16,
+      "longest": 1763,
+      "share_at_longest": 0.1250,
+      "share_long_reads": 0.7500,
+      "file": "testdata/reads-two-subtypes.fastq"
+    },
     "window": 100,
     "min_length": 50,
     "probe_length": 32,

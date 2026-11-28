@@ -141,6 +141,53 @@ kit's adapter was removed at the start and at the end of a read.
 The search is that of ``src/seq/search/adaptor-search.c``; the adapters are searched only at the ends without a primer,
 so the reads with both primers are trimmed as without it.
 
+.. _platform-check:
+
+The platform
+------------
+
+The two platforms give reads of different lengths, for physical
+reasons. An Illumina instrument reads a fixed number of cycles: no read
+is longer than that (151 or 251 bases, at most 301), and most reads have
+exactly that length, the others being shorter where an adapter was cut.
+A nanopore read is a whole molecule: in a run of the RT-PCR most reads
+are whole amplicons of 900 to 2,400 bases, with no common maximum.
+flucut therefore looks at the lengths of the first 1000 reads of the
+first input file (in the live mode, the first file ready), before
+anything else:
+
+- **Illumina**: none is longer than 320 bases, and at least 20% are
+  within one base of the longest (reads of a fixed length);
+- **nanopore**: at least 1% are longer than 600 bases, which no Illumina
+  read is, even two reads of a pair joined end to end;
+- otherwise the evidence is weak: *likely Illumina* if none is longer
+  than 600 bases, *likely nanopore* if some are; with fewer than 20
+  reads, nothing is said.
+
+The read titles and the file names are not used: SRA, ENA and many
+pipelines rewrite them.
+
+With ``-p auto`` (the default), the reads are trimmed with the Illumina
+settings only if they are clearly Illumina reads, and with the nanopore
+settings otherwise. With a platform given, that platform is used; if the
+reads are clearly of the other one, flucut stops and says what to pass
+(``--no-platform-check`` runs it anyway). Whenever the reads look like
+the other platform than the one used, clearly or weakly, a warning is
+written and the reports say so.
+
+The thresholds lie in a wide gap between the platforms. On 86 Illumina
+files (43 paired runs of influenza A and B, MiSeq and NextSeq) the
+longest of the first 1000 reads had 151 or 251 bases and 51 to 100% of
+the reads were within one base of it; on 344 nanopore files (MinION and
+GridION, R9.4.1 and R10.4.1, 2022 to 2026) the longest had at least
+753 bases and at most 1.1% of the reads were within one base of it. On
+blocks of 1000 consecutive reads, every Illumina block was called
+Illumina and no nanopore block was; 71 of 4,349 nanopore blocks were
+weak, all of four runs of random-primed cDNA, which have few reads
+longer than 600 bases. With fewer reads the weak calls on nanopore runs
+of the RT-PCR become more frequent (1% of blocks of 100 reads), and
+change no setting.
+
 The trimming
 ------------
 

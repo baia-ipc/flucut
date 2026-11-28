@@ -69,6 +69,17 @@ reads	NC_004908.1	1700	5
   "settings": {
     "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0084, "reads": 12, "file": "testdata/reads.fastq"},
     "platform": "nanopore",
+    "platform_check": {
+      "given": "auto",
+      "stop_if_contradicted": false,
+      "reads_look": "too_few_reads",
+      "mismatch": false,
+      "reads": 12,
+      "longest": 1763,
+      "share_at_longest": 0.0833,
+      "share_long_reads": 0.6667,
+      "file": "testdata/reads.fastq"
+    },
     "window": 100,
     "min_length": 50,
     "probe_length": 32,

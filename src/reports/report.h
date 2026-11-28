@@ -57,6 +57,9 @@ typedef struct {
   const report_setting_t *max_errors;
   /* the choice of the scheme, if automatic (NULL: the one of -s) */
   const scheme_choice_t *scheme_choice;
+  /* the check of the platform against the reads (platform-check.h;
+     NULL: not done) */
+  const struct platform_check_t *platform_check;
   /* <running>: a run in progress; the page is then reloaded every
      <refresh> seconds (0: no); <dashboard>: the page is the dashboard
      (one sample on the screen at a time), not the report */

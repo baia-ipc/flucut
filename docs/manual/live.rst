@@ -36,9 +36,11 @@ then be increased.
 
 ``-e auto`` (the default) is decided at the first file ready, from its
 first 1000 reads, as in a normal run (:doc:`cli_reference`). So is the
-scheme with ``-s auto`` (the default, :doc:`primers`), before anything else: the
-counts and the reports depend on it, so the mode waits for that file
-before writing the first report.
+scheme with ``-s auto`` (the default, :doc:`primers`), and the platform
+with ``-p auto`` (the default, :ref:`platform-check`), before anything
+else: the settings, the counts and the reports depend on them, so the
+mode waits for that file before writing the first report. A platform
+given is checked against the first file processed.
 
 The reports
 -----------
