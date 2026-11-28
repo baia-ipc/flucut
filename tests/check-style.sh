@@ -5,7 +5,7 @@
 # lines of at most 80 characters, no tabs, no trailing whitespace, a
 # copyright line at the start of each file, include guards named after
 # the header file. The same rules hold for the HTML templates
-# (src/*.html), with a copyright comment, except that only their comment
+# (src/**/*.html), with a copyright comment, except that only their comment
 # lines must be at most 80 characters long: the other lines are written
 # to the report as they are (wrapping a paragraph would change it). Exits
 # with status 1 and lists the problems, if any.
@@ -24,8 +24,8 @@
 
 set -uo pipefail
 export LC_ALL=C
-FILES=$(ls src/*.[ch] tests/fuzz/*.[ch] 2>/dev/null)
-TEMPLATES=$(ls src/*.html 2>/dev/null)
+FILES=$(find src -name '*.[ch]' | sort; ls tests/fuzz/*.[ch] 2>/dev/null)
+TEMPLATES=$(find src -name '*.html' | sort)
 # the scripts tracked by git (without git: those found outside ext/)
 SCRIPTS=$(git ls-files -- '*.py' '*.sh' ':!ext' 2>/dev/null ||
   find . -path ./ext -prune -o -path './.*' -prune -o \

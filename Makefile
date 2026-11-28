@@ -2,7 +2,20 @@ BINDIR=bin
 OBJDIR=obj
 
 SRCDIR=src
-SRCS=$(wildcard $(SRCDIR)/*.c)
+
+# the source files are in subdirectories of src (components), each one
+# with a purpose (see the developer section of the manual); the program
+# sources (flucut.c, fc-tests.c) are in src itself. As in libcbaia, the
+# objects are all in obj, the includes are not qualified by the directory
+# (so the names of the headers are unique over all components), and
+# vpath finds the sources
+COMPONENTS = core seq analysis io reports reports/html reports/json
+COMPONENT_DIRS = $(SRCDIR) $(addprefix $(SRCDIR)/,$(COMPONENTS))
+vpath %.c $(COMPONENT_DIRS)
+vpath %.html $(COMPONENT_DIRS)
+SRCS=$(wildcard $(addsuffix /*.c,$(COMPONENT_DIRS)))
+HEADERS=$(wildcard $(addsuffix /*.h,$(COMPONENT_DIRS)))
+OBJS=$(patsubst %.c,$(OBJDIR)/%.o,$(notdir $(SRCS)))
 
 PROGS = $(BINDIR)/flucut $(BINDIR)/fc-tests
 
@@ -44,7 +57,8 @@ DEFLATE_OBJS = $(patsubst $(DEFLATEDIR)/%.c,$(OBJDIR)/libdeflate/%.o,\
                  $(wildcard $(DEFLATEDIR)/lib/*.c $(DEFLATEDIR)/lib/*/*.c))
 
 CFLAGS += -Wall -Wextra -std=gnu11 -I$(EXTDIR) -I$(EXTDIR)/edlib \
-          -I$(DEFLATEDIR) $(CBAIA_INCLUDES) $(YAML_INCLUDES)
+          -I$(DEFLATEDIR) $(addprefix -I,$(COMPONENT_DIRS)) \
+          $(CBAIA_INCLUDES) $(YAML_INCLUDES)
 CXXFLAGS += -std=c++11 -I$(EXTDIR)/edlib
 LDLIBS += $(YAML_LDLIBS) $(CBAIA_LDLIBS) -lpthread
 
@@ -67,19 +81,19 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $(DEBUGFLAGS) -c
 POSTCOMPILE = @mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d && touch $@
 
-$(OBJDIR)/%.o : $(SRCDIR)/%.c
-$(OBJDIR)/%.o : $(SRCDIR)/%.c $(DEPDIR)/%.d | $(OBJDIR) $(DEPDIR)
+$(OBJDIR)/%.o : %.c
+$(OBJDIR)/%.o : %.c $(DEPDIR)/%.d | $(OBJDIR) $(DEPDIR)
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 	$(POSTCOMPILE)
 
-# the HTML templates of the report (src/*.html), embedded in the program:
-# src/<name>.html gives obj/<name>-html.inc (see $(CBAIA_EMBED)); the
+# the HTML templates of the report (*.html in the components), embedded in
+# the program: <name>.html gives obj/<name>-html.inc (see $(CBAIA_EMBED)); the
 # objects including them depend on them through the header dependency
 # tracking, after the first build
-TEMPLATE_INCS = $(patsubst $(SRCDIR)/%.html,$(OBJDIR)/%-html.inc,\
-                  $(wildcard $(SRCDIR)/*.html))
+TEMPLATE_INCS = $(patsubst %.html,$(OBJDIR)/%-html.inc,$(notdir \
+                  $(wildcard $(addsuffix /*.html,$(COMPONENT_DIRS)))))
 CFLAGS += -I$(OBJDIR)
-$(OBJDIR)/%-html.inc: $(SRCDIR)/%.html $(CBAIA_EMBED) | $(OBJDIR)
+$(OBJDIR)/%-html.inc: %.html $(CBAIA_EMBED) | $(OBJDIR)
 	$(CBAIA_EMBED) $< > $@
 $(OBJDIR)/html-report.o $(OBJDIR)/html-report-run.o: | $(TEMPLATE_INCS)
 
@@ -124,14 +138,14 @@ $(OBJDIR)/libdeflate/%.o: $(DEFLATEDIR)/%.c $(DEFLATE_HEADERS)
 	$(CC) $(DEFLATE_CFLAGS) -c -o $@ $<
 
 # objects to link into each program, computed from the included headers
-# (see dev/objdeps.sh of libcbaia)
+# (see scripts/objdeps.sh: as dev/objdeps.sh of libcbaia, for sources in
+# several directories)
 
 # (all objects are built first, by objs, not by a sub-make for each
 # program: with make -j, the sub-makes would build the same objects at the
 # same time; with an empty list, a sub-make would build the default goal)
-$(DEPDIR)/%.o_list: $(SRCDIR)/%.c $(SRCS) $(wildcard $(SRCDIR)/*.h) \
-    | objs $(DEPDIR)
-	$(CBAIA_DIR)/dev/objdeps.sh $(SRCDIR) $(OBJDIR) $< > $@
+$(DEPDIR)/%.o_list: %.c $(SRCS) $(HEADERS) | objs $(DEPDIR)
+	scripts/objdeps.sh "$(COMPONENT_DIRS)" $(OBJDIR) $< > $@
 
 # linked by the C++ compiler, for the C++ standard library used by edlib;
 # the object of the program (with main()) is built by the rule of all
@@ -140,11 +154,11 @@ $(DEPDIR)/%.o_list: $(SRCDIR)/%.c $(SRCS) $(wildcard $(SRCDIR)/*.h) \
 # an object changes (e.g. after a change of a header of the vendored
 # libcbaia, which does not change the list of objects)
 $(BINDIR)/%: $(OBJDIR)/%.o $(DEPDIR)/%.o_list $(EXTOBJS) \
-    $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS)) | $(BINDIR)
+    $(OBJS) | $(BINDIR)
 	$(CXX) $(DEBUGFLAGS) $(LDFLAGS) -o $@ $(OBJDIR)/$*.o \
 	  `cat $(DEPDIR)/$*.o_list` $(EXTOBJS) $(LDLIBS)
 
-objs: $(EXTOBJS) $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
+objs: $(EXTOBJS) $(OBJS)
 
 PREFIX ?= /usr/local
 
