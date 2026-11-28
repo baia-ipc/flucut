@@ -62,8 +62,8 @@ whitelists) are fuzzed.
 Components
 ~~~~~~~~~~
 
-The modules are organized in five components (directories of ``src``),
-shown in :numref:`fig-components`:
+The modules are organized in components and domain directories under
+``src``, shown in :numref:`fig-components`:
 
 ``core``
    the base functionality of a command line program, used by all other
@@ -82,16 +82,23 @@ shown in :numref:`fig-components`:
    helpers and SVG primitives;
 
 ``io``
-   handling of large files: sorting of files which do not fit in memory,
-   parallel gzip and BGZF compression, MD5 checksums;
+   file and destination I/O: sorting of files which do not fit in memory,
+   output files for several destinations, MD5 checksums;
+
+``formats``
+   reading and writing files in specific formats, in subdirectories for
+   gzip, BGZF, JSON, SAM/BAM (including unaligned BAM), and FASTQ;
 
 ``seq``
-   sequences and sequencing reads: reverse complement, FASTQ and BAM
-   reading and writing, a common reader of FASTQ and BAM files, SAM tags
-   and MinKNOW metadata in the read titles, the header of BAM output,
-   output files of several destinations, the edit distance of short
-   sequences, the k-mer index of a set of sequences, barcode whitelists,
-   cell calling and library complexity.
+   sequence utilities, edit distance and k-mer indexing, and the
+   format-independent reader of FASTQ or BAM files.
+
+``nanopore``
+   metadata in MinKNOW read titles.
+
+``singlecell``
+   barcode whitelists and correction, cell calling, and library
+   complexity.
 
 .. _fig-components:
 

@@ -452,22 +452,8 @@ Small SVG primitives written through the HTML writer.
    void svg_label(html_writer_t *w, double x, double y, const char *anchor,
        const char *fmt, ...) __attribute__((format(printf, 5, 6)));
 
-Large files and compression (``io``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**bgzf-compressor.h**
-
-BGZF compression (the format of BAM files): the data are compressed in blocks of at most 64 KiB, each a gzip member with an extra field (BC) containing the size of the block. As for the gzip members of gzip-compressor.h, blocks can be compressed in parallel and written in order; a BGZF file ends with an empty block (the end-of-file marker).
-
-.. code-block:: c
-
-   #define BGZF_EOF_LEN
-   extern const uint8_t bgzf_eof[BGZF_EOF_LEN];
-   typedef struct bgzf_compressor_t bgzf_compressor_t;
-   bgzf_compressor_t* bgzf_compressor_new(int level);
-   void bgzf_compressor_run(bgzf_compressor_t *self, const char *data,
-       size_t len, strbuf_t *out);
-   void bgzf_compressor_delete(bgzf_compressor_t *self);
+File and destination I/O (``io``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **file-merger.h**
 
@@ -503,6 +489,208 @@ Sorting of large files in parts which fit in memory (to be merged with merge_n_f
                                 Logger *logger),
        Logger *logger);
 
+**md5.h**
+
+MD5 message digest (RFC 1321), e.g. for the checksums of files in metadata (as the md5 of the onlists of seqspec files) or for checking downloads. Not to be used for security purposes.
+
+.. code-block:: c
+
+   #define MD5_H
+   #define MD5_HEX_LEN
+   typedef struct {
+     uint32_t state[4];
+     uint64_t n_bytes;
+     uint8_t buffer[64];
+   } md5_t;
+   void md5_init(md5_t *self);
+   void md5_update(md5_t *self, const void *data, size_t len);
+   void md5_final(md5_t *self, char *hex);
+   void md5_file(const char *path, char *hex, Logger *logger);
+
+**outfiles.h**
+
+Output files of a program writing the reads to several destinations, e.g. a demultiplexer (a destination for each sample), with one compressed file for each destination: - for an input file: <outdir>/<input basename>.<destination>.fastq.gz, where the suffix of the input file (.fastq, .fq, optionally followed by .gz, or .bam; see reads_reader_is_reads_filename) is removed; - for a group of input files (directory mode): <outdir>/<group>/<destination>.fastq.gz.
+
+.. code-block:: c
+
+   #define OUTFILES_COMPRESSLEVEL
+   typedef struct outfiles_t outfiles_t;
+   outfiles_t* outfiles_new(const char *outdir, const char *reads_file,
+       size_t n_destinations, Logger *logger);
+   outfiles_t* outfiles_new_group(const char *outdir, const char *group,
+       size_t n_destinations, Logger *logger);
+   void outfiles_set_append(outfiles_t *self, bool append);
+   void outfiles_set_bam(outfiles_t *self, size_t destination,
+       const char *header, size_t len);
+   #define OUTFILES_FASTQ_SFX
+   #define OUTFILES_BAM_SFX
+   void outfiles_write(outfiles_t *self, size_t destination, const char *name,
+       const char *data, size_t len);
+   void outfiles_delete(outfiles_t *self);
+
+Sequences and reads (``seq``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**codons.h**
+
+Translation with the standard genetic code. A codon with a character which is not A, C, G or T (for example an ambiguous base) gives 'X'; an incomplete codon at the end is not translated.
+
+.. code-block:: c
+
+   char codons_residue(const char *codon);
+   size_t codons_translate(const char *seq, size_t len, char *out);
+   long codons_find_peptide(const char *seq, size_t len, const char *pattern);
+
+**edit-distance.h**
+
+Bounded edit distance of short sequences (e.g. indices, barcodes, UMIs, compared with the sequences of a list): dynamic programming in the diagonal band of width 2k + 1 around the main diagonal, stopping as soon as a row exceeds the maximum distance k; for sequences of at most SHORT_EDIT_DISTANCE_MAX bases (for longer sequences, use e.g. edlib).
+
+.. code-block:: c
+
+   #define SHORT_EDIT_DISTANCE_MAX
+   static inline long short_edit_distance(const char *a, size_t alen,
+       const char *b, size_t blen, long k);
+   static inline long short_prefix_distance(const char *query, size_t qlen,
+       const char *target, size_t tlen, long k, size_t *end);
+
+**kmer-index.h**
+
+Index of the k-mers of a set of sequences (e.g. reference sequences), for finding where a query sequence may align: the k-mers of the query which occur in the indexed sequences give candidate diagonals (position in the sequence minus position in the query), around which the query is then aligned by the caller (e.g. with edlib), instead of being aligned to the whole of every sequence.
+
+.. code-block:: c
+
+   #define KMER_INDEX_MAX_K
+   typedef struct {
+     uint32_t seq;
+     long diagonal;
+   } kmer_index_hit_t;
+   typedef struct kmer_index_t kmer_index_t;
+   kmer_index_t* kmer_index_new(const char *const *seqs, const size_t *lens,
+       size_t n, size_t k);
+   size_t kmer_index_k(const kmer_index_t *self);
+   size_t kmer_index_count(const kmer_index_t *self, const char *kmer);
+   size_t kmer_index_diagonals(const kmer_index_t *self, const char *query,
+       size_t len, size_t max_occ, kmer_index_hit_t **hits, size_t *cap);
+   void kmer_index_delete(kmer_index_t *self);
+
+**reads-reader.h**
+
+Reader of the reads of a FASTQ file (optionally gzipped) or of an unaligned BAM file, recognized from the content, with the same interface (batches of FASTQ records, see fastq-reader.h); functions for recognizing the files of reads by their name, counting the reads, and checking whether a file is complete (e.g. when it is written by another program, such as a basecaller).
+
+.. code-block:: c
+
+   typedef struct reads_reader_t reads_reader_t;
+   reads_reader_t* reads_reader_new(const char *filename, Logger *logger);
+   bool reads_reader_is_bam(const reads_reader_t *self);
+   size_t reads_reader_read_batch(reads_reader_t *self, fastq_batch_t *batch,
+       size_t max_records);
+   void reads_reader_delete(reads_reader_t *self);
+   bool reads_reader_is_reads_filename(const char *name);
+   size_t reads_reader_filename_suffix_len(const char *name);
+   size_t reads_reader_count(const char *filename, Logger *logger);
+   bool reads_reader_file_complete(const char *path);
+
+**sequtil.h**
+
+Sequence utilities: reverse complement and substrings with the semantics of the Python slices (useful for reproducing exactly the output of Python programs).
+
+.. code-block:: c
+
+   void reverse_complement(const char *seq, size_t len, char *dest);
+   void py_slice(long len, long start, long stop, long *from, long *slice_len);
+
+Nanopore (``nanopore``)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+**minknow-metadata.h**
+
+Read metadata of MinKNOW: the FASTQ files written by MinKNOW contain the read metadata in the title as fields key=value, separated by spaces (e.g. runid=... ch=12 start_time=...), while Dorado writes SAM tags (see sam-tags.h). The fields can be converted to SAM tags: runid: ri:Z, read: rn:i, ch: ch:i, start_time: st:Z, flow_cell_id: PU:Z, protocol_group_id: pg:Z, sample_id: si:Z, barcode: ob:Z, barcode_alias: oa:Z, parent_read_id: pi:Z, basecall_model_version_id: bm:Z.
+
+.. code-block:: c
+
+   #define MINKNOW_BARCODE_SAM_TAG
+   bool minknow_metadata_append_sam_tag(strbuf_t *out, const char *field,
+       size_t len);
+
+Single cell (``singlecell``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**cell-caller.h**
+
+Identification of the cell barcodes of a single-cell library: the barcodes of a whitelist (e.g. all barcodes of a platform) found exactly in the reads are counted, and the barcodes of the cells are selected from the counts, given the expected number of cells N, as in Cell Ranger (version 2): the barcodes with a count of at least 1/10 of the 99th percentile of the counts of the N most frequent barcodes; as in Cell Ranger, the threshold is rounded to the nearest integer (halves upwards; e.g. 14 for a percentile of 135..144), and is at least 1.
+
+.. code-block:: c
+
+   typedef struct cell_caller_t cell_caller_t;
+   cell_caller_t* cell_caller_new(void);
+   void cell_caller_add(cell_caller_t *self, uint64_t barcode);
+   void cell_caller_merge(cell_caller_t *self, cell_caller_t *other);
+   whitelist_t* cell_caller_run(const cell_caller_t *self,
+       size_t expected_cells, size_t length, const whitelist_t *known,
+       const char *path, Logger *logger);
+   size_t cell_caller_sorted_counts(const cell_caller_t *self,
+       uint64_t **counts);
+   void cell_caller_delete(cell_caller_t *self);
+
+**complexity.h**
+
+Library complexity of a sample: estimation of the number of distinct molecules of the library, from the number of reads and of distinct molecule keys (e.g. the UMI and the first and last bases of the insert, which identify the copies of a molecule without an alignment), for deciding whether deeper sequencing of a library is worthwhile.
+
+.. code-block:: c
+
+   #define COMPLEXITY_MIN_READS
+   #define COMPLEXITY_MIN_ERROR_FREE
+   typedef struct {
+     bool estimated;
+     bool high_error_rate;
+     double error_free;
+     double molecules_seen;
+     double duplication;
+     bool saturated_unknown;
+     double molecules;
+     double molecules_2x;
+   } complexity_t;
+   void complexity_estimate(size_t reads, double distinct_keys,
+       double mean_key_length, double error_rate, complexity_t *out);
+
+**whitelist.h**
+
+Whitelist of barcodes (e.g. the cell barcodes of a single-cell platform) and correction of the barcodes extracted from the reads.
+
+.. code-block:: c
+
+   #define WHITELIST_MAX_BARCODE_LENGTH
+   #define WHITELIST_MAX_DIST
+   typedef struct whitelist_t whitelist_t;
+   typedef enum {
+     WHITELIST_EXACT,
+     WHITELIST_CORRECTED,
+     WHITELIST_AMBIGUOUS,
+     WHITELIST_NOT_FOUND,
+   } whitelist_status_t;
+   typedef struct {
+     whitelist_status_t status;
+     uint64_t barcode;
+     long dist;
+     size_t consumed;
+   } whitelist_match_t;
+   whitelist_t* whitelist_new(const char *path, Logger *logger);
+   whitelist_t* whitelist_new_from_codes(const uint64_t *barcodes, size_t n,
+       size_t length);
+   bool whitelist_encode(const whitelist_t *self, const char *seq,
+       uint64_t *barcode);
+   bool whitelist_contains(const whitelist_t *self, uint64_t barcode);
+   void whitelist_delete(whitelist_t *self);
+   size_t whitelist_barcode_length(const whitelist_t *self);
+   size_t whitelist_size(const whitelist_t *self);
+   size_t whitelist_codes(const whitelist_t *self, uint64_t **codes);
+   void whitelist_match(const whitelist_t *self, const char *seq, size_t len,
+       bool from_end, long max_dist, whitelist_match_t *match);
+   void whitelist_decode(const whitelist_t *self, uint64_t barcode, char *out);
+
+Format: gzip (``formats/gzip``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 **gzip-compressor.h**
 
 Compression of data blocks as gzip members; the concatenation of gzip members is a valid gzip file, thus blocks can be compressed in parallel and written in order.
@@ -514,6 +702,26 @@ Compression of data blocks as gzip members; the concatenation of gzip members is
    void gzip_compressor_run(gzip_compressor_t *self, const char *data,
        size_t len, strbuf_t *out);
    void gzip_compressor_delete(gzip_compressor_t *self);
+
+Format: BGZF (``formats/bgzf``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**bgzf-compressor.h**
+
+BGZF compression (the format of BAM files): the data are compressed in blocks of at most 64 KiB, each a gzip member with an extra field (BC) containing the size of the block. As for the gzip members of gzip-compressor.h, blocks can be compressed in parallel and written in order; a BGZF file ends with an empty block (the end-of-file marker).
+
+.. code-block:: c
+
+   #define BGZF_EOF_LEN
+   extern const uint8_t bgzf_eof[BGZF_EOF_LEN];
+   typedef struct bgzf_compressor_t bgzf_compressor_t;
+   bgzf_compressor_t* bgzf_compressor_new(int level);
+   void bgzf_compressor_run(bgzf_compressor_t *self, const char *data,
+       size_t len, strbuf_t *out);
+   void bgzf_compressor_delete(bgzf_compressor_t *self);
+
+Format: JSON (``formats/json``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **json-writer.h**
 
@@ -534,26 +742,8 @@ Writing the JSON summary: nested objects and arrays (blocks) with one member on 
    void json_count_member(json_writer_t *w, const char *k, size_t n);
    void json_share_member(json_writer_t *w, const char *k, double share);
 
-**md5.h**
-
-MD5 message digest (RFC 1321), e.g. for the checksums of files in metadata (as the md5 of the onlists of seqspec files) or for checking downloads. Not to be used for security purposes.
-
-.. code-block:: c
-
-   #define MD5_H
-   #define MD5_HEX_LEN
-   typedef struct {
-     uint32_t state[4];
-     uint64_t n_bytes;
-     uint8_t buffer[64];
-   } md5_t;
-   void md5_init(md5_t *self);
-   void md5_update(md5_t *self, const void *data, size_t len);
-   void md5_final(md5_t *self, char *hex);
-   void md5_file(const char *path, char *hex, Logger *logger);
-
-Sequences and reads (``seq``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Format: SAM/BAM (``formats/sam_bam``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **bam-format.h**
 
@@ -595,169 +785,6 @@ Reading of BAM files, e.g. the unaligned BAM files written by Dorado and MinKNOW
    bool bam_reader_has_eof_marker(const char *filename);
    size_t bam_reader_count(const char *filename, Logger *logger);
 
-**cell-caller.h**
-
-Identification of the cell barcodes of a single-cell library: the barcodes of a whitelist (e.g. all barcodes of a platform) found exactly in the reads are counted, and the barcodes of the cells are selected from the counts, given the expected number of cells N, as in Cell Ranger (version 2): the barcodes with a count of at least 1/10 of the 99th percentile of the counts of the N most frequent barcodes; as in Cell Ranger, the threshold is rounded to the nearest integer (halves upwards; e.g. 14 for a percentile of 135..144), and is at least 1.
-
-.. code-block:: c
-
-   typedef struct cell_caller_t cell_caller_t;
-   cell_caller_t* cell_caller_new(void);
-   void cell_caller_add(cell_caller_t *self, uint64_t barcode);
-   void cell_caller_merge(cell_caller_t *self, cell_caller_t *other);
-   whitelist_t* cell_caller_run(const cell_caller_t *self,
-       size_t expected_cells, size_t length, const whitelist_t *known,
-       const char *path, Logger *logger);
-   size_t cell_caller_sorted_counts(const cell_caller_t *self,
-       uint64_t **counts);
-   void cell_caller_delete(cell_caller_t *self);
-
-**codons.h**
-
-Translation with the standard genetic code. A codon with a character which is not A, C, G or T (for example an ambiguous base) gives 'X'; an incomplete codon at the end is not translated.
-
-.. code-block:: c
-
-   char codons_residue(const char *codon);
-   size_t codons_translate(const char *seq, size_t len, char *out);
-   long codons_find_peptide(const char *seq, size_t len, const char *pattern);
-
-**complexity.h**
-
-Library complexity of a sample: estimation of the number of distinct molecules of the library, from the number of reads and of distinct molecule keys (e.g. the UMI and the first and last bases of the insert, which identify the copies of a molecule without an alignment), for deciding whether deeper sequencing of a library is worthwhile.
-
-.. code-block:: c
-
-   #define COMPLEXITY_MIN_READS
-   #define COMPLEXITY_MIN_ERROR_FREE
-   typedef struct {
-     bool estimated;
-     bool high_error_rate;
-     double error_free;
-     double molecules_seen;
-     double duplication;
-     bool saturated_unknown;
-     double molecules;
-     double molecules_2x;
-   } complexity_t;
-   void complexity_estimate(size_t reads, double distinct_keys,
-       double mean_key_length, double error_rate, complexity_t *out);
-
-**edit-distance.h**
-
-Bounded edit distance of short sequences (e.g. indices, barcodes, UMIs, compared with the sequences of a list): dynamic programming in the diagonal band of width 2k + 1 around the main diagonal, stopping as soon as a row exceeds the maximum distance k; for sequences of at most SHORT_EDIT_DISTANCE_MAX bases (for longer sequences, use e.g. edlib).
-
-.. code-block:: c
-
-   #define SHORT_EDIT_DISTANCE_MAX
-   static inline long short_edit_distance(const char *a, size_t alen,
-       const char *b, size_t blen, long k);
-   static inline long short_prefix_distance(const char *query, size_t qlen,
-       const char *target, size_t tlen, long k, size_t *end);
-
-**fastq-reader.h**
-
-Reading of FASTQ files (optionally gzip-compressed) in batches of records.
-
-.. code-block:: c
-
-   typedef struct fastq_reader_t fastq_reader_t;
-   typedef struct {
-     size_t title_from, title_len;
-     size_t seq_from, seq_len;
-     size_t qual_from;
-     bool qual_missing;
-   } fastq_record_t;
-   typedef struct {
-     strbuf_t data;
-     fastq_record_t *records;
-     size_t n_records, records_cap;
-   } fastq_batch_t;
-   fastq_reader_t* fastq_reader_new(const char *filename, Logger *logger);
-   size_t fastq_reader_read_batch(fastq_reader_t *self, fastq_batch_t *batch,
-       size_t max_records);
-   void fastq_reader_delete(fastq_reader_t *self);
-   size_t fastq_reader_count(const char *filename, Logger *logger);
-   void fastq_batch_init(fastq_batch_t *batch);
-   void fastq_batch_free(fastq_batch_t *batch);
-
-**fastq-writer.h**
-
-Writing of FASTQ records to a buffer (e.g. for a batch of records, which is then compressed with gzip-compressor.h and written to a file).
-
-.. code-block:: c
-
-   void fastq_writer_record(strbuf_t *out, const char *title, size_t title_len,
-       const char *seq, const char *qual, size_t len);
-
-**kmer-index.h**
-
-Index of the k-mers of a set of sequences (e.g. reference sequences), for finding where a query sequence may align: the k-mers of the query which occur in the indexed sequences give candidate diagonals (position in the sequence minus position in the query), around which the query is then aligned by the caller (e.g. with edlib), instead of being aligned to the whole of every sequence.
-
-.. code-block:: c
-
-   #define KMER_INDEX_MAX_K
-   typedef struct {
-     uint32_t seq;
-     long diagonal;
-   } kmer_index_hit_t;
-   typedef struct kmer_index_t kmer_index_t;
-   kmer_index_t* kmer_index_new(const char *const *seqs, const size_t *lens,
-       size_t n, size_t k);
-   size_t kmer_index_k(const kmer_index_t *self);
-   size_t kmer_index_count(const kmer_index_t *self, const char *kmer);
-   size_t kmer_index_diagonals(const kmer_index_t *self, const char *query,
-       size_t len, size_t max_occ, kmer_index_hit_t **hits, size_t *cap);
-   void kmer_index_delete(kmer_index_t *self);
-
-**minknow-metadata.h**
-
-Read metadata of MinKNOW: the FASTQ files written by MinKNOW contain the read metadata in the title as fields key=value, separated by spaces (e.g. runid=... ch=12 start_time=...), while Dorado writes SAM tags (see sam-tags.h). The fields can be converted to SAM tags: runid: ri:Z, read: rn:i, ch: ch:i, start_time: st:Z, flow_cell_id: PU:Z, protocol_group_id: pg:Z, sample_id: si:Z, barcode: ob:Z, barcode_alias: oa:Z, parent_read_id: pi:Z, basecall_model_version_id: bm:Z.
-
-.. code-block:: c
-
-   #define MINKNOW_BARCODE_SAM_TAG
-   bool minknow_metadata_append_sam_tag(strbuf_t *out, const char *field,
-       size_t len);
-
-**outfiles.h**
-
-Output files of a program writing the reads to several destinations, e.g. a demultiplexer (a destination for each sample), with one compressed file for each destination: - for an input file: <outdir>/<input basename>.<destination>.fastq.gz, where the suffix of the input file (.fastq, .fq, optionally followed by .gz, or .bam; see reads_reader_is_reads_filename) is removed; - for a group of input files (directory mode): <outdir>/<group>/<destination>.fastq.gz.
-
-.. code-block:: c
-
-   #define OUTFILES_COMPRESSLEVEL
-   typedef struct outfiles_t outfiles_t;
-   outfiles_t* outfiles_new(const char *outdir, const char *reads_file,
-       size_t n_destinations, Logger *logger);
-   outfiles_t* outfiles_new_group(const char *outdir, const char *group,
-       size_t n_destinations, Logger *logger);
-   void outfiles_set_append(outfiles_t *self, bool append);
-   void outfiles_set_bam(outfiles_t *self, size_t destination,
-       const char *header, size_t len);
-   #define OUTFILES_FASTQ_SFX
-   #define OUTFILES_BAM_SFX
-   void outfiles_write(outfiles_t *self, size_t destination, const char *name,
-       const char *data, size_t len);
-   void outfiles_delete(outfiles_t *self);
-
-**reads-reader.h**
-
-Reader of the reads of a FASTQ file (optionally gzipped) or of an unaligned BAM file, recognized from the content, with the same interface (batches of FASTQ records, see fastq-reader.h); functions for recognizing the files of reads by their name, counting the reads, and checking whether a file is complete (e.g. when it is written by another program, such as a basecaller).
-
-.. code-block:: c
-
-   typedef struct reads_reader_t reads_reader_t;
-   reads_reader_t* reads_reader_new(const char *filename, Logger *logger);
-   bool reads_reader_is_bam(const reads_reader_t *self);
-   size_t reads_reader_read_batch(reads_reader_t *self, fastq_batch_t *batch,
-       size_t max_records);
-   void reads_reader_delete(reads_reader_t *self);
-   bool reads_reader_is_reads_filename(const char *name);
-   size_t reads_reader_filename_suffix_len(const char *name);
-   size_t reads_reader_count(const char *filename, Logger *logger);
-   bool reads_reader_file_complete(const char *path);
-
 **sam-header.h**
 
 SAM header text of BAM files written from BAM input (e.g. the unaligned BAM of Dorado), keeping the provenance of the reads: - the read groups (@RG) of the inputs, so that the records keep the RG tag of their input; a program which distributes the reads to several destinations (e.g. a demultiplexer) can rename them per destination; - the programs (@PG) of the inputs, followed by the @PG line of the program, linked to the last one of the inputs (PP), as samtools does.
@@ -797,15 +824,6 @@ SAM tags in text format, in read titles: the title of a read (FASTQ header witho
        const char *value, size_t len);
    void sam_tag_append_int(strbuf_t *out, const char *tag, long value);
 
-**sequtil.h**
-
-Sequence utilities: reverse complement and substrings with the semantics of the Python slices (useful for reproducing exactly the output of Python programs).
-
-.. code-block:: c
-
-   void reverse_complement(const char *seq, size_t len, char *dest);
-   void py_slice(long len, long start, long stop, long *from, long *slice_len);
-
 **test-bam.h**
 
 BAM data and files for the unit tests of the modules reading or writing BAM files (internal: not part of the API, it can change).
@@ -822,37 +840,40 @@ Encoding of unaligned BAM data (header and records), to be compressed with BGZF 
    void ubam_writer_record(strbuf_t *out, const char *title, size_t title_len,
        const char *seq, const char *qual, size_t len);
 
-**whitelist.h**
+Format: FASTQ (``formats/fastq``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Whitelist of barcodes (e.g. the cell barcodes of a single-cell platform) and correction of the barcodes extracted from the reads.
+**fastq-reader.h**
+
+Reading of FASTQ files (optionally gzip-compressed) in batches of records.
 
 .. code-block:: c
 
-   #define WHITELIST_MAX_BARCODE_LENGTH
-   #define WHITELIST_MAX_DIST
-   typedef struct whitelist_t whitelist_t;
-   typedef enum {
-     WHITELIST_EXACT,
-     WHITELIST_CORRECTED,
-     WHITELIST_AMBIGUOUS,
-     WHITELIST_NOT_FOUND,
-   } whitelist_status_t;
+   typedef struct fastq_reader_t fastq_reader_t;
    typedef struct {
-     whitelist_status_t status;
-     uint64_t barcode;
-     long dist;
-     size_t consumed;
-   } whitelist_match_t;
-   whitelist_t* whitelist_new(const char *path, Logger *logger);
-   whitelist_t* whitelist_new_from_codes(const uint64_t *barcodes, size_t n,
-       size_t length);
-   bool whitelist_encode(const whitelist_t *self, const char *seq,
-       uint64_t *barcode);
-   bool whitelist_contains(const whitelist_t *self, uint64_t barcode);
-   void whitelist_delete(whitelist_t *self);
-   size_t whitelist_barcode_length(const whitelist_t *self);
-   size_t whitelist_size(const whitelist_t *self);
-   size_t whitelist_codes(const whitelist_t *self, uint64_t **codes);
-   void whitelist_match(const whitelist_t *self, const char *seq, size_t len,
-       bool from_end, long max_dist, whitelist_match_t *match);
-   void whitelist_decode(const whitelist_t *self, uint64_t barcode, char *out);
+     size_t title_from, title_len;
+     size_t seq_from, seq_len;
+     size_t qual_from;
+     bool qual_missing;
+   } fastq_record_t;
+   typedef struct {
+     strbuf_t data;
+     fastq_record_t *records;
+     size_t n_records, records_cap;
+   } fastq_batch_t;
+   fastq_reader_t* fastq_reader_new(const char *filename, Logger *logger);
+   size_t fastq_reader_read_batch(fastq_reader_t *self, fastq_batch_t *batch,
+       size_t max_records);
+   void fastq_reader_delete(fastq_reader_t *self);
+   size_t fastq_reader_count(const char *filename, Logger *logger);
+   void fastq_batch_init(fastq_batch_t *batch);
+   void fastq_batch_free(fastq_batch_t *batch);
+
+**fastq-writer.h**
+
+Writing of FASTQ records to a buffer (e.g. for a batch of records, which is then compressed with gzip-compressor.h and written to a file).
+
+.. code-block:: c
+
+   void fastq_writer_record(strbuf_t *out, const char *title, size_t title_len,
+       const char *seq, const char *qual, size_t len);

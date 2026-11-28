@@ -16,9 +16,11 @@ src/<component>/  sources and headers of the modules of each component:
                   utilities, command line, unit test macros
   ds/             data structures
   html/           HTML reports and dashboards, templates and SVG
-  io/             external sorting, gzip and BGZF compression, MD5
-  seq/            sequences, FASTQ and BAM files, SAM tags and headers,
-                  barcodes, cells, library complexity
+  io/             external sorting, destination output files, MD5
+  formats/        gzip, bgzf, json, sam_bam, fastq readers and writers
+  nanopore/       MinKNOW read metadata
+  singlecell/     barcode whitelists, cell calling, library complexity
+  seq/            sequences and common FASTQ/BAM reader
 tests/            unit test program
 dev/, scripts/    scripts for the build and the projects (object lists,
                   embedded data files, program tests)

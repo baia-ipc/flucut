@@ -5,7 +5,7 @@ BINDIR=bin
 TESTDIR=tests
 $(shell mkdir -p $(OBJDIR) $(LIBDIR) $(BINDIR) >/dev/null)
 
-# components (subdirectories of src); the header names are unique
+# components (subdirectories of src, including nested directories); the header names are unique
 # over all components; the list is that of cbaia.mk (CBAIA_COMPONENTS),
 # used by the projects vendoring the library
 COMPONENTS := $(shell sed -n 's/^CBAIA_COMPONENTS *= *//p' cbaia.mk)

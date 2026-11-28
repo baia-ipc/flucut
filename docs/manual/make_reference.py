@@ -12,8 +12,15 @@ import re
 
 COMPONENTS = [("core", "Core"), ("ds", "Data structures"),
               ("html", "HTML reports and dashboards"),
-              ("io", "Large files and compression"),
-              ("seq", "Sequences and reads")]
+              ("io", "File and destination I/O"),
+              ("seq", "Sequences and reads"),
+              ("nanopore", "Nanopore"),
+              ("singlecell", "Single cell"),
+              ("formats/gzip", "Format: gzip"),
+              ("formats/bgzf", "Format: BGZF"),
+              ("formats/json", "Format: JSON"),
+              ("formats/sam_bam", "Format: SAM/BAM"),
+              ("formats/fastq", "Format: FASTQ")]
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 
 def description(text):
@@ -94,7 +101,7 @@ def main():
   for comp, title in COMPONENTS:
     rst += [title + " (``" + comp + "``)",
             "~" * (len(title) + len(comp) + 8), ""]
-    d = os.path.join(ROOT, "src", comp)
+    d = os.path.join(ROOT, "src", *comp.split("/"))
     for h in sorted(f for f in os.listdir(d) if f.endswith(".h")):
       text = open(os.path.join(d, h)).read()
       rst += ["**" + h + "**", ""]
