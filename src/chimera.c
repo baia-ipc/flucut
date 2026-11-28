@@ -308,9 +308,9 @@ void chimera_test(void) {
   const char *gap = "ACGTTGCAACGTTGCAACGT";
   unsigned long state = 11;
   char a[BODY + 1], b[BODY + 1], other[BODY + 1], rc_a[BODY + 1];
-  random_seq(a, BODY, &state);
-  random_seq(b, BODY, &state);
-  random_seq(other, BODY, &state);
+  test_random_dna_seq(a, BODY, &state);
+  test_random_dna_seq(b, BODY, &state);
+  test_random_dna_seq(other, BODY, &state);
   primers_reverse_complement(a, BODY, rc_a);
   rc_a[BODY] = '\0';
   /* the segment: two halves around the site */

@@ -61,8 +61,8 @@ void placement_test(void) {
   enum { REF_LEN = 1000, PROBE = 32, READ = 300 };
   unsigned long state = 7;
   char ref0[REF_LEN + 1], ref1[REF_LEN + 1], read[READ + 1];
-  random_seq(ref0, REF_LEN, &state);
-  random_seq(ref1, REF_LEN, &state);
+  test_random_dna_seq(ref0, REF_LEN, &state);
+  test_random_dna_seq(ref1, REF_LEN, &state);
   fasta_record_t recs[2] = {{"r0", "", ref0, REF_LEN},
                             {"r1", "", ref1, REF_LEN}};
   fasta_t fa = {recs, 2};
@@ -92,7 +92,7 @@ void placement_test(void) {
   /* the middle of the read is not in the references: the read is
      placed by the probe at a quarter of it */
   memcpy(read, ref0 + 100, READ);
-  random_seq(read + 120, 60, &state);
+  test_random_dna_seq(read + 120, 60, &state);
   read[180] = ref0[280];   /* (random_seq() ends the sequence) */
   placement_locate(rs, read, READ, &p);
   test_assert(p.found);
@@ -103,7 +103,7 @@ void placement_test(void) {
   /* a read longer than what is left of the reference: the span is not
      limited to the reference */
   memcpy(read, ref0 + 900, 100);
-  random_seq(read + 100, READ - 100, &state);
+  test_random_dna_seq(read + 100, READ - 100, &state);
   placement_locate(rs, read, 110, &p);
   test_assert(p.found);
   test_eq_long(p.from, 900);
@@ -118,7 +118,7 @@ void placement_test(void) {
   test_assert(!p.found);
 
   /* a sequence which is not in the references */
-  random_seq(read, READ, &state);
+  test_random_dna_seq(read, READ, &state);
   placement_locate(rs, read, READ, &p);
   test_assert(!p.found);
 

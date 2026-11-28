@@ -269,8 +269,8 @@ void junction_test(void) {
   enum { REF_LEN = 1000, PROBE = 32 };
   unsigned long state = 11;
   char ref0[REF_LEN + 1], ref1[REF_LEN + 1], read[REF_LEN + 1];
-  random_seq(ref0, REF_LEN, &state);
-  random_seq(ref1, REF_LEN, &state);
+  test_random_dna_seq(ref0, REF_LEN, &state);
+  test_random_dna_seq(ref1, REF_LEN, &state);
   /* the last base before each deletion tested below differs from the
      last base deleted: the junction is then at one position only */
   ref1[149] = 'A'; ref1[599] = 'C';
@@ -354,7 +354,7 @@ void junction_test(void) {
   /* what lies between the flanks is not in the reference: no probe
      tells where the junction is */
   len = deleted_copy(ref1, REF_LEN, 150, 600, read);
-  random_seq(read + 100, 350, &state);
+  test_random_dna_seq(read + 100, 350, &state);
   read[450] = ref1[900];   /* (random_seq() ends the sequence) */
   junction_locate(rs, read, len, 1, 0, REF_LEN - 1, &j);
   test_assert(!j.found);

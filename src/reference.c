@@ -676,7 +676,7 @@ static void test_locate(reference_index_t *ix, bool exhaustive,
   test_eq_long(hit.n_errors, 0);
 
   /* a sequence not in the references */
-  random_seq(probe, PROBE, state);
+  test_random_dna_seq(probe, PROBE, state);
   reference_set_locate(rs, probe, PROBE, &hit);
   test_assert(!hit.mapped);
   test_eq_long(hit.ref_start, -1);
@@ -716,8 +716,8 @@ void reference_test(void) {
   enum { REF_LEN = 1000, PROBE = 30 };
   unsigned long state = 42;
   char ref0[REF_LEN + 1], ref1[REF_LEN + 1], probe[64];
-  random_seq(ref0, REF_LEN, &state);
-  random_seq(ref1, REF_LEN, &state);
+  test_random_dna_seq(ref0, REF_LEN, &state);
+  test_random_dna_seq(ref1, REF_LEN, &state);
   /* a repeat in ref1: the first 40 bases are also at 600 */
   memcpy(ref1 + 600, ref1, 40);
   /* a degenerate base in ref0 */
