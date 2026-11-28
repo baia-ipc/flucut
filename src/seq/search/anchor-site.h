@@ -119,6 +119,16 @@ bool anchor_bases_window(const anchor_hit_t *hit, const char *read,
     size_t read_len, long offset, size_t n, char *out);
 
 /*
+   The 0-based interval of the read which that window occupies, <from>
+   to <to>, the last one included; false, and neither set, if the read
+   does not reach that far. It says where a window was read, for a
+   caller which must know whether it lies beside something else in the
+   read (e.g. on one side of the junction of an internal deletion).
+*/
+bool anchor_window_span(const anchor_hit_t *hit, size_t read_len,
+    long offset, size_t n, long *from, long *to);
+
+/*
    Read the <n> bases which precede the anchor in the orientation of the
    reference, as the read carries them, into <out> (room for n + 1
    characters; terminated, upper case). False if the read does not have

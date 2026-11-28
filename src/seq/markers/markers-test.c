@@ -141,16 +141,21 @@ static void test_anchors(void) {
 /* --- the markers read from the reads --- */
 
 /* count <n> reads of <seq>, and of its reverse complement, located on
-   the reference <ref> */
-static void read_n(const marker_reference_t *const *chosen, long ref,
-    const char *seq, size_t n, marker_counts_t *counts) {
+   the reference <ref>, with the junction <junction> (-1: none) */
+static void read_n_at(const marker_reference_t *const *chosen, long ref,
+    long junction, const char *seq, size_t n, marker_counts_t *counts) {
   char rc[512];
   size_t len = strlen(seq);
   reverse_complement(seq, len, rc);
   for (size_t i = 0; i < n; i++) {
-    marker_read_sites(chosen, ref, seq, len, 0.2, counts);
-    marker_read_sites(chosen, ref, rc, len, 0.2, counts);
+    marker_read_sites(chosen, ref, junction, seq, len, 0.2, counts);
+    marker_read_sites(chosen, ref, junction, rc, len, 0.2, counts);
   }
+}
+
+static void read_n(const marker_reference_t *const *chosen, long ref,
+    const char *seq, size_t n, marker_counts_t *counts) {
+  read_n_at(chosen, ref, -1, seq, n, counts);
 }
 
 static void test_reads(void) {
@@ -219,6 +224,28 @@ static void test_reads(void) {
   }
   marker_result_of(&c, MARKER_PB2_627, &r);
   test_eq_size(r.verdict, MARKER_UNRESOLVED);
+
+  /* a read with an internal deletion gives the marker only where its
+     anchor and its window lie on the same side of the junction: the
+     bases before the junction come from another part of the segment */
+  marker_counts_clear(&c);
+  size_t pb2_len = strlen(PB2_627E);
+  long at = (long)strlen(PB2_HEAD) + 3;   /* the first base of the anchor */
+  for (size_t i = 0; i < 30; i++)
+    marker_read_sites(chosen, 0, at, PB2_627E, pb2_len, 0.2, &c);
+  marker_result_of(&c, MARKER_PB2_627, &r);
+  test_eq_size(r.searched, 30);
+  /* the window lies before the junction and the anchor after it: no
+     value, though the anchor was found */
+  test_eq_size(r.reads, 0);
+  test_assert(r.anchor_reads > 0);
+  /* a junction past the whole site: the value is read */
+  marker_counts_clear(&c);
+  for (size_t i = 0; i < 30; i++)
+    marker_read_sites(chosen, 0, (long)pb2_len, PB2_627E, pb2_len, 0.2, &c);
+  marker_result_of(&c, MARKER_PB2_627, &r);
+  test_eq_size(r.reads, 30);
+  test_eq_str(r.value, "E");
 
   /* the C-terminus of a protein, and the length of a stretch, read in
      both orientations */

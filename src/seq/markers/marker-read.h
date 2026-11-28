@@ -28,9 +28,18 @@
    <ref>: the reference the read was located on, so that only the
    markers taken from it are looked for; negative where the read was
    not located, and then every marker is.
+
+   <junction>: the first base after the junction of an internal deletion
+   in the read (junction.h), negative where it has none. A read with one
+   is two flanks of the segment joined, and the bases before the
+   junction come from somewhere else entirely: a marker is read from
+   such a read only where its anchor and its window lie on the same
+   side of it. Without this, the sites which happen to lie beside the
+   junction of a defective genome are read across it, and a sample full
+   of such genomes reports the residue of another part of the segment.
 */
 void marker_read_sites(const marker_reference_t *const *chosen, long ref,
-    const char *read, size_t len, double max_error_rate,
+    long junction, const char *read, size_t len, double max_error_rate,
     marker_counts_t *counts);
 
 #endif

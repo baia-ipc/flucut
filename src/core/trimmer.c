@@ -252,10 +252,16 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
   read_cleavage_site(self, seq, len, &cover, category, counts);
   /* the markers of the segment of the read; a read which is not
      located (the reads of a fragment, see marker-read.h) is searched
-     for every marker */
-  counter_add_markers(counts, self->markers,
-                      cover.located ? (long)cover.ref : -1, seq, len,
-                      self->config->probe_error_rate);
+     for every marker. A read with an internal deletion gives only the
+     markers which lie whole on one side of its junction; one whose
+     junction was not located gives none, as which of its bases belong
+     together is then not known */
+  if (category != READ_CATEGORY_DELETION || a->junction.found)
+    counter_add_markers(counts, self->markers,
+                        cover.located ? (long)cover.ref : -1,
+                        category == READ_CATEGORY_DELETION ? a->junction_at
+                                                           : -1,
+                        seq, len, self->config->probe_error_rate);
   size_t kept = amplicon_kept_length(a);
   if (kept == 0 || kept < self->config->min_length) {
     counter_add_too_short(counts);

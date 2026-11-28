@@ -537,10 +537,11 @@ const subtype_reads_t* counter_subtype_reads(const counter_t *self) {
 }
 
 void counter_add_markers(counter_t *self,
-    const marker_reference_t *const *chosen, long ref, const char *read,
-    size_t len, double max_error_rate) {
+    const marker_reference_t *const *chosen, long ref, long junction,
+    const char *read, size_t len, double max_error_rate) {
   assert(self != NULL);
-  marker_read_sites(chosen, ref, read, len, max_error_rate, &self->markers);
+  marker_read_sites(chosen, ref, junction, read, len, max_error_rate,
+                    &self->markers);
 }
 
 const marker_counts_t* counter_markers(const counter_t *self) {

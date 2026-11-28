@@ -100,30 +100,40 @@ bool anchor_find(const anchor_t *self, const char *read, size_t read_len,
   return true;
 }
 
+bool anchor_window_span(const anchor_hit_t *hit, size_t read_len,
+    long offset, size_t n, long *from, long *to) {
+  assert(hit != NULL);
+  assert(from != NULL);
+  assert(to != NULL);
+  if (!hit->found || n == 0)
+    return false;
+  /* the read runs as the reference: the window begins <offset> bases
+     after the first base of the match. The read the other way round:
+     the first base of the anchor there is the last base of the match
+     here, and the window runs backwards from it */
+  long at = hit->reverse ? hit->end - offset - (long)n + 1
+                         : hit->start + offset;
+  if (at < 0 || at + (long)n > (long)read_len)
+    return false;
+  *from = at;
+  *to = at + (long)n - 1;
+  return true;
+}
+
 bool anchor_bases_window(const anchor_hit_t *hit, const char *read,
     size_t read_len, long offset, size_t n, char *out) {
-  assert(hit != NULL);
   assert(out != NULL);
-  if (!hit->found || n == 0 || read == NULL)
+  long from, to;
+  if (read == NULL ||
+      !anchor_window_span(hit, read_len, offset, n, &from, &to))
     return false;
-  if (!hit->reverse) {
-    /* the read runs as the reference: the window begins <offset> bases
-       after the first base of the match */
-    long from = hit->start + offset;
-    if (from < 0 || from + (long)n > (long)read_len)
-      return false;
-    for (size_t i = 0; i < n; i++)
-      out[i] = upper(read[from + (long)i]);
-    out[n] = '\0';
+  if (hit->reverse) {
+    reverse_complement(read + from, n, out);
     return true;
   }
-  /* the read is the reverse complement of the reference: the first base
-     of the anchor there is the last base of the match here, and the
-     window runs the other way */
-  long from = hit->end - offset - (long)n + 1;
-  if (from < 0 || from + (long)n > (long)read_len)
-    return false;
-  reverse_complement(read + from, n, out);
+  for (size_t i = 0; i < n; i++)
+    out[i] = upper(read[from + (long)i]);
+  out[n] = '\0';
   return true;
 }
 

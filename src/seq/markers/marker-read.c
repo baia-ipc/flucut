@@ -21,9 +21,29 @@ static long span_of(const anchor_hit_t *first, const anchor_hit_t *second) {
   return span > 0 ? span : -1;
 }
 
+/* whether the read interval <from> to <to> lies on one side of the
+   junction at <junction> (negative: the read has none) */
+static bool one_side(long junction, long from, long to) {
+  return junction < 0 || to < junction || from >= junction;
+}
+
+/* whether the anchor matched, and the window beside it was read, on one
+   side of the junction */
+static bool window_whole(const anchor_hit_t *hit, size_t len, long junction,
+    long offset, size_t n) {
+  long from, to;
+  if (!anchor_window_span(hit, len, offset, n, &from, &to))
+    return false;
+  if (hit->start < from)
+    from = hit->start;
+  if (hit->end > to)
+    to = hit->end;
+  return one_side(junction, from, to);
+}
+
 /* read one marker out of a read */
 static void read_marker(const marker_reference_t *site, size_t marker,
-    const char *read, size_t len, double max_error_rate,
+    const char *read, size_t len, long junction, double max_error_rate,
     marker_counts_t *counts) {
   const marker_def_t *def = marker_def(marker);
   marker_counts_set_reference(counts, marker, site->value, site->anchor_aa);
@@ -45,12 +65,18 @@ static void read_marker(const marker_reference_t *site, size_t marker,
     if (!anchor_find(&site->anchor2, read, len, max_error_rate, &hit2))
       return;
     long span = span_of(&hit, &hit2);
-    if (span < 0)
+    if (span < 0 || !one_side(junction, hit.start < hit2.start ? hit.start
+                                                               : hit2.start,
+                              hit.end > hit2.end ? hit.end : hit2.end))
       return;
     marker_span_value(span, value);
     marker_counts_add(counts, marker, value);
     return;
   }
+  long offset = def->offset < 0 ? def->offset
+                                : (long)anchor_hit_len(&hit) + def->offset;
+  if (!window_whole(&hit, len, junction, offset, def->window))
+    return;
   bool got = def->offset < 0 ?
       anchor_bases_window(&hit, read, len, def->offset, def->window, nt) :
       anchor_bases_after(&hit, read, len, (size_t)def->offset, def->window,
@@ -62,7 +88,7 @@ static void read_marker(const marker_reference_t *site, size_t marker,
 }
 
 void marker_read_sites(const marker_reference_t *const *chosen, long ref,
-    const char *read, size_t len, double max_error_rate,
+    long junction, const char *read, size_t len, double max_error_rate,
     marker_counts_t *counts) {
   assert(chosen != NULL);
   assert(counts != NULL);
@@ -73,6 +99,6 @@ void marker_read_sites(const marker_reference_t *const *chosen, long ref,
       continue;
     if (ref >= 0 && (size_t)ref != chosen[m]->anchor.ref)
       continue;
-    read_marker(chosen[m], m, read, len, max_error_rate, counts);
+    read_marker(chosen[m], m, read, len, junction, max_error_rate, counts);
   }
 }

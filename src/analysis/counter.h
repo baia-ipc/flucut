@@ -161,11 +161,13 @@ const cleavage_counts_t* counter_cleavage(const counter_t *self);
 /*
    Read the markers of <chosen> out of the <len> bases of <read> and
    count them (marker-read.h); <ref>: the reference the read was located
-   on, negative where it was not
+   on, negative where it was not; <junction>: the first base after the
+   junction of an internal deletion in the read, negative where it has
+   none
 */
 void counter_add_markers(counter_t *self,
-    const marker_reference_t *const *chosen, long ref, const char *read,
-    size_t len, double max_error_rate);
+    const marker_reference_t *const *chosen, long ref, long junction,
+    const char *read, size_t len, double max_error_rate);
 
 /* What the reads carry at each marker */
 const marker_counts_t* counter_markers(const counter_t *self);
