@@ -10,12 +10,12 @@ support the trimming; they are not the purpose of the program.
 
 ## Next
 
-- **Influenza B on a sequenced sample**: implemented and tested on
-  simulated reads and on the reference records of the eight segments
-  (`../influenza_b_evaluation/`); still to do is a real run. It would
-  show how often the primer is not found at an end (the main source of
-  the primer bases left in the simulation) and whether influenza B has
-  internal priming at all.
+- **Influenza B on a sequenced sample**: done on four public Illumina
+  runs of B/Victoria (BioProject PRJNA1426172, paired reads of
+  fragmented amplicons of the IBV-GA2 primers;
+  `../influenza_b_real_runs/` of the manuscript); still to do is a
+  Nanopore run, which would show how often the primer is not found at
+  an end of a whole amplicon.
 - **flucut-posthoc and influenza B**: the post-hoc check (`posthoc/`)
   is still that of influenza A: it searches the two conserved termini
   of influenza A next to the boundary of each alignment, numbers the

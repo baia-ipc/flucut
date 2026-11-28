@@ -55,6 +55,10 @@ What it does not do
 - It knows the primers of the multisegment RT-PCR of influenza A and of
   influenza B (:doc:`primers`); other amplicon schemes are not
   supported.
+- For influenza B it trims, classifies and reports the reads as for
+  influenza A, but names no subtype, reads no marker and counts no reads
+  of a second subtype; its companion check against mappings,
+  flucut-posthoc, is for influenza A only (:ref:`influenza-b-features`).
 
 Platforms
 ---------

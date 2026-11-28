@@ -44,8 +44,8 @@ enum {
   OPT_VIRUS,
 };
 
-#define PURPOSE "Remove the primers of the influenza A multisegment " \
-  "RT-PCR (Uni12/Uni13)\n" \
+#define PURPOSE "Remove the primers of the multisegment RT-PCR of " \
+  "influenza A and B\n" \
   "from the reads, before the assembly (e.g. with IRMA)\n" \
   "\n" \
   "Usage:\n" \

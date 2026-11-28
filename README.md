@@ -284,6 +284,19 @@ Adding a primer, a marker or a kit is a record in one of those files; no C
 source changes with it. The generators are awk, so building still needs only a
 C compiler and `make`. See the manual, *Installation*.
 
+## Influenza A and influenza B
+
+The trimming, the classification of the reads, the output by category,
+the reports and the HA cleavage site work the same for both types. These
+are of influenza A only: the subtype (a sample of influenza B is `B`, or
+`B/Victoria` and `B/Yamagata` where the reference names the lineage), the
+reads of a second HA or NA subtype, the markers, the choice of the
+primer scheme from the tails (`-s auto` chooses among the schemes of
+influenza A), and `flucut-posthoc`. Influenza B has been tested on
+simulated reads of three genomes and on four public Illumina runs of
+B/Victoria; no Nanopore run of influenza B yet. See the manual, *The
+primers*.
+
 ## Supported primers
 
 These are the supported primer schemes:

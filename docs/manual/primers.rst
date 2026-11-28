@@ -147,6 +147,44 @@ flucut therefore reports a sample of influenza B as ``B``, and as
 reference chosen says which lineage it is. The lineage of a sample is
 better called downstream, from its assembled HA.
 
+.. _influenza-b-features:
+
+What flucut does for influenza B
+--------------------------------
+
+The trimming and everything built on it work the same for both types:
+the primers are found at both read ends, the bases which are not the
+sequence of the segment are removed (with the rule above at the ends of
+influenza B), the read ends are located on the references and the reads
+are put in their categories (full template, internal priming, internal
+deletion, fragment, unplaced, unknown), written by category with
+``--by-category``, and counted in the reports, with the segments, their
+coverage and the internal priming sites. The HA cleavage site and the
+fusion peptide are read as for influenza A: the anchor ``G..GAIAG``
+matches the ``GFFGAIAG`` of influenza B (:doc:`cleavage_site`).
+
+These are of influenza A only:
+
+- **the subtype**: a sample of influenza B is ``B``, or ``B/Victoria``
+  and ``B/Yamagata`` where the reference chosen names the lineage
+  (above);
+- **the reads of a second HA or NA subtype**: not counted for influenza
+  B, whose lineages are not subtypes (:doc:`reports`);
+- **the markers** (:doc:`markers`): no anchor of the table is found in
+  influenza B, so no marker is reported;
+- **the choice of the scheme from the tails** (``-s auto``, below):
+  it chooses among the schemes of influenza A, and the primers of
+  influenza B are added to the scheme chosen;
+- **flucut-posthoc**, the check of the read categories against
+  mappings (``posthoc/``), searches the termini of influenza A and
+  numbers the segments as influenza A does.
+
+Influenza B has been tested on reads simulated from three genomes (of
+the Victoria and the Yamagata lineage, and one of 1954, before the two
+diverged) and on four public Illumina runs of B/Victoria, paired reads of
+fragmented amplicons of the IBV-GA2 primers (BioProject PRJNA1426172).
+No Nanopore run of influenza B has been tested.
+
 The schemes
 -----------
 
