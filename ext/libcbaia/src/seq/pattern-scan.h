@@ -1,29 +1,18 @@
 /* (c) 2026 Giorgio Gonnella */
 
 /*
-   All the places of a sequence where a short pattern ends, within a
-   number of errors, in one pass over the sequence.
+   All the positions where a pattern occurs approximately in a sequence.
+   The sequence is scanned once: the edit distance of the pattern to the
+   bases ending at each position is updated with the bit-parallel
+   algorithm of Myers (1999, J ACM 46:395-415,
+   https://doi.org/10.1145/316542.316550), for patterns of up to
+   PATTERN_SCAN_WORD bases. Longer patterns use one column of a dynamic
+   programming matrix. Character matching follows the IUPAC rules in
+   iupac.h.
 
-   The search of a primer with edlib (primer-search.h) gives the best
-   match of a pattern in a sequence; when all the matches are needed
-   (the termini inside a read, see chimera.h; the primers inside a read,
-   see amplicon.h), the sequence would have to be searched again on both
-   sides of each match. Here the sequence is read once: the edit distance
-   of the pattern to the bases which end at each position is kept up to
-   date by the bit-parallel algorithm of Myers (1999, J ACM 46:395-415,
-   https://doi.org/10.1145/316542.316550), one machine word for a
-   pattern of up to PATTERN_SCAN_WORD bases; a longer pattern is handled
-   by the plain dynamic programming (one column of its matrix).
-
-   The characters are compared as in the search of a primer (see
-   iupac.h).
-
-   The scan tells where a match ends, and with how many errors
-   (pattern_scan_run(), pattern_scan_best()); for the matches themselves
-   (pattern_scan_matches()) the pattern is then aligned backwards from
-   each end to find where the match begins.
-
-   A prepared pattern contains buffers: use one for each thread.
+   The scan reports match ends and error counts; pattern_scan_matches()
+   also aligns backwards from each end to find the match starts. A
+   prepared pattern contains buffers: use one for each thread.
 */
 
 #ifndef PATTERN_SCAN_H

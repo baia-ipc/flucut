@@ -23,6 +23,70 @@ Sequence utilities (``sequtil.h``)
    range are clipped), useful for reproducing exactly the results of
    Python programs.
 
+FASTA files (``fasta.h``)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``fasta_read()`` reads a plain FASTA file into memory. Each record has a
+name (the first word of the header), the rest of the header as its
+description, and an upper-case sequence. IUPAC codes are accepted; an
+empty file, an empty record, or a sequence with another character is
+reported as an error. This is intended for small sequence collections,
+such as reference sequences.
+
+IUPAC codes (``iupac.h``)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``iupac_bases(code)`` returns the canonical bases represented by an
+IUPAC code, and ``iupac_is_seq(seq, len)`` checks that a non-empty
+sequence contains only IUPAC codes. ``iupac_equal_chars()`` provides the
+characters considered equivalent for matching, including ambiguity
+codes and their bases. The IUPAC pair type is defined by libcbaia and
+does not depend on an alignment library.
+
+Approximate pattern scan (``pattern-scan.h``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The pattern scanner finds approximate matches of a short IUPAC pattern
+in one pass over a sequence, using a Myers bit-parallel scan for patterns
+up to one machine word and a linear-space fallback for longer patterns.
+It can report every match or the best forward and reverse matches.
+
+.. code-block:: c
+
+   pattern_scan_t *scan = pattern_scan_new(pattern, pattern_len);
+   pattern_scan_end_t ends[PATTERN_SCAN_MAX_MATCHES];
+   size_t n = pattern_scan_run(scan, seq, seq_len, max_errors, ends,
+                               PATTERN_SCAN_MAX_MATCHES);
+   pattern_scan_delete(scan);
+
+Read statistics (``read-stats.h``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``read_stats_t`` keeps read counts, bases, length histograms, and quality
+statistics in constant memory. Initialize it with the number of sets and
+their names, then add reads to a set by index. The set names remain owned
+by the caller and must outlive the statistics object. Summaries include
+mean, median, and N50 lengths and the median Phred score of the mean base
+error probability.
+
+.. code-block:: c
+
+   static const char *const names[] = {"before", "after"};
+   read_stats_t stats;
+   read_stats_init(&stats, 2, names);
+   read_stats_add(&stats, 0, len, qualities);
+   read_stats_summary_t summary;
+   read_stats_summarize(&stats, 0, &summary);
+
+Read-title metadata (``read-metadata.h``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``read_metadata_add_title()`` extracts run, flow-cell, model, sample,
+experiment, instrument, and start-time fields from Oxford Nanopore and
+Illumina read titles. Values that differ across reads are reported as
+``several``; the earliest start time is kept. The module can merge
+metadata collected from several batches and save or reload it as text.
+
 K-mer index (``kmer-index.h``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
