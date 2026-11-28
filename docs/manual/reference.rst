@@ -877,7 +877,6 @@ The lengths and qualities of a configurable collection of read sets.
    #define READ_STATS_LEN_BINS
    #define READ_STATS_QUAL_MAX
    #define READ_STATS_QUAL_BINS
-   #define READ_STATS_MAX_SETS
    typedef struct {
      size_t reads, bases;
      size_t min_len, max_len;
@@ -889,7 +888,7 @@ The lengths and qualities of a configurable collection of read sets.
    typedef struct {
      size_t n_sets;
      const char *const *set_names;
-     read_stats_set_t sets[READ_STATS_MAX_SETS];
+     read_stats_set_t *sets;
    } read_stats_t;
    typedef struct {
      size_t reads, bases;
@@ -901,6 +900,7 @@ The lengths and qualities of a configurable collection of read sets.
    void read_stats_init(read_stats_t *self, size_t n_sets,
        const char *const *set_names);
    void read_stats_clear(read_stats_t *self);
+   void read_stats_free(read_stats_t *self);
    void read_stats_add(read_stats_t *self, size_t set, size_t len,
        const char *qual);
    void read_stats_merge(read_stats_t *self, const read_stats_t *other);

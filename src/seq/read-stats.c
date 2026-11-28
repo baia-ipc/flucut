@@ -4,7 +4,9 @@
 #include <math.h>
 #include <pthread.h>
 #include <string.h>
+#include <stdlib.h>
 #include "read-stats.h"
+#include "alloc.h"
 #include "test.h"
 
 /* the error probability of each quality character (Phred+33) */
@@ -36,17 +38,25 @@ static double read_quality(const char *qual, size_t len) {
 void read_stats_init(read_stats_t *self, size_t n_sets,
     const char *const *set_names) {
   assert(self != NULL);
-  assert(n_sets > 0 && n_sets <= READ_STATS_MAX_SETS);
+  assert(n_sets > 0);
   assert(set_names != NULL);
   memset(self, 0, sizeof(*self));
   self->n_sets = n_sets;
   self->set_names = set_names;
+  XCALLOC(self->sets, n_sets, sizeof(read_stats_set_t));
 }
 
 void read_stats_clear(read_stats_t *self) {
   assert(self != NULL);
-  assert(self->n_sets > 0 && self->n_sets <= READ_STATS_MAX_SETS);
-  memset(self->sets, 0, sizeof(self->sets));
+  assert(self->n_sets > 0 && self->sets != NULL);
+  memset(self->sets, 0, self->n_sets * sizeof(read_stats_set_t));
+}
+
+void read_stats_free(read_stats_t *self) {
+  if (self == NULL)
+    return;
+  free(self->sets);
+  memset(self, 0, sizeof(*self));
 }
 
 void read_stats_add(read_stats_t *self, size_t set, size_t len,
@@ -259,6 +269,9 @@ void read_stats_test(void) {
   while (fgets(line, sizeof(line), f) != NULL)
     test_assert(read_stats_load_line(&stats, line));
   fclose(f);
-  test_assert(memcmp(&stats, &other, sizeof(read_stats_t)) == 0);
+  test_assert(memcmp(stats.sets, other.sets,
+                     stats.n_sets * sizeof(read_stats_set_t)) == 0);
   test_assert(!read_stats_load_line(&stats, "rlen 9 0 1 1\n"));
+  read_stats_free(&stats);
+  read_stats_free(&other);
 }

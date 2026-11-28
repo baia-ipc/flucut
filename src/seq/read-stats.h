@@ -29,9 +29,6 @@
 #define READ_STATS_QUAL_MAX 60
 #define READ_STATS_QUAL_BINS (READ_STATS_QUAL_MAX + 1)
 
-/* Maximum number of independently counted read sets in one object. */
-#define READ_STATS_MAX_SETS 8
-
 typedef struct {
   size_t reads, bases;
   size_t min_len, max_len;         /* (0 without reads) */
@@ -44,7 +41,7 @@ typedef struct {
 typedef struct {
   size_t n_sets;
   const char *const *set_names; /* caller-owned, must outlive this object */
-  read_stats_set_t sets[READ_STATS_MAX_SETS];
+  read_stats_set_t *sets;
 } read_stats_t;
 
 /* what the reports say of a set of reads */
@@ -62,6 +59,8 @@ void read_stats_init(read_stats_t *self, size_t n_sets,
     const char *const *set_names);
 /* Empty the counts while keeping the set configuration. */
 void read_stats_clear(read_stats_t *self);
+/* Release the set storage. */
+void read_stats_free(read_stats_t *self);
 
 /* Count a read of <len> bases in the set <set>; <qual>: its qualities
    (<len> characters, Phred+33), or NULL if it has none */
