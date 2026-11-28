@@ -186,8 +186,8 @@ reads are clearly of the other one, flucut stops and says what to pass
 the other platform than the one used, clearly or weakly, a warning is
 written and the reports say so.
 
-The thresholds lie in a wide gap between the platforms. On 86 Illumina
-files (43 paired runs of influenza A and B, MiSeq and NextSeq) the
+The thresholds lie in a wide gap between the platforms. On 48 Illumina
+files (24 paired runs of influenza A and B, MiSeq and NextSeq) the
 longest of the first 1000 reads had 151 or 251 bases and 51 to 100% of
 the reads were within one base of it; on 344 nanopore files (MinION and
 GridION, R9.4.1 and R10.4.1, 2022 to 2026) the longest had at least
@@ -198,6 +198,19 @@ weak, all of four runs of random-primed cDNA, which have few reads
 longer than 600 bases. With fewer reads the weak calls on nanopore runs
 of the RT-PCR become more frequent (1% of blocks of 100 reads), and
 change no setting.
+
+Why it matters: on the 24 Illumina runs, the nanopore settings found
+the left primer in 1.6 to 38 times more reads than the Illumina
+settings, nearly all of them chance matches inside the fragments, where
+the reads were cut; they dropped 0.9 to 17% of the reads as shorter than
+50 bases, and read no cleavage site in any run (too few reads), where
+the Illumina settings read one in every run. On a MiSeq run of
+fragments of about 230 bases (SRR29165097), the left primer was found in
+1,466,462 reads against 191,206, and 111,440 reads were dropped. On 79
+nanopore runs of the RT-PCR, the Illumina settings lost the primers of
+both ends of a read in a median of 12% of the reads (0.6 to 82%), behind
+the flanks and adapters of whole amplicons, and left those primers in
+the reads. Neither shows in the report as anything but a poor library.
 
 The trimming
 ------------

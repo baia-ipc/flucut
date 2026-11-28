@@ -29,7 +29,7 @@
    - too few reads to tell below PLATFORM_CHECK_MIN_READS.
 
    The thresholds lie in a wide gap between the two platforms, measured
-   on 2026-11-28 on 86 Illumina files (43 paired runs of influenza A and
+   on 2026-11-28 on 48 Illumina files (24 paired runs of influenza A and
    B; MiSeq, NextSeq) and 344 nanopore files (MinION, GridION; R9.4.1
    and R10.4.1; 2022 to 2026): in each Illumina file the longest of the
    first 1,000 reads had 151 or 251 bases, and 51 to 100% of the reads
