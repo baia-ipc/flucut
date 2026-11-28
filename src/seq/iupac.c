@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include "iupac.h"
+#include "test.h"
 
 /*
    Character pairs that match under IUPAC ambiguity rules: each IUPAC
@@ -88,4 +89,14 @@ bool iupac_is_seq(const char *seq, size_t len) {
     if (iupac_bases(seq[i]) == NULL)
       return false;
   return true;
+}
+
+void iupac_test(void) {
+  test_eq_str(iupac_bases('R'), "AG");
+  test_eq_str(iupac_bases('r'), "AG");
+  test_eq_str(iupac_bases('A'), "A");
+  test_assert(iupac_bases('X') == NULL);
+  test_assert(iupac_is_seq("ACGNRYSWKMBDHV", 14));
+  test_assert(!iupac_is_seq("ACGX", 4));
+  test_assert(!iupac_is_seq("", 0));
 }

@@ -743,6 +743,43 @@ Bounded edit distance of short sequences (e.g. indices, barcodes, UMIs, compared
    static inline long short_prefix_distance(const char *query, size_t qlen,
        const char *target, size_t tlen, long k, size_t *end);
 
+**fasta.h**
+
+Reading of a FASTA file into memory.
+
+.. code-block:: c
+
+   typedef struct {
+     char *name;
+     char *description;
+     char *seq;
+     size_t seq_len;
+   } fasta_record_t;
+   typedef struct {
+     fasta_record_t *records;
+     size_t n_records;
+   } fasta_t;
+   fasta_t* fasta_read(const char *path, Logger *logger);
+   void fasta_delete(fasta_t *self);
+
+**iupac.h**
+
+Which characters of a primer, a probe or a read are equal: each IUPAC code is equal to each of the bases it stands for.
+
+.. code-block:: c
+
+   typedef struct { char first, second; } iupac_pair_t;
+   extern const iupac_pair_t iupac_equalities[];
+   extern const size_t n_iupac_equalities;
+   const char* iupac_bases(char code);
+   bool iupac_is_seq(const char *seq, size_t len);
+   #define IUPAC_MAX_EQUAL
+   typedef struct {
+     unsigned char n;
+     unsigned char chars[IUPAC_MAX_EQUAL];
+   } iupac_equal_chars_t;
+   const iupac_equal_chars_t* iupac_equal_chars(void);
+
 **kmer-index.h**
 
 Index of the k-mers of a set of sequences (e.g. reference sequences), for finding where a query sequence may align: the k-mers of the query which occur in the indexed sequences give candidate diagonals (position in the sequence minus position in the query), around which the query is then aligned by the caller (e.g. with edlib), instead of being aligned to the whole of every sequence.
@@ -762,6 +799,116 @@ Index of the k-mers of a set of sequences (e.g. reference sequences), for findin
    size_t kmer_index_diagonals(const kmer_index_t *self, const char *query,
        size_t len, size_t max_occ, kmer_index_hit_t **hits, size_t *cap);
    void kmer_index_delete(kmer_index_t *self);
+
+**pattern-scan-test.h**
+
+Unit tests of the scan of a sequence for a pattern (pattern-scan.h)
+
+**pattern-scan.h**
+
+All the positions where a pattern occurs approximately in a sequence. The sequence is scanned once: the edit distance of the pattern to the bases ending at each position is updated with the bit-parallel algorithm of Myers (1999, J ACM 46:395-415, https://doi.org/10.1145/316542.316550), for patterns of up to PATTERN_SCAN_WORD bases. Longer patterns use one column of a dynamic programming matrix. Character matching follows the IUPAC rules in iupac.h.
+
+.. code-block:: c
+
+   #define PATTERN_SCAN_WORD
+   typedef struct pattern_scan_t pattern_scan_t;
+   typedef struct {
+     long first, last, best;
+     long n_errors;
+   } pattern_scan_end_t;
+   pattern_scan_t* pattern_scan_new(const char *pattern, size_t len);
+   void pattern_scan_set(pattern_scan_t *self, const char *pattern,
+       size_t len);
+   size_t pattern_scan_run(pattern_scan_t *self, const char *seq, size_t len,
+       long max_errors, pattern_scan_end_t *ends, size_t max_ends);
+   bool pattern_scan_best(pattern_scan_t *self, const char *seq, size_t len,
+       long max_errors, bool backwards, long *n_errors, long *first,
+       long *last);
+   typedef struct {
+     bool found;
+     long n_errors, first, last;
+   } pattern_scan_best_t;
+   void pattern_scan_best_both(pattern_scan_t *backwards,
+       pattern_scan_t *forwards, const char *seq, size_t len, long max_errors,
+       pattern_scan_best_t *b, pattern_scan_best_t *f);
+   #define PATTERN_SCAN_MAX_MATCHES
+   typedef struct {
+     long start, end;
+     long n_errors;
+   } pattern_match_t;
+   size_t pattern_scan_matches(pattern_scan_t *self, const char *seq,
+       size_t len, long max_errors, pattern_match_t *matches);
+   void pattern_scan_delete(pattern_scan_t *self);
+
+**read-metadata.h**
+
+What the titles of the reads say about the sequencing run.
+
+.. code-block:: c
+
+   enum { READ_METADATA_FLOW_CELL, READ_METADATA_RUN, READ_METADATA_MODEL,
+          READ_METADATA_SAMPLE, READ_METADATA_EXPERIMENT,
+          READ_METADATA_INSTRUMENT, READ_METADATA_START, READ_METADATA_N };
+   #define READ_METADATA_VALUE_SIZE
+   typedef struct {
+     char values[READ_METADATA_N][READ_METADATA_VALUE_SIZE];
+     bool several[READ_METADATA_N];
+   } read_metadata_t;
+   void read_metadata_clear(read_metadata_t *self);
+   void read_metadata_add_title(read_metadata_t *self, const char *title,
+       size_t len);
+   void read_metadata_merge(read_metadata_t *self,
+       const read_metadata_t *other);
+   bool read_metadata_known(const read_metadata_t *self);
+   const char* read_metadata_key(size_t i);
+   const char* read_metadata_label(size_t i);
+   const char* read_metadata_text(const read_metadata_t *self, size_t i);
+   void read_metadata_save(const read_metadata_t *self, FILE *file);
+   bool read_metadata_load_line(read_metadata_t *self, const char *line);
+
+**read-stats.h**
+
+The lengths and qualities of a configurable collection of read sets.
+
+.. code-block:: c
+
+   #define READ_STATS_LEN_BIN
+   #define READ_STATS_LEN_MAX
+   #define READ_STATS_LEN_BINS
+   #define READ_STATS_QUAL_MAX
+   #define READ_STATS_QUAL_BINS
+   #define READ_STATS_MAX_SETS
+   typedef struct {
+     size_t reads, bases;
+     size_t min_len, max_len;
+     size_t len_reads[READ_STATS_LEN_BINS];
+     size_t len_bases[READ_STATS_LEN_BINS];
+     size_t with_quality;
+     size_t quality[READ_STATS_QUAL_BINS];
+   } read_stats_set_t;
+   typedef struct {
+     size_t n_sets;
+     const char *const *set_names;
+     read_stats_set_t sets[READ_STATS_MAX_SETS];
+   } read_stats_t;
+   typedef struct {
+     size_t reads, bases;
+     size_t min_len, max_len, mean_len, median_len, n50;
+     bool has_quality;
+     double median_quality;
+     double q10, q20;
+   } read_stats_summary_t;
+   void read_stats_init(read_stats_t *self, size_t n_sets,
+       const char *const *set_names);
+   void read_stats_clear(read_stats_t *self);
+   void read_stats_add(read_stats_t *self, size_t set, size_t len,
+       const char *qual);
+   void read_stats_merge(read_stats_t *self, const read_stats_t *other);
+   void read_stats_summarize(const read_stats_t *self, size_t set,
+       read_stats_summary_t *out);
+   const char* read_stats_set_name(const read_stats_t *self, size_t set);
+   void read_stats_save(const read_stats_t *self, FILE *file);
+   bool read_stats_load_line(read_stats_t *self, const char *line);
 
 **reads-reader.h**
 

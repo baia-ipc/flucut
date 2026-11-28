@@ -420,6 +420,7 @@ static test_group_t test_groups[] = {
   {'E', "edit distance of short sequences", edit_distance_test, NULL, false},
   {'K', "k-mer index", kmer_index_test, NULL, false},
   {'F', "FASTA and IUPAC sequences", NULL, fasta_tmp_test, false},
+  {'I', "IUPAC sequence codes", iupac_test, NULL, false},
   {'P', "approximate pattern scan", pattern_scan_test, NULL, false},
   {'Q', "read statistics", read_stats_test, NULL, false},
   {'r', "FASTQ reader", NULL, fastq_reader_test, false},

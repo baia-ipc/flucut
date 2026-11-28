@@ -1,8 +1,7 @@
 /* (c) 2026 Giorgio Gonnella */
 
 /*
-   The lengths and the qualities of the reads, before and after the
-   trimming: of the reads of the input, and of the reads written.
+   The lengths and qualities of a configurable collection of read sets.
 
    The lengths are counted in bins of READ_STATS_LEN_BIN bases, with the
    bases of each bin, so that the median and the N50 (the length such

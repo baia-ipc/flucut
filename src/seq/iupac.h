@@ -14,7 +14,7 @@
 /* A pair of characters that are equivalent for sequence matching. */
 typedef struct { char first, second; } iupac_pair_t;
 
-/* The IUPAC codes and bases they match, including symmetric pairs. */
+/* The IUPAC codes and bases they match. */
 extern const iupac_pair_t iupac_equalities[];
 extern const size_t n_iupac_equalities;
 
@@ -37,5 +37,8 @@ typedef struct {
 /* For each of the 256 characters, the characters equal to it, from
    iupac_equalities (computed at the first call; safe with threads) */
 const iupac_equal_chars_t* iupac_equal_chars(void);
+
+/* Unit tests */
+void iupac_test(void);
 
 #endif
