@@ -173,6 +173,9 @@ degenerate Uni12 primer and the tailed Uni13 primer, the combination
 used at the Institut Pasteur du Cambodge) and ``ibv-ga2`` for influenza
 B alone. When a scheme has several primers at an end, the primer whose
 match reaches furthest out is taken, then the one with fewest errors.
+Several schemes joined by ``+`` are one scheme with the primers of each,
+e.g. ``-s opti+ibv-ga2`` for a run of the Opti1 primers which may also
+hold influenza B.
 
 A scheme of both types costs almost nothing: once the references of a
 sample say which type it is, only the primers of that type are searched
@@ -196,3 +199,78 @@ errors allowed in a primer (on that run, 4.33% instead of 3.69%, which
 is on the other side of the threshold at which 30% is allowed rather
 than 20%). The rate reported is that of the type whose primers cover
 most of the read ends.
+
+Choosing the scheme from the reads
+----------------------------------
+
+``-s auto`` chooses the scheme of influenza A from the first reads of
+the first input file. The schemes differ in the tail in front of the
+conserved terminus, so the tails are what is counted:
+
+#. At the start of each read and of its reverse complement (within the
+   window of the primers, ``-w``), the conserved terminus of each end
+   is searched, with at most one error. The termini of influenza B
+   differ from those of influenza A at two or three bases, so they are
+   not counted.
+#. Where a terminus is found, each tail of the built-in schemes of
+   influenza A for that end (``ACGCGTGATC`` of ``mbt``, ``GTTACGCGCC``
+   of ``opti``, ``GGGGGG`` and ``CGGGTTATT`` of ``uni-inf``) is aligned
+   to the bases directly in front of it, with at most 20% of its length
+   in errors. A tail elsewhere near the end of a read does not count: a
+   run of G at the end of a read of two-colour Illumina chemistry, where
+   no signal is read as G, is not a primer.
+#. Each end is then judged by the share of the read ends with the
+   terminus which carry a tail:
+
+   - **tailed**, if the most frequent tail is in at least 5% of them
+     and in at least ten times as many as the next tail;
+   - **two tails**, if it has the share but not the lead over the next
+     one: a run holding more than one protocol;
+   - **untailed**, if no tail has 5%;
+   - **too few**, if fewer than 50 read ends have the terminus.
+
+   The share is over the read ends with the terminus, not over all the
+   reads: on Illumina reads only a fragment starting at an amplicon end
+   has a terminus.
+#. The scheme chosen is the one whose tails are those of the two ends
+   (an end with too few read ends fits any scheme). Untailed at both ends
+   gives ``uni``.
+
+The first 2000 reads are counted; unless both ends are then tailed, the
+reads up to the first 20000 are counted before deciding. On the public
+runs of the three protocols the tail of the protocol was in front of
+81% to 98% of the read ends with a terminus at each end, and in runs
+without a tail no tail was in front of more than 0.6% of them. The 5%
+share is low on purpose: some runs mix a tailed and an untailed primer
+at an end, and the share of the tail is then anywhere between 13% and
+66%. A higher threshold would split such runs between two schemes; with
+5% they are all seen as having the tail.
+
+Where no scheme can be chosen, the default scheme of influenza A
+(``uni12-mbt13``) is used, and the reason is reported:
+
+- **two tails at an end**: the run holds more than one protocol, and
+  any single scheme would be wrong for part of it;
+- **too few read ends with a conserved terminus**: on libraries of this
+  family of protocols this usually means that the reads are not
+  amplicons of the universal primers at all (for example random cDNA);
+- **no built-in scheme has the tails found**: for example an untailed
+  left end and the tail ``CGGGTTATT`` at the right end.
+
+The choice is within influenza A. With ``--virus both`` the primers of
+influenza B (``ibv-ga2``) are added to the scheme chosen, and the primers
+of the type of each sample are searched in its reads once its references
+say which type it is, as with any scheme of both types. With ``--virus
+b`` there is nothing to choose.
+
+The scheme chosen, the outcome and the counts of each tail at each end
+are in the messages, in the settings of the HTML report and in the JSON
+summary (``scheme.choice``). In the live mode, the scheme is chosen from
+the first file ready, and the reports are written from then on.
+
+The choice is a fixed cost, once per run, beside those of a scheme of
+both types (above): 0.08 s of processor time on a run of the Opti1 primers, where
+both ends carry a tail and 2000 reads decide, and 0.6 s on the run of
+171086 Nanopore reads of the default scheme, whose untailed left end
+makes it read 20000 (the median of seven repetitions, on a shared
+machine under load; ``-D`` prints it).

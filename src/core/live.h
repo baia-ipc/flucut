@@ -23,7 +23,9 @@
    and reports are then written.
 
    -e auto is decided at the first file ready (also if already processed,
-   so that a resumed run uses the same setting).
+   so that a resumed run uses the same setting). With -s auto the
+   scheme is chosen from that file as well, before anything is counted
+   or reported with it: the mode waits for it first.
 */
 
 #ifndef LIVE_H
@@ -35,6 +37,7 @@
 #include "options.h"
 #include "run-report.h"
 #include "scheme.h"
+#include "scheme-choice.h"
 #include "trimmer.h"
 
 /* the end of the run (see above) */
@@ -43,10 +46,11 @@
 /*
    Run the live mode, with the options <opts>, the trimming settings
    <config> (its max_errors is set by <autos>, if pending), the <scheme>
-   and the <references> (NULL: none), writing the reports with <report>
+   (chosen by <choice>, if pending) and the <references> (NULL: none),
+   writing the reports with <report>
 */
 void live_run(const options_t *opts, trimmer_config_t *config,
-    auto_settings_t *autos, const scheme_t *scheme,
+    scheme_choice_t *choice, auto_settings_t *autos, scheme_t *scheme,
     const fasta_t *references, run_report_t *report, Logger *logger);
 
 #endif

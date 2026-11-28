@@ -49,6 +49,11 @@ run_report_t* run_report_new(const options_t *opts, const char *version,
 void run_report_set_max_errors(run_report_t *self,
     const report_setting_t *setting);
 
+/* Set the choice of the scheme (-s auto; <choice> must exist as long as
+   the report is used) */
+void run_report_set_scheme_choice(run_report_t *self,
+    const scheme_choice_t *choice);
+
 /* Set the reload interval of the dashboard while a run is in progress
    (live mode; seconds); see live.c for the adaptive rule */
 void run_report_set_refresh(run_report_t *self, long refresh);

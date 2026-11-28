@@ -45,7 +45,8 @@ reads	all	1700	5
   "scheme": {
     "name": "uni12-mbt13+ibv-ga2",
     "left": ["uni12r", "b-pbs-unif", "b-pa-unif", "b-hana-unif", "b-np-unif", "b-m-uni3f", "b-mg-uni3f", "b-ns-uni3f"],
-    "right": ["mbtuni-13", "b-pbs-unir", "b-pa-unir", "b-hana-unir", "b-np-unir", "b-m-uni3r", "b-ns-uni3r"]
+    "right": ["mbtuni-13", "b-pbs-unir", "b-pa-unir", "b-hana-unir", "b-np-unir", "b-m-uni3r", "b-ns-uni3r"],
+    "choice": null
   },
   "trim_policy": "primer",
   "references": null,

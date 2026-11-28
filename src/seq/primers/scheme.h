@@ -27,6 +27,7 @@
 #ifndef SCHEME_H
 #define SCHEME_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include "logger.h"
 #include "primers.h"
@@ -79,8 +80,23 @@ typedef struct {
      forms of the primer of the left end (opti1-f1 and opti1-f2, which
      differ at the fourth base of the terminus) and opti1-r1 at the
      right end.
+
+   Several built-in schemes joined by '+' make one scheme, with the
+   primers of each (e.g. opti+ibv-ga2 for the Opti1 primers of
+   influenza A and the cocktail of influenza B).
 */
 scheme_t* scheme_new_builtin(const char *name, Logger *logger);
+
+/*
+   Whether <name> is a built-in scheme, or several joined by '+' (e.g.
+   opti+ibv-ga2: the primers of opti, then those of ibv-ga2), which
+   scheme_new_builtin() accepts as well (case is ignored)
+*/
+bool scheme_is_builtin(const char *name);
+
+/* Replace the primers and the name of <self> by those of <other>, which
+   is deleted: the users of <self> see the new scheme */
+void scheme_replace(scheme_t *self, scheme_t *other);
 
 /* The names of the built-in schemes, NULL-terminated */
 const char* const* scheme_builtin_names(void);

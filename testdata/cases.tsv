@@ -47,6 +47,10 @@ virus_b	--virus b -r testdata/ref-b-ha-mp.fasta testdata/reads-b.fastq
 virus_b_both	-r testdata/ref-b-ha-mp.fasta testdata/reads-b.fastq
 # the primers of influenza A alone
 virus_a	--virus a -r testdata/ref-ha.fasta testdata/reads.fastq
+# the scheme chosen from the reads (-s auto): twelve reads have too few
+# read ends with a conserved terminus, so the default is used and the
+# choice is reported as not found
+scheme_auto	-r off -s auto testdata/reads.fastq
 # two HA references of different subtypes (the second one synthetic);
 # reads of the first one alone: no read of a second subtype
 one_subtype	-r testdata/ref-ha-two-subtypes.fasta testdata/reads.fastq

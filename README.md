@@ -94,7 +94,9 @@ Other options:
 
 - `-s <scheme>`: the primer scheme, i.e. the primers searched at the read
   ends (see "Supported primers" below). The default follows from `--virus`:
-  `uni12-mbt13` for `a`, `ibv-ga2` for `b` and `uni12-mbt13+ibv-ga2` for `both`
+  `uni12-mbt13` for `a`, `ibv-ga2` for `b` and `uni12-mbt13+ibv-ga2` for `both`.
+  `-s auto` chooses the scheme of influenza A from the primer tails found in
+  the first reads
 
 References from the seeds of IRMA:
 - the seed sequences of IRMA hold the coding sequence of each segment only,
@@ -291,9 +293,18 @@ These are the supported primer schemes:
   Uni13 primer, the combination used in practice for influenza A;
 - `mbt`: the tailed primers of the multisegment RT-PCR of influenza A;
 - `uni`: the conserved termini of influenza A used as primers, without
-  a tail.
+  a tail;
+- `opti`: the Opti1 primers of influenza A (Mena et al. 2016);
+- `uni-inf`: the tailed universal primers Uni-12/Inf and Uni-13/Inf1 of
+  influenza A;
 - `ibv-ga2`: the universal IBV-GA2 primer cocktail of influenza B
-  (Zhou et al. 2014), six pairs for the eight segments;
+  (Zhou et al. 2014), six pairs for the eight segments.
+
+Several schemes joined by `+` are one scheme with the primers of each
+(e.g. `opti+ibv-ga2`). `-s auto` chooses the scheme of influenza A from
+the tails found directly in front of the conserved termini in the first
+reads; the manual (*The primers*) says how, and what happens when no
+single scheme fits.
 
 ## SAM Tags
 

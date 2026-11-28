@@ -20,6 +20,7 @@
 #include "lengths.h"
 #include "options.h"
 #include "scheme.h"
+#include "scheme-choice.h"
 
 /* suffix of the temporary file of a report, renamed when complete */
 #define REPORT_TMP_SFX ".tmp"
@@ -54,6 +55,8 @@ typedef struct {
   /* the errors in a primer, if decided automatically (NULL: the value of
      the options) */
   const report_setting_t *max_errors;
+  /* the choice of the scheme, if automatic (NULL: the one of -s) */
+  const scheme_choice_t *scheme_choice;
   /* <running>: a run in progress; the page is then reloaded every
      <refresh> seconds (0: no); <dashboard>: the page is the dashboard
      (one sample on the screen at a time), not the report */

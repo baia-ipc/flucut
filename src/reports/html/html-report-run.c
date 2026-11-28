@@ -42,6 +42,31 @@ static void write_max_errors(html_writer_t *w, const report_t *r) {
   html_close(w);
 }
 
+/* the primer scheme, if chosen automatically (-s auto) */
+static void write_scheme_choice(html_writer_t *w, const report_t *r) {
+  const scheme_choice_t *c = r->scheme_choice;
+  if (c == NULL)
+    return;
+  markup_open_row(w);
+  markup_td(w, "scheme choice");
+  markup_open(w, "td", "seq");
+  if (c->pending)
+    html_text(w, "automatic, at the first input file");
+  else {
+    html_textf(w, "automatic: %s, in the first %s reads of %s",
+               scheme_choice_outcome_text(c->outcome),
+               html_num(c->n_reads).s, c->file);
+    for (size_t e = 0; e < 2; e++) {
+      char text[256];
+      scheme_choice_end_text(c, e, text, sizeof(text));
+      html_elem(w, "br");
+      markup_textf(w, "span", "note", "%s", text);
+    }
+  }
+  html_close(w);
+  html_close(w);
+}
+
 /* all the settings, as a table */
 static void write_settings(html_writer_t *w, const report_t *r) {
   const options_t *o = r->options;
@@ -69,6 +94,7 @@ static void write_settings(html_writer_t *w, const report_t *r) {
                 "references", r->references != NULL ? o->references : NULL,
                 "n_references", n_refs,
                 "no_references", r->references == NULL ? "" : NULL);
+  write_scheme_choice(w, r);
   write_max_errors(w, r);
   html_template(w, options_tmpl, "platform",
                 o->illumina ? "illumina" : "nanopore", "window", window,

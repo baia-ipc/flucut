@@ -64,7 +64,9 @@ enum {
   "   -o, --outdir <dir>     output directory (default: " \
   OPTIONS_DEFAULT_OUTDIR ")\n" \
   "   -s, --scheme <name>    primer scheme (default: the one of\n" \
-  "                          --virus; see below)\n" \
+  "                          --virus; see below), or auto: the scheme\n" \
+  "                          of influenza A chosen by the primer tails\n" \
+  "                          found in the first reads\n" \
   "   --virus <a|b|both>     the types of influenza expected in the run\n" \
   "                          (default: both): it chooses the primers\n" \
   "                          searched and the references used; the type\n" \
@@ -198,7 +200,7 @@ static void print_purpose(FILE *stream, const char *progname) {
   fputs("\nPrimer schemes:", stream);
   for (const char *const *n = scheme_builtin_names(); *n != NULL; n++)
     fprintf(stream, " %s", *n);
-  fputs("\n", stream);
+  fputs(", or several joined by + (e.g. opti+ibv-ga2)\n", stream);
 }
 
 #undef PRINT_PURPOSE
@@ -208,14 +210,6 @@ static void print_purpose(FILE *stream, const char *progname) {
 static bool is_percent(const char *s) {
   size_t len = strlen(s);
   return len > 0 && s[len - 1] == '%';
-}
-
-/* whether <name> is a built-in scheme (ignoring the case) */
-static bool is_scheme(const char *name) {
-  for (const char *const *n = scheme_builtin_names(); *n != NULL; n++)
-    if (strcasecmp(*n, name) == 0)
-      return true;
-  return false;
 }
 
 void options_parse(options_t *self, int argc, char *argv[],
@@ -303,9 +297,12 @@ void options_parse(options_t *self, int argc, char *argv[],
         self->outdir = optarg;
         break;
       case 's':
-        if (!is_scheme(optarg))
+        if (strcasecmp(optarg, OPTIONS_SCHEME_AUTO) == 0)
+          self->scheme = OPTIONS_SCHEME_AUTO;
+        else if (scheme_is_builtin(optarg))
+          self->scheme = optarg;
+        else
           OPT_ERR(c, "unknown scheme '%s' (see the list below)", optarg);
-        self->scheme = optarg;
         break;
       case 'r':
         if (strcmp(optarg, "off") == 0) {

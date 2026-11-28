@@ -22,6 +22,9 @@
 /* -e auto (see auto-settings.h): the default */
 #define OPTIONS_MAX_ERRORS_AUTO -1.0
 #define OPTIONS_DEFAULT_MAX_ERRORS OPTIONS_MAX_ERRORS_AUTO
+/* -s auto: the scheme of influenza A chosen from the reads (see
+   scheme-choice.h) */
+#define OPTIONS_SCHEME_AUTO "auto"
 /* reads shorter than this after the trimming are not written: a few
    bases left between two primers, or after an adapter, are not a read of
    a segment */
@@ -49,6 +52,7 @@ typedef struct {
   /* --virus: the types of influenza expected in the run (see virus.h):
      their primers are searched and their references used */
   virus_set_t virus;
+  /* -s: a built-in scheme (scheme.h), or OPTIONS_SCHEME_AUTO */
   const char *scheme;
   trim_policy_t policy;
   double max_errors;

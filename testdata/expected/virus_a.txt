@@ -46,7 +46,8 @@ reads	NC_004908.1	1700	5
   "scheme": {
     "name": "uni12-mbt13",
     "left": ["uni12r"],
-    "right": ["mbtuni-13"]
+    "right": ["mbtuni-13"],
+    "choice": null
   },
   "trim_policy": "terminus",
   "references": {

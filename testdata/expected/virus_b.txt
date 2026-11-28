@@ -48,7 +48,8 @@ reads-b	KX058884.1	1850	6
   "scheme": {
     "name": "ibv-ga2",
     "left": ["b-pbs-unif", "b-pa-unif", "b-hana-unif", "b-np-unif", "b-m-uni3f", "b-mg-uni3f", "b-ns-uni3f"],
-    "right": ["b-pbs-unir", "b-pa-unir", "b-hana-unir", "b-np-unir", "b-m-uni3r", "b-ns-uni3r"]
+    "right": ["b-pbs-unir", "b-pa-unir", "b-hana-unir", "b-np-unir", "b-m-uni3r", "b-ns-uni3r"],
+    "choice": null
   },
   "trim_policy": "terminus",
   "references": {

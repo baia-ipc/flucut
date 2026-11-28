@@ -35,7 +35,10 @@ being processed``): its new reads are not trimmed; ``--min-age`` should
 then be increased.
 
 ``-e auto`` (the default) is decided at the first file ready, from its
-first 1000 reads, as in a normal run (:doc:`cli_reference`).
+first 1000 reads, as in a normal run (:doc:`cli_reference`). So is the
+scheme with ``-s auto`` (:doc:`primers`), before anything else: the
+counts and the reports depend on it, so the mode waits for that file
+before writing the first report.
 
 The reports
 -----------

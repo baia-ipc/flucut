@@ -17,7 +17,7 @@ Top level:
 | `updated` | string | time of writing (ISO 8601) |
 | `running` | boolean | `true` while the run is in progress (the summary is rewritten after each group of input files, in the live mode after each file); `false` in the summary of the end of the run |
 | `command` | string | the command line |
-| `scheme` | object | the primer scheme: `name`, and the names of the primers of the `left` and `right` ends of an amplicon, arrays of strings, in the order of the scheme |
+| `scheme` | object | the primer scheme: `name`, the names of the primers of the `left` and `right` ends of an amplicon, arrays of strings, in the order of the scheme, and `choice` (see below) |
 | `trim_policy` | string | `"primer"` (no references) or `"terminus"` (with `-r`: conserved termini kept at terminal ends) |
 | `references` | object or null | with `-r`: `file` (the path given), `sequences` (array of `name`, `length`, `virus` (`"A"` or `"B"`, from the FASTA description), `segment` (1-8, from the description and read in the numbering of that type, see the manual) and `gene` (e.g. `HA`), `null` if the description names no segment); `null` without references |
 | `settings` | object | the options, see below |
@@ -29,6 +29,17 @@ Top level:
 | `second_subtype_min_excess`, `second_subtype_min_share` | number | the reads of a second HA or NA subtype are above the threshold if they exceed those expected by chance by at least this number of reads (2.5: 3 reads where none is expected) and by at least this fraction (0.01) of the reads counted (see `subtype_reads` below) |
 | `all` | section | statistics of all reads |
 | `groups` | array | for each group of input files (a file given directly, a directory, or each barcode directory of a `fastq_pass` directory): `name`, `files` (number of input files), `processed` (`false`: not processed yet, then no further keys), and the keys of a section |
+
+The choice of the scheme (`scheme.choice`): `null` when the scheme was
+given with `-s`; with `-s auto`, an object:
+
+| key | type | description |
+|---|---|---|
+| `mode` | string | `"auto"` |
+| `outcome` | string or null | `"chosen"` (the scheme whose tails were found), `"ambiguous"` (two tails at an end), `"not_found"` (too few read ends with a conserved terminus) or `"no_scheme"` (no built-in scheme has the tails found); in the last three the default scheme was used. `null` until the first input file is read |
+| `influenza_a_scheme` | string | the scheme of influenza A used (to which `ibv-ga2` is added when the run may hold influenza B) |
+| `reads`, `file` | integer, string | the reads counted, at the start of this file |
+| `left`, `right` | object | for each end: `state` (`"tailed"`, `"untailed"`, `"ambiguous"` or `"few"`), `read_ends_with_terminus` (the read ends at which the conserved terminus was found) and `tails` (for each tail of the built-in schemes of influenza A at that end, the read ends at which it was found directly in front of the terminus) |
 
 Settings:
 

@@ -315,6 +315,44 @@ static void segment_member(json_writer_t *w, const char *name,
     fprintf(w->f, "%d", segment);
 }
 
+/* the choice of the scheme (-s auto): null if the scheme was given */
+static void write_scheme_choice(json_writer_t *w, const report_t *r) {
+  FILE *f = w->f;
+  const scheme_choice_t *c = r->scheme_choice;
+  json_member(w, "choice");
+  if (c == NULL) {
+    fputs("null", f);
+    return;
+  }
+  if (c->pending) {
+    fputs("{\"mode\": \"auto\", \"outcome\": null}", f);
+    return;
+  }
+  json_open_block(w, '{');
+  json_member(w, "mode");
+  fputs("\"auto\"", f);
+  json_member(w, "outcome");
+  fputs_json_string(scheme_choice_outcome_name(c->outcome), f);
+  json_member(w, "influenza_a_scheme");
+  fputs_json_string(c->chosen, f);
+  json_count_member(w, "reads", c->n_reads);
+  json_member(w, "file");
+  fputs_json_string(c->file, f);
+  for (size_t e = 0; e < 2; e++) {
+    const scheme_end_counts_t *end = c->ends + e;
+    json_member(w, report_end_name(e));
+    fprintf(f, "{\"state\": ");
+    fputs_json_string(scheme_choice_end_state_name(end->state), f);
+    fprintf(f, ", \"read_ends_with_terminus\": %zu, \"tails\": {",
+            end->termini);
+    for (size_t t = 0; t < end->n_tails; t++)
+      fprintf(f, "%s\"%.*s\": %zu", t == 0 ? "" : ", ",
+              (int)end->tail_len[t], end->tail[t], end->count[t]);
+    fputs("}}", f);
+  }
+  json_close_block(w, '}', false);
+}
+
 /* the parameters of the run */
 static void write_parameters(json_writer_t *w, const report_t *r) {
   FILE *f = w->f;
@@ -336,6 +374,7 @@ static void write_parameters(json_writer_t *w, const report_t *r) {
     }
     fputc(']', f);
   }
+  write_scheme_choice(w, r);
   json_close_block(w, '}', false);
   json_member(w, "trim_policy");
   fputs(o->policy == TRIM_PRIMER ? "\"primer\"" : "\"terminus\"", f);

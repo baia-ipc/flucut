@@ -38,6 +38,12 @@ expect 0 -V
 expect 1
 # keeping the termini needs the references
 expect 1 -s no-such-scheme "$reads"
+# schemes joined by +, and the scheme chosen from the reads
+expect 0 -s opti+ibv-ga2 -r off "$reads"
+expect 1 -s opti+ "$reads"
+expect 1 -s opti+nothing "$reads"
+expect 0 -s auto -r off "$reads"
+expect 0 -s AUTO --virus b -r off "$reads"
 expect 1 -e -1 "$reads"
 expect 1 -e 1.5 "$reads"
 expect 1 -e x "$reads"

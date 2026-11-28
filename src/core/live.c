@@ -401,8 +401,52 @@ static void live_sleep(double seconds) {
   }
 }
 
+/* the first file of the input directories which is ready (newly
+   allocated), NULL if none */
+static char* first_ready_file(const options_t *opts, long min_age,
+    Logger *logger) {
+  size_t n_groups;
+  input_group_t *groups = input_groups_new(opts->inputs, opts->n_inputs,
+      &n_groups, true, false, logger);
+  char *path = NULL;
+  for (size_t g = 0; g < n_groups && path == NULL; g++)
+    for (size_t i = 0; i < groups[g].n_files && path == NULL; i++)
+      if (file_ready(groups[g].files[i], min_age))
+        path = xstrdup(groups[g].files[i]);
+  input_groups_delete(groups, n_groups);
+  return path;
+}
+
+/* -s auto: choose the scheme from the first file ready, waiting for one
+   (the counts and the reports depend on the scheme, so nothing is done
+   before); without one before the end of the mode, the scheme stays the
+   default */
+static void choose_scheme(const options_t *opts, scheme_choice_t *choice,
+    scheme_t *scheme, double interval, Logger *logger) {
+  if (!choice->pending)
+    return;
+  lprintf(logger, LOG_PHASE, "Waiting for the first file, to choose the "
+          "primer scheme (-s auto)\n");
+  time_t start = time(NULL);
+  while (!live_stop) {
+    bool ended = run_ended(opts);
+    char *path = first_ready_file(opts, ended ? 0 : opts->live_min_age,
+                                  logger);
+    if (path != NULL) {
+      scheme_choice_decide(choice, scheme, opts->virus, opts->window, path,
+                           logger);
+      free(path);
+      return;
+    }
+    if (ended || (opts->live_timeout > 0 &&
+                  difftime(time(NULL), start) >= opts->live_timeout))
+      return;
+    live_sleep(interval);
+  }
+}
+
 void live_run(const options_t *opts, trimmer_config_t *config,
-    auto_settings_t *autos, const scheme_t *scheme,
+    scheme_choice_t *choice, auto_settings_t *autos, scheme_t *scheme,
     const fasta_t *references, run_report_t *report, Logger *logger) {
   assert(opts != NULL);
   assert(config != NULL);
@@ -416,6 +460,10 @@ void live_run(const options_t *opts, trimmer_config_t *config,
   else
     lprintf(logger, LOG_PHASE, "Watching the input directories (stop: end "
             "of the run (" LIVE_END_FILES "), or Ctrl-C)\n");
+  double interval = opts->live_timeout > 0 &&
+                    opts->live_timeout < opts->live_scan_interval ?
+                    (double)opts->live_timeout : opts->live_scan_interval;
+  choose_scheme(opts, choice, scheme, interval, logger);
   live_t w = {.opts = opts, .config = config, .autos = autos,
       .scheme = scheme, .refs = references, .report = report,
       .logger = logger, .workers = NULL, .groups = NULL, .n_groups = 0,
@@ -425,9 +473,6 @@ void live_run(const options_t *opts, trimmer_config_t *config,
   /* the reports of a run in progress, before the first file */
   write_results(&w, true);
   run_report_announce_dashboard(report, logger);
-  double interval = opts->live_timeout > 0 &&
-                    opts->live_timeout < opts->live_scan_interval ?
-                    (double)opts->live_timeout : opts->live_scan_interval;
   while (!live_stop) {
     time_t before = w.last_new;
     bool cont = scan(&w);

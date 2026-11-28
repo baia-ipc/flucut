@@ -50,6 +50,7 @@
 #include "reference-test.h"
 #include "report.h"
 #include "scheme.h"
+#include "scheme-choice.h"
 #include "segments.h"
 #include "subtype-reads.h"
 #include "terminus-matches.h"
@@ -137,6 +138,8 @@ static test_group_t test_groups[] = {
    cleavage_counts_test, false},
   {'A', "the search of the adapters", adapters_test, false},
   {'u', "the automatic settings", auto_settings_test, false},
+  {'x', "the choice of the primer scheme from the reads",
+   scheme_choice_test, false},
   {'G', "the agreement of the probes of a read", read_agreement_test,
    false},
   {'b', "the reads of a second HA or NA subtype", subtype_reads_test,

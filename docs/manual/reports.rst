@@ -110,8 +110,10 @@ The platform, the primer scheme, the trimming policy, the number of
 references and the version on one line; under it, when the titles of
 the reads give them, the name of the experiment, the flow cell and the
 basecalling model. *Settings* opens the full table: command line,
-references, errors allowed in a primer (and how ``-e auto`` decided),
-window, minimum length, probe, threads.
+primer scheme (and, with ``-s auto``, how it was chosen: the tails found
+at each end and the reads they were counted in), references, errors
+allowed in a primer (and how ``-e auto`` decided), window, minimum
+length, probe, threads.
 
 Run overview
 ~~~~~~~~~~~~

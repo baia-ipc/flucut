@@ -37,6 +37,7 @@
 #include "results.h"
 #include "run-report.h"
 #include "scheme.h"
+#include "scheme-choice.h"
 #include "segments.h"
 #include "trimmer.h"
 #include "worker.h"
@@ -207,14 +208,19 @@ static bool group_already_trimmed(const options_t *opts,
    and after each one (the dashboard, see run-report.h), so
    that a long run can be followed */
 static void trim_groups(const options_t *opts, trimmer_config_t *config,
-    auto_settings_t *autos, const scheme_t *scheme, const fasta_t *refs,
-    run_report_t *report, Logger *logger) {
+    scheme_choice_t *choice, auto_settings_t *autos, scheme_t *scheme,
+    const fasta_t *refs, run_report_t *report, Logger *logger) {
   size_t n_groups;
   input_group_t *groups = input_groups_new(opts->inputs, opts->n_inputs,
                                            &n_groups, false, true, logger);
   read_outputs_t **outputs = group_outputs(groups, n_groups, opts, logger);
   log_groups(groups, n_groups, logger);
-  /* -e auto: from the first file */
+  /* -s auto, then -e auto (which measures the primers of the scheme):
+     from the first file */
+  for (size_t i = 0; i < n_groups && choice->pending; i++)
+    if (groups[i].n_files > 0)
+      scheme_choice_decide(choice, scheme, opts->virus, opts->window,
+                           groups[i].files[0], logger);
   for (size_t i = 0; i < n_groups && auto_settings_pending(autos); i++)
     if (groups[i].n_files > 0)
       auto_settings_decide(autos, config, groups[i].files[0], logger);
@@ -294,8 +300,17 @@ int main(int argc, char *argv[]) {
   options_parse(&opts, argc, argv, &logger);
   if (opts.show_banner)
     banner_print(stderr);
-  scheme_t *scheme = scheme_new_builtin(opts.scheme, logger);
-  log_scheme(scheme, logger);
+  /* -s auto: the default of --virus until the scheme is chosen from the
+     first reads (scheme-choice.h) */
+  scheme_choice_t choice;
+  scheme_choice_init(&choice, &opts);
+  scheme_t *scheme = scheme_new_builtin(scheme_choice_initial(&opts),
+                                        logger);
+  if (choice.automatic)
+    lprintf(logger, LOG_INFO, "Scheme: chosen from the first reads (-s "
+            "auto)\n");
+  else
+    log_scheme(scheme, logger);
   /* the references: -r off none; -r <file> the user's; the default the
      built-in set of the types expected (--virus), downloaded on first
      use (builtin-references.h) */
@@ -362,14 +377,19 @@ int main(int argc, char *argv[]) {
   run_report_t *report = run_report_new(&opts, VERSION, scheme, refs, argc,
                                         argv, logger);
   run_report_set_max_errors(report, &autos.max_errors);
+  if (choice.automatic)
+    run_report_set_scheme_choice(report, &choice);
   if (opts.live)
-    live_run(&opts, &config, &autos, scheme, refs, report, logger);
+    live_run(&opts, &config, &choice, &autos, scheme, refs, report,
+             logger);
   else
-    trim_groups(&opts, &config, &autos, scheme, refs, report, logger);
+    trim_groups(&opts, &config, &choice, &autos, scheme, refs, report,
+                logger);
   run_report_delete(report);
   cleavage_anchors_delete(cleavage);
   marker_anchors_delete(markers);
   auto_settings_free(&autos);
+  scheme_choice_free(&choice);
   reference_index_delete(index);
   fasta_delete(refs);
   scheme_delete(scheme);

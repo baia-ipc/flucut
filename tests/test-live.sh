@@ -7,8 +7,8 @@
 # outputs and the tables must be the same as those of a normal run on the
 # final input. Then: --resume with a new file, restart without --resume,
 # interruption with SIGINT, end of the run (final summary of MinKNOW),
-# -e auto with no file at the start, a file created empty, a file for
-# each category of reads (--by-category).
+# -e auto and -s auto with no file at the start, a file created
+# empty, a file for each category of reads (--by-category).
 #
 # Usage: tests/test-live.sh <flucut command> [<prefix command>]
 #
@@ -187,6 +187,26 @@ grep -q '"max_errors": {"mode": "auto", "value": 0.2, ' \
 $FLUCUT -o $TMP/auto_dir $TMP/auto 2> /dev/null
 compare $TMP/auto_out $TMP/auto_dir
 echo "[OK] live: -e auto"
+
+# 6b. -s auto, with no file at the start: the mode waits for the first
+#     file and chooses the scheme from it before anything else; the
+#     outputs are those of a normal run with -s auto
+rm -rf $TMP/sauto $TMP/sauto_out $TMP/sauto_dir
+mkdir -p $TMP/sauto
+$PREFIX $FLUCUT -v -s auto -o $TMP/sauto_out --live --timeout 5s \
+  --min-age 0 $TMP/sauto 2> $TMP/sauto.err &
+pid=$!
+wait_for "-s auto: waiting for a file" \
+  contains $TMP/sauto.err "to choose the primer scheme"
+[ ! -e $TMP/sauto_out/flucut_summary.json ] || \
+  fail "-s auto: reports written before the scheme was chosen"
+cp testdata/reads.fastq $TMP/sauto/
+wait $pid || fail "-s auto: error: $(cat $TMP/sauto.err)"
+grep -q '"choice": {' $TMP/sauto_out/flucut_summary.json || \
+  fail "-s auto: choice not in the summary"
+$FLUCUT -s auto -o $TMP/sauto_dir $TMP/sauto 2> /dev/null
+compare $TMP/sauto_out $TMP/sauto_dir
+echo "[OK] live: -s auto"
 
 # 7. a file created empty and written later (as by a copy): not processed
 #    while empty, then processed completely
