@@ -252,6 +252,15 @@ void marker_result_of(const marker_counts_t *counts, size_t marker,
   out->anchor_support = agreement(&c->anchor);
   out->anchor_weak = out->anchor_reads > 0 &&
                      out->anchor_support < MARKER_MIN_ANCHOR_SUPPORT;
+  long at_anchor = most_frequent(&c->anchor);
+  if (at_anchor >= 0)
+    snprintf(out->anchor_value, sizeof(out->anchor_value), "%s",
+             c->anchor.entries[at_anchor].value);
+  snprintf(out->reference_anchor, sizeof(out->reference_anchor), "%s",
+           c->reference_anchor);
+  out->anchor_differs = out->anchor_value[0] != '\0' &&
+      out->reference_anchor[0] != '\0' &&
+      strcmp(out->anchor_value, out->reference_anchor) != 0;
   snprintf(out->reference_value, sizeof(out->reference_value), "%s",
            c->reference_value);
   long best = most_frequent(&c->value);

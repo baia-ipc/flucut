@@ -172,12 +172,18 @@ typedef struct {
   double support;
   marker_value_t top[MARKER_TOP_VALUES];
   size_t n_top;
-  /* the residues the reads carry where the anchor matched, and the
-     share of them agreeing: the noise floor of this sample at this
-     marker */
+  /* the residues the reads carry where the anchor matched, the most
+     frequent of them, and the share of the reads agreeing: the noise
+     floor of this sample at this marker. The residues of the anchor in
+     the reference are beside them, because an anchor which matched
+     somewhere else gives reads which agree with each other and not
+     with the reference */
   size_t anchor_reads;
   double anchor_support;
   bool anchor_weak;
+  char anchor_value[MARKER_ANCHOR_AA + 1];
+  char reference_anchor[MARKER_ANCHOR_AA + 1];
+  bool anchor_differs;
   /* what the reference carries, and whether the most frequent value
      differs from it */
   char reference_value[MARKER_VALUE_MAX + 1];

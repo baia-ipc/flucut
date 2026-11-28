@@ -47,6 +47,12 @@ static void write_marker(json_writer_t *w, size_t marker,
   json_share_member(w, "anchor_support", m->anchor_support);
   json_member(w, "reads_disagree_at_the_anchor");
   fputs(m->anchor_weak ? "true" : "false", f);
+  /* the anchor as the reads carry it and as the reference has it: an
+     anchor which matched somewhere else shows here */
+  string_or_null(w, "anchor_residues", m->anchor_value);
+  string_or_null(w, "reference_anchor_residues", m->reference_anchor);
+  json_member(w, "anchor_differs_from_reference");
+  fputs(m->anchor_differs ? "true" : "false", f);
   json_member(w, "attention");
   fputs(m->attention ? "true" : "false", f);
   json_share_member(w, "attention_share", m->attention_share);

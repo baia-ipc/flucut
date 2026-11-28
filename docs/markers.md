@@ -151,6 +151,12 @@ them.
   the floor below which a value carried by few reads cannot be told from
   the errors of the reads.
 
+Beside them the residues the reads carry where the anchor matched are
+reported, with those of the reference. One residue of difference is a
+strain difference and means nothing; a value which shares nothing with
+the reference means the anchor matched somewhere else in those reads,
+and the value beside it is not the position it is named after.
+
 | verdict | meaning |
 |---|---|
 | `firm` | at least 60% of the reads agree on the value, and they agree at the anchor |
