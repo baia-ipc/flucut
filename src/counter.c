@@ -75,6 +75,7 @@ void counter_delete(counter_t *self) {
   free(self->sites);
   free(self->cover);
   lengths_delete(self->lengths);
+  read_stats_free(self->stats);
   free(self->stats);
   free(self);
 }
