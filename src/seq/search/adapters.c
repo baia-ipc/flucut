@@ -8,39 +8,36 @@
 #include "alloc.h"
 #include "test.h"
 
-/* a barcode of unknown sequence (see adapters.h) */
-#define BC "NNNNNNNNNNNNNNNNNNNNNNNN"
-
-/* the kits (see adapters.h): the adapter at the start of a read and that
-   at its end (as they are found in the read; NULL: none) */
-static const struct {
+/* a kit: its name and the adapter at the start of a read and that at
+   its end, as they are found in the read (NULL: none) */
+typedef struct {
   const char *name;
   const char *start, *end;
-} kits[] = {
-  {"nb", "ATTGCTAAGGTTAA" BC "CAGCACCT", "GGTGCTG" BC "TTAACCTTAGCAAT"},
-  {"rbk", "GCTTGGGTGTTTAACC" BC
-          "GTTTTCGCATTTATCGTGAAACGCTTTCGCGTTTTTCGTGCGCCGCTTCA", NULL},
-  {"lsk", "CCTGTACTTCGTTCAGTTACGTATTGC", "AGCAATACGTAACTGAAC"},
-};
-#define N_KITS (sizeof(kits) / sizeof(kits[0]))
+} adapters_kit_t;
+
+/* the kits, written by the build from metadata/adapters.yaml
+   (scripts/adapters-table.awk) */
+#define ADAPTERS_TABLE_DEFINE
+#include "adapters-table.h"
 
 struct adapters_t {
-  bool used[N_KITS];
+  bool used[ADAPTERS_N_KITS];
   long window;
   adaptor_search_t *search;
 };
 
-/* the kit named <name> (length <len>), N_KITS if none */
+/* the kit named <name> (length <len>), ADAPTERS_N_KITS if none */
 static size_t kit_of_name(const char *name, size_t len) {
-  for (size_t i = 0; i < N_KITS; i++)
-    if (strlen(kits[i].name) == len && strncmp(kits[i].name, name, len) == 0)
+  for (size_t i = 0; i < ADAPTERS_N_KITS; i++)
+    if (strlen(ADAPTERS_TABLE[i].name) == len &&
+        strncmp(ADAPTERS_TABLE[i].name, name, len) == 0)
       return i;
-  return N_KITS;
+  return ADAPTERS_N_KITS;
 }
 
 /* parse <list> into <used>; false if a name is unknown */
-static bool parse_kits(const char *list, bool used[N_KITS]) {
-  for (size_t i = 0; i < N_KITS; i++)
+static bool parse_kits(const char *list, bool used[ADAPTERS_N_KITS]) {
+  for (size_t i = 0; i < ADAPTERS_N_KITS; i++)
     used[i] = false;
   if (strcmp(list, "none") == 0)
     return true;
@@ -49,7 +46,7 @@ static bool parse_kits(const char *list, bool used[N_KITS]) {
     const char *comma = strchr(p, ',');
     size_t len = comma == NULL ? strlen(p) : (size_t)(comma - p);
     size_t k = kit_of_name(p, len);
-    if (k == N_KITS)
+    if (k == ADAPTERS_N_KITS)
       return false;
     used[k] = true;
     if (comma == NULL)
@@ -59,7 +56,7 @@ static bool parse_kits(const char *list, bool used[N_KITS]) {
 }
 
 bool adapters_valid(const char *kits_list) {
-  bool used[N_KITS];
+  bool used[ADAPTERS_N_KITS];
   return parse_kits(kits_list, used);
 }
 
@@ -76,15 +73,15 @@ adapters_t* adapters_new(const char *kits_list, long window,
 }
 
 bool adapters_any(const adapters_t *self) {
-  for (size_t i = 0; i < N_KITS; i++)
+  for (size_t i = 0; i < ADAPTERS_N_KITS; i++)
     if (self->used[i])
       return true;
   return false;
 }
 
 const char* adapters_kit_name(size_t kit) {
-  assert(kit < N_KITS);
-  return kits[kit].name;
+  assert(kit < ADAPTERS_N_KITS);
+  return ADAPTERS_TABLE[kit].name;
 }
 
 void adapters_delete(adapters_t *self) {
@@ -107,8 +104,9 @@ static long max_errors(const char *adapter) {
 static void search(adapters_t *self, const char *seq, size_t len,
     bool at_start, adapter_hit_t *hit) {
   hit->found = false;
-  for (size_t k = 0; k < N_KITS; k++) {
-    const char *adapter = at_start ? kits[k].start : kits[k].end;
+  for (size_t k = 0; k < ADAPTERS_N_KITS; k++) {
+    const char *adapter = at_start ? ADAPTERS_TABLE[k].start
+                                : ADAPTERS_TABLE[k].end;
     if (!self->used[k] || adapter == NULL)
       continue;
     size_t adapter_len = strlen(adapter);

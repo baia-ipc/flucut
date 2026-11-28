@@ -13,20 +13,10 @@
    with it; when it is not (the read is broken, or begins too far inside
    the primer), the adapter is what can still be recognised.
 
-   The kits (ADAPTERS_KITS), with their sequences from Dorado
-   (github.com/nanoporetech/dorado, commit 8b8fc5d:
-   dorado/utils/barcode_kits.cpp and dorado/demux/adapter_primer_kits.cpp):
-
-   - nb: native barcoding (e.g. SQK-NBD114-24/96, EXP-NBD114): at the
-     start of the read, ATTGCTAAGGTTAA, the barcode (24 bases),
-     CAGCACCT; at the end, the reverse complement of ATTGCTAAGGTTAA,
-     the barcode, CAGCACC;
-   - rbk: rapid barcoding (e.g. SQK-RBK114-24/96): at the start of the
-     read only, GCTTGGGTGTTTAACC, the barcode (24 bases), and the 50
-     bases of the rapid adapter;
-   - lsk: ligation without barcodes (e.g. SQK-LSK114): at the start of
-     the read CCTGTACTTCGTTCAGTTACGTATTGC, at the end
-     AGCAATACGTAACTGAAC.
+   The kits (ADAPTERS_KITS) and their sequences are in
+   metadata/adapters.yaml, with the source of each: native barcoding
+   (nb), rapid barcoding (rbk) and ligation without barcodes (lsk). A
+   kit is added or changed there and not here.
 
    The barcode is searched as Ns, which match any base: any barcode of
    the kit is recognised, and none is identified (demultiplexing is not
@@ -53,11 +43,10 @@
 #include <stddef.h>
 #include "logger.h"
 
-/* the kits, for the option --adapters (see above) */
-#define ADAPTERS_KITS "nb, rbk, lsk"
-
-/* the default: all the kits */
-#define ADAPTERS_DEFAULT "nb,rbk,lsk"
+/* the kits and their names, written by the build from
+   metadata/adapters.yaml (scripts/adapters-table.awk): ADAPTERS_KITS
+   for the help of --adapters, ADAPTERS_DEFAULT for its default */
+#include "adapters-table.h"
 
 /* the errors allowed, as a fraction of the fixed bases of an adapter */
 #define ADAPTERS_ERROR_RATE 0.2

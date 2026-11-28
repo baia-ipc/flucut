@@ -124,6 +124,15 @@ $(PRIMERS_INC): metadata/primers.yaml $(METADATA_AWK) \
 	awk -f scripts/metadata-records.awk -f scripts/primers-table.awk $< > $@
 $(OBJS): | $(PRIMERS_INC)
 
+# the adapters of the sequencing kits, from metadata/adapters.yaml, in
+# the same way (see adapters.h)
+ADAPTERS_INC = $(OBJDIR)/adapters-table.h
+$(ADAPTERS_INC): metadata/adapters.yaml $(METADATA_AWK) \
+                 scripts/adapters-table.awk | $(OBJDIR)
+	awk -f scripts/metadata-records.awk -f scripts/adapters-table.awk \
+	  $< > $@
+$(OBJS): | $(ADAPTERS_INC)
+
 # the banner shown in a terminal (docs/logo/flucut-banner.ans), embedded
 # in the same way
 BANNER_INC = $(OBJDIR)/flucut-banner-ans.inc
