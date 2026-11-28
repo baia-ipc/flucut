@@ -47,15 +47,30 @@
    output is written in pieces (--deletions): what a marker says is
    about the sample, not about how the reads are written.
 */
+/* a stretch, 0-based with the last position included */
 typedef struct {
-  long from, to;   /* 0-based, the last one included */
-} marker_blocked_t;
+  long from, to;
+} marker_span_t;
+
+/* how far the stretch of the reference a read covers may be wrong
+   before a marker is refused for lying outside it: the span is
+   estimated from where the ends of the read mapped and from its length,
+   not from an alignment (read-cover.h) */
+#define MARKER_PLACEMENT_SLACK 100
 
 typedef struct {
-  const long *cuts;
+  const long *cuts;                /* in the read */
   size_t n_cuts;
-  const marker_blocked_t *blocked;
+  const marker_span_t *blocked;    /* in the read */
   size_t n_blocked;
+  /* the stretches of the reference the read covers (one, or two for a
+     read with an internal deletion), in the reference. The anchor must
+     lie in one of them: a read whose anchor matched where the read does
+     not reach is joined there, and the bases beside the match are of
+     another part of the segment. None: the read was not located, and
+     the anchor itself says where it is */
+  const marker_span_t *covered;
+  size_t n_covered;
 } marker_breaks_t;
 
 void marker_read_sites(const marker_reference_t *const *chosen, long ref,

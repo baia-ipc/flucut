@@ -255,7 +255,7 @@ static void test_reads(void) {
      and not the template, so a window which overlaps it gives nothing */
   marker_counts_clear(&c);
   long at_primer = (long)strlen(PB2_HEAD);
-  marker_blocked_t primer = {at_primer, at_primer + 2};
+  marker_span_t primer = {at_primer, at_primer + 2};
   marker_breaks_t inside = {NULL, 0, &primer, 1};
   for (size_t i = 0; i < 30; i++)
     marker_read_sites(chosen, 0, &inside, PB2_627E, pb2_len, 0.2, &c);

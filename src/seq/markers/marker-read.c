@@ -33,6 +33,21 @@ static bool unbroken(const marker_breaks_t *breaks, long from, long to) {
   return true;
 }
 
+/*
+   Whether <at>, the position of the anchor in the reference, lies in a
+   stretch the read covers. A read which was not located covers nothing
+   known, and is accepted: its anchor is all that places it.
+*/
+static bool placed(const marker_breaks_t *breaks, long at) {
+  if (breaks->n_covered == 0)
+    return true;
+  for (size_t i = 0; i < breaks->n_covered; i++)
+    if (at >= breaks->covered[i].from - MARKER_PLACEMENT_SLACK &&
+        at <= breaks->covered[i].to + MARKER_PLACEMENT_SLACK)
+      return true;
+  return false;
+}
+
 /* whether the anchor matched, and the window beside it was read, on a
    contiguous stretch of the read */
 static bool window_whole(const anchor_hit_t *hit, size_t len,
@@ -54,6 +69,8 @@ static void read_marker(const marker_reference_t *site, size_t marker,
   const marker_def_t *def = marker_def(marker);
   marker_counts_set_reference(counts, marker, site->value, site->anchor_aa);
   marker_counts_searched(counts, marker);
+  if (!placed(breaks, site->anchor.ref_pos))
+    return;
   anchor_hit_t hit;
   if (!anchor_find(&site->anchor, read, len, max_error_rate, &hit))
     return;
@@ -68,7 +85,8 @@ static void read_marker(const marker_reference_t *site, size_t marker,
   }
   if (def->kind == MARKER_SPAN) {
     anchor_hit_t hit2;
-    if (!anchor_find(&site->anchor2, read, len, max_error_rate, &hit2))
+    if (!placed(breaks, site->anchor2.ref_pos) ||
+        !anchor_find(&site->anchor2, read, len, max_error_rate, &hit2))
       return;
     long span = span_of(&hit, &hit2);
     if (span < 0 ||
