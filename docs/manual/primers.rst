@@ -56,6 +56,15 @@ publications, each one documented in ``src/seq/primers/primers.h``.
    * - mbtuni-13
      - ``ACGCGTGATCAGTAGAAACAAGG``
      - Zhou et al. 2009
+   * - uni12-inf1
+     - ``GGGGGGAGCAAAAGCAGG``
+     - Yang et al. 2025, Microbiol Spectr 13:e02218-24 (there Uni-12/Inf1)
+   * - uni12-inf3
+     - ``GGGGGGAGCGAAAGCAGG``
+     - the same, with G at the fourth base (Uni-12/Inf3)
+   * - uni13-inf1
+     - ``CGGGTTATTAGTAGAAACAAGG``
+     - Yang et al. 2025 (there Uni-13/Inf1)
    * - opti1-f1
      - ``GTTACGCGCCAGCAAAAGCAGG``
      - Mena et al. 2016, eLife 5:e16777 (also written OptiF1)
@@ -155,6 +164,7 @@ ibv-ga2                 the seven of influenza B     the six of
 mbt                     mbtuni-12, mbtuni-12.4r      mbtuni-13
 uni                     uni12, uni12r                uni13
 opti                    opti1-f1, opti1-f2           opti1-r1
+uni-inf                 uni12-inf1, uni12-inf3       uni13-inf1
 ======================= ============================ ====================
 
 The default is the scheme of ``--virus``: ``uni12-mbt13+ibv-ga2`` for
