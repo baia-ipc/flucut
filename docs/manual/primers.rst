@@ -56,15 +56,24 @@ publications, each one documented in ``src/seq/primers/primers.h``.
    * - mbtuni-13
      - ``ACGCGTGATCAGTAGAAACAAGG``
      - Zhou et al. 2009
+   * - uni12-inf1
+     - ``GGGGGGAGCAAAAGCAGG``
+     - Hoffmann et al. 2001, Arch Virol 146:2275-2289 (there Uni12/Inf-1)
+   * - uni12-inf3
+     - ``GGGGGGAGCGAAAGCAGG``
+     - the same, with G at the fourth base (Uni12/Inf-3)
+   * - uni13-inf1
+     - ``CGGGTTATTAGTAGAAACAAGG``
+     - Hoffmann et al. 2001 (there Uni13/Inf-1)
    * - opti1-f1
      - ``GTTACGCGCCAGCAAAAGCAGG``
-     - Mena et al. 2016, eLife 5:e16777
+     - Mena et al. 2016, eLife 5:e16777 (also written OptiF1)
    * - opti1-f2
      - ``GTTACGCGCCAGCGAAAGCAGG``
-     - the same, with G at the fourth base of the terminus
+     - the same, with G at the fourth base of the terminus (OptiF2)
    * - opti1-r1
      - ``GTTACGCGCCAGTAGAAACAAGG``
-     - Mena et al. 2016
+     - Mena et al. 2016 (OptiR)
 
 The MBTuni primers carry the 5' tail ``ACGCGTGATCAG``, which overlaps
 the terminus by two bases; the Opti1 primers carry ``GTTACGCGCC``,
@@ -72,9 +81,15 @@ which does not overlap it. flucut stores each primer whole, with the
 position at which its conserved terminus begins, and knows which bases
 of a read come from the tail and which from the terminus.
 
-The Opti1 set covers the variable fourth base of the terminus with two
-separate primers, where the degenerate ``uni12r`` and ``mbtuni-12.4r``
-express it as ``R`` in one.
+The Opti1 and Uni12/Inf sets cover the variable fourth base of the
+terminus with two separate primers, where the degenerate ``uni12r`` and
+``mbtuni-12.4r`` express it as ``R`` in one.
+
+``uni12``/``uni13`` and ``uni12-inf1``/``uni13-inf1`` are not the same
+primers: the first pair is the conserved terminus with no tail, the
+second is the tailed set of Hoffmann et al. 2001. A protocol which says
+only "universal primers" may mean either, and trimming reads of one
+with the scheme of the other leaves the tail on them.
 
 Influenza B: shorter termini, primers of a few segments
 -------------------------------------------------------
@@ -150,6 +165,7 @@ ibv-ga2                 the seven of influenza B     the six of
 mbt                     mbtuni-12, mbtuni-12.4r      mbtuni-13
 uni                     uni12, uni12r                uni13
 opti                    opti1-f1, opti1-f2           opti1-r1
+uni-inf                 uni12-inf1, uni12-inf3       uni13-inf1
 ======================= ============================ ====================
 
 The default is the scheme of ``--virus``: ``uni12-mbt13+ibv-ga2`` for
