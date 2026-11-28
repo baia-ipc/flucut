@@ -87,6 +87,27 @@ typedef struct {
 bool anchor_find(const anchor_t *self, const char *read, size_t read_len,
     double max_error_rate, anchor_hit_t *hit);
 
+/* The bases the anchor matched in the read: its length there, which
+   differs from the length of the anchor where the read has an indel in
+   it */
+static inline size_t anchor_hit_len(const anchor_hit_t *hit) {
+  return (size_t)(hit->end - hit->start + 1);
+}
+
+/*
+   Read the <n> bases of the read which begin <offset> bases from the
+   first base of the anchor, counted in the orientation of the reference
+   (negative: before it), as the read carries them, into <out> (room for
+   n + 1 characters; terminated, upper case). False if the read does not
+   reach that far.
+
+   The window is placed by the anchor and read as the read carries it,
+   so an insertion or a deletion between the two shifts it: a window
+   meant to be read in frame belongs directly beside the anchor.
+*/
+bool anchor_bases_window(const anchor_hit_t *hit, const char *read,
+    size_t read_len, long offset, size_t n, char *out);
+
 /*
    Read the <n> bases which precede the anchor in the orientation of the
    reference, as the read carries them, into <out> (room for n + 1

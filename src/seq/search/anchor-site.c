@@ -95,59 +95,16 @@ bool anchor_find(const anchor_t *self, const char *read, size_t read_len,
   return true;
 }
 
-bool anchor_bases_before(const anchor_hit_t *hit, const char *read,
-    size_t read_len, size_t n, char *out) {
+bool anchor_bases_window(const anchor_hit_t *hit, const char *read,
+    size_t read_len, long offset, size_t n, char *out) {
   assert(hit != NULL);
   assert(out != NULL);
   if (!hit->found || n == 0 || read == NULL)
     return false;
   if (!hit->reverse) {
-    /* the read runs as the reference: the bases before the match */
-    if (hit->start < (long)n)
-      return false;
-    for (size_t i = 0; i < n; i++)
-      out[i] = upper(read[hit->start - (long)n + (long)i]);
-    out[n] = '\0';
-    return true;
-  }
-  /* the read is the reverse complement of the reference: the bases
-     before the anchor there are those after the match here */
-  if (hit->end + (long)n >= (long)read_len)
-    return false;
-  reverse_complement(read + hit->end + 1, n, out);
-  return true;
-}
-
-bool anchor_bases_at(const anchor_hit_t *hit, const char *read,
-    size_t read_len, size_t n, char *out) {
-  assert(hit != NULL);
-  assert(out != NULL);
-  if (!hit->found || n == 0 || read == NULL)
-    return false;
-  if (!hit->reverse) {
-    if (hit->start + (long)n > (long)read_len)
-      return false;
-    for (size_t i = 0; i < n; i++)
-      out[i] = upper(read[hit->start + (long)i]);
-    out[n] = '\0';
-    return true;
-  }
-  /* the anchor read the other way round: its first bases are the last
-     of the match here */
-  if (hit->end + 1 < (long)n)
-    return false;
-  reverse_complement(read + hit->end + 1 - (long)n, n, out);
-  return true;
-}
-
-bool anchor_bases_after(const anchor_hit_t *hit, const char *read,
-    size_t read_len, size_t skip, size_t n, char *out) {
-  assert(hit != NULL);
-  assert(out != NULL);
-  if (!hit->found || n == 0 || read == NULL)
-    return false;
-  if (!hit->reverse) {
-    long from = hit->end + 1 + (long)skip;
+    /* the read runs as the reference: the window begins <offset> bases
+       after the first base of the match */
+    long from = hit->start + offset;
     if (from < 0 || from + (long)n > (long)read_len)
       return false;
     for (size_t i = 0; i < n; i++)
@@ -155,11 +112,32 @@ bool anchor_bases_after(const anchor_hit_t *hit, const char *read,
     out[n] = '\0';
     return true;
   }
-  long from = hit->start - (long)skip - (long)n;
-  if (from < 0)
+  /* the read is the reverse complement of the reference: the first base
+     of the anchor there is the last base of the match here, and the
+     window runs the other way */
+  long from = hit->end - offset - (long)n + 1;
+  if (from < 0 || from + (long)n > (long)read_len)
     return false;
   reverse_complement(read + from, n, out);
   return true;
+}
+
+bool anchor_bases_before(const anchor_hit_t *hit, const char *read,
+    size_t read_len, size_t n, char *out) {
+  return anchor_bases_window(hit, read, read_len, -(long)n, n, out);
+}
+
+bool anchor_bases_at(const anchor_hit_t *hit, const char *read,
+    size_t read_len, size_t n, char *out) {
+  return anchor_bases_window(hit, read, read_len, 0, n, out);
+}
+
+bool anchor_bases_after(const anchor_hit_t *hit, const char *read,
+    size_t read_len, size_t skip, size_t n, char *out) {
+  if (!hit->found)
+    return false;
+  return anchor_bases_window(hit, read, read_len,
+      (long)anchor_hit_len(hit) + (long)skip, n, out);
 }
 
 /* --- unit tests --- */
@@ -242,6 +220,27 @@ void anchor_site_test(void) {
   test_assert(anchor_bases_at(&hit, noisy, strlen(noisy), 24, out));
   test_eq_str(out, "GGACTCTTTGGGGCTTTAGCAGGC");
   test_assert(anchor_find(&a, ha, strlen(ha), 0.2, &hit));
+  /* a window placed by its offset from the first base of the anchor,
+     on either side of it and across it, read the same way whichever
+     orientation the read is in */
+  const char *reads[2] = {ha, rc};
+  for (size_t i = 0; i < 2; i++) {
+    const char *r = reads[i];
+    size_t len = strlen(r);
+    test_assert(anchor_find(&a, r, len, 0.2, &hit));
+    test_assert(anchor_bases_window(&hit, r, len, -27, 27, out));
+    test_eq_str(out, SITE_NT);
+    test_assert(anchor_bases_window(&hit, r, len, 0, 6, out));
+    test_eq_str(out, "GGACTG");
+    test_assert(anchor_bases_window(&hit, r, len, 24, 6, out));
+    test_eq_str(out, "TTTATA");
+    /* across the end of the anchor */
+    test_assert(anchor_bases_window(&hit, r, len, 21, 6, out));
+    test_eq_str(out, "GGCTTT");
+    /* past either end of the read */
+    test_assert(!anchor_bases_window(&hit, r, len, -40, 6, out));
+    test_assert(!anchor_bases_window(&hit, r, len, 30, 12, out));
+  }
   /* a read without the anchor */
   const char *other = "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT";
   test_assert(!anchor_find(&a, other, strlen(other), 0.2, &hit));
