@@ -71,21 +71,28 @@ cleavage_anchors_t* cleavage_anchors_new(const fasta_t *references,
     long first = -1;
     size_t n_peptide = anchor_peptide_occurrences(rec->seq, rec->seq_len,
         CLEAVAGE_FUSION_PEPTIDE, &first);
-    if (n_peptide != 1)
+    if (n_peptide > 1)
       lprintf(logger, LOG_DEBUG, "The fusion peptide occurs %zu times in "
-              "the HA reference %s\n", n_peptide, rec->name);
-    if (!anchor_of_peptide(&cr->anchor, r, rec->seq, rec->seq_len,
-                           CLEAVAGE_FUSION_PEPTIDE, CLEAVAGE_ANCHOR_NT)) {
-      lprintf(logger, LOG_DEBUG,
-              "No fusion peptide in the HA reference %s: the cleavage "
-              "site is not read from it\n", rec->name);
-      continue;
-    }
-    /* the site the reference itself carries, which the reads are
-       compared with; a reference whose HA2 begins too near its start
-       has none */
-    if (cr->anchor.ref_pos < CLEAVAGE_SITE_NT) {
+              "the HA reference %s: the anchor could be found at either "
+              "of them in a read\n", n_peptide, rec->name);
+    /* every reference which gives no site says why, so that a set of
+       references can be read for what it supports and a silence means
+       that the site is read and not that nothing was looked at */
+    const char *why = NULL;
+    if (n_peptide == 0)
+      why = "the fusion peptide is not in it";
+    else if (!anchor_of_peptide(&cr->anchor, r, rec->seq, rec->seq_len,
+                                CLEAVAGE_FUSION_PEPTIDE,
+                                CLEAVAGE_ANCHOR_NT))
+      why = "the anchor reaches past its end";
+    else if (cr->anchor.ref_pos < CLEAVAGE_SITE_NT)
+      /* the site the reference itself carries, which the reads are
+         compared with, would lie before its first base */
+      why = "the site would lie before its start";
+    if (why != NULL) {
       cr->anchor.found = false;
+      lprintf(logger, LOG_DEBUG, "The cleavage site is not read from the "
+              "HA reference %s: %s\n", rec->name, why);
       continue;
     }
     memcpy(cr->nt, rec->seq + cr->anchor.ref_pos - CLEAVAGE_SITE_NT,
