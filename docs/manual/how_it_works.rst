@@ -60,6 +60,16 @@ than 20%, at the cost of about 3 times more template bases removed
 (``benchmark/RESULTS.md``). The rule has two values and
 one threshold, measured once, before the trimming.
 
+With ``-p illumina``, ``-e auto`` is 20% and nothing is measured. The
+rule is one for the error rates of Nanopore reads, and on reads of
+fragments the measurement does not measure the reads: few of them start
+at an amplicon end, so most primers found in the first reads are chance
+matches of part of a primer at a read start, with many errors. On four
+public Illumina runs of influenza B (paired reads of fragmented
+amplicons, about 0.15% of them starting at a segment terminus) it
+measured 7 to 11% and would have allowed 30%, which put a primer at the
+left end of 27 to 32% of the reads, about seven times as many as 20%.
+
 The window
 ----------
 

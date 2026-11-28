@@ -84,7 +84,8 @@ enum {
   "                          bases; a percentage of its length (20%%, or\n" \
   "                          as a fraction below 1: 0.2); or auto: 20%%,\n" \
   "                          or 30%% if the primers of the first reads\n" \
-  "                          have at least 4%% errors per base\n" \
+  "                          have at least 4%% errors per base;\n" \
+  "                          with -p illumina, auto is 20%%\n" \
   "                          (default: auto)\n" \
   "   -p, --platform <p>     nanopore (default): whole amplicons, with\n" \
   "                          flanks and adapters before the primers;\n" \

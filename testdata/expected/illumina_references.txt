@@ -65,7 +65,7 @@ reads	NC_004908.1	1700	5
     ]
   },
   "settings": {
-    "max_errors": {"mode": "auto", "value": 0.2, "error_rate": 0.0093, "reads": 12, "file": "testdata/reads.fastq"},
+    "max_errors": {"mode": "fixed", "value": 0.2},
     "platform": "illumina",
     "window": 10,
     "min_length": 1,

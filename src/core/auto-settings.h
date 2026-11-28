@@ -17,6 +17,17 @@
    while at 8 and 12% 0.3 (3 errors) left 4 times fewer primer bases and
    2 to 4 times fewer bases of the internal priming site than 0.2, at the
    cost of 3 times more template bases removed.
+
+   With -p illumina the errors allowed are AUTO_MAX_ERRORS_LOW, and
+   nothing is measured. The rule is one for the error rates of Nanopore
+   reads, and on reads of fragments the measurement is not one of the
+   reads: few of them start at an amplicon end, so most primers found
+   are chance matches of a part of a primer at a read start, with many
+   errors. On four public Illumina runs of influenza B (paired reads of
+   fragmented amplicons, of which about 0.15% start at a segment
+   terminus) it measured 7 to 11% in each of the eight files and allowed
+   30%, which put a primer at the left end of 27 to 32% of the reads;
+   with 20%, about seven times fewer.
 */
 
 #ifndef AUTO_SETTINGS_H

@@ -18,10 +18,13 @@
 void auto_settings_init(auto_settings_t *self, const options_t *opts) {
   assert(self != NULL);
   assert(opts != NULL);
-  bool automatic = opts->max_errors == OPTIONS_MAX_ERRORS_AUTO;
+  bool is_auto = opts->max_errors == OPTIONS_MAX_ERRORS_AUTO;
+  /* Illumina reads: AUTO_MAX_ERRORS_LOW, not measured (see
+     auto-settings.h) */
+  bool automatic = is_auto && !opts->illumina;
   self->max_errors = (report_setting_t){.automatic = automatic,
       .pending = automatic,
-      .value = automatic ? AUTO_MAX_ERRORS_LOW : opts->max_errors,
+      .value = is_auto ? AUTO_MAX_ERRORS_LOW : opts->max_errors,
       .measured = 0, .n_reads = 0, .file = NULL};
   self->file = NULL;
 }
@@ -713,4 +716,22 @@ void auto_settings_test(void) {
           AUTO_MAX_ERRORS_HIGH, double, "%g");
   test_eq(auto_settings_max_errors(0.1), AUTO_MAX_ERRORS_HIGH, double,
           "%g");
+  /* -e auto: measured on Nanopore reads, not on Illumina reads */
+  {
+    options_t opts = {.max_errors = OPTIONS_MAX_ERRORS_AUTO};
+    auto_settings_t autos;
+    auto_settings_init(&autos, &opts);
+    test_assert(autos.max_errors.automatic && auto_settings_pending(&autos));
+    auto_settings_free(&autos);
+    opts.illumina = true;
+    auto_settings_init(&autos, &opts);
+    test_assert(!autos.max_errors.automatic &&
+                !auto_settings_pending(&autos));
+    test_eq(autos.max_errors.value, AUTO_MAX_ERRORS_LOW, double, "%g");
+    auto_settings_free(&autos);
+    opts.max_errors = 0.1;
+    auto_settings_init(&autos, &opts);
+    test_eq(autos.max_errors.value, 0.1, double, "%g");
+    auto_settings_free(&autos);
+  }
 }

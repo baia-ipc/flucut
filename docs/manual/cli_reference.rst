@@ -88,7 +88,8 @@ Options
    in Uni12), or 30% (3 errors) if that rate is at least 4%
    (:doc:`how_it_works`). The value
    decided and the rate measured are in the messages (``-v``) and in the
-   reports. Default: ``auto``.
+   reports. With ``-p illumina``, ``auto`` is 20%, not measured.
+   Default: ``auto``.
 
 ``-p, --platform <p>``
    ``nanopore`` (default): reads of whole amplicons, with flanking bases
