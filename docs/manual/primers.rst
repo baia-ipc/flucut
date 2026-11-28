@@ -56,11 +56,25 @@ publications, each one documented in ``src/seq/primers/primers.h``.
    * - mbtuni-13
      - ``ACGCGTGATCAGTAGAAACAAGG``
      - Zhou et al. 2009
+   * - opti1-f1
+     - ``GTTACGCGCCAGCAAAAGCAGG``
+     - Mena et al. 2016, eLife 5:e16777
+   * - opti1-f2
+     - ``GTTACGCGCCAGCGAAAGCAGG``
+     - the same, with G at the fourth base of the terminus
+   * - opti1-r1
+     - ``GTTACGCGCCAGTAGAAACAAGG``
+     - Mena et al. 2016
 
-The tailed primers carry the 5' tail ``ACGCGTGATCAG``, which overlaps
-the terminus by two bases: flucut stores each primer whole, with the
+The MBTuni primers carry the 5' tail ``ACGCGTGATCAG``, which overlaps
+the terminus by two bases; the Opti1 primers carry ``GTTACGCGCC``,
+which does not overlap it. flucut stores each primer whole, with the
 position at which its conserved terminus begins, and knows which bases
 of a read come from the tail and which from the terminus.
+
+The Opti1 set covers the variable fourth base of the terminus with two
+separate primers, where the degenerate ``uni12r`` and ``mbtuni-12.4r``
+express it as ``R`` in one.
 
 Influenza B: shorter termini, primers of a few segments
 -------------------------------------------------------
@@ -135,6 +149,7 @@ ibv-ga2                 the seven of influenza B     the six of
                                                      influenza B
 mbt                     mbtuni-12, mbtuni-12.4r      mbtuni-13
 uni                     uni12, uni12r                uni13
+opti                    opti1-f1, opti1-f2           opti1-r1
 ======================= ============================ ====================
 
 The default is the scheme of ``--virus``: ``uni12-mbt13+ibv-ga2`` for

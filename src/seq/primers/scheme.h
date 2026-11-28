@@ -72,6 +72,10 @@ typedef struct {
    - "uni": the conserved termini used as primers, without a tail
      (uni12 and uni12r at the left end, uni13 at the right end): for
      protocols which add no tail.
+   - "opti": the tailed Opti1 primers of Mena et al. 2016, with both
+     forms of the primer of the left end (opti1-f1 and opti1-f2, which
+     differ at the fourth base of the terminus) and opti1-r1 at the
+     right end.
 */
 scheme_t* scheme_new_builtin(const char *name, Logger *logger);
 

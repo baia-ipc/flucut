@@ -75,9 +75,17 @@
   bases: AGTAGAAACAAGG
   note: the 13 nt terminus of influenza A at the 5' end of the vRNA
 
+- sequence: terminus-12-g
+  bases: AGCGAAAGCAGG
+  note: the 12 nt terminus with G at the fourth position, the form the degenerate terminus-12-r also covers
+
 - sequence: mbt-tail
   bases: ACGCGTGATCAG
   note: the 5' tail shared by the primers of Zhou et al. 2009; it carries an MluI site (ACGCGT) used for cloning in that protocol
+
+- sequence: opti-tail
+  bases: GTTACGCGCC
+  note: the 5' tail shared by the Opti1 primers of Mena et al. 2016
 
 - sequence: terminus-b-9
   bases: AGCAGAAGC
@@ -148,6 +156,40 @@
   terminus: terminus-13
   segments: all
   source: Zhou et al. 2009, the tailed primer of the right end
+
+# --- influenza A (the Opti1 set) -------------------------------------
+#
+# Every primer of the set is Mena et al. 2016 eLife 5 e16777 (doi
+# 10.7554/eLife.16777), Materials and methods. The three share one 5'
+# tail and carry the conserved termini; F1 and F2 differ at the fourth
+# base of the terminus, so the pair covers the variation which
+# terminus-12-r expresses as a degenerate position. The set is mixed
+# F1 and F2 at 0.1 uM each and R1 at 0.2 uM; the proportions do not
+# matter here, as every primer of the scheme is searched in every read.
+
+- primer: opti1-f1
+  virus: A
+  end: left
+  seq: opti-tail terminus-12
+  terminus: terminus-12
+  segments: all
+  source: Mena et al. 2016 eLife 5 e16777, the tailed primer of the left end with A at the fourth base of the terminus
+
+- primer: opti1-f2
+  virus: A
+  end: left
+  seq: opti-tail terminus-12-g
+  terminus: terminus-12-g
+  segments: all
+  source: Mena et al. 2016 eLife 5 e16777, the same primer with G at the fourth base of the terminus
+
+- primer: opti1-r1
+  virus: A
+  end: right
+  seq: opti-tail terminus-13
+  terminus: terminus-13
+  segments: all
+  source: Mena et al. 2016 eLife 5 e16777, the tailed primer of the right end
 
 # --- influenza B (the IBV-GA2 cocktail) ------------------------------
 #
@@ -285,3 +327,7 @@
 - scheme: uni
   left: uni12 uni12r
   right: uni13
+
+- scheme: opti
+  left: opti1-f1 opti1-f2
+  right: opti1-r1
