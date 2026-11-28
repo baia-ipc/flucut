@@ -1546,8 +1546,9 @@ wins and, among equally good ones, the one nearest the end of the
 segment (line 12; ALIGN_TO lines 6–8). If the probe has no seed, as when
 each of its 10-mers holds an error, the probe is aligned to the whole of
 every allowed reference (lines 14–17); this slow step is skipped for
-Illumina reads (line 13). A probe shorter than 16 bases is not located
-(line 2).
+Illumina reads (line 13). A probe with fewer than 16 bases other than
+`N` is not located (line 2): an `N` matches any base, so a probe of `N`s
+would be located without errors wherever the search looks first.
 
 > **Source:** `src/seq/references/reference.c`
 
@@ -1558,7 +1559,7 @@ Illumina reads (line 13). A probe shorter than 16 bases is not located
 ```
 LOCATE(probe)
  1  q = probe[1:min(P, length(probe))]
- 2  return NIL if length(q) < 16
+ 2  return NIL if q has fewer than 16 bases other than N
  3  K = ⌊ 20% · length(q) ⌋
  4  best = NIL
  5  for each (x, σ) in ⟨(q, "+"), (RC(q), "−")⟩

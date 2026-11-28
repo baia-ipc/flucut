@@ -145,6 +145,26 @@ static void test_locate(reference_index_t *ix, bool exhaustive,
   reference_set_locate(rs, probe, REFERENCE_MIN_PROBE_LEN - 1, &hit);
   test_assert(!hit.mapped);
 
+  /* Ns are not counted: a probe of Ns (as the reads of Ns of some runs)
+     is not located, nor one with one base too few other than N; with
+     exactly enough of them it is */
+  memset(probe, 'N', PROBE);
+  probe[PROBE] = '\0';
+  reference_set_locate(rs, probe, PROBE, &hit);
+  test_assert(!hit.mapped);
+  reference_set_locate_in(rs, probe, PROBE, 0, false, &hit);
+  test_assert(!hit.mapped);
+  take_probe(ref1, 500, PROBE, false, probe);
+  memset(probe + REFERENCE_MIN_PROBE_LEN - 1, 'N',
+         PROBE - REFERENCE_MIN_PROBE_LEN + 1);
+  reference_set_locate(rs, probe, PROBE, &hit);
+  test_assert(!hit.mapped);
+  take_probe(ref1, 500, PROBE, false, probe);
+  memset(probe + REFERENCE_MIN_PROBE_LEN, 'N', PROBE - REFERENCE_MIN_PROBE_LEN);
+  reference_set_locate(rs, probe, PROBE, &hit);
+  test_assert(hit.mapped);
+  test_eq_long(hit.ref_start, 500);
+
   reference_set_delete(rs);
 }
 

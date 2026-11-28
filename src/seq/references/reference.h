@@ -136,7 +136,8 @@ void reference_set_set_seeds_only(reference_set_t *self, bool seeds_only);
    Locate <probe> (length <probe_len>; the start of the read after its 5'
    primer) in the references, on both strands; only the first
    min(<probe_len>, probe length of the set) bases are used, and a probe
-   shorter than REFERENCE_MIN_PROBE_LEN is not located.
+   with fewer than REFERENCE_MIN_PROBE_LEN of them other than N is not
+   located.
 
    The best match (fewest errors) is stored in <hit>. Among equally good
    matches, the one nearest to the terminus from which the read would

@@ -277,6 +277,20 @@ static void seeded_search(reference_set_t *self, const char *query,
   }
 }
 
+/*
+   Whether the first <len> bases of <probe> can be located: at least
+   REFERENCE_MIN_PROBE_LEN of them other than N (an N matches every base
+   of a reference, so that a probe of Ns would be located, with no
+   error, wherever the search looks first)
+*/
+static bool locatable(const char *probe, size_t len) {
+  size_t known = 0;
+  for (size_t i = 0; i < len; i++)
+    if (probe[i] != 'N' && probe[i] != 'n')
+      known++;
+  return known >= REFERENCE_MIN_PROBE_LEN;
+}
+
 /* locate a probe (see reference_set_locate()); <exhaustive>: without the
    index; <seeds_only>: without the exhaustive search of a probe which the
    index does not locate */
@@ -290,7 +304,7 @@ static void locate(reference_set_t *self, const char *probe,
   hit->ref_start = -1;
   hit->n_errors = -1;
   size_t len = probe_len < self->probe_len ? probe_len : self->probe_len;
-  if (len < REFERENCE_MIN_PROBE_LEN)
+  if (!locatable(probe, len))
     return;
   set_forward(self, probe, len);
   set_reverse(self, probe, len);
@@ -332,7 +346,7 @@ void reference_set_locate_within(reference_set_t *self, const char *probe,
   hit->ref_start = -1;
   hit->n_errors = -1;
   size_t len = probe_len < self->probe_len ? probe_len : self->probe_len;
-  if (len < REFERENCE_MIN_PROBE_LEN)
+  if (!locatable(probe, len))
     return;
   if (reverse)
     set_reverse(self, probe, len);
