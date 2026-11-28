@@ -294,5 +294,5 @@ coding sequence works, as the site is inside the ORF.
 | `src/codons.h`, `.c` | the genetic code: translation, and finding a peptide in a sequence |
 | `src/seq/search/anchor-site.h`, `.c` | an anchor: building it from a reference, finding it in a read, reading the bases beside it. Not specific to this site |
 | `src/analysis/cleavage-site.h`, `.c` | the anchors of the HA references, the motifs counted, and what the reads say |
-| `src/seq/trimmer.c` | which reads are read, per platform (`read_cleavage_site()`) |
+| `src/core/trimmer.c` | which reads are read, per platform (`read_cleavage_site()`) |
 | `src/analysis/counter.c` | the motifs of a group of input files, merged over the threads and saved for `--resume` |

@@ -346,7 +346,7 @@ part is written if it is long enough (lines 15 and 17), everything is
 counted (line 16), and at the end of the sample its tables and report
 are written (line 18).
 
-> **Source:** `src/flucut.c`, `src/core/worker.c`, `src/seq/trimmer.c`
+> **Source:** `src/flucut.c`, `src/core/worker.c`, `src/core/trimmer.c`
 
 ![The steps of a run](figures/run_flow.svg)
 
@@ -3632,7 +3632,7 @@ sample (line 1), its internal priming sites (line 2) and its short
 amplicons (line 4), turns the counts per position into depths (lines
 5–7) and writes the tables and the report (lines 8–9).
 
-> **Source:** `src/seq/trimmer.c`, `src/io/results.c`, `src/reports/report.c`
+> **Source:** `src/core/trimmer.c`, `src/io/results.c`, `src/reports/report.c`
 
 > **Called from:** FLUCUT_RUN (A1)
 
