@@ -5,6 +5,7 @@
 #include <string.h>
 #include "alloc.h"
 #include "counter.h"
+#include "marker-read.h"
 #include "logger.h"
 #include "test.h"
 
@@ -27,6 +28,8 @@ struct counter_t {
   read_metadata_t metadata;
   /* the cleavage site of the haemagglutinin read from the reads */
   cleavage_counts_t cleavage;
+  /* the markers read from the reads (markers.h) */
+  marker_counts_t markers;
   /* the reads of each HA and NA subtype among the first reads */
   subtype_reads_t subtype_reads;
 };
@@ -98,6 +101,7 @@ void counter_clear(counter_t *self) {
   read_stats_clear(self->stats);
   read_metadata_clear(&self->metadata);
   cleavage_counts_clear(&self->cleavage);
+  marker_counts_clear(&self->markers);
   subtype_reads_clear(&self->subtype_reads);
 }
 
@@ -149,6 +153,7 @@ void counter_merge(counter_t *self, const counter_t *other) {
       self->variants[e][v] += other->variants[e][v];
   }
   cleavage_counts_merge(&self->cleavage, &other->cleavage);
+  marker_counts_merge(&self->markers, &other->markers);
   subtype_reads_merge(&self->subtype_reads, &other->subtype_reads);
   if (self->refs != NULL)
     for (size_t r = 0; r < self->refs->n_records; r++) {
@@ -276,6 +281,7 @@ void counter_save(const counter_t *self, FILE *file) {
         fprintf(file, "length %zu %zu %zu\n", g, b, n);
     }
   cleavage_counts_save(&self->cleavage, file);
+  marker_counts_save(&self->markers, file);
   subtype_reads_save(&self->subtype_reads, file);
   read_stats_save(self->stats, file);
   read_metadata_save(&self->metadata, file);
@@ -353,6 +359,8 @@ static bool load_line(counter_t *self, char *line, bool *ended) {
     return subtype_reads_load_line(&self->subtype_reads, line);
   if (strncmp(line, "cleavage", 8) == 0)
     return cleavage_counts_load_line(&self->cleavage, line);
+  if (strncmp(line, "marker-", 7) == 0)
+    return marker_counts_load_line(&self->markers, line);
   if (line[0] == 'r')
     return read_stats_load_line(self->stats, line);
   if (line[0] == 'm')
@@ -526,6 +534,18 @@ void counter_set_subtype_reads(counter_t *self,
 const subtype_reads_t* counter_subtype_reads(const counter_t *self) {
   assert(self != NULL);
   return &self->subtype_reads;
+}
+
+void counter_add_markers(counter_t *self,
+    const marker_reference_t *const *chosen, long ref, const char *read,
+    size_t len, double max_error_rate) {
+  assert(self != NULL);
+  marker_read_sites(chosen, ref, read, len, max_error_rate, &self->markers);
+}
+
+const marker_counts_t* counter_markers(const counter_t *self) {
+  assert(self != NULL);
+  return &self->markers;
 }
 
 const cleavage_counts_t* counter_cleavage(const counter_t *self) {

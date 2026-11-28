@@ -31,6 +31,10 @@ struct trimmer_t {
   /* the cleavage site of the HA reference of the sample being trimmed
      (NULL: not read), set by trimmer_restrict_references() */
   const cleavage_reference_t *cleavage;
+  /* the anchors of the markers of the sample being trimmed, one per
+     marker (NULL where the sample has none), set by
+     trimmer_restrict_references() */
+  const marker_reference_t *markers[MARKER_N_MARKERS];
 };
 
 trimmer_t* trimmer_new(const trimmer_config_t *config) {
@@ -46,6 +50,7 @@ trimmer_t* trimmer_new(const trimmer_config_t *config) {
                          config->window) : NULL;
   /* every reference allowed until a sample restricts them */
   self->cleavage = cleavage_anchors_chosen(config->cleavage, NULL);
+  marker_anchors_chosen(config->markers, NULL, self->markers);
   self->refs = NULL;
   if (config->references != NULL) {
     assert(config->index != NULL);
@@ -77,6 +82,7 @@ void trimmer_restrict_virus(trimmer_t *self, virus_set_t types) {
 void trimmer_restrict_references(trimmer_t *self, const bool *allowed) {
   amplicon_analyzer_restrict_references(self->analyzer, allowed);
   self->cleavage = cleavage_anchors_chosen(self->config->cleavage, allowed);
+  marker_anchors_chosen(self->config->markers, allowed, self->markers);
 }
 
 void trimmer_delete(trimmer_t *self) {
@@ -244,6 +250,12 @@ static void trim_part(trimmer_t *self, const fastq_batch_t *batch,
   size_t category = read_cover_category(&cover);
   counter_add_located_read(counts, a, len, &cover);
   read_cleavage_site(self, seq, len, &cover, category, counts);
+  /* the markers of the segment of the read; a read which is not
+     located (the reads of a fragment, see marker-read.h) is searched
+     for every marker */
+  counter_add_markers(counts, self->markers,
+                      cover.located ? (long)cover.ref : -1, seq, len,
+                      self->config->probe_error_rate);
   size_t kept = amplicon_kept_length(a);
   if (kept == 0 || kept < self->config->min_length) {
     counter_add_too_short(counts);

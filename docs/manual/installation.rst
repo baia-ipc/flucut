@@ -65,10 +65,13 @@ Directory                    Content
                              placement on the references, the junction
                              of an internal deletion and the split of a
                              chimera
+``src/seq/markers``          the sites read from inside a read: the
+                             table of the markers, their anchors in the
+                             references and the reading of one read
 ``src/analysis``             the counters and what is computed from
                              them: lengths, coverage by read origin,
                              quality summary and flags, subtype reads,
-                             the cleavage site
+                             the cleavage site and the markers
 ``src/io``                   the groups of input files, the output
                              files of the reads, the state saved for
                              ``--resume`` and the result tables
@@ -81,8 +84,16 @@ Directory                    Content
 ===========================  ===========================================
 
 In ``src/seq``, the references and the searches use the primers;
-``reads`` uses those three, and ``amplicon`` all four. No directory
-uses one which depends on it.
+``reads`` and ``markers`` use those three, and ``amplicon`` all four.
+No directory uses one which depends on it.
+
+The line between ``src/seq`` and ``src/analysis`` is the read: a module
+of ``src/seq`` works on one read, or on one reference, and keeps
+nothing between them; a module of ``src/analysis`` counts what the
+modules of ``src/seq`` found, over the reads of a sample, and says what
+the counts mean. A site therefore has its anchors and its reading in
+``src/seq/markers`` and its counts and its verdict in
+``src/analysis``.
 
 As in libcbaia, a header is included by its name, without the
 directory (``#include "counter.h"``): the names are unique over all

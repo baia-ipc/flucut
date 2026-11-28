@@ -87,6 +87,7 @@
 #include <stddef.h>
 #include "amplicon.h"
 #include "cleavage-site.h"
+#include "markers.h"
 #include "counter.h"
 #include "fasta.h"
 #include "fastq-reader.h"
@@ -119,6 +120,8 @@ typedef struct {
   /* the anchors of the cleavage site in the HA references (NULL: not
      read; built once, shared by the trimmers of all threads) */
   const cleavage_anchors_t *cleavage;
+  /* the anchors of the markers in the references (NULL: not read) */
+  const marker_anchors_t *markers;
   size_t min_length;          /* shorter reads are not written */
   bool tags;                  /* append the tags to the titles */
   bool split;                 /* split the reads with several amplicons */

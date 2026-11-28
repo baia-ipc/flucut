@@ -23,6 +23,7 @@
 #include "auto-settings.h"
 #include "banner.h"
 #include "builtin-references.h"
+#include "markers.h"
 #include "counter.h"
 #include "fasta.h"
 #include "file.h"
@@ -330,6 +331,16 @@ int main(int argc, char *argv[]) {
             "the cleavage site of the HA will be read from the reads "
             "(%zu HA references with the fusion peptide)\n",
             cleavage_anchors_n(cleavage));
+  /* the markers are read from the reads beside the conserved peptides
+     which anchor them (markers.h); a reference gives a marker only
+     where its anchor is in it exactly once */
+  marker_anchors_t *markers = marker_anchors_new(refs, index,
+                                                 opts.probe_error_rate,
+                                                 logger);
+  if (markers != NULL)
+    lprintf(logger, LOG_INFO,
+            "the markers will be read from the reads (%zu anchors in the "
+            "references)\n", marker_anchors_n(markers));
   auto_settings_t autos;
   auto_settings_init(&autos, &opts);
   trimmer_config_t config = {.scheme = scheme,
@@ -343,6 +354,7 @@ int main(int argc, char *argv[]) {
       .terminal_window = opts.terminal_window,
       .adapters = opts.adapters, .min_length = opts.min_length,
       .illumina = opts.illumina, .cleavage = cleavage,
+      .markers = markers,
       .tags = opts.tags, .split = opts.split,
       .by_category = opts.by_category,
       .cut_deletions = opts.cut_deletions};
@@ -355,6 +367,7 @@ int main(int argc, char *argv[]) {
     trim_groups(&opts, &config, &autos, scheme, refs, report, logger);
   run_report_delete(report);
   cleavage_anchors_delete(cleavage);
+  marker_anchors_delete(markers);
   auto_settings_free(&autos);
   reference_index_delete(index);
   fasta_delete(refs);

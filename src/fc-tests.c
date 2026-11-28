@@ -36,6 +36,7 @@
 #include "internal-matches.h"
 #include "junction.h"
 #include "logger.h"
+#include "markers-test.h"
 #include "placement.h"
 #include "read-agreement.h"
 #include "virus.h"
@@ -143,6 +144,7 @@ static test_group_t test_groups[] = {
    false},
   {'U', "the resources used by a run", run_resources_test, false},
   {'Y', "the configuration file", user_config_test, false},
+  {'m', "the markers read from the reads", markers_test, false},
 };
 #define N_TEST_GROUPS (sizeof(test_groups) / sizeof(test_groups[0]))
 

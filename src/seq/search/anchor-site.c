@@ -17,11 +17,16 @@ static char upper(char c) {
 
 bool anchor_of_peptide(anchor_t *self, size_t ref, const char *seq,
     size_t seq_len, const char *peptide, size_t len) {
+  return anchor_at(self, ref, seq, seq_len,
+                   codons_find_peptide(seq, seq_len, peptide), len);
+}
+
+bool anchor_at(anchor_t *self, size_t ref, const char *seq, size_t seq_len,
+    long pos, size_t len) {
   assert(self != NULL);
   memset(self, 0, sizeof(anchor_t));
   if (len == 0 || len > ANCHOR_MAX_LEN)
     return false;
-  long pos = codons_find_peptide(seq, seq_len, peptide);
   if (pos < 0 || (size_t)pos + len > seq_len)
     return false;
   self->found = true;

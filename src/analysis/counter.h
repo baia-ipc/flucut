@@ -32,6 +32,7 @@
 #include "cleavage-site.h"
 #include "fasta.h"
 #include "lengths.h"
+#include "marker-counts.h"
 #include "read-cover.h"
 #include "read-metadata.h"
 #include "read-stats.h"
@@ -156,6 +157,18 @@ void counter_add_cleavage_fusion(counter_t *self, const char *nt);
 
 /* The motifs of the cleavage site read from the reads */
 const cleavage_counts_t* counter_cleavage(const counter_t *self);
+
+/*
+   Read the markers of <chosen> out of the <len> bases of <read> and
+   count them (marker-read.h); <ref>: the reference the read was located
+   on, negative where it was not
+*/
+void counter_add_markers(counter_t *self,
+    const marker_reference_t *const *chosen, long ref, const char *read,
+    size_t len, double max_error_rate);
+
+/* What the reads carry at each marker */
+const marker_counts_t* counter_markers(const counter_t *self);
 
 /*
    The reads of each HA and NA subtype among the first reads of the

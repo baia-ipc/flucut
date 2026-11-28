@@ -63,6 +63,16 @@ typedef struct {
 bool anchor_of_peptide(anchor_t *self, size_t ref, const char *seq,
     size_t seq_len, const char *peptide, size_t len);
 
+/*
+   The same for the anchor of <len> bases which begins at the 0-based
+   position <pos> of the reference, for a caller which located it
+   itself. False, and <self> not found, if the position is outside the
+   sequence, if it does not have <len> bases there, or if <len> is 0 or
+   more than ANCHOR_MAX_LEN.
+*/
+bool anchor_at(anchor_t *self, size_t ref, const char *seq, size_t seq_len,
+    long pos, size_t len);
+
 /* where an anchor was found in a read */
 typedef struct {
   bool found;        /* false: the other fields are not set */
