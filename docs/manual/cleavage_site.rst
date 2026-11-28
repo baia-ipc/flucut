@@ -41,12 +41,11 @@ anchor cannot be found in the wrong place in a read. In 39 of those
 records it is not found at all, always because the peptide is absent
 and never because its placement is ambiguous.
 
-The pattern is deliberately no looser, and its sixth position in
-particular is fixed. That position is the isoleucine which internal
-priming by the Uni12 primer turns into a lysine (I351K, residue 6 of
-HA2, see :doc:`internal_priming`), and sequences carrying it exist. A
-pattern which accepted a lysine there would read a cleavage site out of
-a sequence whose fusion peptide is a primer.
+The sixth position is the isoleucine which internal priming by the
+Uni12 primer turns into a lysine (I351K, residue 6 of HA2, see
+:doc:`internal_priming`); 21 of the 4484 records carry it, spelled
+``AAA``, in eight subtypes. A pattern accepting a lysine there would
+read a cleavage site from a sequence whose fusion peptide is a primer.
 
 flucut takes those 24 bases of the HA reference as an *anchor*, finds the anchor inside each read (in
 both orientations, with the error allowance of the probes), and reads
@@ -226,7 +225,11 @@ It reads eight codons. That covers the basic run of every reference
 flucut ships, the longest of which is six residues, but an insert
 longer than that, as some highly pathogenic H7 carry, is shown only in
 part; the site still reads as multibasic, so only the residues printed
-are cut short.
+are cut short. Of four public H7 runs read with flucut, the highly
+pathogenic H7N3 one is such a case: an arginine sits immediately before
+the eight residues printed. It was read as multibasic all the same, as
+were the other two highly pathogenic runs, and the low pathogenic one
+as monobasic.
 
 It does not assign a clade. The site and the clade are read in different
 ways and at different moments: the site from single reads beside the

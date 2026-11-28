@@ -35,12 +35,11 @@ place in a read. In 39 of those records it is not found at all, always
 because the peptide is absent and never because its placement is
 ambiguous.
 
-The pattern is deliberately no looser than this, and its sixth position
-in particular is fixed. That position is the isoleucine which internal
-priming by the Uni12 primer turns into a lysine (I351K, residue 6 of
-HA2, see `internal-priming.md`), and sequences carrying it exist. A
-pattern which accepted a lysine there would read a cleavage site out of
-a sequence whose fusion peptide is a primer.
+The sixth position is the isoleucine which internal priming by the
+Uni12 primer turns into a lysine (I351K, residue 6 of HA2, see
+`internal-priming.md`); 21 of the 4484 records carry it, spelled `AAA`,
+in eight subtypes. A pattern accepting a lysine there would read a
+cleavage site from a sequence whose fusion peptide is a primer.
 
 flucut takes those 24 bases of
 the HA reference as an **anchor**, finds the anchor inside each read
@@ -143,8 +142,8 @@ more useful than it:
   haemagglutinins": a read with an error has a reading of its own, so the
   number of distinct residues seen (`distinct_sites` in the JSON) and of
   distinct spellings (`distinct_motifs`) counts the errors of single
-  reads, and is above 1 in nearly every sample (103 of 104 here, median
-  80).
+  reads, and is above 1 in nearly every sample (102 of 104 here, median
+  75).
 
 ## Where the numbers come from
 
@@ -155,17 +154,30 @@ the site, which is the outcome the rule has to catch.
 
 | | R10, site readable | R10, frameshifted | R9 |
 |---|---|---|---|
-| support at the site | 0.61 | 0.42 | 0.27 |
-| control support | 0.79 | 0.55 | 0.48 |
+| samples | 89 | 5 | 10 |
+| support at the site | 0.62 | 0.40 | 0.26 |
+| control support | 0.81 | 0.77 | 0.46 |
 
-The rule above flags **all 12** of the frameshifted samples and 11 of
-the 92 others, leaving 81 of the 104 firm.
+The rule above leaves 85 of the 104 firm, 13 to confirm and 6 with too
+few reads, and it keeps 10 of the 12 frameshifted samples from firm.
+
+The two it does not keep from firm are worth knowing, because they say
+what the verdict is and is not about. In both, the residues flucut reads
+are a plain multibasic site, and in both they are the right ones: the
+consensus is wrong there and the reads are not. A firm verdict is a
+claim that the reads support the reading, not a promise that a consensus
+built afterwards will agree with it. Measured against what it does
+claim, the rule is right everywhere it can be checked on these samples:
+flucut's residues equal the motif taken independently from the reads of
+the same samples in all 98 of them where that motif exists, and in all
+85 called firm.
 
 Two findings decided its shape.
 
 **The control windows carry the chemistry.** Every one of the 10 R9
 samples falls below the control floor (their highest is 0.56) and the
-R10 samples sit well above it (median 0.79). A rule naming R9 was
+R10 samples sit well above it (median 0.81; 3 of the 94 fall below).
+A rule naming R9 was
 therefore doing nothing the reads were not already saying, and it is
 gone. That matters beyond tidiness: a bad R10 flow cell, or a chemistry
 that does not exist yet, is judged on the reads in front of it rather
@@ -173,15 +185,20 @@ than on a label.
 
 **The ratio of the two does not work.** The obvious idea — divide the
 site's agreement by the control's, so that each sample calibrates
-itself — was tried and is worse: at its best it catches 8 of the 12
-against 12, and at thresholds that catch more it flags most of the good
-samples too. The reason is in the table above. The samples that fail are
-not samples where the site is unusually hard; they are samples that are
+itself — was tried and was worse: at its best it caught 8 of the 12
+against 12, and at thresholds that caught more it flagged most of the
+good samples too. The reason is that the samples which fail are not
+samples where the site is unusually hard; they are samples that are
 thin, or hold two viruses, and that degrades the control just as much as
-the site, so dividing one by the other cancels the signal. In the R10
-samples the ratio is actually *higher* in the frameshifted ones (0.92)
-than in the readable ones (0.77). The two measurements are worth more
-apart than as a quotient.
+the site, so dividing one by the other cancels much of the signal. The
+two measurements are worth more apart than as a quotient.
+
+That comparison was made on an earlier build and has not been made again
+on this one. The medians of the quotient have moved since: 0.76 in the
+readable R10 samples against 0.54 in the frameshifted ones and 0.53 in
+the R9 samples, where the frameshifted R10 samples used to sit above the
+readable ones. Anyone minded to revisit the quotient should measure it
+again rather than rely on the sentence above.
 
 **The share for a supported site.** Over the same 104 samples, the number
 of sites carried by at least 2 reads and a share of the reads is:
@@ -190,18 +207,22 @@ of sites carried by at least 2 reads and a share of the reads is:
 |---|---|---|---|---|---|---|
 | 1% | 1 | 1 | 7 | 6 | 3 | 86 |
 | 5% | 1 | 30 | 53 | 17 | 3 | 0 |
-| 10% | 2 | 89 | 11 | 2 | 0 | 0 |
+| 10% | 2 | 96 | 5 | 1 | 0 | 0 |
 
 At 1% almost every sample has the five sites listed, and at 5% seven in
 ten have more than one: errors of one residue (the first residue of the
-site wrong, say) recur in the same sample at 5 to 13% of the reads. At
-10% the 13 samples with more than one site are, for 12 of them, the ones
-whose second site is the monobasic `NVPSRSSR` beside a multibasic site,
-among them 6 of the 7 samples whose majority does not read like the
-reference; the other one has a second site that is an error recurring
-in several samples (11% of its reads). The rule is a reading aid: it
-picks out the samples with a second site well enough to look at them,
-not to prove a second virus; the sites and their reads are in `sites`.
+site wrong, say) recur in the same sample at 5 to 13% of the reads. The
+rows for 1% and 5% were measured on an earlier build and have not been
+measured again; the row for 10%, which is the share the program uses,
+has.
+
+At 10% six samples have more than one site, and in all six the second
+one is an error of a single residue beside the same multibasic majority
+(`KRERRRKR` or `SKREKKKR` beside `QRERRRKR`, say), carrying 10 to 16% of
+the reads. So the rule is a reading aid and nothing more: it picks out
+the samples worth looking at, and what it picks out is as often a
+recurring read error as a second virus. The sites and their reads are in
+`sites`, and they are what decides which it is.
 
 The thresholds remain the numbers of one laboratory's runs. They are a
 starting point: a laboratory whose runs differ should look at the
@@ -209,6 +230,24 @@ support and control support its own clean samples reach before trusting
 the line between `firm` and `confirm`. Everything reported beside the
 verdict — the residues, the reads behind them, both supports, and the
 other sites found — does not depend on them.
+
+**They are not, however, fitted to those runs in the sense that matters.**
+Refitting all three on part of the samples and judging the result on the
+rest — splitting whole sequencing runs, because the errors cluster by
+run — does not beat them. On a held-out third of the runs the shipped
+numbers and numbers refitted without those runs keep the same 4 of 4
+frameshifted samples from firm and leave the same 19 of 21 others firm.
+Pooled over leave-one-run-out folds both keep 10 of 12 from firm, and the
+refitted ones leave fewer of the others firm (79 of 92 against 83).
+
+Two things that refitting does say. The three thresholds are not jointly
+identified: 1248 triples reach the same best score, because a sample can
+be held back by any of them. And the floor on the support at the site is
+fitted at zero in nearly every fold — on these samples the read count
+and the control support already do its work, and the read count would
+rather be 40 to 50 than 20. That is not a reason to change them here,
+since the numbers as they stand generalise at least as well, but it is
+what the data say about which of the three is carrying the rule.
 
 ## What other tools do
 
@@ -280,7 +319,12 @@ whether FluSurver reports the site, and whether BV-BRC annotates it.
   ships (the longest is 6 residues), but an insert longer than that, as
   some highly pathogenic H7 carry, is shown only in part. The site still
   reads as multibasic, so the verdict is unaffected; only the residues
-  printed are cut short.
+  printed are cut short. This is not hypothetical: of four public H7
+  runs read with flucut, the highly pathogenic H7N3 one carries an
+  arginine immediately before the eight residues printed, so its basic
+  region begins outside the window. It was still read as multibasic, as
+  were the other two highly pathogenic ones, and the low pathogenic one
+  as monobasic.
 - `multibasic` here means the last residue is R or K and at least four
   of the last six are: a reading aid, not the definition used by any
   authority. Other work uses other rules, for example the pattern

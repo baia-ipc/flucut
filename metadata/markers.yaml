@@ -72,12 +72,11 @@
 # those records it is not found at all, always because the peptide is
 # absent and never because its placement is ambiguous.
 #
-# Do not loosen it, and in particular do not put a class at its sixth
-# position. That position is the isoleucine which internal priming by
-# the Uni12 primer turns into a lysine (I351K, residue 6 of HA2, see
-# docs/internal-priming.md), and sequences carrying it exist. A pattern
-# which accepted a lysine there would read a cleavage site out of a
-# sequence whose fusion peptide is a primer. Refusing it is the point.
+# The sixth position is the isoleucine which internal priming by the
+# Uni12 primer turns into a lysine (I351K, residue 6 of HA2, see
+# docs/internal-priming.md); 21 of the 4484 records carry it, spelled
+# AAA, in eight subtypes. A pattern accepting a lysine there would read
+# a cleavage site from a sequence whose fusion peptide is a primer.
 
 - site: cleavage
   fusion_peptide: G..GAIAG
