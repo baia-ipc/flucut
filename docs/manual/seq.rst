@@ -93,7 +93,7 @@ Further functions:
    otherwise), which takes the time of reading it; an uncompressed or BAM
    file is read only at its start and end. This is used by programs
    which process the files of a sequencing run while they are written
-   (e.g. the real-time mode of Lumipore), together with the age of the
+   (e.g. in real-time sequencing workflows), together with the age of the
    file:
 
    .. code-block:: c

@@ -14,8 +14,8 @@ Guidelines
 output buffers (``strbuf_t``) and the compressors are allocated once
 (per thread) and reused: they keep their memory when cleared, and grow
 only when a larger record arrives. The memory usage does not depend on
-the size of the input (e.g. Lumipore uses 20–50 MB, whatever the size
-of the run).
+the size of the input, but on batch and buffer sizes and on the
+number of worker threads.
 
 **Batches.** The readers return batches of records stored in one
 buffer, which amortizes the cost of the input and of the locking in a
@@ -46,7 +46,7 @@ Link-time optimization
 
 As the library is a static library, its functions are not inlined into
 the program by default. Compiling the program and the library with
-``-flto`` (as the ``DEBUGFLAGS_NDEBUG`` of Lumipore does) allows the
+``-flto`` (e.g. in release build flags) allows the
 compiler to inline small functions of the library (e.g. those called
 for each read) into the loops of the program, as if they were in the
 same file. The vendored library is built with the ``DEBUGFLAGS`` of the

@@ -13,14 +13,14 @@ import re
 COMPONENTS = [("core", "Core"), ("ds", "Data structures"),
               ("html", "HTML reports and dashboards"),
               ("io", "File and destination I/O"),
-              ("seq", "Sequences and reads"),
-              ("nanopore", "Nanopore"),
-              ("singlecell", "Single cell"),
               ("formats/gzip", "Format: gzip"),
               ("formats/bgzf", "Format: BGZF"),
               ("formats/json", "Format: JSON"),
               ("formats/sam_bam", "Format: SAM/BAM"),
-              ("formats/fastq", "Format: FASTQ")]
+              ("formats/fastq", "Format: FASTQ"),
+              ("seq", "Sequences and reads"),
+              ("nanopore", "Nanopore"),
+              ("singlecell", "Single cell")]
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 
 def description(text):

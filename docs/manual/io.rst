@@ -94,6 +94,16 @@ downloads; not for security purposes:
    md5_update(&md5, more, more_len);
    md5_final(&md5, hex);
 
+Program configuration (``user-config.h``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``user_config_value(program, key, logger)`` reads a value from
+``$XDG_CONFIG_HOME/<program>/config`` or ``~/.config/<program>/config``.
+The file contains ``key = value`` lines; blank lines and lines without
+``=`` are ignored, text after ``#`` is a comment, and unknown keys are
+allowed so multiple tools can share the file. The returned value is in a
+static buffer, so copy it before the next call if it must be retained.
+
 .. _outfiles:
 
 Output files of several destinations (``outfiles.h``)

@@ -56,8 +56,8 @@ groups, with an option letter which is not used by the common options
 (``q v D L h V``), by ``-T`` or by another group; the option string and
 the list of the test options in the help are generated from the table.
 
-The projects have their own test program (e.g. ``bin/lp-tests`` of
-Lumipore), with the same structure.
+Programs using the library can have their own test program, with the
+same structure.
 
 Program tests
 ~~~~~~~~~~~~~
@@ -135,8 +135,7 @@ As the parsers exit the program on invalid input, ``exit()`` is wrapped
 (linker option ``--wrap=exit``) so that it returns to the harness
 (``FUZZ_RUN()`` of ``tests/fuzz/fuzz-common.h``), which closes the files
 left open; leak detection is disabled, as the memory of an interrupted
-parse is not freed. ``fuzz-common.h`` is also used by the harnesses of
-the projects, which fuzz their own parsers (e.g. the sample sheets and
-library configurations of Lumipore): they add ``tests/fuzz`` of the
-library to the include path, and define ``FUZZ_NAME`` (used in the name
-of the temporary input file).
+parse is not freed. Client projects can also use ``fuzz-common.h`` to
+fuzz their own parsers: they add the library's ``tests/fuzz`` directory
+to the include path and define ``FUZZ_NAME`` (used in the temporary
+input file name).

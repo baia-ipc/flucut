@@ -149,9 +149,8 @@ skeleton of a worker thread:
    }
 
 (the batch number is taken also when the end of the file is reached, so
-that the numbers of the batches with data are consecutive). The worker of
-Lumipore (``src/worker.c`` of its repository) follows this scheme, and
-processes about 60,000 Nanopore reads per second with 4 threads.
+that the numbers of the batches with data are consecutive). This scheme supports concurrent processing of large Nanopore read
+batches; throughput depends on the input, hardware, and work per read.
 
 Statistics are accumulated by each thread in its own counters, merged
 under the output lock; the same holds for the sketches
@@ -209,7 +208,7 @@ A two-pass analysis of single-cell reads
 
 For single-cell libraries, the barcodes are best corrected using the
 barcodes of the cells, which are not known in advance. The cell caller
-(:ref:`barcodes`) is used in a first pass over the reads, counting the
+(:ref:`singlecell`) is used in a first pass over the reads, counting the
 barcodes of the whitelist of the platform found exactly; the cells are
 then selected, and the reads are processed in a second pass, correcting
 the barcodes using the cells only. The first pass needs only the
