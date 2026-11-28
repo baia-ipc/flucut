@@ -5,19 +5,8 @@
 # needs nothing but awk, so that building flucut still needs only a C
 # compiler and make.
 #
-# Usage: awk -f scripts/primers-table.awk metadata/primers.yaml > out.h
-
-function fail(msg) {
-  print "primers-table.awk: " FILENAME " line " FNR ": " msg > "/dev/stderr"
-  exit 1
-}
-
-function cstr(s,   out) {
-  out = s
-  gsub(/\\/, "\\\\", out)
-  gsub(/"/, "\\\"", out)
-  return "\"" out "\""
-}
+# Usage: awk -f scripts/metadata-records.awk -f scripts/primers-table.awk \
+#          metadata/primers.yaml > out.h
 
 # the macro of the named sequence <s>
 function seq_macro(s,   out) {
@@ -130,35 +119,9 @@ function flush(   seq, term, at) {
   split("", f)
 }
 
-BEGIN { n_seq = 0; n_prim = 0; n_sch = 0; kind = ""; name = "" }
-
-/^[ \t]*#/ { next }
-/^[ \t]*$/ { next }
-
-{
-  line = $0
-  sub(/^- /, "  ", line)          # a record begins with "- "
-  if (line !~ /^  [a-z0-9]+: /)
-    fail("expected \"  key: value\"")
-  key = line
-  sub(/^  /, "", key)
-  sub(/:.*/, "", key)
-  value = line
-  sub(/^  [a-z0-9]+: /, "", value)
-  sub(/[ \t]+$/, "", value)
-  if ($0 ~ /^- /) {
-    flush()
-    kind = key
-    name = value
-  } else {
-    if (kind == "")
-      fail("a field before the first record")
-    f[key] = value
-  }
-}
+BEGIN { n_seq = 0; n_prim = 0; n_sch = 0 }
 
 END {
-  flush()
   if (n_prim == 0)
     fail("no primer in the file")
   print "/* Generated from metadata/primers.yaml by"

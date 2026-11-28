@@ -5,20 +5,8 @@
 # (see markers.h). Run by the Makefile; it needs nothing but awk, so
 # that building flucut still needs only a C compiler and make.
 #
-# Usage: awk -f scripts/markers-table.awk metadata/markers.yaml > out.h
-
-function fail(msg) {
-  print "markers-table.awk: " FILENAME " line " FNR ": " msg > "/dev/stderr"
-  exit 1
-}
-
-# a C string literal of <s>, which may be empty
-function cstr(s,   out) {
-  out = s
-  gsub(/\\/, "\\\\", out)
-  gsub(/"/, "\\\"", out)
-  return "\"" out "\""
-}
+# Usage: awk -f scripts/metadata-records.awk -f scripts/markers-table.awk \
+#          metadata/markers.yaml > out.h
 
 # the identifier of the marker <s>: upper case, - and . becoming _
 function ident(s,   out) {
@@ -43,7 +31,10 @@ function kind_of(s) {
 
 # the record read so far, written out
 function flush(   i) {
-  if (name == "") return
+  if (kind == "")
+    return
+  if (kind != "marker")
+    fail("unknown record \"" kind "\"")
   names[n] = name
   rows[n] = \
     "  [" ident(name) "] = {\n" \
@@ -63,40 +54,14 @@ function flush(   i) {
     "    .meaning = " cstr(f["meaning"]) ",\n" \
     "  },"
   n++
+  kind = ""
   name = ""
   split("", f)
 }
 
-BEGIN { n = 0; name = "" }
-
-/^[ \t]*#/ { next }
-/^[ \t]*$/ { next }
-
-{
-  line = $0
-  sub(/^- /, "  ", line)          # a record begins with "- "
-  if ($0 ~ /^- /) flush()
-  if (line !~ /^  [a-z0-9]+: /) fail("expected \"  key: value\"")
-  key = line
-  sub(/^  /, "", key)
-  sub(/:.*/, "", key)
-  value = line
-  sub(/^  [a-z0-9]+: /, "", value)
-  sub(/[ \t]+$/, "", value)
-  # a value may be quoted, for one which YAML would read otherwise
-  if (value ~ /^".*"$/) {
-    value = substr(value, 2, length(value) - 2)
-  }
-  if (key == "name") {
-    name = value
-  } else {
-    if (name == "") fail("a field before the first name")
-    f[key] = value
-  }
-}
+BEGIN { n = 0 }
 
 END {
-  flush()
   if (n == 0) fail("no marker in the file")
   print "/* Generated from metadata/markers.yaml by scripts/markers-table.awk."
   print "   Do not edit: edit the metadata file. */"

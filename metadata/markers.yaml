@@ -11,9 +11,10 @@
 # position is found in the sequence itself. Clades and genotypes are
 # therefore not here.
 #
-# Fields
-#   name         in the reports, and the name of its column of
-#                summary.tsv (lower case, - becoming _)
+# Each record is a line "- marker: <name>", the name used in the
+# reports and, lower case with - becoming _, the name of its column of
+# summary.tsv, followed by its fields:
+#
 #   protein      the protein the position belongs to
 #   segment      1 to 8
 #   kind         residues     the residues of the window
@@ -48,7 +49,7 @@
 #
 # Avoid ": " and "#" in the values.
 
-- name: PB2-627
+- marker: PB2-627
   protein: PB2
   segment: 1
   kind: residues
@@ -62,7 +63,7 @@
   numbering: PB2, counted from the initiator methionine
   meaning: lysine replicates in mammalian cells at their temperature; glutamate is the avian residue
 
-- name: PB2-701
+- marker: PB2-701
   protein: PB2
   segment: 1
   kind: residues
@@ -76,7 +77,7 @@
   numbering: PB2, counted from the initiator methionine
   meaning: asparagine adapts the polymerase to mammals, as 627K does and without it
 
-- name: PA-38
+- marker: PA-38
   protein: PA
   segment: 3
   kind: residues
@@ -90,7 +91,7 @@
   numbering: PA, counted from the initiator methionine
   meaning: threonine lowers the susceptibility to baloxavir
 
-- name: NA-275
+- marker: NA-275
   protein: NA
   segment: 6
   kind: residues
@@ -104,7 +105,7 @@
   numbering: N1 numbering (274 in N2 numbering)
   meaning: tyrosine lowers the susceptibility to oseltamivir in the N1 neuraminidases
 
-- name: HA-226-228
+- marker: HA-226-228
   protein: HA
   segment: 4
   kind: residues
@@ -117,7 +118,7 @@
   numbering: H3 numbering of the mature HA1
   meaning: leucine at 226 with serine at 228 binds the receptors of the human airway; glutamine with glycine binds the avian ones
 
-- name: M2-31
+- marker: M2-31
   protein: M2
   segment: 7
   kind: residues
@@ -131,7 +132,7 @@
   numbering: M2, counted from the initiator methionine
   meaning: asparagine resists amantadine and rimantadine, and is the residue of most viruses now circulating
 
-- name: NA-stalk
+- marker: NA-stalk
   protein: NA
   segment: 6
   kind: span
@@ -145,7 +146,7 @@
   numbering: bases from the start of NA to its conserved HxNxT peptide, compared with the reference
   meaning: a shorter stretch is a deletion in the stalk, which poultry-adapted viruses carry
 
-- name: NS1-tail
+- marker: NS1-tail
   protein: NS1
   segment: 8
   kind: to_stop
@@ -157,7 +158,7 @@
   numbering: the residues before the stop codon after the conserved GxPxLPP peptide
   meaning: the last four residues are the PDZ-binding motif, and a stop before them is the truncated C-terminus of the viruses circulating in humans
 
-- name: PB1-F2
+- marker: PB1-F2
   protein: PB1-F2
   segment: 2
   kind: frame_length

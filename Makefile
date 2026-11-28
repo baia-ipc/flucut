@@ -98,22 +98,30 @@ $(OBJDIR)/%-html.inc: %.html $(CBAIA_EMBED) | $(OBJDIR)
 	$(CBAIA_EMBED) $< > $@
 $(OBJDIR)/html-report.o $(OBJDIR)/html-report-run.o: | $(TEMPLATE_INCS)
 
+# the tables flucut is built with come from the metadata directory,
+# each file read by the shared reader and written out by a script of
+# its own; awk only, so that building flucut still needs nothing but a
+# C compiler and make
+METADATA_AWK = scripts/metadata-records.awk
+
 # the table of the markers: metadata/markers.yaml gives a header with their
 # names, their number and the table (see markers.h). It is written with
 # awk, so that building flucut still needs only a C compiler and make;
 # every object may include markers.h, so all of them wait for it (after
 # the first build the header dependency tracking knows which do)
 MARKERS_INC = $(OBJDIR)/markers-table.h
-$(MARKERS_INC): metadata/markers.yaml scripts/markers-table.awk | $(OBJDIR)
-	awk -f scripts/markers-table.awk $< > $@
+$(MARKERS_INC): metadata/markers.yaml $(METADATA_AWK) \
+                scripts/markers-table.awk | $(OBJDIR)
+	awk -f scripts/metadata-records.awk -f scripts/markers-table.awk $< > $@
 $(OBJS): | $(MARKERS_INC)
 
 # the primers and the schemes, from metadata/primers.yaml, in the same
 # way: the conserved termini and the tails as macros, the tables for
 # primers.c and scheme.c (see primers.h)
 PRIMERS_INC = $(OBJDIR)/primers-table.h
-$(PRIMERS_INC): metadata/primers.yaml scripts/primers-table.awk | $(OBJDIR)
-	awk -f scripts/primers-table.awk $< > $@
+$(PRIMERS_INC): metadata/primers.yaml $(METADATA_AWK) \
+                scripts/primers-table.awk | $(OBJDIR)
+	awk -f scripts/metadata-records.awk -f scripts/primers-table.awk $< > $@
 $(OBJS): | $(PRIMERS_INC)
 
 # the banner shown in a terminal (docs/logo/flucut-banner.ans), embedded
