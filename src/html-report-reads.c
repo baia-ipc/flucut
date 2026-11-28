@@ -6,7 +6,7 @@
 #include "html-report-markup.h"
 #include "html-report-reads.h"
 #include "html-report-sample.h"
-#include "html-report-svg.h"
+#include "svg-writer.h"
 #include "numutils.h"
 
 /* a row of the table: a name and the texts of the two sets of reads */

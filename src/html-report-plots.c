@@ -8,7 +8,7 @@
 #include "html-page.h"
 #include "html-report-markup.h"
 #include "html-report-plots.h"
-#include "html-report-svg.h"
+#include "svg-writer.h"
 #include "segments.h"
 #include "strbuf.h"
 
