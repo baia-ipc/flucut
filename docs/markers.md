@@ -180,9 +180,20 @@ them.
 
 Beside them the residues the reads carry where the anchor matched are
 reported, with those of the reference. One residue of difference is a
-strain difference and means nothing; a value which shares nothing with
-the reference means the anchor matched somewhere else in those reads,
-and the value beside it is not the position it is named after.
+strain difference and means nothing.
+
+A read which shares no residue at all with the anchor of the reference
+gives no value. The anchor is conserved, so a read which matched it
+carries nearly all of it; a read which shares none of it matched bases
+which translate to something else, because the read has an insertion or
+a deletion there and the match is read a base out of frame, or because
+the match is not of the anchor. Whatever lies beside such a match is
+not the position the marker names. The residues that read carries are
+still counted, so the disagreement stays visible in the report.
+
+The test is made on each read, not on the sample: a sample can hold
+both kinds of read at once, and the ones which carry the anchor still
+give their value.
 
 | verdict | meaning |
 |---|---|
@@ -274,8 +285,8 @@ one and picks the other.
 
 | marker | samples with a value | the values | `firm` | `confirm` | `unresolved` | too few reads |
 |---|---|---|---|---|---|---|
-| `PB2-627` | 97 | E 50, K 47 | 73 | 24 | – | 7 |
-| `PB2-701` | 104 | D 103, K 1 | 93 | 11 | – | – |
+| `PB2-627` | 97 | E 50, K 47 | 74 | 23 | – | 7 |
+| `PB2-701` | 104 | D 104 | 93 | 11 | – | – |
 | `PA-38` | 103 | I 103 | 98 | 5 | – | 1 |
 | `NA-275` | 99 | H 99 | 93 | 6 | – | 5 |
 | `HA-226-228` | 100 | QSG 77, QRG 22, LMG 1 | 98 | 2 | – | 4 |
@@ -290,22 +301,14 @@ avian PDZ-binding motif ESEV. PB2 627 is lysine in about half of them,
 which the consensus of the same reads confirms in 87 of the 88 samples
 where both could be read.
 
-The one lysine at PB2 701 is not one: in that sample the anchor matched
-somewhere else, which the residues reported beside the value say
-plainly. The reads carry `TEDTDQH*` where the anchor matched and the
-reference has `KRYGPALS` there; the two share nothing, so the residue
-beside the match is not position 701. It is the case the anchor
-residues are reported for. The same sample has one read at `PA-38` and
-none at `NA-275`, so its segment 1 is barely covered.
-
 ### What a consensus does not show
 
-In 47 cases a residue is carried by at least a tenth of the reads and
-is not the one in the consensus of those same reads: 31 at PB2 627, 6
-at the receptor-binding site, 5 each at PB2 701 and M2 31. The clearest
-are at M2 31, where the reads are many: asparagine in 41% of 55,769
-reads in one sample, in 35% of 41,806 in another, in 17% of 7,140 and
-15% of 12,874 in two more, with serine in the consensus of each. Those
+In 43 cases a residue is carried by at least a tenth of the reads and
+is not the one in the consensus of those same reads: 30 at PB2 627, 6
+at the receptor-binding site, 5 at M2 31 and 2 at PB2 701. The clearest
+are at M2 31, where the reads are many: asparagine in 41% of 55,723
+reads in one sample, in 35% of 41,774 in another, in 17% of 7,130 and
+15% of 12,865 in two more, with serine in the consensus of each. Those
 samples hold two M segments, one of which resists the adamantanes;
 reading the position off the consensus alone shows only the other.
 
@@ -340,6 +343,30 @@ internal priming site takes away. The read counts reported say so.
 `NA-stalk` suffers most, because it needs both of its anchors, some 430
 bases apart, in one read: 72 of the 104 samples have too few such reads
 for any value.
+
+### What a read out of frame at the anchor removes
+
+Refusing a read which shares no residue with the anchor changed one
+reported value in the 104 samples: at PB2 701 in one sample, from K to
+D. There 178 of its 204 reads carried `TEDTDQH*` where the anchor
+matched and the reference has `KRYGPALS` — the same bases read one base
+out of frame — and the 26 reads which carried the anchor gave D, as
+every other sample and every reference do. One further verdict went
+from `confirm` to `firm`, and four of the minority residues above
+disappeared.
+
+It costs few reads: the median number of reads giving a marker falls by
+at most 2% (`PB2-701` 1.8%, `NS1-tail` 2.0%, the others less). The
+exception is a strain whose own anchor differs: in two samples the NS1
+of the virus shares no residue with the anchor of any built-in
+reference, so 96% of their reads are refused at `NS1-tail`. Both still
+report ESEV* as `firm`, from 2,402 and 4,511 reads instead of 75,485
+and 103,119.
+
+The margin is wide enough for a strain difference: between any two
+built-in references of the same marker the fewest shared of these eight
+residues is two (the receptor-binding anchor, between the most distant
+subtypes).
 
 ### What the kept part of a read removes
 

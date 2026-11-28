@@ -136,6 +136,16 @@ conserved terminus ``AGCAAAAGCAGG`` ends in ``AAA``, a lysine, so a
 marker whose window is the codon before its anchor would read K on
 every read primed just before it.
 
+A read must also carry the anchor itself. The residues it has where the
+anchor matched are compared with those of the reference, and a read
+which shares none of them gives no value: either it has an insertion or
+a deletion there, so the match is read a base out of frame, or the
+match is not of the anchor at all. Either way what lies beside it is
+not the position the marker names. The comparison is made read by read,
+so the reads of the same sample which do carry the anchor still give
+their value, and the residues of the refused reads are still counted
+and shown in the report.
+
 How much to trust a value
 -------------------------
 
@@ -183,9 +193,9 @@ samples that disagreement is a median of 14% of the reads on R10 and
 39% on R9.
 
 This is where reading the reads differs from reading a consensus. On
-those samples 47 residues are carried by at least a tenth of the reads
+those samples 43 residues are carried by at least a tenth of the reads
 and are not the one in the consensus of the same reads — in four
-samples the amantadine residue M2 31N, in 41% of 55,769 reads in one of
+samples the amantadine residue M2 31N, in 41% of 55,723 reads in one of
 them, where the consensus shows only serine.
 
 ``PB1-F2`` and ``NA-stalk`` are read over far more than one codon, so

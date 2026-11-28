@@ -189,12 +189,12 @@ reads-two-subtypes	NC_004908.1	1700	9
         "numbering": "H3 numbering of the mature HA1",
         "meaning": "leucine at 226 with serine at 228 binds the receptors of the human airway; glutamine with glycine binds the avian ones",
         "reads_searched": 15,
-        "reads": 12,
-        "distinct_values": 2,
-        "supported_values": 2,
+        "reads": 8,
+        "distinct_values": 1,
+        "supported_values": 1,
         "value": "LQG",
         "value_reads": 8,
-        "support": 0.6667,
+        "support": 1.0000,
         "reference_value": "LQG",
         "differs_from_reference": false,
         "anchor_reads": 12,
@@ -204,11 +204,10 @@ reads-two-subtypes	NC_004908.1	1700	9
         "reference_anchor_residues": "RIDYYWSV",
         "anchor_differs_from_reference": false,
         "attention": true,
-        "attention_share": 0.6667,
+        "attention_share": 1.0000,
         "verdict": "too few reads",
         "values": [
-          {"value": "LQG", "reads": 8, "share": 0.6667, "attention": true},
-          {"value": "SAG", "reads": 4, "share": 0.3333, "attention": false}
+          {"value": "LQG", "reads": 8, "share": 1.0000, "attention": true}
         ]
       }
     ],
@@ -325,12 +324,12 @@ reads-two-subtypes	NC_004908.1	1700	9
           "numbering": "H3 numbering of the mature HA1",
           "meaning": "leucine at 226 with serine at 228 binds the receptors of the human airway; glutamine with glycine binds the avian ones",
           "reads_searched": 15,
-          "reads": 12,
-          "distinct_values": 2,
-          "supported_values": 2,
+          "reads": 8,
+          "distinct_values": 1,
+          "supported_values": 1,
           "value": "LQG",
           "value_reads": 8,
-          "support": 0.6667,
+          "support": 1.0000,
           "reference_value": "LQG",
           "differs_from_reference": false,
           "anchor_reads": 12,
@@ -340,11 +339,10 @@ reads-two-subtypes	NC_004908.1	1700	9
           "reference_anchor_residues": "RIDYYWSV",
           "anchor_differs_from_reference": false,
           "attention": true,
-          "attention_share": 0.6667,
+          "attention_share": 1.0000,
           "verdict": "too few reads",
           "values": [
-            {"value": "LQG", "reads": 8, "share": 0.6667, "attention": true},
-            {"value": "SAG", "reads": 4, "share": 0.3333, "attention": false}
+            {"value": "LQG", "reads": 8, "share": 1.0000, "attention": true}
           ]
         }
       ],

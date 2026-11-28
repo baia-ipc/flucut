@@ -98,6 +98,31 @@ static bool window_whole(const anchor_hit_t *hit, size_t len,
   return unbroken(breaks, from, to);
 }
 
+/*
+   Whether the residues <read_aa> a read carries where the anchor
+   matched and the residues <reference_aa> of the anchor in the
+   reference have the same residue anywhere. The anchor is conserved, so
+   a read which matched it carries almost all of it; a read which shares
+   not one residue with it matched bases which translate to something
+   else, because the match is in another frame or is not of the anchor.
+   What lies beside such a match is not the position the marker names,
+   so the read gives no value - the residues it carries at the anchor
+   are still counted, because they are the evidence of it.
+
+   Between two references of the same marker in the built-in set the
+   fewest shared of these residues is two of eight (the
+   receptor-binding anchor, between the most distant subtypes), so a
+   strain difference does not reach none.
+*/
+static bool anchor_agrees(const char *read_aa, const char *reference_aa) {
+  if (read_aa[0] == '\0' || reference_aa[0] == '\0')
+    return true;
+  for (size_t i = 0; read_aa[i] != '\0' && reference_aa[i] != '\0'; i++)
+    if (read_aa[i] == reference_aa[i])
+      return true;
+  return false;
+}
+
 /* read one marker out of a read */
 static void read_marker(const marker_reference_t *site, size_t marker,
     const char *read, size_t len, const marker_breaks_t *breaks,
@@ -118,6 +143,8 @@ static void read_marker(const marker_reference_t *site, size_t marker,
     char aa[MARKER_ANCHOR_AA + 1];
     codons_translate(nt, MARKER_ANCHOR_NT, aa);
     marker_counts_add_anchor(counts, marker, aa);
+    if (!anchor_agrees(aa, site->anchor_aa))
+      return;
   }
   if (def->kind == MARKER_SPAN) {
     anchor_hit_t hit2;
